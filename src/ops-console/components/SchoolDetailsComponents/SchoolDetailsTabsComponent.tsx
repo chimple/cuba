@@ -22,7 +22,6 @@ interface SchoolDetailsTabsComponentProps {
   refreshClasses?: () => void;
   goToClassesTab?: boolean;
   onTabChange?: (tab: SchoolTabs) => void;
-  onLoadTabData?: (tab: SchoolTabs) => void;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
@@ -32,7 +31,6 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   refreshClasses,
   goToClassesTab,
   onTabChange,
-  onLoadTabData,
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
@@ -57,10 +55,6 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   useEffect(() => {
     if (onTabChange) onTabChange(activeTab);
   }, [activeTab, onTabChange]);
-
-  useEffect(() => {
-    onLoadTabData?.(activeTab);
-  }, [activeTab, onLoadTabData]);
 
   return (
     <div className="school-detail-role-tabs-wrapper">

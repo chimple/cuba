@@ -22,22 +22,9 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  border: none;
-  background: transparent;
-  padding: 0;
-  font: inherit;
   color: var(--campaign-muted);
   font-size: 0.8125rem;
   font-weight: 500;
-  text-align: left;
-}
-
-.campaign-setup-stepper-step:disabled {
-  cursor: default;
-}
-
-.campaign-setup-stepper-step-complete {
-  cursor: pointer;
 }
 
 .campaign-setup-stepper-step span {

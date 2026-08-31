@@ -8,27 +8,20 @@ import React, {
 import { Button, Divider, ListItemText, Menu, MenuItem } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { t } from 'i18next';
-import { DATE_RANGE_OPTIONS } from '../pages/SchoolList.helpers';
+import {
+  DATE_RANGE_OPTIONS,
+  type DateRangeValue,
+} from '../pages/SchoolList.helpers';
 
-type DropdownOption<T extends string> = {
-  label: string;
-  value: T;
-};
-
-type SchoolListDateRangeDropdownProps<T extends string> = {
-  value: T;
-  onChange: (nextValue: T) => void;
-  options?: readonly DropdownOption<T>[];
+type SchoolListDateRangeDropdownProps = {
+  value: DateRangeValue;
+  onChange: (nextValue: DateRangeValue) => void;
 };
 
 // Small self-contained control so the SchoolList page stays easy to scan.
-const SchoolListDateRangeDropdown = <T extends string>({
-  value,
-  onChange,
-  options,
-}: SchoolListDateRangeDropdownProps<T>) => {
-  const resolvedOptions = (options ??
-    DATE_RANGE_OPTIONS) as readonly DropdownOption<T>[];
+const SchoolListDateRangeDropdown: React.FC<
+  SchoolListDateRangeDropdownProps
+> = ({ value, onChange }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isCloseShine, setIsCloseShine] = useState(false);
   const closeShineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -40,8 +33,8 @@ const SchoolListDateRangeDropdown = <T extends string>({
   const open = Boolean(anchorEl);
 
   const selectedLabel = useMemo(
-    () => resolvedOptions.find((option) => option.value === value)?.label,
-    [resolvedOptions, value],
+    () => DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label,
+    [value],
   );
 
   const triggerCloseShine = useCallback(() => {
@@ -83,7 +76,7 @@ const SchoolListDateRangeDropdown = <T extends string>({
     };
   }, []);
 
-  const handleSelect = (nextValue: T) => {
+  const handleSelect = (nextValue: DateRangeValue) => {
     handleClose();
     onChange(nextValue);
   };
@@ -126,7 +119,7 @@ const SchoolListDateRangeDropdown = <T extends string>({
         PaperProps={{ className: 'school-list-actions-menu' }}
         slotProps={{ list: { disablePadding: true } }}
       >
-        {resolvedOptions.flatMap((option, index) => {
+        {DATE_RANGE_OPTIONS.flatMap((option, index) => {
           const nodes = [
             <MenuItem
               key={option.value}
@@ -142,7 +135,7 @@ const SchoolListDateRangeDropdown = <T extends string>({
             </MenuItem>,
           ];
 
-          if (index < resolvedOptions.length - 1) {
+          if (index < DATE_RANGE_OPTIONS.length - 1) {
             nodes.push(
               <Divider
                 key={`${option.value}-divider`}

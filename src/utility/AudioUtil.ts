@@ -6,22 +6,22 @@ import { LANGUAGE, TableTypes } from '../common/constants';
 import logger from './logger';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import CryptoJS from 'crypto-js';
 import { store } from '../redux/store';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
-import {
-  blobToBase64,
-  COMMON_AUDIO_CACHE_DIR,
-  getCommonAudioCachePath,
-  isInterruptedAudioPlaybackError,
-  isRemoteAudioUrl,
-  normalizeAudioLanguageCode,
-  resolveTtsLanguage,
-  TTS_RESTART_DELAY_MS,
-  wait,
-} from './audioUtilHelpers';
 
 export class AudioUtil {
+  private static readonly SUPPORTED_AUDIO_LANGUAGE_CODES = [
+    'en',
+    'hi',
+    'mr',
+    'kn',
+    'pt',
+  ] as const;
+
+  // Runtime-downloaded popup audio is stored in device app storage.
+  private static readonly COMMON_AUDIO_CACHE_DIR = 'commonAudioCache';
   // Reuses resolved local file URIs after the first lookup.
   private static cachedAudioUrlMap = new Map<string, string>();
   // Deduplicates concurrent requests for the same remote audio URL.
@@ -37,6 +37,70 @@ export class AudioUtil {
   private static audioPlaybackRequestId = 0;
   // Called when active playback is force-stopped/interrupted by another request.
   private static activePlaybackOnStop: (() => void) | null = null;
+  private static readonly TTS_RESTART_DELAY_MS = 80;
+
+  private static getAudioCacheFileName(audioUrl: string): string {
+    const fallbackExtension = 'mp3';
+
+    try {
+      const parsedUrl = new URL(audioUrl);
+      const extension =
+        parsedUrl.pathname.split('.').pop()?.toLowerCase() ?? fallbackExtension;
+      const sanitizedExtension = extension.replace(/[^a-z0-9]/g, '');
+
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${
+        sanitizedExtension || fallbackExtension
+      }`;
+    } catch {
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${fallbackExtension}`;
+    }
+  }
+
+  private static getCommonAudioCachePath(audioUrl: string): string {
+    return `${AudioUtil.COMMON_AUDIO_CACHE_DIR}/${AudioUtil.getAudioCacheFileName(audioUrl)}`;
+  }
+
+  private static isRemoteAudioUrl(audioUrl: string): boolean {
+    return /^https?:\/\//i.test(audioUrl);
+  }
+
+  private static normalizeAudioLanguageCode(
+    languageCode?: string | null,
+  ): string {
+    const baseLanguage = languageCode?.trim().toLowerCase().split('-')[0];
+
+    return AudioUtil.SUPPORTED_AUDIO_LANGUAGE_CODES.includes(
+      baseLanguage as (typeof AudioUtil.SUPPORTED_AUDIO_LANGUAGE_CODES)[number],
+    )
+      ? baseLanguage!
+      : 'en';
+  }
+
+  private static resolveTtsLanguage(languageCode?: string | null): string {
+    const normalizedLanguage =
+      (
+        languageCode ||
+        localStorage.getItem(LANGUAGE) ||
+        navigator.language ||
+        'en'
+      )
+        .trim()
+        .toLowerCase() || 'en';
+
+    if (normalizedLanguage.includes('-')) {
+      return normalizedLanguage;
+    }
+
+    const ttsLocaleMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      kn: 'kn-IN',
+      mr: 'mr-IN',
+      pt: 'pt-PT',
+    };
+
+    return ttsLocaleMap[normalizedLanguage] || `${normalizedLanguage}-IN`;
+  }
 
   private static async withAudioPlaybackLock<T>(
     callback: () => Promise<T>,
@@ -61,10 +125,47 @@ export class AudioUtil {
     return requestId === AudioUtil.audioPlaybackRequestId;
   }
 
+  private static async blobToBase64(data: string | Blob): Promise<string> {
+    if (typeof data === 'string') {
+      return data;
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result?.toString() ?? '';
+        resolve(result.split(',')[1] || '');
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(data);
+    });
+  }
+
+  private static wait(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, ms);
+    });
+  }
+
   private static releaseTrackedAudioPlayer(audio: HTMLAudioElement): void {
     if (AudioUtil.activeCommonAudioPlayer === audio) {
       AudioUtil.activeCommonAudioPlayer = null;
     }
+  }
+
+  private static isInterruptedAudioPlaybackError(error: unknown): boolean {
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : '';
+
+    const normalizedMessage = message.toLowerCase();
+    return (
+      normalizedMessage.includes('interrupted by a call to pause') ||
+      normalizedMessage.includes('the play() request was interrupted')
+    );
   }
 
   private static stopAndResetAudio(audio: HTMLAudioElement): void {
@@ -132,7 +233,7 @@ export class AudioUtil {
     }
 
     try {
-      await wait(TTS_RESTART_DELAY_MS);
+      await AudioUtil.wait(AudioUtil.TTS_RESTART_DELAY_MS);
 
       if (!AudioUtil.isActiveAudioPlaybackRequest(requestId)) {
         return false;
@@ -141,7 +242,7 @@ export class AudioUtil {
       // Text is only spoken when no playable audio URL is available.
       await TextToSpeech.speak({
         text: normalizedText,
-        lang: resolveTtsLanguage(languageCode),
+        lang: AudioUtil.resolveTtsLanguage(languageCode),
         rate,
         pitch,
         volume,
@@ -196,7 +297,7 @@ export class AudioUtil {
 
     return typeof response.data === 'string'
       ? response.data
-      : await blobToBase64(response.data as Blob);
+      : await AudioUtil.blobToBase64(response.data as Blob);
   }
 
   private static async triggerOnComplete({
@@ -213,7 +314,7 @@ export class AudioUtil {
     }
 
     if (delayMs > 0) {
-      await wait(delayMs);
+      await AudioUtil.wait(delayMs);
     }
 
     if (AudioUtil.isActiveAudioPlaybackRequest(requestId)) {
@@ -240,7 +341,7 @@ export class AudioUtil {
 
     if (
       !Capacitor.isNativePlatform() ||
-      !isRemoteAudioUrl(normalizedAudioUrl)
+      !AudioUtil.isRemoteAudioUrl(normalizedAudioUrl)
     ) {
       return normalizedAudioUrl;
     }
@@ -257,7 +358,7 @@ export class AudioUtil {
     }
 
     const downloadPromise = (async () => {
-      const path = getCommonAudioCachePath(normalizedAudioUrl);
+      const path = AudioUtil.getCommonAudioCachePath(normalizedAudioUrl);
 
       try {
         // Reuse the local copy if this URL was already downloaded earlier.
@@ -268,7 +369,7 @@ export class AudioUtil {
       } catch {
         try {
           await Filesystem.mkdir({
-            path: COMMON_AUDIO_CACHE_DIR,
+            path: AudioUtil.COMMON_AUDIO_CACHE_DIR,
             directory: Directory.Data,
             recursive: true,
           });
@@ -357,7 +458,7 @@ export class AudioUtil {
       }
 
       if (delayMs > 0) {
-        await wait(delayMs);
+        await AudioUtil.wait(delayMs);
       }
 
       if (!AudioUtil.isActiveAudioPlaybackRequest(requestId)) {
@@ -409,7 +510,7 @@ export class AudioUtil {
 
           didFallbackToTts = true;
 
-          if (isInterruptedAudioPlaybackError(error)) {
+          if (AudioUtil.isInterruptedAudioPlaybackError(error)) {
             logger.warn(
               '[CommonAudio] Audio playback was interrupted by a newer request',
               error,
@@ -493,7 +594,7 @@ export class AudioUtil {
       const selectedLanguage = localStorage.getItem(LANGUAGE);
 
       if (selectedLanguage) {
-        return normalizeAudioLanguageCode(selectedLanguage);
+        return AudioUtil.normalizeAudioLanguageCode(selectedLanguage);
       }
 
       const user = store.getState()?.auth?.user as TableTypes<'user'>;
@@ -503,11 +604,11 @@ export class AudioUtil {
       if (languageId && apiHandler) {
         const language = await apiHandler.getLanguageWithId(languageId);
         if (language?.code) {
-          return normalizeAudioLanguageCode(language.code);
+          return AudioUtil.normalizeAudioLanguageCode(language.code);
         }
       }
 
-      return normalizeAudioLanguageCode(navigator.language);
+      return AudioUtil.normalizeAudioLanguageCode(navigator.language);
     } catch (e) {
       logger.error('Error in fetching language code', e);
       return 'en';

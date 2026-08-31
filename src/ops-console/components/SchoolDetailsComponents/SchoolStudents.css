@@ -67,10 +67,6 @@
   background-color: #f5f5f5 !important;
 }
 
-.schoolStudents-exportButton.MuiButton-root .MuiButton-startIcon {
-  margin-right: 0 !important;
-}
-
 .schoolStudents-newStudentButton-outlined-icon.MuiSvgIcon-root {
   color: #1976d2 !important;
   margin-right: 0.5rem !important;

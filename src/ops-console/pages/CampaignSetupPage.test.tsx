@@ -51,7 +51,6 @@ const mockApiHandler = {
   launchCampaign: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
   getParentWhatsappClassesBySchoolId: jest.fn(),
-  getCampaignParentsInGroupBySchoolIds: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
 };
 const mockAuthHandler = {
@@ -154,7 +153,6 @@ const setupApiMocks = () => {
     ],
   });
   mockApiHandler.getParentWhatsappClassesBySchoolId.mockResolvedValue([]);
-  mockApiHandler.getCampaignParentsInGroupBySchoolIds.mockResolvedValue(0);
   mockApiHandler.getParentWhatsappParentPhonesByClassId.mockResolvedValue([]);
 };
 
@@ -651,7 +649,6 @@ describe('CampaignSetupPage', () => {
 
     expect(await screen.findByText('Students:')).toBeInTheDocument();
     expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
-    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -661,13 +658,6 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(mockApiHandler.getCampaignAssignmentOptions).toHaveBeenCalledWith({
-        programId: 'program-1',
-        schoolIds: ['school-1'],
-        gradeIds: ['grade-1'],
-      }),
-    );
     expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
@@ -720,12 +710,6 @@ describe('CampaignSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     await completeSetupStep();
-    expect(
-      mockApiHandler.getParentWhatsappClassesBySchoolId,
-    ).not.toHaveBeenCalled();
-    expect(
-      mockApiHandler.getCampaignParentsInGroupBySchoolIds,
-    ).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
@@ -799,14 +783,6 @@ describe('CampaignSetupPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
     ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(
-        mockApiHandler.getParentWhatsappClassesBySchoolId,
-      ).toHaveBeenCalledTimes(1),
-    );
-    expect(
-      mockApiHandler.getCampaignParentsInGroupBySchoolIds,
-    ).toHaveBeenCalledTimes(1);
   });
 
   it('requires at least one configured communication day before proceeding to summary', async () => {
@@ -879,7 +855,6 @@ describe('CampaignSetupPage', () => {
     });
     await openSelectAndChoose('Select Program', 'Early Learning');
     expect(await screen.findByText('Students:')).toBeInTheDocument();
-    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -920,7 +895,6 @@ describe('CampaignSetupPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
     ).toBeInTheDocument();
-    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
     expect(
       screen.queryByText(
         'No campaign days are available yet. Complete assignment setup to generate the communication schedule.',
@@ -1018,54 +992,6 @@ describe('CampaignSetupPage', () => {
     await waitFor(() =>
       expect(
         screen.queryByText('all blocks under selected program are included.'),
-      ).not.toBeInTheDocument(),
-    );
-  });
-
-  it('restores all target audience options with Select All', async () => {
-    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
-      blocks: ['Block A', 'Block B'],
-      schools: [
-        { id: 'school-1', name: 'School One', block: 'Block A' },
-        { id: 'school-2', name: 'School Two', block: 'Block B' },
-      ],
-      grades: [{ id: 'grade-1', name: 'Grade 1' }],
-    });
-
-    render(<CampaignSetupPage />);
-
-    await screen.findByRole('heading', { name: 'New Campaign' });
-    await openSelectAndChoose('Select Program', 'Early Learning');
-
-    const blockField = screen
-      .getByText('Block')
-      .closest('.campaign-setup-field') as HTMLElement;
-    fireEvent.mouseDown(within(blockField).getByRole('combobox'));
-    fireEvent.click(await screen.findByRole('option', { name: 'Block A' }));
-    expect(
-      await screen.findByRole('option', { name: 'Select All' }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('option', { name: 'Select All' }));
-
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('option', { name: 'Select All' }),
-      ).not.toBeInTheDocument(),
-    );
-
-    const schoolField = screen
-      .getByText('School')
-      .closest('.campaign-setup-field') as HTMLElement;
-    fireEvent.mouseDown(within(schoolField).getByRole('combobox'));
-    fireEvent.click(await screen.findByRole('option', { name: 'School One' }));
-    expect(
-      await screen.findByRole('option', { name: 'Select All' }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('option', { name: 'Select All' }));
-
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('option', { name: 'Select All' }),
       ).not.toBeInTheDocument(),
     );
   });
@@ -1201,32 +1127,6 @@ describe('CampaignSetupPage', () => {
 
     expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('navigates backward through completed step headers only', async () => {
-    mockAssignmentComplete = true;
-    render(<CampaignSetupPage />);
-
-    await screen.findByRole('heading', { name: 'New Campaign' });
-    await completeSetupStep();
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await screen.findByText('Rewards Configuration');
-
-    const stepper = getCampaignStepper();
-    const [setupStep, assignmentsStep, rewardsStep, messagingStep] =
-      within(stepper).getAllByRole('button');
-    expect(setupStep).toBeEnabled();
-    expect(assignmentsStep).toBeEnabled();
-    expect(rewardsStep).toBeDisabled();
-    expect(messagingStep).toBeDisabled();
-
-    fireEvent.click(screen.getByText('Back'));
-    expect(
-      await screen.findByText('Assignment Configuration'),
-    ).toBeInTheDocument();
-
-    fireEvent.click(setupStep);
-    expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
   });
 
   it('builds rewards payload in the next-step format', () => {

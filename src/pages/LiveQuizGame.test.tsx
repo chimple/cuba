@@ -36,7 +36,9 @@ jest.mock('../common/onlineOfflineErrorMessageHandler', () => ({
 }));
 
 jest.mock('@growthbook/growthbook-react', () => ({
-  useFeatureValue: () => ({ enabled: true }),
+  useGrowthBook: () => ({
+    getFeatureValue: jest.fn(() => ({ enabled: true })),
+  }),
 }));
 
 jest.mock('../components/GenericPopUp/GenericPopUpManager', () => ({
@@ -370,14 +372,9 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith({
-        pathname: '/home',
-        search: '',
-        hash: '',
-        state: {
-          ...mockState,
-          fromLiveQuiz: true,
-        },
+      expect(mockReplace).toHaveBeenCalledWith('/home', {
+        ...mockState,
+        fromLiveQuiz: true,
       });
     });
   });
@@ -397,15 +394,13 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith({
-        pathname: '/home',
-        search: '?tab=ASSIGNMENT&isReload=true',
-        hash: '',
-        state: {
+      expect(mockReplace).toHaveBeenCalledWith(
+        '/home?tab=ASSIGNMENT&isReload=true',
+        {
           ...mockState,
           fromLiveQuiz: true,
         },
-      });
+      );
     });
   });
 
@@ -424,14 +419,9 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith({
-        pathname: '/home',
-        search: '?isReload=true',
-        hash: '',
-        state: {
-          ...mockState,
-          fromLiveQuiz: true,
-        },
+      expect(mockReplace).toHaveBeenCalledWith('/home?isReload=true', {
+        ...mockState,
+        fromLiveQuiz: true,
       });
     });
   });
@@ -450,14 +440,9 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith({
-        pathname: PAGES.HOME,
-        search: '',
-        hash: '',
-        state: {
-          ...mockState,
-          fromLiveQuiz: true,
-        },
+      expect(mockReplace).toHaveBeenCalledWith(PAGES.HOME, {
+        ...mockState,
+        fromLiveQuiz: true,
       });
     });
   });

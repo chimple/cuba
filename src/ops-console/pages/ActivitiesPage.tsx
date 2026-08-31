@@ -1,78 +1,195 @@
-import React from 'react';
-import { Box, Button, Chip, Typography } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import { parsePath } from 'history';
-import { t } from 'i18next';
-import { useHistory, useLocation } from 'react-router';
-import { PAGES } from '../../common/constants';
-import Breadcrumb from '../components/Breadcrumb';
+import React, { useEffect, useState } from 'react';
 import DataTableBody, { Column } from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
-import FilterSlider from '../components/FilterSlider';
-import SelectedFilters from '../components/SelectedFilters';
-import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import { Box, Typography, useMediaQuery, useTheme, Chip } from '@mui/material';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory, useLocation } from 'react-router';
+import Breadcrumb from '../components/Breadcrumb';
+import { t } from 'i18next';
 import {
-  useActivitiesPageData,
-  type ActivityFilters,
-} from '../hooks/useActivitiesPageData';
+  PAGES,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from '../../common/constants';
 import './ActivitiesPage.css';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import { OpsUtil } from '../OpsUtility/OpsUtil';
+import logger from '../../utility/logger';
 
-type SchoolRecord = {
-  id: string;
-  name: string;
-};
-
-type ActivitySummaryRow = {
-  date: string;
-  visitType: string;
-  f2f: number;
-  calls: number;
-  issues: number;
-  checkIn: string;
-  checkOut: string;
-  distance: string;
-  activitiesList: unknown[];
-  visitDetails: unknown[] | null;
-};
+const DEFAULT_PAGE_SIZE = 20;
 
 const ActivitiesPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
-  const school = (location.state as SchoolRecord | undefined) ?? {
-    id: '',
-    name: '',
-  };
-  const {
-    activities,
-    filterOptions,
-    filters,
-    handleApplyFilters,
-    handleCancelFilters,
-    handleDeleteFilter,
-    handleFilterChange,
-    handleCloseFilters,
-    handleOpenFilters,
-    handleSort,
-    isFilterOpen,
-    loadingData,
-    orderBy,
-    orderDir,
-    page,
-    pageCount,
-    setPage,
-    tempFilters,
-  } = useActivitiesPageData(school);
+  const school: any = location.state;
+  const api = ServiceConfig.getI().apiHandler;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const columns: Column<ActivitySummaryRow>[] = [
-    { key: 'date', label: t('Date'), sortable: true, orderBy: 'date' },
-    { key: 'visitType', label: t('Visit Type'), sortable: false },
-    { key: 'f2f', label: t('F2F- Discussions'), sortable: false },
-    { key: 'calls', label: t('Calls Made'), sortable: false },
+  const [loadingData, setLoadingData] = useState(true);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [allActivities, setAllActivities] = useState<any[]>([]);
+
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const [orderBy, setOrderBy] = useState('date');
+  const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      setLoadingData(true);
+      try {
+        const activities = await api.getActivitiesBySchoolId(school.id);
+        const grouped: Record<string, any> = {};
+
+        for (const item of activities) {
+          const date = OpsUtil.formatDateToDDMMMyyyy(item.created_at);
+
+          if (!grouped[date]) {
+            grouped[date] = {
+              date,
+              rawDate: item.created_at,
+              visitType: '--',
+              distance: '--',
+              f2f: 0,
+              calls: 0,
+              issues: 0,
+              checkIn: '--',
+              checkOut: '--',
+              activitiesList: [],
+              visitDetails: null,
+              visitId: null,
+            };
+          }
+          grouped[date].activitiesList.push(item);
+
+          if (item.contact_method === 'call') grouped[date].calls += 1;
+          else if (item.contact_method === 'in_person') grouped[date].f2f += 1;
+
+          if (item.tech_issues_reported) grouped[date].issues += 1;
+        }
+        for (const key in grouped) {
+          const visitIds = new Set(
+            grouped[key].activitiesList
+              .map((act: any) => act.visit_id)
+              .filter((id: any) => id !== null),
+          );
+          const visitIdsArray = Array.from(visitIds);
+          logger.info('Unique visit IDs for date', key, ':', visitIds);
+          const visitDetailsList = await api.getSchoolVisitById(
+            visitIdsArray as string[],
+          );
+          // 🔹 collect types
+          const visitTypeSet = new Set<string>();
+
+          // 🔹 min distance
+          let minDistance: number = Infinity;
+
+          for (const visit of visitDetailsList) {
+            if (visit?.type) {
+              visitTypeSet.add(visit.type);
+            }
+
+            const distance = Number(visit?.distance_from_school);
+
+            if (!isNaN(distance)) {
+              minDistance = Math.min(minDistance, distance);
+            }
+          }
+
+          // ✅ CHECK-IN → 0th index
+          if (visitDetailsList[0]?.check_in_at) {
+            grouped[key].checkIn = OpsUtil.formatTimeToIST(
+              visitDetailsList[0].check_in_at,
+            );
+          } else {
+            grouped[key].checkIn = '--';
+          }
+
+          // ✅ CHECK-OUT → last index
+          let checkOutValue: string | null = null;
+
+          for (let i = visitDetailsList.length - 1; i >= 0; i--) {
+            const checkOutAt = visitDetailsList[i]?.check_out_at;
+            if (checkOutAt) {
+              checkOutValue = OpsUtil.formatTimeToIST(checkOutAt);
+              break;
+            }
+          }
+          grouped[key].checkOut = checkOutValue ?? '--';
+
+          grouped[key].visitType =
+            visitTypeSet.size > 0
+              ? Array.from(visitTypeSet)
+                  .map(
+                    (type) =>
+                      SchoolVisitTypeLabels[type as SchoolVisitType] ?? type,
+                  )
+                  .join(', ')
+              : '--';
+
+          grouped[key].distance =
+            minDistance !== Infinity
+              ? `${Number((minDistance / 1000).toFixed(2))} km`
+              : '--';
+        }
+
+        const finalData = Object.values(grouped);
+        setAllActivities(finalData);
+        setTotal(finalData.length);
+      } catch (error) {
+        logger.error('Error loading activities:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchActivities();
+  }, [school, page]);
+
+  useEffect(() => {
+    if (!orderBy) return;
+
+    const sorted = [...allActivities].sort((a, b) => {
+      const valA = new Date(a.rawDate).getTime();
+      const valB = new Date(b.rawDate).getTime();
+      return orderDir === 'asc' ? valA - valB : valB - valA;
+    });
+
+    const start = (page - 1) * DEFAULT_PAGE_SIZE;
+    const pagedData = sorted.slice(start, start + DEFAULT_PAGE_SIZE);
+
+    setActivities(pagedData);
+  }, [orderBy, orderDir, page, allActivities]);
+
+  const columns: Column<Record<string, any>>[] = [
+    {
+      key: 'date',
+      label: t('Date'),
+      sortable: true,
+      orderBy: 'date',
+    },
+    {
+      key: 'visitType',
+      label: t('Visit Type'),
+      sortable: false,
+    },
+    {
+      key: 'f2f',
+      label: t('F2F- Discussions'),
+      sortable: false,
+    },
+    {
+      key: 'calls',
+      label: t('Calls Made'),
+      sortable: false,
+    },
     {
       key: 'issues',
       label: t('Tech Issues'),
       sortable: false,
-      render: (row) => (
+      render: (row: any) => (
         <Chip
           label={row.issues}
           size="small"
@@ -85,25 +202,50 @@ const ActivitiesPage: React.FC = () => {
         />
       ),
     },
-    { key: 'checkIn', label: t('Checked-In'), sortable: false },
-    { key: 'checkOut', label: t('Checked-Out'), sortable: false },
-    { key: 'distance', label: t('Distance'), sortable: false },
+    {
+      key: 'checkIn',
+      label: t('Checked-In'),
+      sortable: false,
+    },
+    {
+      key: 'checkOut',
+      label: t('Checked-Out'),
+      sortable: false,
+    },
+    {
+      key: 'distance',
+      label: t('Distance'),
+      sortable: false,
+    },
   ];
 
-  const handleRowClick = (_id: string | number, row: ActivitySummaryRow) => {
-    history.push({
-      ...parsePath(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`,
-      ),
-      state: {
-        schoolData: school,
-        schoolName: school.name,
-        date: row.date,
-        activities: row.activitiesList,
-        visitDetails: row.visitDetails || null,
-      },
-    });
+  const handleSort = (colKey: string) => {
+    if (colKey !== 'date') return;
+
+    if (orderBy === colKey) {
+      setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setOrderBy(colKey);
+      setOrderDir('asc');
+    }
+
+    setPage(1);
   };
+  const handleRowClick = (id: string | number, row: any) => {
+    const data = {
+      schoolName: school.name,
+      date: row.date,
+      activities: row.activitiesList,
+      visitDetails: row.visitDetails || null,
+    };
+
+    history.push(
+      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`,
+      data,
+    );
+  };
+
+  const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
 
   return (
     <div className="activities-container" id="act-container">
@@ -125,75 +267,12 @@ const ActivitiesPage: React.FC = () => {
                   `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${school.id}`,
                 ),
             },
-            { label: t('Interactions') },
+            {
+              label: t('Interactions'),
+            },
           ]}
         />
-        <div className="activities-secondary-actions">
-          <Button
-            variant="outlined"
-            onClick={handleOpenFilters}
-            startIcon={<FilterListIcon fontSize="small" />}
-            className="activities-filter-button"
-            aria-label={String(t('Open filters'))}
-            sx={{
-              textTransform: 'none',
-              borderRadius: '999px',
-              px: 2,
-              py: 0.9,
-              minWidth: 'unset',
-              borderColor: '#E5E7EB',
-              color: '#111827',
-              backgroundColor: '#fff',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.06)',
-              '&:hover': {
-                borderColor: '#CBD5E1',
-                backgroundColor: '#F8FAFC',
-              },
-              '& .MuiButton-startIcon': {
-                color: '#1A71F6',
-                marginRight: '6px',
-              },
-            }}
-          >
-            {t('Filter')}
-          </Button>
-        </div>
       </div>
-
-      <SelectedFilters
-        filters={filters}
-        onDeleteFilter={(key, value) =>
-          handleDeleteFilter(key as keyof ActivityFilters, value)
-        }
-        getFilterLabel={(key, value) =>
-          `${key === 'techIssues' ? t('Tech Issues') : t('Visit Type')}: ${value}`
-        }
-      />
-
-      <FilterSlider
-        isOpen={isFilterOpen}
-        onClose={handleCloseFilters}
-        filters={tempFilters}
-        filterOptions={filterOptions}
-        onFilterChange={(name: string, value: string[]) =>
-          handleFilterChange(name as 'techIssues' | 'visitType', value)
-        }
-        onApply={handleApplyFilters}
-        onCancel={handleCancelFilters}
-        singleSelectKeys={['visitType', 'techIssues']}
-        filterConfigs={[
-          {
-            key: 'visitType',
-            label: String(t('Visit Type')),
-            placeholder: String(t('Visit Type')),
-          },
-          {
-            key: 'techIssues',
-            label: String(t('Tech Issues')),
-            placeholder: String(t('Tech Issues')),
-          },
-        ]}
-      />
 
       <div className="activities-table-container" id="act-table">
         {!loadingData && activities.length === 0 ? (

@@ -89,9 +89,6 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
                   )
                 }
                 size="small"
-                MenuProps={{
-                  PaperProps: { className: 'campaign-setup-dropdown-menu' },
-                }}
               >
                 <MenuItem value="" disabled>
                   Select Target Type

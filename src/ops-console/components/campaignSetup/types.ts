@@ -90,7 +90,6 @@ export type TargetAudienceSectionProps = {
   audienceSummary: CampaignAudienceSummary;
   saveGroup: boolean;
   savingGroup: boolean;
-  canSaveGroup: boolean;
   onSavedGroupChange: (event: SelectChangeEvent<string>) => void;
   onProgramChange: (event: SelectChangeEvent<string>) => void;
   onBlocksChange: (blocks: string[]) => void;

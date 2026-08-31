@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import {
   Box,
+  Button,
+  MenuItem,
+  Select,
   SelectChangeEvent,
+  TextField,
   Typography,
   Breadcrumbs,
   Link,
+  Grid,
   useTheme,
   useMediaQuery,
   IconButton,
@@ -13,16 +18,13 @@ import { BsFillBellFill } from 'react-icons/bs';
 import { BiSolidRightArrow } from 'react-icons/bi';
 import { useHistory } from 'react-router-dom';
 import './NewUserPageOps.css';
+import CommonDialogBox from '../../common/CommonDialogBox';
 import { PAGES } from '../../common/constants';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 import { RoleType } from '../../interface/modelInterfaces';
-import { useAppSelector } from '../../redux/hooks';
-import type { RootState } from '../../redux/store';
-import type { AuthState } from '../../redux/slices/auth/authSlice';
-import { NewUserDialogs } from './NewUserDialogs';
-import { NewUserForm } from './NewUserForm';
 
 export type UserSchoolClassParams = {
   name?: string;
@@ -42,8 +44,7 @@ export type UserSchoolClassResult = {
 
 export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const allRoles = [
-  { label: 'Operational Director', value: 'operational_director' },
+const roles = [
   { label: 'Program Manager', value: 'program_manager' },
   { label: 'Field Coordinator', value: 'field_coordinator' },
   { label: 'External User', value: 'external_user' },
@@ -55,21 +56,6 @@ export const normalizePhone10 = (raw: string): string => {
   if (digits.startsWith('0') && digits.length > 10) digits = digits.slice(1);
   if (digits.length > 10) digits = digits.slice(-10);
   return digits;
-};
-
-const hasValidContactMethod = (params: {
-  email: string;
-  phone: string;
-  phoneDialCode: string;
-}) => {
-  const { email, phone, phoneDialCode } = params;
-  const hasEmail = !!email.trim();
-  const normalizedPhone10 = normalizePhone10(phone);
-  const phoneDigits = (phone || '').replace(/\D/g, '');
-  const hasPhoneInput = phoneDigits.length > phoneDialCode.length;
-  const hasPhone = hasPhoneInput && !!normalizedPhone10;
-
-  return { hasEmail, hasPhone, hasPhoneInput, normalizedPhone10 };
 };
 
 const NewUserPage: React.FC = () => {
@@ -85,26 +71,8 @@ const NewUserPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
-  const { roles: currentUserRoles } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
-  const userRoles = currentUserRoles || [];
-  const canCreateNewUser = userRoles.some((role) =>
-    [
-      RoleType.SUPER_ADMIN,
-      RoleType.OPERATIONAL_DIRECTOR,
-      RoleType.PROGRAM_MANAGER,
-    ].includes(role as RoleType),
-  );
-  const isProgramManager = userRoles.includes(RoleType.PROGRAM_MANAGER);
-  const roles = isProgramManager
-    ? allRoles.filter((role) =>
-        [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR].includes(
-          role.value as RoleType,
-        ),
-      )
-    : allRoles;
 
+  const [showAlert, setShowAlert] = useState(false);
   const [successDialog, setSuccessDialog] = useState({
     open: false,
     message: '',
@@ -114,13 +82,6 @@ const NewUserPage: React.FC = () => {
     message: '',
   });
   const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
-  const contactMethodState = hasValidContactMethod({
-    email: form.email,
-    phone: form.phone,
-    phoneDialCode,
-  });
-  const contactMethodProvided =
-    contactMethodState.hasEmail || contactMethodState.hasPhone;
 
   const handleInputChange =
     (field: 'name' | 'email') =>
@@ -149,18 +110,19 @@ const NewUserPage: React.FC = () => {
     const { name, email, phone, role } = form;
 
     if (!name.trim() || !role.trim()) {
+      setShowAlert(true);
       return;
     }
 
-    const { hasEmail, hasPhone, hasPhoneInput, normalizedPhone10 } =
-      hasValidContactMethod({
-        email: form.email,
-        phone: form.phone,
-        phoneDialCode,
-      });
+    const hasEmail = !!email.trim();
     const chosenEmail = hasEmail ? email.trim().toLowerCase() : '';
+    const normalizedPhone10 = normalizePhone10(phone);
+    const phoneDigits = (phone || '').replace(/\D/g, '');
+    const hasPhoneInput = phoneDigits.length > phoneDialCode.length;
+    const hasPhone = hasPhoneInput && !!normalizedPhone10;
 
     if (!hasEmail && !hasPhone) {
+      setShowAlert(true);
       return;
     }
 
@@ -231,10 +193,6 @@ const NewUserPage: React.FC = () => {
 
   const handleCancel = () => history.goBack();
 
-  if (!canCreateNewUser) {
-    return null;
-  }
-
   return (
     <Box className="ops-new-user-page-container">
       <Box className="ops-new-user-header">
@@ -268,30 +226,160 @@ const NewUserPage: React.FC = () => {
           </Typography>
         </Breadcrumbs>
 
-        <NewUserForm
-          form={form}
-          handleCancel={handleCancel}
-          handleInputChange={handleInputChange}
-          handlePhoneChange={handlePhoneChange}
-          handleRoleChange={handleRoleChange}
-          handleSubmit={handleSubmit}
-          isMobile={isMobile}
-          isSaveDisabled={!contactMethodProvided}
-          roles={roles}
-        />
+        <form onSubmit={handleSubmit} autoComplete="off">
+          <Grid
+            container
+            spacing={isMobile ? 1.5 : 2}
+            className="ops-new-user-form_grid"
+          >
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">
+                {t('Name')}
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.name}
+                onChange={handleInputChange('name')}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">
+                {t('Phone Number')}
+              </Typography>
+
+              <PhoneInput
+                defaultCountry="in"
+                value={form.phone}
+                onChange={handlePhoneChange}
+                disableCountryGuess
+                className="new-user-page-phone-input"
+                inputClassName="w-full"
+                inputProps={{
+                  onKeyDown: (e) => {
+                    const input = e.currentTarget as HTMLInputElement;
+                    const selectionStart = input.selectionStart ?? 0;
+
+                    const prefixMatch = input.value.match(/^\+\d+\s*/);
+                    const prefixLength = prefixMatch
+                      ? prefixMatch[0].length
+                      : 0;
+
+                    if (
+                      selectionStart <= prefixLength &&
+                      ['Backspace', 'Delete'].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">
+                {t('Email ID')}
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.email}
+                onChange={handleInputChange('email')}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">
+                {t('Roles')}
+              </Typography>
+              <Select
+                fullWidth
+                size="small"
+                displayEmpty
+                value={form.role}
+                onChange={handleRoleChange}
+                renderValue={(selected) =>
+                  selected
+                    ? roles.find((r) => r.value === selected)?.label
+                    : 'Select Role'
+                }
+              >
+                <MenuItem disabled value="">
+                  {t('Select Role')}
+                </MenuItem>
+                {roles.map((role) => (
+                  <MenuItem key={role.value} value={role.value}>
+                    {role.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+          </Grid>
+
+          <Box className="ops-new-user-form-actions">
+            <Button
+              type="button"
+              variant="text"
+              onClick={handleCancel}
+              className="ops-new-user-form-actions_button--cancel"
+            >
+              {t('Cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              className="ops-new-user-form-actions_button--save"
+            >
+              {t('Save')}
+            </Button>
+          </Box>
+        </form>
       </Box>
 
-      <NewUserDialogs
-        errorDialog={errorDialog}
-        handleSuccessOk={() => {
+      <CommonDialogBox
+        showConfirmFlag={showAlert}
+        onDidDismiss={() => setShowAlert(false)}
+        header={t('Missing Contact Info!') ?? ''}
+        message={
+          t(
+            'Please input proper name and role with least a phone number or email address.',
+          ) ?? ''
+        }
+        rightButtonText={t('OK') ?? ''}
+        rightButtonHandler={() => setShowAlert(false)}
+      />
+
+      <CommonDialogBox
+        showConfirmFlag={validationDialog.open}
+        onDidDismiss={() => setValidationDialog({ open: false, message: '' })}
+        header={t('Invalid Format') ?? ''}
+        message={t(validationDialog.message)}
+        rightButtonText={t('OK') ?? ''}
+        rightButtonHandler={() =>
+          setValidationDialog({ open: false, message: '' })
+        }
+      />
+
+      <CommonDialogBox
+        showConfirmFlag={successDialog.open}
+        onDidDismiss={() => setSuccessDialog({ open: false, message: '' })}
+        header={t('Success') ?? ''}
+        message={t(successDialog.message)}
+        rightButtonText={t('OK') ?? ''}
+        rightButtonHandler={() => {
           setSuccessDialog({ open: false, message: '' });
           history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.USERS}`);
         }}
-        setErrorDialog={setErrorDialog}
-        setSuccessDialog={setSuccessDialog}
-        setValidationDialog={setValidationDialog}
-        successDialog={successDialog}
-        validationDialog={validationDialog}
+      />
+
+      <CommonDialogBox
+        showConfirmFlag={errorDialog.open}
+        onDidDismiss={() => setErrorDialog({ open: false, message: '' })}
+        header={t('Error') ?? ''}
+        message={t(errorDialog.message ?? '')}
+        rightButtonText={t('OK') ?? ''}
+        rightButtonHandler={() => setErrorDialog({ open: false, message: '' })}
       />
     </Box>
   );

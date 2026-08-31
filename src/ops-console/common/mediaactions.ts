@@ -1,24 +1,105 @@
+import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { compressMediaForUpload } from './mediaactionscompressor';
 import logger from '../../utility/logger';
-import type {
-  MediaUploadItem,
-  UseMediaActionsOptions,
-  UseMediaActionsResult,
-} from './mediaactions.types';
-import {
-  createMediaId,
-  inferMediaType,
-  MAX_VIDEO_UPLOAD_BYTES,
-  MAX_VIDEO_UPLOAD_MB,
-  renameFileForUpload,
-} from './mediaactionsHelpers';
-import { useMediaCamera } from './useMediaCamera';
 
-export type {
-  MediaUploadItem,
-  UseMediaActionsResult,
-} from './mediaactions.types';
+export type MediaUploadItem = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  mediaType: 'image' | 'video' | 'file';
+  progress: number;
+  status: 'compressing' | 'uploading' | 'done';
+  uploadedUrl?: string | null;
+};
+
+const MAX_VIDEO_UPLOAD_MB = 25;
+const MAX_VIDEO_UPLOAD_BYTES = MAX_VIDEO_UPLOAD_MB * 1024 * 1024;
+
+const inferMediaType = (file: File): MediaUploadItem['mediaType'] => {
+  const type = (file.type || '').toLowerCase();
+  if (type.startsWith('image/')) return 'image';
+  if (type.startsWith('video/')) return 'video';
+
+  const name = (file.name || '').toLowerCase();
+  const ext = name.includes('.') ? (name.split('.').pop() ?? '') : '';
+  const imageExts = new Set([
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'gif',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+    'tif',
+    'tiff',
+    'svg',
+  ]);
+  const videoExts = new Set([
+    'mp4',
+    'mov',
+    'm4v',
+    'webm',
+    'mkv',
+    'avi',
+    '3gp',
+    '3gpp',
+    '3g2',
+    'ogg',
+    'ogv',
+  ]);
+  if (imageExts.has(ext)) return 'image';
+  if (videoExts.has(ext)) return 'video';
+  return 'file';
+};
+
+type CameraUiMode = 'desktop' | 'mobile';
+
+type UseMediaActionsOptions = {
+  t?: (key: string) => string;
+  schoolId?: string;
+};
+
+export type UseMediaActionsResult = {
+  mediaUploads: MediaUploadItem[];
+  mediaError: string | null;
+  clearMediaError: () => void;
+  addMediaFiles: (files: FileList | null) => void;
+  removeMedia: (id: string) => void;
+  resetMedia: () => void;
+  uploadAllMedia: (
+    uploadFn: (file: File) => Promise<string>,
+  ) => Promise<string[]>;
+
+  captureAnyInputRef: RefObject<HTMLInputElement | null>;
+  captureImageInputRef: RefObject<HTMLInputElement | null>;
+  captureVideoInputRef: RefObject<HTMLInputElement | null>;
+  uploadInputRef: RefObject<HTMLInputElement | null>;
+
+  isCameraOpen: boolean;
+  cameraError: string | null;
+  cameraUiMode: CameraUiMode;
+  cameraStream: MediaStream | null;
+  isRecording: boolean;
+  recordingSecondsLeft: number | null;
+
+  videoRef: RefObject<HTMLVideoElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+
+  openCapture: () => void;
+  openCamera: () => Promise<void>;
+  closeCamera: () => void;
+  cancelCamera: () => void;
+  takePhoto: () => Promise<void>;
+  startRecording: () => void;
+  stopRecording: () => void;
+
+  shutterPressStart: () => void;
+  shutterPressEnd: () => void;
+  shutterPressCancel: () => void;
+};
 
 const defaultTranslate = (key: string) => key;
 
@@ -40,6 +121,84 @@ export function useMediaActions(
   const captureVideoInputRef = useRef<HTMLInputElement | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const captureAnyInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraUiMode, setCameraUiMode] = useState<CameraUiMode>('desktop');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState<
+    number | null
+  >(null);
+  const recordingTimerRef = useRef<number | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<BlobPart[]>([]);
+  const discardRecordingRef = useRef(false);
+  const shutterTimerRef = useRef<number | null>(null);
+  const shutterStartedRecordingRef = useRef(false);
+  const hasAutoStoppedRef = useRef(false);
+
+  const createMediaId = () => {
+    const maybeUuid = globalThis.crypto?.randomUUID?.();
+    if (maybeUuid) return maybeUuid;
+    return `media-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  };
+
+  const createShortId = () => {
+    const maybeUuid = globalThis.crypto?.randomUUID?.();
+    if (maybeUuid) return maybeUuid.replace(/-/g, '').slice(0, 5);
+    return Math.random().toString(36).slice(2, 7);
+  };
+
+  const getFileExtension = (file: File) => {
+    const type = (file.type || '').toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'image/heic') return 'heic';
+    if (type === 'image/heif') return 'heif';
+    if (type === 'image/avif') return 'avif';
+    if (type === 'image/gif') return 'gif';
+    if (type === 'video/mp4') return 'mp4';
+    if (type === 'video/webm') return 'webm';
+    if (type === 'video/quicktime') return 'mov';
+    if (type === 'video/x-matroska') return 'mkv';
+    if (type === 'video/3gpp') return '3gp';
+    if (type === 'video/ogg') return 'ogv';
+
+    const fromName =
+      file.name && file.name.includes('.')
+        ? (file.name.split('.').pop() ?? '').toLowerCase()
+        : '';
+    const safeFromName = fromName.replace(/[^a-z0-9]/g, '');
+    return safeFromName || 'bin';
+  };
+
+  const renameFileForUpload = (file: File) => {
+    const safeSchoolId = (schoolId || 'schoolid').replace(/[^a-z0-9_-]/gi, '-');
+    const shortId = createShortId();
+    const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const ext = getFileExtension(file);
+    const nextName = `${safeSchoolId}_${shortId}_${dateStr}.${ext}`;
+    return new File([file], nextName, {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+  };
+
+  const stopRecordingTimer = (opts: { updateState?: boolean } = {}) => {
+    const updateState = opts.updateState ?? true;
+    if (recordingTimerRef.current !== null) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    if (updateState) setRecordingSecondsLeft(null);
+    hasAutoStoppedRef.current = false;
+  };
 
   const stopUploadTimer = (id: string) => {
     const timer = uploadTimersRef.current.get(id);
@@ -68,6 +227,30 @@ export function useMediaActions(
       }
       compressionAbortRef.current.delete(id);
     }
+  };
+
+  const startSimulatedUpload = (id: string) => {
+    stopUploadTimer(id);
+    const timer = window.setInterval(() => {
+      let completed = false;
+      setMediaUploads((prev) => {
+        const idx = prev.findIndex((x) => x.id === id);
+        if (idx === -1) return prev;
+        const cur = prev[idx];
+        if (cur.status !== 'uploading') return prev;
+        const nextProgress = Math.min(
+          100,
+          cur.progress + 8 + Math.floor(Math.random() * 10),
+        );
+        const nextStatus = nextProgress >= 100 ? 'done' : 'uploading';
+        completed = nextStatus === 'done';
+        const next = [...prev];
+        next[idx] = { ...cur, progress: nextProgress, status: nextStatus };
+        return next;
+      });
+      if (completed) stopUploadTimer(id);
+    }, 180);
+    uploadTimersRef.current.set(id, timer);
   };
 
   const setMediaUploadsAndRef = (
@@ -160,7 +343,7 @@ export function useMediaActions(
         compressionAbortRef.current.delete(id);
       }
 
-      const finalFile = renameFileForUpload(compressed, schoolId);
+      const finalFile = renameFileForUpload(compressed);
 
       setMediaUploadsAndRef((prev) => {
         const idx = prev.findIndex((x) => x.id === id);
@@ -197,14 +380,6 @@ export function useMediaActions(
     });
   };
 
-  const cameraActions = useMediaCamera({
-    translate,
-    addMediaFile,
-    captureAnyInputRef,
-    captureImageInputRef,
-    captureVideoInputRef,
-  });
-
   const addMediaFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     for (const file of Array.from(files)) addMediaFile(file);
@@ -218,6 +393,43 @@ export function useMediaActions(
       if (item) URL.revokeObjectURL(item.previewUrl);
       return prev.filter((x) => x.id !== id);
     });
+  };
+
+  const closeCamera = () => {
+    if (shutterTimerRef.current !== null) {
+      window.clearTimeout(shutterTimerRef.current);
+      shutterTimerRef.current = null;
+    }
+    shutterStartedRecordingRef.current = false;
+    stopRecordingTimer();
+
+    const recorder = mediaRecorderRef.current;
+    if (recorder) {
+      try {
+        if (recorder.state !== 'inactive') {
+          discardRecordingRef.current = true;
+          recorder.stop();
+        }
+      } catch {
+        // ignore
+      }
+      mediaRecorderRef.current = null;
+    }
+
+    recordedChunksRef.current = [];
+    setIsRecording(false);
+
+    if (cameraStream) {
+      for (const track of cameraStream.getTracks()) track.stop();
+    }
+    setCameraStream(null);
+    setIsCameraOpen(false);
+    setCameraError(null);
+  };
+
+  const cancelCamera = () => {
+    discardRecordingRef.current = true;
+    closeCamera();
   };
 
   const clearMediaError = () => setMediaError(null);
@@ -347,6 +559,272 @@ export function useMediaActions(
     return urls;
   };
 
+  const openCamera = async () => {
+    discardRecordingRef.current = false;
+    const ua = (navigator.userAgent ?? '').toLowerCase();
+    const isLikelyMobile =
+      /android|iphone|ipad|ipod|mobi/.test(ua) || navigator.maxTouchPoints > 1;
+
+    setCameraError(null);
+    setCameraUiMode(isLikelyMobile ? 'mobile' : 'desktop');
+    setIsCameraOpen(true);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraUiMode('mobile');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false,
+      });
+      setCameraUiMode('desktop');
+      setCameraStream(stream);
+    } catch {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        setCameraUiMode('desktop');
+        setCameraStream(stream);
+      } catch (err2) {
+        logger.error('Failed to access camera:', err2);
+        setCameraError(
+          translate(
+            'Camera access was blocked. Please allow permission or upload media.',
+          ),
+        );
+        setCameraUiMode('mobile');
+      }
+    }
+  };
+
+  const openCapture = () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      captureAnyInputRef.current?.click();
+      return;
+    }
+    void openCamera();
+  };
+
+  const takePhoto = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) {
+      closeCamera();
+      captureImageInputRef.current?.click();
+      return;
+    }
+
+    const width = video.videoWidth || 1280;
+    const height = video.videoHeight || 720;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      closeCamera();
+      captureImageInputRef.current?.click();
+      return;
+    }
+    ctx.drawImage(video, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/jpeg', 0.9);
+    });
+    if (!blob) {
+      closeCamera();
+      captureImageInputRef.current?.click();
+      return;
+    }
+
+    const safeTs = new Date().toISOString().replace(/[:.]/g, '-');
+    const file = new File([blob], `capture-${safeTs}.jpg`, { type: blob.type });
+    addMediaFile(file);
+    closeCamera();
+  };
+
+  const startRecording = () => {
+    if (!cameraStream) {
+      closeCamera();
+      captureVideoInputRef.current?.click();
+      return;
+    }
+    discardRecordingRef.current = false;
+
+    if (!(window as any).MediaRecorder) {
+      closeCamera();
+      captureVideoInputRef.current?.click();
+      return;
+    }
+
+    const preferredTypes = [
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+    ];
+    const supportedType =
+      preferredTypes.find((mt) =>
+        (window as any).MediaRecorder?.isTypeSupported?.(mt),
+      ) ?? '';
+
+    try {
+      recordedChunksRef.current = [];
+      const recordingOptions: MediaRecorderOptions = supportedType
+        ? { mimeType: supportedType }
+        : {};
+
+      // Try to keep recorded videos reasonably small; browsers may ignore these values.
+      // 1.6 Mbps tends to be acceptable quality while reducing size on mobile.
+      (recordingOptions as any).videoBitsPerSecond = 1_600_000;
+      const recorder = new MediaRecorder(
+        cameraStream,
+        Object.keys(recordingOptions).length > 0 ? recordingOptions : undefined,
+      );
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, {
+          type: recorder.mimeType || 'video/webm',
+        });
+        recordedChunksRef.current = [];
+        const shouldDiscard = discardRecordingRef.current;
+        discardRecordingRef.current = false;
+        if (!shouldDiscard && blob.size > 0) {
+          const safeTs = new Date().toISOString().replace(/[:.]/g, '-');
+          const file = new File([blob], `capture-${safeTs}.webm`, {
+            type: blob.type,
+          });
+          addMediaFile(file);
+        }
+        setIsRecording(false);
+        stopRecordingTimer();
+        closeCamera();
+      };
+      mediaRecorderRef.current = recorder;
+      // Avoid timeslices so very short recordings still produce a blob on stop.
+      recorder.start();
+      setIsRecording(true);
+
+      stopRecordingTimer();
+      setRecordingSecondsLeft(30);
+      hasAutoStoppedRef.current = false;
+      recordingTimerRef.current = window.setInterval(() => {
+        let shouldAutoStop = false;
+        setRecordingSecondsLeft((prev) => {
+          if (prev === null) return prev;
+          const next = prev - 1;
+          if (next <= 0) {
+            shouldAutoStop = true;
+            return 0;
+          }
+          return next;
+        });
+
+        if (shouldAutoStop && !hasAutoStoppedRef.current) {
+          hasAutoStoppedRef.current = true;
+          try {
+            stopRecording();
+          } catch {
+            // ignore
+          }
+        }
+      }, 1000);
+    } catch (e) {
+      logger.error('Failed to start recording:', e);
+      closeCamera();
+      captureVideoInputRef.current?.click();
+    }
+  };
+
+  const stopRecording = () => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
+    if (recorder.state === 'inactive') return;
+    try {
+      stopRecordingTimer();
+      try {
+        recorder.requestData?.();
+      } catch {
+        // ignore
+      }
+      recorder.stop();
+    } catch (e) {
+      logger.error('Failed to stop recording:', e);
+      setIsRecording(false);
+    }
+  };
+
+  const shutterPressStart = () => {
+    if (!cameraStream) return;
+    // While recording, a single tap stops & saves (no need to keep holding).
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+    if (shutterTimerRef.current !== null) {
+      window.clearTimeout(shutterTimerRef.current);
+      shutterTimerRef.current = null;
+    }
+    shutterStartedRecordingRef.current = false;
+    shutterTimerRef.current = window.setTimeout(() => {
+      shutterTimerRef.current = null;
+      shutterStartedRecordingRef.current = true;
+      startRecording();
+    }, 350);
+  };
+
+  const shutterPressEnd = () => {
+    // If the user released before long-press threshold, take a photo.
+    if (shutterTimerRef.current !== null) {
+      window.clearTimeout(shutterTimerRef.current);
+      shutterTimerRef.current = null;
+      void takePhoto();
+      return;
+    }
+
+    // If recording started, releasing should NOT stop it; timer (or a later tap) will.
+    if (shutterStartedRecordingRef.current) {
+      shutterStartedRecordingRef.current = false;
+      return;
+    }
+  };
+
+  const shutterPressCancel = () => {
+    if (shutterTimerRef.current !== null) {
+      window.clearTimeout(shutterTimerRef.current);
+      shutterTimerRef.current = null;
+    }
+    shutterStartedRecordingRef.current = false;
+    if (isRecording) {
+      discardRecordingRef.current = true;
+      stopRecording();
+    } else {
+      cancelCamera();
+    }
+  };
+
+  useEffect(() => {
+    if (!isCameraOpen || !cameraStream || !videoRef.current) return;
+    videoRef.current.srcObject = cameraStream;
+    // Some browsers (esp. desktop Safari) won't start playback without an explicit play().
+    // Muted + playsInline makes autoplay much more likely to succeed.
+    videoRef.current.muted = true;
+    videoRef.current.playsInline = true;
+    void videoRef.current.play().catch(() => {});
+  }, [isCameraOpen, cameraStream]);
+
+  useEffect(() => {
+    return () => {
+      if (!cameraStream) return;
+      if (cameraStream) {
+        for (const track of cameraStream.getTracks()) track.stop();
+      }
+    };
+  }, [cameraStream]);
+
   useEffect(() => {
     return () => {
       for (const timer of uploadTimersRef.current.values()) {
@@ -367,6 +845,18 @@ export function useMediaActions(
       }
       compressionAbortRef.current.clear();
 
+      stopRecordingTimer({ updateState: false });
+      if (mediaRecorderRef.current) {
+        try {
+          if (mediaRecorderRef.current.state !== 'inactive') {
+            discardRecordingRef.current = true;
+            mediaRecorderRef.current.stop();
+          }
+        } catch {
+          // ignore
+        }
+        mediaRecorderRef.current = null;
+      }
       for (const item of mediaUploadsRef.current) {
         URL.revokeObjectURL(item.previewUrl);
       }
@@ -381,7 +871,32 @@ export function useMediaActions(
     removeMedia,
     resetMedia,
     uploadAllMedia,
+
+    captureAnyInputRef,
+    captureImageInputRef,
+    captureVideoInputRef,
     uploadInputRef,
-    ...cameraActions,
+
+    isCameraOpen,
+    cameraError,
+    cameraUiMode,
+    cameraStream,
+    isRecording,
+    recordingSecondsLeft,
+
+    videoRef,
+    canvasRef,
+
+    openCapture,
+    openCamera,
+    closeCamera,
+    cancelCamera,
+    takePhoto,
+    startRecording,
+    stopRecording,
+
+    shutterPressStart,
+    shutterPressEnd,
+    shutterPressCancel,
   };
 }

@@ -14,7 +14,6 @@ import {
   resolveTermsBaseUrl,
 } from '../utility/termsAndConditions';
 import './TermsAndConditions.css';
-import { parsePath } from 'history';
 
 type TermsPageLocationState = {
   from?: string;
@@ -83,12 +82,10 @@ const TermsAndConditions: React.FC = () => {
 
   const handleClose = () => {
     if (returnLocation?.pathname) {
-      history.replace({
-        ...parsePath(
-          `${returnLocation.pathname}${returnLocation.search ?? ''}${returnLocation.hash ?? ''}`,
-        ),
-        state: returnLocation.state,
-      });
+      history.replace(
+        `${returnLocation.pathname}${returnLocation.search ?? ''}${returnLocation.hash ?? ''}`,
+        returnLocation.state,
+      );
       return;
     }
 

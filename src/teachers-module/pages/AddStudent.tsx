@@ -15,7 +15,6 @@ import ProfileDetails from '../components/library/ProfileDetails';
 import Loading from '../../components/Loading';
 import logger from '../../utility/logger';
 import { useFeatureValue } from '@growthbook/growthbook-react';
-import { parsePath } from 'history';
 
 const AddStudent: React.FC = () => {
   const history = useHistory();
@@ -70,7 +69,7 @@ const AddStudent: React.FC = () => {
   };
 
   const handleBack = () => {
-    history.replace({ ...parsePath(PAGES.CLASS_USERS), state: classDoc });
+    history.replace(PAGES.CLASS_USERS, classDoc);
   };
   const fetchClassDetails = async () => {
     try {

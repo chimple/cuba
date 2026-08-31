@@ -35,10 +35,7 @@ type SchoolClassLink = {
 type ApiHandlerMock = {
   searchTeachersInSchool: jest.Mock<Promise<ApiResponse<TeacherInfo>>, []>;
   getTeacherInfoBySchoolId: jest.Mock<Promise<ApiResponse<TeacherInfo>>, []>;
-  getRecentAssignmentCountsByTeachers: jest.Mock<
-    Promise<Record<string, number | null>>,
-    [Array<{ teacherId: string; classId: string }>]
-  >;
+  getRecentAssignmentCountByTeacher: jest.Mock<Promise<number>, []>;
   getClassesForSchool: jest.Mock<Promise<SchoolClassLink[]>, []>;
   addTeacherToClass: jest.Mock<Promise<void>, []>;
   deleteUserFromClass: jest.Mock<Promise<boolean>, []>;
@@ -49,7 +46,7 @@ type ApiHandlerMock = {
 const mockApiHandler: ApiHandlerMock = {
   searchTeachersInSchool: jest.fn(),
   getTeacherInfoBySchoolId: jest.fn(),
-  getRecentAssignmentCountsByTeachers: jest.fn(),
+  getRecentAssignmentCountByTeacher: jest.fn(),
   getClassesForSchool: jest.fn(),
   addTeacherToClass: jest.fn(),
   deleteUserFromClass: jest.fn(),
@@ -238,9 +235,7 @@ describe('SchoolTeachers', () => {
       data: [teacher],
       total: 1,
     });
-    mockApiHandler.getRecentAssignmentCountsByTeachers.mockResolvedValue({
-      'teacher-1:class-1': 0,
-    });
+    mockApiHandler.getRecentAssignmentCountByTeacher.mockResolvedValue(0);
     mockApiHandler.getClassesForSchool.mockResolvedValue([
       { id: 'class-1', name: '6A' },
     ]);
@@ -275,20 +270,6 @@ describe('SchoolTeachers', () => {
       ),
     );
   };
-
-  it('loads teacher assignment performance with one bulk request', async () => {
-    renderComponent();
-
-    await waitFor(() =>
-      expect(
-        mockApiHandler.getRecentAssignmentCountsByTeachers,
-      ).toHaveBeenCalledWith([{ teacherId: 'teacher-1', classId: 'class-1' }]),
-    );
-
-    expect(
-      mockApiHandler.getRecentAssignmentCountsByTeachers,
-    ).toHaveBeenCalledTimes(1);
-  });
 
   it('opens edit modal with assignment-only editable fields', async () => {
     await openEditModal();

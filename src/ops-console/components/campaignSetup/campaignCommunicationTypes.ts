@@ -10,8 +10,7 @@ export type CampaignCommunicationTimelineStepProps = {
   form: CampaignSetupFormState;
   frequency: Frequency;
   assignmentDrafts: CampaignAssignmentDraft[];
-  campaignReach: CampaignReachSummary;
-  loadingReach: boolean;
+  selectedSchoolIds: string[];
   communicationState: CampaignCommunicationState;
   communicationValidation: CampaignCommunicationValidation;
   showValidation: boolean;

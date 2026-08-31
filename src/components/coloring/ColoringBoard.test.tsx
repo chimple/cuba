@@ -152,7 +152,7 @@ let mockColoringState = {
   coloredRegions: {} as Record<string, string>,
 };
 
-jest.mock('../../hooks/useSvgColoring', () => ({
+jest.mock('./useSvgColoring', () => ({
   useSvgColoring: () => mockColoringState,
 }));
 

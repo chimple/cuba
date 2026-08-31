@@ -19,11 +19,6 @@
   background: #ffffff;
   margin: 10px 0 !important;
 }
-
-.wa-info-invite-link-div .wa-input::placeholder {
-  font-weight: 400;
-}
-
 .wa-info-invite-link-cancel-btn,
 .wa-info-invite-link-save-btn {
   padding: 8px 16px;

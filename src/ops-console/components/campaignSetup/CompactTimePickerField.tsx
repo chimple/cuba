@@ -4,6 +4,7 @@ import { Box, InputAdornment, Popover, TextField } from '@mui/material';
 
 type TimeParts = {
   hour: string;
+  minute: string;
   meridiem: string;
 };
 
@@ -17,23 +18,27 @@ type CompactTimePickerFieldProps = {
 const hours = Array.from({ length: 12 }, (_, index) =>
   String(index + 1).padStart(2, '0'),
 );
+const minutes = Array.from({ length: 60 }, (_, index) =>
+  String(index).padStart(2, '0'),
+);
 const meridiems = ['AM', 'PM'];
 
 const parseTimeValue = (value: string): TimeParts => {
   const match = value.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
 
   if (!match) {
-    return { hour: '09', meridiem: 'AM' };
+    return { hour: '09', minute: '00', meridiem: 'AM' };
   }
 
   return {
     hour: match[1].padStart(2, '0'),
+    minute: match[2],
     meridiem: match[3].toUpperCase(),
   };
 };
 
-const buildTimeValue = ({ hour, meridiem }: TimeParts) =>
-  `${hour}:00 ${meridiem}`;
+const buildTimeValue = ({ hour, minute, meridiem }: TimeParts) =>
+  `${hour}:${minute} ${meridiem}`;
 
 export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
   label,
@@ -64,6 +69,7 @@ export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
     selectedValue: string,
     ariaPrefix: string,
     onSelect: (value: string) => void,
+    closeAfterSelect = false,
   ) => (
     <Box className="campaign-communication-time-picker-column">
       {values.map((item) => (
@@ -77,7 +83,7 @@ export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
           className="campaign-communication-time-picker-option"
           onClick={() => {
             onSelect(item);
-            setAnchorEl(null);
+            if (closeAfterSelect) setAnchorEl(null);
           }}
         >
           {item}
@@ -129,8 +135,15 @@ export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
           {renderColumn(hours, selectedTime.hour, 'Hour', (hour) =>
             updateTime({ hour }),
           )}
-          {renderColumn(meridiems, selectedTime.meridiem, '', (meridiem) =>
-            updateTime({ meridiem }),
+          {renderColumn(minutes, selectedTime.minute, 'Minute', (minute) =>
+            updateTime({ minute }),
+          )}
+          {renderColumn(
+            meridiems,
+            selectedTime.meridiem,
+            '',
+            (meridiem) => updateTime({ meridiem }),
+            true,
           )}
         </Box>
       </Popover>

@@ -9,10 +9,11 @@ import { Typography, useMediaQuery, useTheme } from '@mui/material';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory, useLocation } from 'react-router';
-import { RoleType } from '../../interface/modelInterfaces';
+import { RoleLabels, RoleType } from '../../interface/modelInterfaces';
+import { IonAlert } from '@ionic/react';
 import { PROFILETYPE } from '../../common/constants';
+import EditIcon from '@mui/icons-material/Edit';
 import logger from '../../utility/logger';
-import { UserDetailsCard } from './UserDetailsCard';
 
 const UserDetailsPage: React.FC = () => {
   const [user, setUser] = useState<any>();
@@ -164,13 +165,6 @@ const UserDetailsPage: React.FC = () => {
     : userRole
       ? [...availableEditRoles, userRole as RoleType]
       : availableEditRoles;
-  const handleCancelEdit = () => {
-    setUser(userData.user);
-    setUserRole(userData.userRole);
-    setPreviewUrl(null);
-    setSelectedFile(null);
-    setIsEdit(false);
-  };
 
   return (
     <div className="user-details-page">
@@ -209,27 +203,147 @@ const UserDetailsPage: React.FC = () => {
         />
       </div>
 
-      <UserDetailsCard
-        confirmDelete={confirmDelete}
-        editRoleOptions={editRoleOptions}
-        fileInputRef={fileInputRef}
-        handleProfileImageChange={handleProfileImageChange}
-        isEdit={isEdit}
-        isEditDisabled={isEditDisabled}
-        isSaveDisabled={isSaveDisabled}
-        onCancelEdit={handleCancelEdit}
-        onSave={onSave}
-        previewUrl={previewUrl}
-        roleDisabled={roleDisabled}
-        selectRef={selectRef}
-        setIsEdit={setIsEdit}
-        setShowConfirm={setShowConfirm}
-        setUser={setUser}
-        setUserRole={setUserRole}
-        showConfirm={showConfirm}
-        user={user}
-        userRole={userRole}
-      />
+      <div className="user-details-card">
+        <div
+          className="user-details-image-container"
+          onClick={() => isEdit && fileInputRef.current?.click()}
+          style={{ cursor: isEdit ? 'pointer' : 'default' }}
+        >
+          <img
+            className="user-details-profile-img"
+            src={
+              previewUrl ||
+              (user?.image && user.image.trim() !== ''
+                ? user.image
+                : '/assets/profile.svg')
+            }
+            alt="Profile"
+          />
+          {isEdit && <EditIcon className="user-details-pencil-icon" />}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleProfileImageChange}
+          />
+        </div>
+
+        <div className="user-details-form-section">
+          <label>{t('Name')}</label>
+          <input
+            type="text"
+            value={user?.name ?? ''}
+            readOnly={!isEdit}
+            onChange={(e) => {
+              if (isEdit) setUser({ ...user, name: e.target.value });
+            }}
+          />
+
+          <label>{t('Phone Number')}</label>
+          <input
+            type="text"
+            value={user?.phone ?? ''}
+            readOnly
+            onChange={(e) => {
+              if (isEdit) setUser({ ...user, phone: e.target.value });
+            }}
+          />
+
+          <label>{t('Email')}</label>
+          <input
+            type="email"
+            value={user?.email ?? ''}
+            readOnly
+            onChange={(e) => {
+              if (isEdit) setUser({ ...user, email: e.target.value });
+            }}
+          />
+
+          <label>{t('Assigned Role')}</label>
+          <select
+            ref={selectRef}
+            value={userRole}
+            disabled={!isEdit || roleDisabled}
+            onChange={(e) => setUserRole(e.target.value)}
+          >
+            {isEdit
+              ? editRoleOptions.map((role: string) => (
+                  <option key={role} value={role}>
+                    {RoleLabels[role as RoleType]}
+                  </option>
+                ))
+              : [
+                  <option key={userRole} value={userRole}>
+                    {RoleLabels[userRole as RoleType]}
+                  </option>,
+                ]}
+          </select>
+        </div>
+
+        <div className="user-details-button-row">
+          {isEdit ? (
+            <>
+              <button
+                className="user-details-cancel-btn"
+                onClick={() => {
+                  setUser(userData.user);
+                  setUserRole(userData.userRole);
+                  setPreviewUrl(null);
+                  setSelectedFile(null);
+                  setIsEdit(false);
+                }}
+                // onClick={() => setIsEdit(false)}
+              >
+                {t('Cancel')}
+              </button>
+              <button
+                className="user-details-save-btn"
+                onClick={onSave}
+                disabled={isSaveDisabled}
+              >
+                {t('Save')}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="user-details-delete-btn"
+                disabled={isEditDisabled || roleDisabled}
+                onClick={() => setShowConfirm(true)}
+              >
+                {t('Delete')}
+              </button>
+              <button
+                className="user-details-edit-btn"
+                disabled={isEditDisabled}
+                onClick={() => setIsEdit(true)}
+              >
+                {t('Edit')}
+              </button>
+              <IonAlert
+                isOpen={showConfirm}
+                onDidDismiss={() => setShowConfirm(false)}
+                cssClass="user-details-custom-alert"
+                header={t('Delete User') ?? ''}
+                message={t('Are you sure you want to delete this user?') || ''}
+                buttons={[
+                  {
+                    text: t('Cancel') || '',
+                    cssClass: 'user-details-alert-cancel-button',
+                    handler: () => setShowConfirm(false),
+                  },
+                  {
+                    text: t('Delete'),
+                    cssClass: 'user-details-alert-delete-button',
+                    handler: confirmDelete,
+                  },
+                ]}
+              />
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

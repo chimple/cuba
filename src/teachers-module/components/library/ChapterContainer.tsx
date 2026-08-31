@@ -3,6 +3,7 @@ import './ChapterContainer.css';
 import LessonComponent from './LessonComponent';
 import { COURSES, TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
+import { isHiddenTeacherLesson } from '../../utils/lessonFilters';
 interface ChapterContainerProps {
   chapter: TableTypes<'chapter'>;
   lessons: TableTypes<'lesson'>[];
@@ -13,8 +14,6 @@ interface ChapterContainerProps {
   courseCode?: string;
   showAssignedBadge?: boolean;
   assignedLessonIds?: Set<string>;
-  loadLessonsForChapter: (chapterId: string) => Promise<TableTypes<'lesson'>[]>;
-  isLoadingLessons: boolean;
 }
 const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapter,
@@ -26,8 +25,6 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   courseCode,
   showAssignedBadge,
   assignedLessonIds,
-  loadLessonsForChapter,
-  isLoadingLessons,
 }) => {
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
@@ -37,20 +34,13 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setIsExpanded(isOpened);
   }, [isOpened]);
 
-  useEffect(() => {
-    setSelectedLessons((previousSelectedLessons) => {
-      const hasSameSelections =
-        previousSelectedLessons.length === syncSelectedLessons.length &&
-        previousSelectedLessons.every((lessonId) =>
-          syncSelectedLessons.includes(lessonId),
-        );
-      return hasSameSelections ? previousSelectedLessons : syncSelectedLessons;
-    });
-  }, [syncSelectedLessons]);
+  const filteredLessons = lessons.filter(
+    (lesson) => !isHiddenTeacherLesson(lesson),
+  );
 
   const visibleLessons = showAssignedBadge
-    ? lessons
-    : lessons.filter(
+    ? filteredLessons
+    : filteredLessons.filter(
         (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
       );
 
@@ -76,50 +66,37 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     });
   };
 
-  const handleSelectAll = async () => {
-    const chapterLessons =
-      lessons.length > 0 ? lessons : await loadLessonsForChapter(chapter.id);
-    const lessonsToSelect = showAssignedBadge
-      ? chapterLessons
-      : chapterLessons.filter(
-          (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
-        );
-    const lessonIdsToSelect = lessonsToSelect
-      .map((lesson) => lesson.id)
-      .filter((lessonId): lessonId is string => Boolean(lessonId));
-
+  const handleSelectAll = () => {
     setSelectedLessons((prevSelectedLessons) => {
       const prevSet = new Set(prevSelectedLessons);
-      const shouldSelectAll = lessonIdsToSelect.some(
+      const shouldSelectAll = visibleLessonIds.some(
         (lessonId) => !prevSet.has(lessonId),
       );
 
       if (shouldSelectAll) {
-        lessonIdsToSelect.forEach((lessonId) => {
+        visibleLessonIds.forEach((lessonId) => {
           if (!prevSet.has(lessonId)) {
             chapterSelectedLessons(chapter.id, lessonId, true);
           }
         });
-        return [...prevSelectedLessons, ...lessonIdsToSelect].filter(
+        return [...prevSelectedLessons, ...visibleLessonIds].filter(
           (lessonId, index, self) => self.indexOf(lessonId) === index,
         );
       }
 
-      lessonIdsToSelect.forEach((lessonId) => {
+      visibleLessonIds.forEach((lessonId) => {
         if (prevSet.has(lessonId)) {
           chapterSelectedLessons(chapter.id, lessonId, false);
         }
       });
       return prevSelectedLessons.filter(
-        (lessonId) => !lessonIdsToSelect.includes(lessonId),
+        (lessonId) => !visibleLessonIds.includes(lessonId),
       );
     });
   };
 
-  const toggleChapter = async () => {
-    const nextIsExpanded = !isExpanded;
-    setIsExpanded(nextIsExpanded);
-    if (nextIsExpanded) await loadLessonsForChapter(chapter.id);
+  const toggleChapter = () => {
+    setIsExpanded((prev) => !prev);
   };
   return (
     <div
@@ -186,28 +163,30 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }
               }}
             >
-              <>
-                <span
-                  id="chaptercontainer-chapter-select-all-text"
-                  className="chaptercontainer-chapter-select-all-text"
-                >
-                  {t('Select All')}
-                </span>
-                <span
-                  id="chaptercontainer-chapter-select-all-icon"
-                  className="chaptercontainer-chapter-select-all-icon"
-                  aria-hidden="true"
-                >
-                  {isAllSelected ? (
-                    <img
-                      src="/assets/icons/checkbox.png"
-                      alt=""
-                      id="chaptercontainer-chapter-select-all-icon-image"
-                      className="chaptercontainer-chapter-select-all-icon-image"
-                    />
-                  ) : null}
-                </span>
-              </>
+              {visibleLessons.length > 0 ? (
+                <>
+                  <span
+                    id="chaptercontainer-chapter-select-all-text"
+                    className="chaptercontainer-chapter-select-all-text"
+                  >
+                    {t('Select All')}
+                  </span>
+                  <span
+                    id="chaptercontainer-chapter-select-all-icon"
+                    className="chaptercontainer-chapter-select-all-icon"
+                    aria-hidden="true"
+                  >
+                    {isAllSelected ? (
+                      <img
+                        src="/assets/icons/checkbox.png"
+                        alt=""
+                        id="chaptercontainer-chapter-select-all-icon-image"
+                        className="chaptercontainer-chapter-select-all-icon-image"
+                      />
+                    ) : null}
+                  </span>
+                </>
+              ) : null}
             </div>
             <span
               id="chaptercontainer-expand-arrow"
@@ -219,12 +198,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           </div>
         </div>
       </div>
-      {isExpanded && isLoadingLessons ? (
-        <div className="chaptercontainer-loading-lessons">
-          {t('Loading...')}
-        </div>
-      ) : null}
-      {isExpanded && !isLoadingLessons && visibleLessons.length > 0 ? (
+      {isExpanded && visibleLessons.length > 0 ? (
         <div
           id="chaptercontainer-grid-container"
           className="chaptercontainer-grid-container"

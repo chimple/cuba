@@ -15,6 +15,7 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import logger from '../../utility/logger';
 import './ChimpleRiveMascot.css';
+
 interface ChimpleRiveMascotProps {
   stateMachine?: string;
   animationName?: string;
@@ -25,10 +26,13 @@ interface ChimpleRiveMascotProps {
     Required<Pick<ChimpleRiveMascotProps, 'stateMachine' | 'inputName'>>
   >;
 }
+
 interface RiveMascotCanvasProps extends ChimpleRiveMascotProps {
   src: string;
 }
+
 let lastNonSpeakingMascotProps: ChimpleRiveMascotProps | null = null;
+
 function RiveMascotCanvas({
   src,
   stateMachine,
@@ -44,12 +48,14 @@ function RiveMascotCanvas({
     localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
       ? true
       : false;
+
   const CHIMPLE_RIVE_STATE_MIN = 1;
   const CHIMPLE_RIVE_STATE_MAX = should_show_remote_asset
     ? chimple_rive_state_machine_max
       ? parseInt(chimple_rive_state_machine_max, 10)
       : 8
     : 8;
+
   const { rive, RiveComponent } = useRive(
     {
       src,
@@ -78,6 +84,7 @@ function RiveMascotCanvas({
   const day = today.getDate();
   const mappedState = ((day - 1) % CHIMPLE_RIVE_STATE_MAX) + 1;
   const [value] = useState<number>(stateValue ? stateValue : mappedState);
+
   useEffect(() => {
     if (animationName) return; // Don't set state machine input if using animation
     try {
@@ -95,8 +102,10 @@ function RiveMascotCanvas({
       logger.error('Failed to set numberInput value:', error);
     }
   }, [value, numberInput, animationName]);
+
   return <RiveComponent style={{ width: '100%', height: '100%' }} />;
 }
+
 export default function ChimpleRiveMascot({
   stateMachine,
   animationName,
@@ -127,12 +136,15 @@ export default function ChimpleRiveMascot({
   const [riveSrc, setRiveSrc] = useState<string | null>(
     should_show_remote_asset ? null : defaultSrc,
   );
+
   useEffect(() => {
     if (!should_show_remote_asset) {
       setRiveSrc(defaultSrc);
       return;
     }
+
     let isMounted = true;
+
     const getRemoteMascotUrl = async () => {
       try {
         // Read the file content and convert to base64 data URL
@@ -140,6 +152,7 @@ export default function ChimpleRiveMascot({
           directory: Directory.External,
           path: 'remoteAsset/chimpleRive.riv',
         });
+
         if (fileContent.data) {
           // Convert to data URL that useRive can load
           const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
@@ -162,33 +175,42 @@ export default function ChimpleRiveMascot({
         }
       }
     };
+
     getRemoteMascotUrl();
+
     return () => {
       isMounted = false;
     };
   }, [defaultSrc, should_show_remote_asset]);
+
   const onClickRef = useRef(onClick);
   useEffect(() => {
     onClickRef.current = onClick;
   }, [onClick]);
+
   useEffect(() => {
     if (!onClick) return;
+
     const isVisibleMascotPixelTap = (event: PointerEvent): boolean => {
       const mascotRoot = mascotRootRef.current;
       if (!mascotRoot) return false;
+
       // In overlay mode, prioritize active layer canvas first
       const layers = [
         mascotRoot.querySelector('#chimple-mascot-active-layer'),
         mascotRoot.querySelector('#chimple-mascot-base-layer'),
         mascotRoot, // fallback for non-overlay mode
       ].filter(Boolean) as Element[];
+
       for (const layer of layers) {
         const canvases = Array.from(
           layer.querySelectorAll('canvas'),
         ) as HTMLCanvasElement[];
+
         for (const canvas of canvases) {
           // Skip canvas that hasn't painted yet (race condition guard)
           if (!canvas.width || !canvas.height) continue;
+
           const rect = canvas.getBoundingClientRect();
           const insideRect =
             event.clientX >= rect.left &&
@@ -196,14 +218,17 @@ export default function ChimpleRiveMascot({
             event.clientY >= rect.top &&
             event.clientY <= rect.bottom;
           if (!insideRect) continue;
+
           // willReadFrequently: keeps canvas in CPU memory for fast getImageData
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           if (!ctx) continue;
+
           // Account for device pixel ratio and canvas scaling
           const scaleX = canvas.width / rect.width;
           const scaleY = canvas.height / rect.height;
           const pixelX = Math.floor((event.clientX - rect.left) * scaleX);
           const pixelY = Math.floor((event.clientY - rect.top) * scaleY);
+
           if (
             pixelX < 0 ||
             pixelY < 0 ||
@@ -212,6 +237,7 @@ export default function ChimpleRiveMascot({
           ) {
             continue;
           }
+
           try {
             const alpha = ctx.getImageData(pixelX, pixelY, 1, 1).data[3];
             // alpha > 12 ignores anti-aliased edge pixels
@@ -222,8 +248,10 @@ export default function ChimpleRiveMascot({
           }
         }
       }
+
       return false;
     };
+
     const handlePointerDown = (event: PointerEvent) => {
       if (!isVisibleMascotPixelTap(event)) return;
       event.preventDefault();
@@ -231,12 +259,15 @@ export default function ChimpleRiveMascot({
       // Use ref to avoid re-registering listener when onClick changes
       onClickRef.current?.();
     };
+
     document.addEventListener('pointerdown', handlePointerDown, true);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, true);
     };
   }, [onClick]);
+
   if (!riveSrc) return null;
+
   const baseMascotProps = lastNonSpeakingMascotProps ?? currentMascotProps;
   const renderMascot = (props: ChimpleRiveMascotProps) => (
     <RiveMascotCanvas
@@ -247,6 +278,7 @@ export default function ChimpleRiveMascot({
       animationName={props.animationName}
     />
   );
+
   if (isOverlayMatch && baseMascotProps?.stateMachine) {
     return (
       <div
@@ -263,6 +295,7 @@ export default function ChimpleRiveMascot({
       </div>
     );
   }
+
   return (
     <div ref={mascotRootRef} className="chimple-mascot-overlay">
       {renderMascot(currentMascotProps)}

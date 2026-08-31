@@ -67,9 +67,6 @@ export const AssignmentConfigurationCard: React.FC<
             onChange={(event: SelectChangeEvent<Frequency>) =>
               onFrequencyChange(event.target.value as Frequency)
             }
-            MenuProps={{
-              PaperProps: { className: 'campaign-setup-dropdown-menu' },
-            }}
           >
             {(Object.keys(frequencyLabels) as Frequency[]).map((frequency) => (
               <MenuItem

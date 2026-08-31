@@ -77,35 +77,10 @@ jest.mock('./ParentWhatsappInvitationPageLogic', () => ({
   useParentWhatsappInvitationPageLogic: jest.fn(),
 }));
 
-jest.mock('./ParentWhatsappInvitationPageService', () => {
-  const actual = jest.requireActual('./ParentWhatsappInvitationPageService');
-  return {
-    __esModule: true,
-    ...actual,
-    fetchParentWhatsappMsg91Report: jest.fn(
-      actual.fetchParentWhatsappMsg91Report,
-    ),
-    processParentWhatsappUdiseCodes: jest.fn(
-      actual.processParentWhatsappUdiseCodes,
-    ),
-    sendParentWhatsappMsg91Invites: jest.fn(
-      actual.sendParentWhatsappMsg91Invites,
-    ),
-    sendParentWhatsappTemplateMessage: jest.fn(
-      actual.sendParentWhatsappTemplateMessage,
-    ),
-    uploadParentWhatsappMedia: jest.fn(actual.uploadParentWhatsappMedia),
-  };
-});
-
 const mockUseParentWhatsappInvitationPageLogic =
   useParentWhatsappInvitationPageLogic as jest.MockedFunction<
     typeof useParentWhatsappInvitationPageLogic
   >;
-
-const actualParentWhatsappInvitationService = jest.requireActual(
-  './ParentWhatsappInvitationPageService',
-) as typeof import('./ParentWhatsappInvitationPageService');
 
 const actualPageLogicModule = jest.requireActual(
   './ParentWhatsappInvitationPageLogic',
@@ -113,44 +88,6 @@ const actualPageLogicModule = jest.requireActual(
 
 const useParentWhatsappInvitationPageLogicActual =
   actualPageLogicModule.useParentWhatsappInvitationPageLogic;
-
-const resetParentWhatsappServiceMocksToActual = () => {
-  (
-    parentWhatsappInvitationService.fetchParentWhatsappMsg91Report as jest.MockedFunction<
-      typeof parentWhatsappInvitationService.fetchParentWhatsappMsg91Report
-    >
-  ).mockImplementation(
-    actualParentWhatsappInvitationService.fetchParentWhatsappMsg91Report,
-  );
-  (
-    parentWhatsappInvitationService.processParentWhatsappUdiseCodes as jest.MockedFunction<
-      typeof parentWhatsappInvitationService.processParentWhatsappUdiseCodes
-    >
-  ).mockImplementation(
-    actualParentWhatsappInvitationService.processParentWhatsappUdiseCodes,
-  );
-  (
-    parentWhatsappInvitationService.sendParentWhatsappMsg91Invites as jest.MockedFunction<
-      typeof parentWhatsappInvitationService.sendParentWhatsappMsg91Invites
-    >
-  ).mockImplementation(
-    actualParentWhatsappInvitationService.sendParentWhatsappMsg91Invites,
-  );
-  (
-    parentWhatsappInvitationService.sendParentWhatsappTemplateMessage as jest.MockedFunction<
-      typeof parentWhatsappInvitationService.sendParentWhatsappTemplateMessage
-    >
-  ).mockImplementation(
-    actualParentWhatsappInvitationService.sendParentWhatsappTemplateMessage,
-  );
-  (
-    parentWhatsappInvitationService.uploadParentWhatsappMedia as jest.MockedFunction<
-      typeof parentWhatsappInvitationService.uploadParentWhatsappMedia
-    >
-  ).mockImplementation(
-    actualParentWhatsappInvitationService.uploadParentWhatsappMedia,
-  );
-};
 
 const createDeferred = <T,>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -170,9 +107,7 @@ const createFileList = (files: File[]): FileList =>
   }) as unknown as FileList;
 
 const createLogicState = (overrides: Partial<any> = {}) => ({
-  uploadInputRef: {
-    current: { click: jest.fn() } as unknown as HTMLInputElement,
-  },
+  uploadInputRef: { current: { click: jest.fn() } },
   isWhatsappMode: false,
   setIsWhatsappMode: jest.fn(),
   showMsg91Report: false,
@@ -244,7 +179,6 @@ const renderPage = (overrides: Partial<any> = {}) => {
 describe('ParentWhatsappInvitationPage component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetParentWhatsappServiceMocksToActual();
   });
 
   // Covers default SMS/UDISE mode rendering with core form fields.
@@ -605,7 +539,7 @@ describe('ParentWhatsappInvitationPage component', () => {
           ],
         },
         selectedInviteLanguageCode: 'hi',
-      }) as any,
+      }),
     );
     rerender(<ParentWhatsappInvitationPage />);
 
@@ -853,7 +787,6 @@ describe('ParentWhatsappInvitationPage component', () => {
 describe('ParentWhatsappInvitationPage logic helpers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetParentWhatsappServiceMocksToActual();
   });
 
   // Covers today date output format in YYYY-MM-DD.
@@ -1319,6 +1252,7 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     expect(
       parentWhatsappInvitationService.sendParentWhatsappMsg91Invites,
     ).toHaveBeenCalledWith(mockApi, baseAnalysisResult.inviteList, 'hi');
+
     jest
       .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappMsg91Invites')
       .mockResolvedValueOnce({
@@ -1757,7 +1691,6 @@ describe('ParentWhatsappInvitationPage service exports', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    resetParentWhatsappServiceMocksToActual();
   });
 
   // Covers static config status payload with all feature flags enabled.

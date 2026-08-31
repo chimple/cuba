@@ -7,7 +7,7 @@ import SchoolStudents from './SchoolStudents';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import './ClassDetailsPage.css';
 import { t } from 'i18next';
-import { TableTypes } from '../../../common/constants';
+import { StudentInfo, TableTypes } from '../../../common/constants';
 import { ClassRow, SchoolDetailsData } from './SchoolClass';
 import AddNoteModal from '../SchoolDetailsComponents/AddNoteModal'; // <<-- imported
 import { NOTES_UPDATED_EVENT } from '../../../common/constants';
@@ -18,6 +18,9 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+
+type ApiStudent = StudentInfo;
+const ROWS_PER_PAGE = 20;
 
 type Props = {
   data?: SchoolDetailsData;
@@ -45,6 +48,8 @@ const ClassDetailsPage: React.FC<Props> = ({
   const onlyClassRow =
     classDataArray.find((r) => r?.id === classId) ?? classRow ?? null;
 
+  const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
+  const [initialTotal, setInitialTotal] = useState<number>(0);
   const [activeStudentCount, setActiveStudentCount] = useState<number>(0);
 
   const [showAddModal, setShowAddModal] = useState(false); // <<-- modal state
@@ -76,22 +81,28 @@ const ClassDetailsPage: React.FC<Props> = ({
   );
 
   useEffect(() => {
-    let cancelled = false;
-
     (async () => {
       try {
         const api = ServiceConfig.getI().apiHandler;
+        const res = await api.getStudentInfoBySchoolId(
+          schoolId,
+          1,
+          ROWS_PER_PAGE,
+          classId,
+        );
+        logger.info('Loaded class details:', {
+          students: res?.data,
+          total: res?.total,
+        });
+        setInitialStudents(res?.data || []);
+        setInitialTotal(res?.total || 0);
         const active = await api.getActiveStudentsCountByClass(classId);
-        if (!cancelled) setActiveStudentCount(Number(active) || 0);
+        setActiveStudentCount(Number(active) || 0);
       } catch (e) {
         logger.error('Failed to load class details:', e);
-        if (!cancelled) setActiveStudentCount(0);
+        setActiveStudentCount(0);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [schoolId, classId]);
 
   const finalClassCode =
@@ -201,8 +212,10 @@ const ClassDetailsPage: React.FC<Props> = ({
         <SchoolStudents
           data={{
             schoolData: data?.schoolData,
+            students: initialStudents,
+            totalStudentCount: initialTotal,
             classData: classDataArray,
-            totalCount: totalStudentsOverride,
+            totalCount: initialTotal,
           }}
           schoolId={schoolId}
           isMobile={isMobile}

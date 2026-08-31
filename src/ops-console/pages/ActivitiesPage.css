@@ -22,16 +22,6 @@
   min-width: 0;
   overflow: hidden;
 }
-
-.activities-secondary-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  flex: 0 0 auto !important;
-  min-width: auto !important;
-  overflow: visible !important;
-  margin-right: 30px;
-}
 .activities-container {
   display: flex;
   flex-direction: column;

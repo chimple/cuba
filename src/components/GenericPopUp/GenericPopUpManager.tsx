@@ -151,8 +151,6 @@ class PopupManager {
       target: config.action?.target,
     });
 
-    this.isPopupActive = false;
-
     if (config.action?.type === 'DEEP_LINK') {
       const rawTarget = config.action.target; // e.g. "SUBJECTS", "LEADERBOARD"
       const normalizedTarget = rawTarget.toLowerCase();
@@ -180,6 +178,8 @@ class PopupManager {
         window.open(rawTarget, '_blank', 'noopener,noreferrer');
       }
     }
+
+    this.isPopupActive = false;
   }
 }
 

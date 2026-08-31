@@ -3,7 +3,6 @@ import { FC, useEffect, useState } from 'react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {
-  GENERIC_POP_UP,
   IS_REWARD_FEATURE_ON,
   LESSONS_PLAYED_COUNT,
   PAGES,
@@ -21,15 +20,12 @@ import { Util } from '../utility/util';
 import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { useFeatureValue } from '@growthbook/growthbook-react';
-import { getAppSearchParams } from '../utility/routerLocation';
-import { parsePath } from 'history';
-import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
+import { useGrowthBook } from '@growthbook/growthbook-react';
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const urlSearchParams = getAppSearchParams();
+  const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get('liveRoomId');
   const [roomDoc, setRoomDoc] = useState<TableTypes<'live_quiz_room'>>();
   const [isTimeOut, setIsTimeOut] = useState(false);
@@ -64,7 +60,7 @@ const LiveQuizGame: FC = () => {
     SOURCE.LEARNING_PATHWAY_HOME_PAL,
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
-  const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -127,38 +123,31 @@ const LiveQuizGame: FC = () => {
     setShowScoreCard(true);
     setShowDialogBox(true);
 
+    const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
+
     if (popupConfig) {
       PopupManager.onGameComplete(popupConfig);
     }
   };
 
   const push = () => {
-    const urlParams = getAppSearchParams();
+    const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
     const returnState = {
       ...(state?.returnState ?? state),
       fromLiveQuiz: true,
     };
     if (Capacitor.isNativePlatform()) {
-      history.replace({
-        ...parsePath(fromPath + '&isReload=false'),
-        state: returnState,
-      });
+      history.replace(fromPath + '&isReload=false', returnState);
     } else {
       if (!!urlParams.get('isReload')) {
         if (fromPath.includes('?')) {
-          history.replace({
-            ...parsePath(fromPath + '&isReload=true'),
-            state: returnState,
-          });
+          history.replace(fromPath + '&isReload=true', returnState);
         } else {
-          history.replace({
-            ...parsePath(fromPath + '?isReload=true'),
-            state: returnState,
-          });
+          history.replace(fromPath + '?isReload=true', returnState);
         }
       } else {
-        history.replace({ ...parsePath(fromPath), state: returnState });
+        history.replace(fromPath, returnState);
       }
     }
   };

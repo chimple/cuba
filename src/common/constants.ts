@@ -1676,9 +1676,3 @@ export const CLASS_PERFORMANCE_STATUS_META: Record<
   },
   default: { bg: '#EEF2F6', color: '#5B6472' },
 };
-export * from './constants/schema';
-export * from './constants/navigation';
-export * from './constants/opsSchoolModels';
-export * from './constants/runtimeStorage';
-export * from './constants/rewardsPathway';
-export * from './constants/opsCampaigns';

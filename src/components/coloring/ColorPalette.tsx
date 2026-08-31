@@ -1,7 +1,6 @@
 import './ColorPalette.css';
 import { Util } from '../../utility/util';
 import { EVENTS } from '../../common/constants';
-import { getAppPathname } from '../../utility/routerLocation';
 
 type Props = {
   selected: string;
@@ -50,7 +49,7 @@ export default function ColorPalette({ selected, onSelect }: Props) {
                 Util.logEvent(EVENTS.PAINT_COLOR_TAP, {
                   user_id: Util.getCurrentStudent()?.id ?? null,
                   color: c,
-                  page_path: getAppPathname(),
+                  page_path: window.location.pathname,
                 });
                 onSelect(c);
               }}

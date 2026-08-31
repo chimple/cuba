@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useTeacherAuthentication } from '../../hooks/useTeacherAuthentication';
+import { useTeacherAuthentication } from './useTeacherAuthentication';
 
 describe('useTeacherAuthentication', () => {
   test('initializes with default state', () => {

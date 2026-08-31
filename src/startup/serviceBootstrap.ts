@@ -2,7 +2,6 @@ import { APIMode, ServiceConfig } from '../services/ServiceConfig';
 import { SqliteApi } from '../services/api/SqliteApi';
 import { persistor, store } from '../redux/store';
 import logger from '../utility/logger';
-import { StorageManager } from '../utility/storageManager';
 import { isNativePlatform } from './nativeRuntime';
 
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
@@ -31,6 +30,7 @@ const bootstrapAndRender = async (renderApp: () => void) => {
   if (isNativePlatform) {
     serviceInstance.switchMode(APIMode.SQLITE);
     renderApp();
+
     void SqliteApi.getInstance().catch((error) => {
       logger.error('Sqlite init failed during bootstrap', error);
     });

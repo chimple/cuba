@@ -18,7 +18,6 @@ import {
   getGradeNameFromStandard,
   getStandardFromClassName,
 } from '../../utility/classGradeMapper';
-import { parsePath } from 'history';
 
 type LocationState = {
   school?: TableTypes<'school'>;
@@ -99,13 +98,10 @@ const EditClass: FC = () => {
         );
         setIsSaving(false);
         Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
-        history.replace({
-          ...parsePath(PAGES.SUBJECTS_PAGE),
-          state: {
-            classId: newClass.id,
-            origin: PAGES.ADD_CLASS,
-            isSelect: true,
-          },
+        history.replace(PAGES.SUBJECTS_PAGE, {
+          classId: newClass.id,
+          origin: PAGES.ADD_CLASS,
+          isSelect: true,
         });
       }
     } catch (error) {
@@ -139,25 +135,20 @@ const EditClass: FC = () => {
     if (paramOrigin === PAGES.MANAGE_CLASS) {
       Util.setPathToBackButton(PAGES.MANAGE_CLASS, history);
     } else if (paramOrigin != PAGES.SUBJECTS_PAGE) {
-      history.replace({
-        ...parsePath(
-          paramOrigin === PAGES.HOME_PAGE
-            ? PAGES.HOME_PAGE
-            : PAGES.DISPLAY_SCHOOLS,
-        ),
-        state: paramOrigin === PAGES.HOME_PAGE ? { tabValue: 0 } : null,
-      });
+      history.replace(
+        paramOrigin === PAGES.HOME_PAGE
+          ? PAGES.HOME_PAGE
+          : PAGES.DISPLAY_SCHOOLS,
+        paramOrigin === PAGES.HOME_PAGE ? { tabValue: 0 } : null,
+      );
       return;
     } else if (paramOrigin === PAGES.SUBJECTS_PAGE) {
       if (!currentSchool) return;
       Util.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
-      history.replace({
-        ...parsePath(PAGES.SUBJECTS_PAGE),
-        state: {
-          schoolId: currentSchool.id,
-          origin: PAGES.DISPLAY_SCHOOLS,
-          isSelect: true,
-        },
+      history.replace(PAGES.SUBJECTS_PAGE, {
+        schoolId: currentSchool.id,
+        origin: PAGES.DISPLAY_SCHOOLS,
+        isSelect: true,
       });
       return;
     }

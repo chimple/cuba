@@ -3,7 +3,6 @@ import {
   formatCompactNumber,
   formatPercent,
   getSchoolListExportColumns,
-  getSchoolCoordinatorList,
   pickFirstNumber,
   resolvePerformanceStatus,
 } from './SchoolList.helpers';
@@ -62,10 +61,6 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     },
     udise: {
       valueText: school.udise ? String(school.udise).trim() : '--',
-      percentText: '--',
-    },
-    fieldCoordinators: {
-      valueText: getSchoolCoordinatorList(school).join(', ') || '--',
       percentText: '--',
     },
     block: {

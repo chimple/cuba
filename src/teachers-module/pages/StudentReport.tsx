@@ -13,7 +13,7 @@ import { PAGES, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { ClassUtil } from '../../utility/classUtil';
 import logger from '../../utility/logger';
-import { parsePath } from 'history';
+
 type StudentReportLocationState = {
   student?: TableTypes<'user'>;
   classDoc?: TableTypes<'class'>;
@@ -25,12 +25,14 @@ type StudentReportLocationState = {
   isAssignments?: boolean;
   sortType?: string;
 };
+
 type SubjectOption = {
   id: string | number;
   name: string;
   icon?: string;
   subjectDetail?: string;
 };
+
 const StudentReport: React.FC = () => {
   const history = useHistory();
   const locationState = (history.location.state ??
@@ -40,11 +42,13 @@ const StudentReport: React.FC = () => {
   const tempClass = locationState.classDoc as TableTypes<'class'>;
   const isStudentProfilePage = Boolean(locationState.isStudentProfilePage);
   const fromDashboardBand = Boolean(locationState.fromDashboardBand);
+
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const [subjects, setSubjects] = useState<TableTypes<'course'>[]>();
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
     { icon: string; id: string; name: string; subjectDetail: string }[]
   >([]);
@@ -69,11 +73,14 @@ const StudentReport: React.FC = () => {
       : null,
   );
   let maxEndDate: string;
+
   const toDate = (dateStr: string | null): Date => {
     const d = new Date(dateStr || '');
     return isNaN(d.getTime()) ? new Date() : d;
   };
+
   const todayDate = new Date();
+
   useEffect(() => {
     fetchClassDetails();
     init();
@@ -81,6 +88,7 @@ const StudentReport: React.FC = () => {
   useEffect(() => {
     initData();
   }, [selectedSubject, startDate, endDate]);
+
   const fetchClassDetails = async () => {
     try {
       let classToUse = tempClass ?? Util.getCurrentClass();
@@ -91,6 +99,7 @@ const StudentReport: React.FC = () => {
       logger.error('Failed to load class details.', error);
     }
   };
+
   const today = new Date().toISOString().split('T')[0];
   const initData = async () => {
     var _classUtil = new ClassUtil();
@@ -102,35 +111,43 @@ const StudentReport: React.FC = () => {
       endDate ?? '',
       classToUse?.id,
     );
+
     setStudentResult(result ?? []);
   };
+
   const init = async () => {
     const classToUse = tempClass ?? Util.getCurrentClass();
     const _subjects = await api.getCoursesForClassStudent(classToUse?.id ?? '');
     setSubjects(_subjects);
+
     const baseSubjectOptions = _subjects.map((subject) => ({
       id: subject.id,
       name: subject.name,
       icon: subject?.image || '/assets/icons/DefaultIcon.png',
       subjectDetail: subject.name,
     }));
+
     const curriculumIds = Array.from(
       new Set(_subjects.map((s) => s.curriculum_id)),
     ).filter((id): id is string => id !== null);
+
     const gradeIds = Array.from(
       new Set(_subjects.map((s) => s.grade_id)),
     ).filter((id): id is string => id !== null);
+
     try {
       const [curriculumsResult, gradesResult] = await Promise.allSettled([
         api.getCurriculumsByIds(curriculumIds),
         api.getGradesByIds(gradeIds),
       ]);
+
       const curriculums =
         curriculumsResult.status === 'fulfilled' ? curriculumsResult.value : [];
       const grades =
         gradesResult.status === 'fulfilled' ? gradesResult.value : [];
       const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
       const gradeMap = new Map(grades.map((g) => [g.id, g]));
+
       const _mappedSubjectOptions = baseSubjectOptions.map((subject) => {
         const sourceSubject = _subjects.find((item) => item.id === subject.id);
         const curriculum = curriculumMap.get(
@@ -144,11 +161,13 @@ const StudentReport: React.FC = () => {
           subjectDetail: `${subject.name} ${curriculum?.name ?? 'Unknown'}-${grade?.name ?? 'Unknown'}`,
         };
       });
+
       setMappedSubjectOptions(_mappedSubjectOptions);
     } catch (error) {
       logger.error('Error fetching curriculums or grades:', error);
       setMappedSubjectOptions(baseSubjectOptions);
     }
+
     const current_course = Util.getCurrentCourse(classToUse?.id);
     setSelectedSubject(current_course ?? _subjects[0]);
   };
@@ -175,29 +194,20 @@ const StudentReport: React.FC = () => {
   };
   const handleBackButton = () => {
     if (isStudentProfilePage) {
-      history.replace({
-        ...parsePath(PAGES.STUDENT_PROFILE),
-        state: {
-          studentId: student.id,
-          classDoc: tempClass,
-        },
+      history.replace(PAGES.STUDENT_PROFILE, {
+        studentId: student.id,
+        classDoc: tempClass,
       });
     } else if (fromDashboardBand) {
-      history.replace({
-        ...parsePath(PAGES.HOME_PAGE),
-        state: { tabValue: 0 },
-      });
+      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
-      history.replace({
-        ...parsePath(PAGES.HOME_PAGE),
-        state: {
-          tabValue: 3,
-          startDate: locationState.startDate,
-          endDate: locationState.endDate,
-          selectedType: locationState.selectedType,
-          isAssignments: locationState.isAssignments,
-          sortType: locationState.sortType,
-        },
+      history.replace(PAGES.HOME_PAGE, {
+        tabValue: 3,
+        startDate: locationState.startDate,
+        endDate: locationState.endDate,
+        selectedType: locationState.selectedType,
+        isAssignments: locationState.isAssignments,
+        sortType: locationState.sortType,
       });
     }
   };
@@ -289,4 +299,5 @@ const StudentReport: React.FC = () => {
     </IonPage>
   );
 };
+
 export default StudentReport;

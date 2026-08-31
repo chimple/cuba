@@ -7,7 +7,6 @@ import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
 import SelectIcon from './SelectIcon';
 import AssignedBadgeIcon from './AssignedBadgeIcon';
 import './ChapterWiseLessons.css';
-import { parsePath } from 'history';
 
 type ChapterGroup = {
   chapterId: string;
@@ -61,22 +60,19 @@ const ChapterWiseLessons: React.FC<Props> = ({
     gradeName: string,
     course?: TableTypes<'course'>,
   ) => {
-    history.replace({
-      ...parsePath(PAGES.LESSON_DETAILS),
-      state: {
-        course: course ?? null,
-        lesson,
-        chapterId,
-        chapterName,
-        gradeName,
-        subjectName:
-          course?.code?.toUpperCase() ||
-          course?.name ||
-          lesson.cocos_subject_code ||
-          '',
-        from: PAGES.SEARCH_LESSON,
-        selectedLesson,
-      },
+    history.replace(PAGES.LESSON_DETAILS, {
+      course: course ?? null,
+      lesson,
+      chapterId,
+      chapterName,
+      gradeName,
+      subjectName:
+        course?.code?.toUpperCase() ||
+        course?.name ||
+        lesson.cocos_subject_code ||
+        '',
+      from: PAGES.SEARCH_LESSON,
+      selectedLesson,
     });
   };
 

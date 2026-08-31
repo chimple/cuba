@@ -2,27 +2,23 @@
   position: relative;
   text-align: center;
   height: 120px;
-  width: 52px;
-  min-width: 52px;
-  padding: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .tableRightHeaderText {
   color: #4a4949;
   font-weight: 400;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 84px;
+  writing-mode: vertical-rl;
+  width: fit-content;
+  height: 80%;
+  margin: 0 auto;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1.2;
   font-size: 14px;
   font-style: normal;
-  transform: translate(-50%, -50%) rotate(90deg);
-  transform-origin: center;
 }
 
 .aboveText,

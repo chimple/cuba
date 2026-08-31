@@ -49,8 +49,7 @@ describe('GenericPopUpManager', () => {
     mockedGetCurrentStudent.mockReturnValue({ id: 'student-1' });
     installAnalyticsMock();
     delete (window as any).isAnyPopupOpen;
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      false;
+    (PopupManager as any).isPopupActive = false;
     (PopupManager as any).sessionGamesPlayed = 0;
   });
 
@@ -221,8 +220,7 @@ describe('GenericPopUpManager', () => {
     const config = createPopupConfig();
     const { handler, cleanup } = listenForPopupEvent();
 
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
     PopupManager.onAppOpen(config);
 
     expect(handler).not.toHaveBeenCalled();
@@ -397,8 +395,7 @@ describe('GenericPopUpManager', () => {
     expect(eventEs.detail.localized.heading).toBe('Encabezado');
 
     handler.mockClear();
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      false;
+    (PopupManager as any).isPopupActive = false;
     localStorage.setItem(LANGUAGE, 'fr');
     PopupManager.onAppOpen(config);
 
@@ -436,29 +433,25 @@ describe('GenericPopUpManager', () => {
   it('tracks dismiss analytics and clears active state', () => {
     const config = createPopupConfig();
     const track = (window as any).analytics.track as jest.Mock;
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
 
     PopupManager.onDismiss(config);
 
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(false);
     expect(track).toHaveBeenCalledWith('popup_dismissed', {
       popup_id: config.id,
     });
   });
 
-  // Covers: routes deep-link tab targets to internal home tabs and clears active flag
+  // Covers: routes deep-link tab targets to internal home tabs and keeps active flag (current behavior)
 
-  it('routes deep-link tab targets to internal home tabs and clears active flag', () => {
+  it('routes deep-link tab targets to internal home tabs and keeps active flag (current behavior)', () => {
     const config = createPopupConfig({
       action: { type: 'DEEP_LINK', target: 'SUBJECTS' },
     });
     const { replaceSpy, restore } = mockNavigation();
     const track = (window as any).analytics.track as jest.Mock;
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
 
     PopupManager.onAction(config);
 
@@ -468,9 +461,7 @@ describe('GenericPopUpManager', () => {
       target: 'SUBJECTS',
     });
     expect(replaceSpy).toHaveBeenCalledWith('/home?tab=SUBJECTS');
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(true);
     restore();
   });
 
@@ -499,35 +490,6 @@ describe('GenericPopUpManager', () => {
     PopupManager.onAction(config);
 
     expect(replaceSpy).toHaveBeenCalledWith('/profile');
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
-    restore();
-  });
-
-  // Covers: internal CTA navigation does not leave popup manager locked for later popups
-
-  it('allows later popups after internal CTA navigation', () => {
-    const config = createPopupConfig({
-      action: { type: 'DEEP_LINK', target: 'SUBJECTS' },
-    });
-    const { replaceSpy, restore } = mockNavigation();
-    const { handler, cleanup } = listenForPopupEvent();
-
-    PopupManager.onAppOpen(config);
-    expect(handler).toHaveBeenCalledTimes(1);
-
-    PopupManager.onAction(config);
-    expect(replaceSpy).toHaveBeenCalledWith('/home?tab=SUBJECTS');
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
-
-    handler.mockClear();
-    PopupManager.onAppOpen(config);
-    expect(handler).toHaveBeenCalledTimes(1);
-
-    cleanup();
     restore();
   });
 
@@ -539,8 +501,7 @@ describe('GenericPopUpManager', () => {
     });
     const { openSpy, restore } = mockNavigation();
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
 
     PopupManager.onAction(config);
 
@@ -549,9 +510,7 @@ describe('GenericPopUpManager', () => {
       '_blank',
       'noopener,noreferrer',
     );
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(false);
     restore();
   });
 
@@ -574,14 +533,11 @@ describe('GenericPopUpManager', () => {
 
   it('clears active state when action is missing', () => {
     const config = createPopupConfig({ action: undefined });
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
 
     PopupManager.onAction(config);
 
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(false);
   });
 
   // Covers: does not crash when analytics object is missing
@@ -752,9 +708,7 @@ describe('GenericPopUpManager', () => {
       action_type: 'CLICK_BUTTON',
       target: 'something',
     });
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(false);
   });
 
   // Covers: onDismiss is idempotent when already inactive
@@ -762,14 +716,11 @@ describe('GenericPopUpManager', () => {
   it('onDismiss is idempotent when already inactive', () => {
     const config = createPopupConfig();
     const track = (window as any).analytics.track as jest.Mock;
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      false;
+    (PopupManager as any).isPopupActive = false;
 
     PopupManager.onDismiss(config);
 
-    expect(
-      (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive,
-    ).toBe(false);
+    expect((PopupManager as any).isPopupActive).toBe(false);
     expect(track).toHaveBeenCalledTimes(1);
     expect(track).toHaveBeenCalledWith('popup_dismissed', {
       popup_id: config.id,
@@ -785,8 +736,7 @@ describe('GenericPopUpManager', () => {
         value: 1,
       },
     });
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      true;
+    (PopupManager as any).isPopupActive = true;
     const { handler, cleanup } = listenForPopupEvent();
 
     PopupManager.onTimeElapsed(config);
@@ -812,8 +762,7 @@ describe('GenericPopUpManager', () => {
     expect(handler).toHaveBeenCalledTimes(1);
 
     handler.mockClear();
-    (PopupManager as unknown as { isPopupActive: boolean }).isPopupActive =
-      false;
+    (PopupManager as any).isPopupActive = false;
     PopupManager.onGameComplete(config);
     PopupManager.onGameComplete(config);
 

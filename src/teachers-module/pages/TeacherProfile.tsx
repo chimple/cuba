@@ -5,7 +5,6 @@ import Header from '../components/homePage/Header';
 import { IonPage } from '@ionic/react';
 import TeacherProfileSection from '../components/addTeacher/TeacherProfileSection';
 import { useHistory, useLocation } from 'react-router-dom';
-import { parsePath } from 'history';
 
 const TeacherProfile: React.FC = () => {
   const localTeacher = localStorage.getItem(CURRENT_TEACHER);
@@ -18,10 +17,7 @@ const TeacherProfile: React.FC = () => {
   const { classDoc, school } = location.state || {};
 
   const onBackButtonClick = () => {
-    history.replace({
-      ...parsePath(`${PAGES.CLASS_USERS}?tab=Teachers`),
-      state: classDoc,
-    });
+    history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
   };
 
   return (

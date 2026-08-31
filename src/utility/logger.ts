@@ -4,7 +4,6 @@ import {
   NativeBridgePayload,
   sanitizeNativeBridgePayload,
 } from './safeNativeBridgePayload';
-import { getAppPathname } from './routerLocation';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
@@ -35,24 +34,14 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
   silent: 4,
 };
 
-type LoggerEnvironment = {
-  VITE_LOG_LEVEL?: string;
-  PROD?: boolean;
-};
-
 const getEnvLogLevel = (): LogLevel => {
-  try {
-    const env = (import.meta as ImportMeta & { env?: LoggerEnvironment }).env;
-    const envLevel = env?.VITE_LOG_LEVEL as LogLevel | undefined;
+  const envLevel = import.meta.env.VITE_LOG_LEVEL as LogLevel;
 
-    if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
-      return envLevel;
-    }
-
-    return env?.PROD ? 'warn' : 'debug';
-  } catch {
-    return 'debug';
+  if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
+    return envLevel;
   }
+
+  return import.meta.env.PROD ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();
@@ -65,15 +54,14 @@ const IS_NATIVE =
   !!(window as any).Capacitor &&
   (window as any).Capacitor.getPlatform() !== 'web';
 
-let cachedPage: string | undefined = HAS_WINDOW ? getAppPathname() : undefined;
+let cachedPage: string | undefined = HAS_WINDOW
+  ? window.location.pathname
+  : undefined;
 
 if (HAS_WINDOW) {
-  const updateCachedPage = () => {
-    cachedPage = getAppPathname();
-  };
-
-  window.addEventListener('popstate', updateCachedPage);
-  window.addEventListener('hashchange', updateCachedPage);
+  window.addEventListener('popstate', () => {
+    cachedPage = window.location.pathname;
+  });
 }
 
 /**

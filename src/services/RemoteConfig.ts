@@ -98,7 +98,6 @@ export enum REMOTE_CONFIG_KEYS {
   LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls',
   CAN_SHOW_AVATAR = 'can_show_avatar',
   CAN_UPDATED_AVATAR_SUGGESTION_URL = 'can_updated_avatar_suggestion_url',
-  MAX_ASSET_STORAGE_MB_NEW = 'max_asset_storage_mb_new',
   // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 
@@ -106,10 +105,6 @@ export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: false,
   [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: getBundleZipUrlsForEnv(),
   [REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS]: getLidoBundleZipUrlsForEnv(),
-  [REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW]: {
-    size: 100,
-    isEnabled: false,
-  },
   // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
   //   "https://www.chimple.org/privacy-policy"
   // ],

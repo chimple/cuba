@@ -119,7 +119,7 @@ const checkForUpdate = async (growthbook: GrowthBook, userId: string) => {
         success = true;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        logger.error(`Sync attempt ${attempt} failed`, error);
+        logger.error(`âŒ Sync attempt ${attempt} failed`, error);
         Util.setHotUpdateState({
           status: 'Auto update failed',
           progress: 0,
@@ -127,7 +127,7 @@ const checkForUpdate = async (growthbook: GrowthBook, userId: string) => {
         });
 
         if (attempt === MAX_RETRIES) {
-          logger.error('All retry attempts failed');
+          logger.error('âŒ All retry attempts failed');
           Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
             user_id: userId,
             timestamp: new Date().toISOString(),
@@ -143,7 +143,7 @@ const checkForUpdate = async (growthbook: GrowthBook, userId: string) => {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error('LiveUpdate failed', error);
+    logger.error('LiveUpdate failedâŒ', error);
     Util.setHotUpdateState({
       status: 'Auto update failed',
       progress: 0,

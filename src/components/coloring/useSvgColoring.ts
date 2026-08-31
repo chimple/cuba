@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Util } from '../utility/util';
-import { EVENTS } from '../common/constants';
-import { getAppPathname } from '../utility/routerLocation';
+import { Util } from '../../utility/util';
+import { EVENTS } from '../../common/constants';
 
 export type ColoredRegions = Record<string, string>;
 
@@ -71,7 +70,7 @@ export const useSvgColoring = (
           region_id: regionId,
           color: selectedColor,
           colored_count: Object.keys(next).length,
-          page_path: getAppPathname(),
+          page_path: window.location.pathname,
         });
 
         return next;

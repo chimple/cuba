@@ -283,7 +283,6 @@ public void shareContentWithAndroidShare(PluginCall call) {
     public void saveProceesedXlsxFile(PluginCall call) {
         String fileData = call.getString("fileData"); // Base64 encoded file data
         String fileName = call.getString("fileName"); // Full file name expected from the caller
-        String mimeType = call.getString("mimeType");
 
         if (fileData == null || fileData.isEmpty()) {
             call.reject("No file data provided");
@@ -291,17 +290,15 @@ public void shareContentWithAndroidShare(PluginCall call) {
         }
 
         if (fileName == null || fileName.trim().isEmpty()) {
-                fileName = "ProcessedFile.xlsx";
-         }
-         if (mimeType == null || mimeType.trim().isEmpty()) {
-             mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-         }
-         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-              byte[] fileBytes = Base64.decode(fileData, Base64.NO_WRAP);
-              ContentResolver resolver = getContext().getContentResolver();
-              ContentValues values = new ContentValues();
-              values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
-              values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
+              fileName = "ProcessedFile.xlsx";
+       }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            byte[] fileBytes = Base64.decode(fileData, Base64.NO_WRAP);
+            ContentResolver resolver = getContext().getContentResolver();
+            String mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
             values.put(
                 MediaStore.Downloads.RELATIVE_PATH,
                 Environment.DIRECTORY_DOWNLOADS + "/Chimple"
@@ -356,7 +353,7 @@ public void shareContentWithAndroidShare(PluginCall call) {
         fileDataStorage = fileData;
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType(mimeType);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         intent.putExtra(Intent.EXTRA_TITLE, fileName);
         call.setKeepAlive(true);
         startActivityForResult(call, intent, "handleFileSaveResult");

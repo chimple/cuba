@@ -192,8 +192,8 @@
 }
 
 .campaign-communication-time-picker {
-  width: 7.375rem;
-  max-height: 8.75rem;
+  width: 9.625rem;
+  max-height: 14.375rem;
   overflow: hidden;
   border: 0.0625rem solid #b8c0cc;
   border-radius: 0 !important;
@@ -202,13 +202,13 @@
 
 .campaign-communication-time-picker [role='listbox'] {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
   padding: 0.25rem;
 }
 
 .campaign-communication-time-picker-column {
-  max-height: 8.25rem;
+  max-height: 13.875rem;
   overflow-y: auto;
   scrollbar-width: none;
 }

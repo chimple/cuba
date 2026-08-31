@@ -8,7 +8,6 @@ import './ResetPassword.css';
 import { t } from 'i18next';
 import logger from '../utility/logger';
 import { logAuthDebug } from '../utility/authDebug';
-import { getAppPathname } from '../utility/routerLocation';
 
 const ResetPassword: React.FC = () => {
   const location = useLocation();
@@ -39,7 +38,7 @@ const ResetPassword: React.FC = () => {
         logAuthDebug('Navigating to login after successful password reset.', {
           source: 'ResetPassword.handlePasswordReset',
           reason: 'password_reset_success',
-          from_page: getAppPathname(),
+          from_page: window.location.pathname,
           to_page: PAGES.LOGIN,
         });
         history.push(PAGES.LOGIN);

@@ -26,6 +26,7 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
     <div className="wa-info-invite-link-div" id="wa-info-invite-link-id">
       <input
         className="wa-input"
+        autoFocus
         value={inviteInput}
         onChange={(e) => setInviteInput(e.target.value)}
         placeholder="https://chat.whatsapp.com/..."
@@ -39,17 +40,15 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
 
       <Box display="flex" gap={2} mt={1}>
         <button
-          type="button"
           className="wa-info-invite-link-save-btn"
           onClick={onSubmit}
-          disabled={loading}
+          disabled={loading || !inviteInput.trim()}
         >
           {loading ? t('Checking...') : t('Submit')}
         </button>
 
         {groupId && (
           <button
-            type="button"
             className="wa-info-invite-link-cancel-btn"
             id="wa-info-invite-link-cancel-btn-id"
             onClick={onCancel}

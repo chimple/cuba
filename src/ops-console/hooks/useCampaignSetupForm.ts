@@ -218,14 +218,11 @@ export const useCampaignSetupForm = () => {
 
     const loadAssignmentOptions = async () => {
       if (
-        activeStep !== 1 ||
-        form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ||
         !form.programId ||
         selectedAssignmentSchoolIds.length === 0 ||
         audience.selectedGrades.length === 0 ||
         assignmentOptionsCacheRef.current[assignmentOptionsCacheKey]
       ) {
-        setLoadingAssignmentOptions(false);
         return;
       }
 
@@ -257,10 +254,8 @@ export const useCampaignSetupForm = () => {
     };
   }, [
     api,
-    activeStep,
     assignmentOptionsCacheKey,
     audience.selectedGrades,
-    form.objective,
     form.programId,
     selectedAssignmentSchoolIds,
   ]);
@@ -362,10 +357,6 @@ export const useCampaignSetupForm = () => {
     () => getCampaignRewardsValidationErrors(form),
     [form],
   );
-  const canSaveGroup =
-    saveGroup &&
-    form.programId.trim().length > 0 &&
-    form.groupName.trim().length > 0;
 
   const isFormValid = Object.keys(validationErrors).length === 0;
   const areRewardsValid = Object.keys(rewardValidationErrors).length === 0;
@@ -481,6 +472,5 @@ export const useCampaignSetupForm = () => {
     updateRewardRank,
     rewardFieldError,
     ...audience,
-    canSaveGroup,
   };
 };

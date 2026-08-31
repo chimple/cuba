@@ -8,8 +8,6 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import { useHistory } from 'react-router-dom';
-import { parsePath } from 'history';
-
 const UserDetail: React.FC<{
   user: TableTypes<'user'>;
   classDoc: TableTypes<'class'>;
@@ -19,22 +17,16 @@ const UserDetail: React.FC<{
   const history = useHistory();
 
   const handleStudentClick = (studentId: string) => {
-    history.replace({
-      ...parsePath(PAGES.STUDENT_PROFILE),
-      state: {
-        classDoc: classDoc,
-        studentId: studentId,
-      },
+    history.replace(PAGES.STUDENT_PROFILE, {
+      classDoc: classDoc,
+      studentId: studentId,
     });
   };
   const handleTeacherClick = () => {
     localStorage.setItem(CURRENT_TEACHER, JSON.stringify(user));
-    history.replace({
-      ...parsePath(PAGES.TEACHER_PROFILE),
-      state: {
-        classDoc: classDoc,
-        school: schoolDoc,
-      },
+    history.replace(PAGES.TEACHER_PROFILE, {
+      classDoc: classDoc,
+      school: schoolDoc,
     });
   };
   const getRandomAvatar = () => {

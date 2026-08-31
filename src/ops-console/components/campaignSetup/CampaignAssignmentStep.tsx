@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
+import { InfoOutlined } from '@mui/icons-material';
 import {
   CampaignAssignmentOptions,
   CampaignOption,
 } from '../../../services/api/ServiceApi';
 import logger from '../../../utility/logger';
 import { AssignmentConfigurationCard } from './AssignmentConfigurationCard';
-import { CampaignAssignmentGradeTabs } from './CampaignAssignmentGradeTabs';
 import { AssignmentSummary } from './AssignmentSummary';
 import { ChapterSelection } from './ChapterSelection';
 import { RemoveLessonDialog } from './RemoveLessonDialog';
@@ -236,12 +236,39 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         shouldShowSharedGradeHelper ? '' : 'campaign-assignment-step-no-helper'
       }`}
     >
-      <CampaignAssignmentGradeTabs
-        activeGradeId={activeGradeId}
-        onActiveGradeChange={onActiveGradeChange}
-        selectedGrades={selectedGrades}
-        shouldShowSharedGradeHelper={shouldShowSharedGradeHelper}
-      />
+      {shouldShowSharedGradeHelper && (
+        <Box className="campaign-assignment-step-helper">
+          <InfoOutlined />
+          <Typography>
+            Assignments should be configured for all selected grades. The
+            selected assignment frequency will apply across all grades.
+          </Typography>
+        </Box>
+      )}
+
+      <Box
+        className={`campaign-assignment-step-tabs ${
+          shouldShowSharedGradeHelper
+            ? ''
+            : 'campaign-assignment-step-tabs-no-helper'
+        }`}
+        role="tablist"
+      >
+        {selectedGrades.map((grade) => (
+          <button
+            type="button"
+            key={grade.id}
+            className={`campaign-assignment-step-tab ${
+              activeGradeId === grade.id
+                ? 'campaign-assignment-step-tab-active'
+                : ''
+            }`}
+            onClick={() => onActiveGradeChange(grade.id)}
+          >
+            {grade.name}
+          </button>
+        ))}
+      </Box>
 
       <AssignmentConfigurationCard
         gradeName={activeGrade?.name || 'Grade'}
@@ -277,7 +304,10 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         requiredAssignments={requiredAssignments}
         insufficientLessons={insufficientLessons}
         onRemoveLesson={(rowId) =>
-          setDeleteTarget({ gradeId: activeGradeKey, rowId })
+          setDeleteTarget({
+            gradeId: activeGradeKey,
+            rowId,
+          })
         }
       />
 

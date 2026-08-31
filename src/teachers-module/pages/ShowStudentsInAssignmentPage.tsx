@@ -6,7 +6,6 @@ import './ShowStudentsInAssignmentPage.css';
 import CreateSelectedAssignment from '../components/homePage/assignment/CreateSelectedAssignment';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
-import { parsePath } from 'history';
 
 const ShowStudentsInAssignmentPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -62,10 +61,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
       return;
     }
     if (fromPage === PAGES.QR_ASSIGNMENTS && qrAssignmentNavigationState) {
-      history.replace({
-        ...parsePath(PAGES.QR_ASSIGNMENTS),
-        state: qrAssignmentNavigationState,
-      });
+      history.replace(PAGES.QR_ASSIGNMENTS, qrAssignmentNavigationState);
       return;
     }
     history.replace(PAGES.TEACHER_ASSIGNMENT);

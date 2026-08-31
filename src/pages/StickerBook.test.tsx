@@ -472,17 +472,12 @@ describe('StickerBook page', () => {
       props.onPaint();
     });
 
-    expect(pushMock).toHaveBeenCalledWith({
-      pathname: PAGES.COLORING_BOARD,
-      search: '',
-      hash: '',
-      state: {
-        stickerBookId: 'book-7',
-        svgRaw: '<svg></svg>',
-        svgUrl: '/assets/books/book-1.svg',
-        artworkTitle: 'Animals',
-        returnTo: PAGES.STICKER_BOOK,
-      },
+    expect(pushMock).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      stickerBookId: 'book-7',
+      svgRaw: '<svg></svg>',
+      svgUrl: '/assets/books/book-1.svg',
+      artworkTitle: 'Animals',
+      returnTo: PAGES.STICKER_BOOK,
     });
   });
 

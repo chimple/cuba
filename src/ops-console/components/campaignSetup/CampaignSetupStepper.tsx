@@ -6,16 +6,14 @@ import './CampaignSetupStepper.css';
 type CampaignSetupStepperProps = {
   activeStep?: number;
   steps?: string[];
-  onStepClick?: (stepIndex: number) => void;
 };
 
 export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
   activeStep = 0,
   steps = ['Setup', 'Assignments', 'Rewards', 'Messaging', 'Review'],
-  onStepClick,
 }) => {
   const stepperRef = useRef<HTMLDivElement | null>(null);
-  const activeStepRef = useRef<HTMLButtonElement | null>(null);
+  const activeStepRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (
@@ -50,18 +48,15 @@ export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
       <Box className="campaign-setup-stepper-track">
         {steps.map((step, index) => (
           <React.Fragment key={step}>
-            <button
-              type="button"
+            <Box
               ref={index === activeStep ? activeStepRef : null}
               className={`campaign-setup-stepper-step ${
                 index === activeStep ? 'campaign-setup-stepper-step-active' : ''
               } ${index < activeStep ? 'campaign-setup-stepper-step-complete' : ''}`}
-              disabled={index >= activeStep}
-              onClick={() => onStepClick?.(index)}
             >
               <span>{index < activeStep ? <Check /> : index + 1}</span>
               <strong>{step}</strong>
-            </button>
+            </Box>
             {index < steps.length - 1 && (
               <span className="campaign-setup-stepper-step-line" />
             )}

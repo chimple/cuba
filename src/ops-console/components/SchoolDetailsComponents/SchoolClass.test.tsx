@@ -245,7 +245,6 @@ describe('SchoolClasses class metrics', () => {
     expect(within(row).getByText('12')).toBeInTheDocument();
     expect(within(row).getByText('3.5')).toBeInTheDocument();
     expect(within(row).getByText('8.1')).toBeInTheDocument();
-    expect(mockApiHandler.getClassCodeById).not.toHaveBeenCalled();
   });
 
   it('refetches class metrics when the date range changes', async () => {

@@ -8,7 +8,6 @@ import './AddTeacher.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
-import { parsePath } from 'history';
 
 const AddTeacher: React.FC = () => {
   const history = useHistory();
@@ -36,10 +35,7 @@ const AddTeacher: React.FC = () => {
   };
 
   const onBackButtonClick = () => {
-    history.replace({
-      ...parsePath(`${PAGES.CLASS_USERS}?tab=Teachers`),
-      state: classDoc,
-    });
+    history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
   };
 
   const handleSearch = async () => {
@@ -88,10 +84,7 @@ const AddTeacher: React.FC = () => {
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
       await api.updateUserLastModified(user.id);
-      history.replace({
-        ...parsePath(`${PAGES.CLASS_USERS}?tab=Teachers`),
-        state: classDoc,
-      });
+      history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
     } catch (error) {
       logger.error('Failed to add teacher', error);
     } finally {

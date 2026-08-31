@@ -313,6 +313,7 @@
 
 /* Confirmation Section explicit styling */
 .schoolcheckinmodal .check-in-confirmation-section {
+  margin-top: 16px;
   display: flex;
   flex-direction: row;
   align-items: center;

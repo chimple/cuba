@@ -5,8 +5,6 @@ import {
   SCHOOL_LOGIN,
   CURRENT_STUDENT,
   CACHE_TABLES_TO_CLEAR,
-  CURRENT_SQLITE_VERSION,
-  BUNDLED_IMPORT_APP_VERSION_KEY,
 } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 
@@ -17,11 +15,6 @@ const KEYS_TO_CLEAR = [
   SCHOOL_LOGIN,
   CURRENT_STUDENT,
 ] as const;
-
-const KEYS_TO_PRESERVE = new Set([
-  BUNDLED_IMPORT_APP_VERSION_KEY,
-  CURRENT_SQLITE_VERSION,
-]);
 
 export async function clearCacheStorageJS() {
   if (!('caches' in globalThis)) return;
@@ -34,12 +27,7 @@ export async function clearCacheStorageJS() {
 export async function clearLocalAndSession() {
   try {
     for (const k of KEYS_TO_CLEAR) localStorage.removeItem(k);
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && !KEYS_TO_PRESERVE.has(key)) {
-        localStorage.removeItem(key);
-      }
-    }
+    localStorage.clear?.();
   } catch {}
   try {
     sessionStorage.clear?.();

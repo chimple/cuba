@@ -76,8 +76,6 @@
     "identity-obj-proxy": "^3.0.0",
     "ionicons": "^8.0.13",
     "jeep-sqlite": "^2.8.0",
-    "jspdf": "^4.2.1",
-    "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",
@@ -127,7 +125,6 @@
     "build:android": "tsc -p tsconfig.build.json && vite build && npm run copy-build && npx @capawesome/cli manifests:generate --path dist && npx cap sync android",
     "build:storybook": "storybook build",
     "build:full": "npm run build",
-    "build:open-apk": "ts-node scripts/build-open-apk.ts",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "serve-build": "http-server dist",
     "test": "jest --config jest.config.js",
@@ -138,7 +135,6 @@
     "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
-    "check:file-size": "node scripts/check-file-size-limits.js",
     "check:new-any": "node scripts/check-new-explicit-any.js",
     "prepare": "husky",
     "copy-build": "shx cp chimple-lib/*.js dist/ && shx cp -r chimple-lib/src dist/src && shx cp -r chimple-lib/assets/* dist/assets/"
@@ -203,7 +199,6 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-storybook": "^0.10.0",
     "http-server": "^14.1.1",
-    "jszip": "^3.10.1",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
@@ -214,7 +209,6 @@
     "storybook": "^10.4.6",
     "storybook-react-i18next": "^10.1.2",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vite": "^7.0.4",
     "webpack": "^5.101.3"
@@ -223,8 +217,7 @@
     "src/**/*.{js,jsx,ts,tsx}": [
       "eslint",
       "prettier --check",
-      "npm run check:new-any",
-      "npm run check:file-size"
+      "npm run check:new-any"
     ],
     "*.{js,jsx,ts,tsx,css,json,md}": [
       "prettier --check"

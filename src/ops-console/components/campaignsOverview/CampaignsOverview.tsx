@@ -5,7 +5,6 @@ import { ServiceConfig } from '../../../services/ServiceConfig';
 import logger from '../../../utility/logger';
 import CampaignMessages from '../campaignMessages/CampaignMessages';
 import './CampaignsOverview.css';
-import CampaignRewardsReport from './CampaignRewardsReport';
 import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import {
   buildCampaignsOverviewViewModel,
@@ -112,7 +111,6 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
   const shouldShowAssignments =
     selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[1];
   const shouldShowMessages = selectedTab === tabs[2];
-  const shouldShowReports = selectedTab === tabs[3];
   const handleBackClick = (): void => {
     if (onBackClick) {
       onBackClick();
@@ -167,27 +165,6 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
             }
             campaignFrequency={
               campaignOverviewData?.data?.campaign?.frequency ?? undefined
-            }
-          />
-        )}
-        {shouldShowReports && (
-          <CampaignRewardsReport
-            campaignId={resolvedCampaignId}
-            campaignName={
-              resolvedCampaignOverviewData?.data?.campaign?.name ?? ''
-            }
-            campaignStartDate={
-              campaignOverviewData?.data?.campaign?.start_date ?? undefined
-            }
-            rewards={resolvedCampaignOverviewData?.data?.campaign?.rewards}
-            totalStudents={
-              Number(
-                resolvedCampaignOverviewData?.data?.dashboardMetrics
-                  ?.total_students ??
-                  resolvedCampaignOverviewData?.data?.campaign?.program
-                    ?.students_count ??
-                  0,
-              ) || 0
             }
           />
         )}

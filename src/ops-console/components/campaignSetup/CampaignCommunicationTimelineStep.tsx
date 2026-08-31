@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import DataTablePagination from '../DataTablePagination';
-import { CAMPAIGN_MESSAGES_PAGE_SIZE } from '../campaignMessages/CampaignMessagesTypes';
 import { CampaignCommunicationRow } from './CampaignCommunicationRow';
 import { CampaignCommunicationSchedule } from './CampaignCommunicationSchedule';
 import {
   buildCommunicationTimelineDates,
+  buildTimeOptions,
   createEmptyCommunicationRow,
   formatTimelineDateLabel,
   getCampaignDurationDays,
 } from './campaignCommunicationUtils';
 import { CampaignCommunicationTimelineStepProps } from './campaignCommunicationTypes';
+import { useCampaignReach } from './useCampaignReach';
 import './CampaignCommunicationTimelineStep.css';
 
 const CampaignCommunicationTimelineStep: React.FC<
@@ -20,8 +20,7 @@ const CampaignCommunicationTimelineStep: React.FC<
   form,
   frequency,
   assignmentDrafts,
-  campaignReach,
-  loadingReach,
+  selectedSchoolIds,
   communicationState,
   communicationValidation,
   showValidation,
@@ -31,23 +30,12 @@ const CampaignCommunicationTimelineStep: React.FC<
   onClearRow,
 }) => {
   const { t } = useTranslation();
-  const [page, setPage] = useState(1);
+  const timeOptions = useMemo(() => buildTimeOptions(), []);
   const timelineDates = useMemo(
     () => buildCommunicationTimelineDates(assignmentDrafts, form, frequency),
     [assignmentDrafts, form, frequency],
   );
-  const pageCount = Math.ceil(
-    timelineDates.length / CAMPAIGN_MESSAGES_PAGE_SIZE,
-  );
-  const currentPage = Math.min(page, Math.max(pageCount, 1));
-  const displayedTimelineDates = timelineDates.slice(
-    (currentPage - 1) * CAMPAIGN_MESSAGES_PAGE_SIZE,
-    currentPage * CAMPAIGN_MESSAGES_PAGE_SIZE,
-  );
-
-  useEffect(() => {
-    setPage(1);
-  }, [timelineDates]);
+  const { campaignReach, loadingReach } = useCampaignReach(selectedSchoolIds);
 
   const getRow = (date: string) =>
     communicationState.rows[date] ?? createEmptyCommunicationRow();
@@ -135,6 +123,7 @@ const CampaignCommunicationTimelineStep: React.FC<
       <CampaignCommunicationSchedule
         messageTime={communicationState.messageTime}
         pollTime={communicationState.pollTime}
+        timeOptions={timeOptions}
         messageTimeError={rowError('messageTime')}
         pollTimeError={rowError('pollTime')}
         onMessageTimeChange={onMessageTimeChange}
@@ -158,11 +147,11 @@ const CampaignCommunicationTimelineStep: React.FC<
         </Box>
 
         <Box className="campaign-communication-table-body">
-          {displayedTimelineDates.map((date, index) => (
+          {timelineDates.map((date, index) => (
             <CampaignCommunicationRow
               key={date}
               date={date}
-              index={(currentPage - 1) * CAMPAIGN_MESSAGES_PAGE_SIZE + index}
+              index={index}
               row={getRow(date)}
               dateLabel={formatTimelineDateLabel(date)}
               getError={rowError}
@@ -182,11 +171,6 @@ const CampaignCommunicationTimelineStep: React.FC<
           )}
         </Box>
       </Box>
-      <DataTablePagination
-        page={currentPage}
-        pageCount={pageCount}
-        onPageChange={setPage}
-      />
     </Box>
   );
 };

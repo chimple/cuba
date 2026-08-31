@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 
 import {
@@ -21,11 +21,14 @@ import {
 } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
+import { getPathwayStickerCollectedEvent } from '../analytics/rewardEvents';
 import { AudioUtil } from '../utility/AudioUtil';
 import {
   StickerBookModalData,
   StickerBookPreviewVariant,
 } from '../components/learningPathway/StickerBookPreviewModal.logic';
+import { extractStickerSvg } from '../components/common/SvgHelpers';
+import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
 import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { useAppSelector } from '../redux/hooks';
 import logger from '../utility/logger';
@@ -35,20 +38,83 @@ import {
   clearPendingFinalHomeworkStickerFlow,
   hasPendingFinalHomeworkStickerFlow,
 } from '../utility/homeworkStickerFlow';
-import {
-  getStickerCollectMascotAudioPath,
-  getStickerImageFallbackFromBookSvg,
-  STICKER_REWARD_BOX_CLOSE_CLASS,
-  STICKER_REWARD_BOX_OPEN_CLASS,
-  STICKER_REWARD_BOX_SELECTOR,
-  STICKER_REWARD_BOX_TILT_CLASS,
-} from './useHomeworkStickerAssets';
-import { useHomeworkStickerModals } from './useHomeworkStickerModals';
-import { useHomeworkStickerRewardAudioEffects } from './useHomeworkStickerRewardAudioEffects';
-import {
-  DailyRewardAudioClipName,
-  UseHomeworkStickerParams,
-} from './useHomeworkSticker.types';
+
+const STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH = '/assets/audios';
+const STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX =
+  'congrats_on_sticker_collection.mp3';
+const STICKER_REWARD_BOX_SELECTOR = '.PathwayStructure-end-reward-box--sticker';
+const STICKER_REWARD_BOX_OPEN_CLASS =
+  'PathwayStructure-end-reward-box--sticker-open';
+const STICKER_REWARD_BOX_CLOSE_CLASS =
+  'PathwayStructure-end-reward-box--sticker-close-anim';
+const STICKER_REWARD_BOX_TILT_CLASS =
+  'PathwayStructure-end-reward-box--sticker-clicked';
+const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
+const stickerDataUrlCache: Record<string, string> = {};
+type DailyRewardAudioClipName = 'reward' | 'reward_01' | 'reward_02';
+
+type PlaybackStateConfig = {
+  stateMachine?: string;
+  inputName?: string;
+  stateValue?: number;
+  animationName?: string;
+};
+
+interface UseHomeworkStickerParams {
+  containerRef: RefObject<HTMLDivElement | null>;
+  riveContainer: HTMLDivElement | null;
+  currentMascotStateValue: number;
+  reloadHomeworkPathway: () => void;
+  onFinalHomeworkStickerComplete?: () => void;
+  playMascotAudioFromLocalPath: (
+    localAudioPath: string,
+    stateConfig?: PlaybackStateConfig,
+    playbackOptions?: {
+      onPlaybackStop?: () => void;
+    },
+  ) => Promise<boolean>;
+  playRewardAudio: (
+    stateValue?: number,
+    playbackOptions?: {
+      onPlaybackStop?: () => void;
+    },
+    clipName?: DailyRewardAudioClipName,
+  ) => Promise<boolean | void>;
+}
+
+const getStickerCollectMascotAudioPath = (languageCode?: string) => {
+  const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
+  const resolvedLanguageCode = normalizedLanguageCode || 'en';
+  return `${STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH}/${resolvedLanguageCode}_${STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX}`;
+};
+
+const getStickerImageFallbackFromBookSvg = async (
+  stickerBookSvgUrl: string,
+  stickerId: string,
+) => {
+  const cacheKey = `${stickerBookSvgUrl}::${stickerId}`;
+  const cached = stickerDataUrlCache[cacheKey];
+  if (cached) return cached;
+
+  let stickerSvg: string | null = null;
+  try {
+    const text = await fetchStickerBookSvgText(stickerBookSvgUrl);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = text;
+    const svgNode = wrapper.querySelector('svg') as SVGSVGElement | null;
+    if (svgNode) {
+      stickerSvg = extractStickerSvg(svgNode, stickerId);
+    }
+  } catch {
+    stickerSvg = null;
+  }
+
+  if (!stickerSvg) return null;
+
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(stickerSvg)}`;
+  stickerDataUrlCache[cacheKey] = dataUrl;
+  return dataUrl;
+};
 
 export function useHomeworkSticker({
   containerRef,
@@ -352,37 +418,362 @@ export function useHomeworkSticker({
     })();
   }, [canReplayStickerAudio, playStickerAudio]);
 
-  const {
-    closeStickerCompletion,
-    closeStickerPreview,
-    getPersistedStickerCompletionPayload,
-    getStickerPreviewPayload,
-    handleStickerPreviewReady,
-    openStickerCompletion,
-  } = useHomeworkStickerModals({
-    api,
-    clearPendingPathwayStickerReward,
-    getStickerRewardBoxElement,
-    hasCollectedStickerRef,
-    hasCheckedStickerReplayEligibilityRef,
-    hasPendingPathwayStickerReward,
-    lastStickerCompletionOpenKeyRef,
-    playStickerAudioAfterReload,
-    playStickerAudioAndClearPending,
-    playStickerAudioAndFinishHomework,
-    reloadHomeworkPathway,
-    setIsStickerCompletionOpen,
-    setIsStickerPreviewOpen,
-    setStickerCompletionData,
-    setStickerPreviewData,
-    setStickerPreviewFlyoutMotion,
-    setStickerPreviewLaunchMotion,
-    setStickerPreviewTrigger,
-    shouldRefreshPathAfterCompletionRef,
-    stickerCompletionData,
-    stickerPreviewData,
-    stickerPreviewTrigger,
-  });
+  const getStickerPreviewPayload = useCallback(
+    async (
+      forcedStickerId?: string,
+      preAwardCollectedStickerIds?: string[],
+      persistedBookContext?: {
+        stickerBookId?: string | null;
+        stickerBookTitle?: string | null;
+        stickerBookSvgUrl?: string | null;
+      } | null,
+    ): Promise<StickerBookModalData | null> => {
+      try {
+        const currentStudent = Util.getCurrentStudent();
+        if (!currentStudent?.id) return null;
+
+        let book: {
+          id: string;
+          title?: string | null;
+          svg_url?: string | null;
+        } | null = null;
+        let progress: { stickers_collected?: string[] | null } | null = null;
+
+        if (
+          persistedBookContext?.stickerBookId &&
+          persistedBookContext.stickerBookSvgUrl
+        ) {
+          book = {
+            id: persistedBookContext.stickerBookId,
+            title: persistedBookContext.stickerBookTitle ?? 'Sticker Book',
+            svg_url: persistedBookContext.stickerBookSvgUrl,
+          };
+        } else {
+          const currentBookWithProgress =
+            await api.getCurrentStickerBookWithProgress(currentStudent.id);
+          if (!currentBookWithProgress?.book) return null;
+          book = currentBookWithProgress.book;
+          progress = currentBookWithProgress.progress;
+        }
+
+        const collectedStickerIds = Array.isArray(preAwardCollectedStickerIds)
+          ? preAwardCollectedStickerIds
+          : (progress?.stickers_collected ?? []);
+        const nextStickerId =
+          forcedStickerId ??
+          (await api.getNextWinnableSticker(book.id, currentStudent.id));
+        if (!nextStickerId) return null;
+
+        const visibleCollectedStickerIds = forcedStickerId
+          ? collectedStickerIds.filter((id: string) => id !== forcedStickerId)
+          : collectedStickerIds;
+
+        const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
+        const nextSticker = nextStickerDetails?.[0];
+        let nextStickerImage = nextSticker?.image || undefined;
+
+        if (!nextStickerImage && book.svg_url) {
+          try {
+            const dataUrl = await getStickerImageFallbackFromBookSvg(
+              book.svg_url,
+              nextStickerId,
+            );
+            if (dataUrl) nextStickerImage = dataUrl;
+          } catch (error) {
+            logger.warn(
+              '[StickerBook] Failed to build sticker preview image from book SVG',
+              error,
+            );
+          }
+        }
+
+        return {
+          source: 'homework_pathway',
+          stickerBookId: book.id,
+          stickerBookTitle: book.title || 'Sticker Book',
+          stickerBookSvgUrl: book.svg_url || '',
+          collectedStickerIds: visibleCollectedStickerIds,
+          nextStickerId,
+          nextStickerName: nextSticker?.name || 'Sticker',
+          nextStickerImage,
+        };
+      } catch (error) {
+        logger.error(
+          'Failed to build homework sticker preview payload:',
+          error,
+        );
+        return null;
+      }
+    },
+    [api],
+  );
+
+  const getPersistedStickerCompletionPayload = useCallback(() => {
+    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const payload = parsed?.payload;
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        !payload.stickerBookId ||
+        !Array.isArray(payload.collectedStickerIds)
+      ) {
+        return null;
+      }
+
+      return {
+        source: payload.source ?? 'homework_pathway',
+        stickerBookId: payload.stickerBookId,
+        stickerBookTitle: payload.stickerBookTitle || 'Sticker Book',
+        stickerBookSvgUrl: payload.stickerBookSvgUrl || '',
+        collectedStickerIds: payload.collectedStickerIds,
+        totalStickerCount:
+          typeof payload.totalStickerCount === 'number'
+            ? payload.totalStickerCount
+            : payload.collectedStickerIds.length,
+      } as StickerBookModalData;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const openStickerCompletion = useCallback((data: StickerBookModalData) => {
+    const completionKey = [
+      data.source,
+      data.stickerBookId,
+      data.collectedStickerIds.length,
+      data.totalStickerCount,
+    ].join(':');
+
+    if (lastStickerCompletionOpenKeyRef.current === completionKey) {
+      return;
+    }
+
+    lastStickerCompletionOpenKeyRef.current = completionKey;
+    if (data.collectedStickerIds.length > 0) {
+      hasCollectedStickerRef.current = true;
+      hasCheckedStickerReplayEligibilityRef.current = true;
+    }
+
+    setStickerCompletionData(data);
+    setIsStickerCompletionOpen(true);
+    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPEN, {
+      user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+      source: data.source,
+      sticker_book_id: data.stickerBookId,
+      sticker_book_title: data.stickerBookTitle,
+      collected_count: data.collectedStickerIds.length,
+      total_stickers: data.totalStickerCount,
+    });
+  }, []);
+
+  const handleStickerPreviewReady = useCallback(
+    (
+      data: StickerBookModalData,
+      trigger: 'sticker_click' | 'pathway_completion_auto',
+    ) => {
+      if (data.collectedStickerIds.length > 0) {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+      }
+
+      const rewardBoxRect =
+        getStickerRewardBoxElement()?.getBoundingClientRect();
+      if (trigger === 'pathway_completion_auto' && rewardBoxRect) {
+        setStickerPreviewLaunchMotion({
+          offsetX:
+            rewardBoxRect.left +
+            rewardBoxRect.width / 2 -
+            window.innerWidth / 2,
+          offsetY:
+            rewardBoxRect.top +
+            rewardBoxRect.height / 2 -
+            window.innerHeight / 2,
+          startScale: Math.max(0.12, Math.min(0.28, rewardBoxRect.width / 736)),
+        });
+      } else {
+        setStickerPreviewLaunchMotion(null);
+      }
+
+      const profileAvatarRect = document
+        .querySelector('[data-profile-avatar-anchor="true"]')
+        ?.getBoundingClientRect();
+      if (profileAvatarRect) {
+        setStickerPreviewFlyoutMotion({
+          offsetX:
+            profileAvatarRect.right -
+            profileAvatarRect.width * 0.25 -
+            window.innerWidth / 2,
+          offsetY:
+            profileAvatarRect.top +
+            profileAvatarRect.height * 0.3 -
+            window.innerHeight / 2,
+          endScale: Math.max(
+            0.1,
+            Math.min(0.24, profileAvatarRect.width / 736),
+          ),
+        });
+      } else {
+        setStickerPreviewFlyoutMotion(null);
+      }
+
+      setStickerPreviewData(data);
+      setStickerPreviewTrigger(
+        trigger === 'pathway_completion_auto' ? 'drag_collect' : 'preview',
+      );
+      setIsStickerPreviewOpen(true);
+      const isDragPopup = trigger === 'pathway_completion_auto';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_SHOWN
+          : EVENTS.STICKER_PREVIEW_POPUP_SHOWN,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: data.stickerBookId,
+          sticker_id: data.nextStickerId,
+          source: data.source,
+          trigger,
+        },
+      );
+      if (isDragPopup) {
+        Util.logEvent(getPathwayStickerCollectedEvent(data.source), {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: data.stickerBookId,
+          sticker_id: data.nextStickerId,
+          source: data.source,
+          trigger,
+        });
+      }
+    },
+    [getStickerRewardBoxElement],
+  );
+
+  const closeStickerPreview = useCallback(
+    (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
+      if (!stickerPreviewData) return;
+      const isDragPopup = stickerPreviewTrigger === 'drag_collect';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_CLOSED
+          : EVENTS.STICKER_PREVIEW_POPUP_CLOSED,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: stickerPreviewData.stickerBookId,
+          sticker_id: stickerPreviewData.nextStickerId,
+          source: stickerPreviewData.source,
+          close_reason: reason,
+          trigger: isDragPopup ? 'pathway_completion_auto' : 'sticker_click',
+        },
+      );
+
+      setIsStickerPreviewOpen(false);
+      setStickerPreviewLaunchMotion(null);
+      setStickerPreviewFlyoutMotion(null);
+
+      if (!isDragPopup) return;
+
+      hasCollectedStickerRef.current = true;
+      hasCheckedStickerReplayEligibilityRef.current = true;
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+      const deferredCompletionPayload = getPersistedStickerCompletionPayload();
+
+      if (deferredCompletionPayload) {
+        shouldRefreshPathAfterCompletionRef.current = true;
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+              detail: deferredCompletionPayload,
+            }),
+          );
+        }, 0);
+        return;
+      }
+
+      if (hasPendingFinalHomeworkStickerFlow()) {
+        playStickerAudioAndFinishHomework();
+        return;
+      }
+
+      playStickerAudioAfterReload();
+      window.setTimeout(() => {
+        reloadHomeworkPathway();
+      }, 0);
+    },
+    [
+      getPersistedStickerCompletionPayload,
+      playStickerAudioAfterReload,
+      playStickerAudioAndFinishHomework,
+      reloadHomeworkPathway,
+      stickerPreviewData,
+      stickerPreviewTrigger,
+    ],
+  );
+
+  const closeStickerCompletion = useCallback(
+    (reason: 'backdrop' | 'close_button' | 'acknowledge_button') => {
+      if (stickerCompletionData && reason === 'close_button') {
+        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE, {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          source: stickerCompletionData.source,
+          sticker_book_id: stickerCompletionData.stickerBookId,
+          sticker_book_title: stickerCompletionData.stickerBookTitle,
+          collected_count: stickerCompletionData.collectedStickerIds.length,
+          total_stickers: stickerCompletionData.totalStickerCount,
+        });
+      }
+
+      setIsStickerCompletionOpen(false);
+
+      if (reason === 'acknowledge_button') {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        clearPendingFinalHomeworkStickerFlow();
+        clearPendingPathwayStickerReward();
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        return;
+      }
+
+      if (hasPendingFinalHomeworkStickerFlow()) {
+        playStickerAudioAndFinishHomework();
+        return;
+      }
+
+      if (shouldRefreshPathAfterCompletionRef.current) {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        playStickerAudioAfterReload();
+        window.setTimeout(() => {
+          reloadHomeworkPathway();
+        }, 0);
+        return;
+      }
+
+      if (
+        sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY) ||
+        hasPendingPathwayStickerReward()
+      ) {
+        playStickerAudioAfterReload();
+        window.setTimeout(() => {
+          reloadHomeworkPathway();
+        }, 0);
+        return;
+      }
+
+      playStickerAudioAndClearPending();
+    },
+    [
+      clearPendingPathwayStickerReward,
+      hasPendingPathwayStickerReward,
+      playStickerAudioAfterReload,
+      playStickerAudioAndClearPending,
+      playStickerAudioAndFinishHomework,
+      reloadHomeworkPathway,
+      stickerCompletionData,
+    ],
+  );
 
   const resetStickerCelebrationState = useCallback(() => {
     pendingCelebrationRiveContainerRef.current = null;
@@ -488,15 +879,158 @@ export function useHomeworkSticker({
     shouldCelebrateAfterPathwayReload,
   ]);
 
-  useHomeworkStickerRewardAudioEffects({
+  useEffect(() => {
+    const playRewardAudioIfReady = (token: number, rewardId: string) => {
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (
+        rewardAudioSequence.token !== token ||
+        rewardAudioSequence.rewardId !== rewardId ||
+        rewardAudioSequence.suppressed
+      ) {
+        return;
+      }
+
+      const tiltRequestId = rewardStickerTiltRequestIdRef.current + 1;
+      rewardStickerTiltRequestIdRef.current = tiltRequestId;
+      let didStopRewardAudio = false;
+      const stopRewardStickerTilt = () => {
+        if (didStopRewardAudio) return;
+        if (rewardStickerTiltRequestIdRef.current !== tiltRequestId) return;
+        didStopRewardAudio = true;
+        setStickerCollectTiltActive(false);
+        rewardAudioSequence.onRewardAudioComplete?.();
+      };
+
+      resetRewardAudioSequence();
+      setStickerCollectTiltActive(true);
+      void playRewardAudio(
+        rewardAudioSequence.stateValue ?? currentMascotStateValue,
+        {
+          onPlaybackStop: stopRewardStickerTilt,
+        },
+        rewardAudioSequence.dailyRewardAudioClipName,
+      ).then((didStartPlayback) => {
+        if (didStartPlayback === false) {
+          stopRewardStickerTilt();
+        }
+      });
+    };
+
+    const handleRewardCelebrationStarted = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+      }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+
+      const nextToken = rewardAudioSequenceRef.current.token + 1;
+      const shouldSuppress =
+        !customEvent.detail?.forceRewardAudio &&
+        shouldSuppressRewardAudioForStickerBook();
+
+      rewardAudioSequenceRef.current = {
+        rewardId,
+        crowdComplete: false,
+        rewardReady: false,
+        suppressed: shouldSuppress,
+        stateValue: customEvent.detail?.stateValue ?? currentMascotStateValue,
+        dailyRewardAudioClipName:
+          customEvent.detail?.dailyRewardAudioClipName ?? 'reward',
+        onRewardAudioComplete: null,
+        token: nextToken,
+      };
+
+      void AudioUtil.playAudioOrTts({
+        audioUrl: CROWD_CHEER_AUDIO_URL,
+        onComplete: () => {
+          const rewardAudioSequence = rewardAudioSequenceRef.current;
+          if (
+            rewardAudioSequence.token !== nextToken ||
+            rewardAudioSequence.rewardId !== rewardId ||
+            rewardAudioSequence.suppressed
+          ) {
+            return;
+          }
+
+          rewardAudioSequence.crowdComplete = true;
+          if (rewardAudioSequence.rewardReady) {
+            playRewardAudioIfReady(nextToken, rewardId);
+          }
+        },
+      });
+    };
+
+    const handleRewardAudioReady = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+        onRewardAudioComplete?: () => void;
+      }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (rewardAudioSequence.rewardId !== rewardId) return;
+
+      rewardAudioSequence.stateValue =
+        customEvent.detail?.stateValue ??
+        rewardAudioSequence.stateValue ??
+        currentMascotStateValue;
+      rewardAudioSequence.dailyRewardAudioClipName =
+        customEvent.detail?.dailyRewardAudioClipName ??
+        rewardAudioSequence.dailyRewardAudioClipName;
+      rewardAudioSequence.onRewardAudioComplete =
+        customEvent.detail?.onRewardAudioComplete ?? null;
+
+      if (
+        rewardAudioSequence.suppressed ||
+        (!customEvent.detail?.forceRewardAudio &&
+          shouldSuppressRewardAudioForStickerBook())
+      ) {
+        rewardAudioSequence.onRewardAudioComplete?.();
+        resetRewardAudioSequence();
+        return;
+      }
+
+      if (rewardAudioSequence.crowdComplete) {
+        playRewardAudioIfReady(rewardAudioSequence.token, rewardId);
+        return;
+      }
+
+      rewardAudioSequence.rewardReady = true;
+    };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted as EventListener,
+    );
+    window.addEventListener(
+      PATHWAY_REWARD_AUDIO_READY_EVENT,
+      handleRewardAudioReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted as EventListener,
+      );
+      window.removeEventListener(
+        PATHWAY_REWARD_AUDIO_READY_EVENT,
+        handleRewardAudioReady as EventListener,
+      );
+    };
+  }, [
     currentMascotStateValue,
     playRewardAudio,
     resetRewardAudioSequence,
-    rewardAudioSequenceRef,
-    rewardStickerTiltRequestIdRef,
     setStickerCollectTiltActive,
     shouldSuppressRewardAudioForStickerBook,
-  });
+  ]);
 
   useEffect(() => {
     if (!isStickerCollectSpeaking) return;

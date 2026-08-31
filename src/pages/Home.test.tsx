@@ -18,8 +18,7 @@ import {
 } from '../common/constants';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { GENERIC_POP_UP } from '../common/constants';
-import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
+import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
 
 const mockHistoryReplace = jest.fn();
 const mockHistoryPush = jest.fn();
@@ -98,7 +97,9 @@ jest.mock('../growthbook/Growthbook', () => ({
 }));
 jest.mock('@growthbook/growthbook-react', () => ({
   useFeatureIsOn: jest.fn(() => false),
-  useFeatureValue: jest.fn((_, defaultValue) => defaultValue),
+  useGrowthBook: jest.fn(() => ({
+    getFeatureValue: jest.fn(() => null),
+  })),
 }));
 jest.mock('@capacitor/app', () => ({
   App: { addListener: jest.fn() },
@@ -161,8 +162,8 @@ describe('Home page (Home tab)', () => {
     mockApi.assignmentListner.mockResolvedValue(undefined);
     mockApi.assignmentUserListner.mockResolvedValue(undefined);
     (useFeatureIsOn as jest.Mock).mockReturnValue(false);
-    (useFeatureValue as jest.Mock).mockImplementation((_, defaultValue) => {
-      return defaultValue;
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => null),
     });
     window.history.replaceState({}, '', '/');
   });
@@ -714,9 +715,9 @@ describe('Home page (Home tab)', () => {
   test.each(fullPopupConfigVariations)(
     'triggers generic popup handlers for fullPopupConfig variation: $name',
     async ({ config }) => {
-      (useFeatureValue as jest.Mock).mockImplementation((key, defaultValue) =>
-        key === GENERIC_POP_UP ? config : defaultValue,
-      );
+      (useGrowthBook as jest.Mock).mockReturnValue({
+        getFeatureValue: jest.fn(() => config),
+      });
 
       render(<Home />);
 
@@ -732,8 +733,8 @@ describe('Home page (Home tab)', () => {
   // Covers: does NOT trigger generic popup handlers when growthbook returns null
 
   test('does NOT trigger generic popup handlers when growthbook returns null', async () => {
-    (useFeatureValue as jest.Mock).mockImplementation((_, defaultValue) => {
-      return defaultValue;
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => null),
     });
 
     render(<Home />);
@@ -766,9 +767,9 @@ describe('Home page (Home tab)', () => {
   ])(
     'false-positive prevention: $name',
     async ({ config, clickButtonText }) => {
-      (useFeatureValue as jest.Mock).mockImplementation((key, defaultValue) =>
-        key === GENERIC_POP_UP ? config : defaultValue,
-      );
+      (useGrowthBook as jest.Mock).mockReturnValue({
+        getFeatureValue: jest.fn(() => config),
+      });
 
       render(<Home />);
 
@@ -804,9 +805,9 @@ describe('Home page (Home tab)', () => {
   ])(
     'negative payload: does NOT trigger popup handlers when growthbook payload is $name',
     async ({ config }) => {
-      (useFeatureValue as jest.Mock).mockImplementation((key, defaultValue) =>
-        key === GENERIC_POP_UP ? config : defaultValue,
-      );
+      (useGrowthBook as jest.Mock).mockReturnValue({
+        getFeatureValue: jest.fn(() => config),
+      });
 
       render(<Home />);
 

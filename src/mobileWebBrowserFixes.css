@@ -386,48 +386,6 @@ body.mobile-web-browser *::after {
     overflow: auto;
   }
 
-  @supports (-webkit-touch-callout: none) {
-    @media (orientation: portrait) {
-      body.mobile-web-browser .showchapters-lesson-grid,
-      body.mobile-web-browser .search-lesson-results,
-      body.mobile-web-browser .lesson-details-body,
-      body.mobile-web-browser .teacher-library-assignments-body {
-        padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px));
-        scroll-padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px));
-      }
-
-      body.mobile-web-browser .assignments-container {
-        padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
-        scroll-padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
-      }
-
-      body.mobile-web-browser .assign-selected-button {
-        position: fixed;
-        left: 50%;
-        bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-        width: min(82vw, 360px);
-        transform: translateX(-50%);
-        z-index: 1400;
-      }
-    }
-
-    body.mobile-web-browser .teacher-assignments-page {
-      height: calc(100dvh - 112px);
-      min-height: 0;
-      padding-bottom: calc(170px + env(safe-area-inset-bottom, 0px));
-    }
-
-    body.mobile-web-browser .teacher-assignments-page .assign-button {
-      position: fixed;
-      top: auto;
-      left: 20px;
-      bottom: calc(10vh + 16px + env(safe-area-inset-bottom, 0px));
-      width: calc(100vw - 40px);
-      margin: 0;
-      z-index: 1300;
-    }
-  }
-
   body.mobile-web-browser .join-class-parent-container {
     min-height: 100%;
     justify-content: flex-start;

@@ -6,7 +6,6 @@ import Loading from './components/Loading';
 import { ServiceConfig } from './services/ServiceConfig';
 import { logAuthDebug } from './utility/authDebug';
 import { isRecoverableStorageError } from './utility/recoverableStorageError';
-import { getAppPathname } from './utility/routerLocation';
 
 type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
@@ -49,7 +48,7 @@ export default function ProtectedRoute({
           reason: !isUserLoggedIn
             ? 'is_user_logged_in_false'
             : 'current_user_missing',
-          from_page: getAppPathname(),
+          from_page: window.location.pathname,
           to_page: PAGES.LOGIN,
         });
       }
@@ -67,7 +66,7 @@ export default function ProtectedRoute({
             source: 'ProtectedRoute.checkAuth',
             reason: 'recoverable_auth_dependency_error',
             attempt,
-            from_page: getAppPathname(),
+            from_page: window.location.pathname,
           },
         );
         lifecycle.timeoutId = window.setTimeout(() => {
@@ -78,7 +77,7 @@ export default function ProtectedRoute({
       logAuthDebug('ProtectedRoute redirecting to login after auth error.', {
         source: 'ProtectedRoute.checkAuth',
         reason: 'auth_check_exception',
-        from_page: getAppPathname(),
+        from_page: window.location.pathname,
         to_page: PAGES.LOGIN,
       });
       if (lifecycle.cancelled) return;

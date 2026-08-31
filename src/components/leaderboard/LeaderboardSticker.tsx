@@ -9,12 +9,14 @@ import { FaHeart } from 'react-icons/fa';
 import { RxCross2 } from 'react-icons/rx';
 import { TiTick } from 'react-icons/ti';
 import logger from '../../utility/logger';
+
 interface stickerInfo {
   sticker: TableTypes<'sticker'> | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
   isUpcomingSticker?: boolean;
 }
+
 const LeaderboardStickers: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
@@ -22,11 +24,14 @@ const LeaderboardStickers: FC = () => {
   const [lostStickers, setLostStickers] = useState<stickerInfo[]>();
   const [allSticker, setAllStickers] =
     useState<(TableTypes<'sticker'> | undefined)[]>();
+
   useEffect(() => {
     init();
   }, []);
+
   async function init() {
     if (!currentStudent) return;
+
     const unlockedStickers = await getUnlockedstickers();
     const prevStickers = await getPrevstickers();
     const nextUnlockStickers = await Util.getNextUnlockStickers();
@@ -37,9 +42,11 @@ const LeaderboardStickers: FC = () => {
       sticker,
       isUnlocked: unlockedStickers.some((s: any) => s?.id === sticker?.id),
     }));
+
     nextUnlockStickers.forEach((sticker) => {
       stickerInfoArray.push({ sticker, isUnlocked: false, isNextUnlock: true });
     });
+
     unlockedStickers.forEach((sticker) => {
       const isInNextUnlock = stickerInfoArray?.some(
         (nextSticker) => nextSticker?.sticker?.id === sticker?.id,
@@ -67,6 +74,7 @@ const LeaderboardStickers: FC = () => {
       if (!sticker.isUnlocked && !sticker.isUpcomingSticker) return 4; // Lost
       return 5; // Remaining
     };
+
     stickerInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
     // Filter lost badges
     const lostStickersArray = stickerInfoArray.filter(
@@ -85,16 +93,20 @@ const LeaderboardStickers: FC = () => {
   }
   const getUnlockedstickers = async (): Promise<TableTypes<'sticker'>[]> => {
     if (!currentStudent) return [];
+
     try {
       const userStickers = await api.getUserSticker(currentStudent.id);
       if (!userStickers || userStickers.length === 0) return [];
+
       let isSeen = true;
+
       const stickerIds = userStickers.map((sticker) => {
         if (!sticker.is_seen) {
           isSeen = false;
         }
         return sticker.sticker_id;
       });
+
       const stickers = await api.getStickersByIds(stickerIds);
       if (!isSeen) {
         await api.updateRewardAsSeen(currentStudent.id);
@@ -105,6 +117,7 @@ const LeaderboardStickers: FC = () => {
       return [];
     }
   };
+
   const getStickers = async (): Promise<
     (TableTypes<'sticker'> | undefined)[]
   > => {
@@ -130,6 +143,7 @@ const LeaderboardStickers: FC = () => {
     const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
+
   const getPrevstickers = async (): Promise<
     (TableTypes<'sticker'> | undefined)[]
   > => {
@@ -155,6 +169,7 @@ const LeaderboardStickers: FC = () => {
     const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
+
   const getUpcomingStickers = async (): Promise<
     (TableTypes<'sticker'> | undefined)[]
   > => {
@@ -183,6 +198,7 @@ const LeaderboardStickers: FC = () => {
     const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
+
   return currentStudent ? (
     <div className="leaderboard-sticker-page">
       {/* Section for Current, Upcoming, and Won Badges */}
@@ -282,4 +298,5 @@ const LeaderboardStickers: FC = () => {
     <div></div>
   );
 };
+
 export default LeaderboardStickers;

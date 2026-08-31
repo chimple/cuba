@@ -75,7 +75,6 @@ export interface CampaignsOverviewApiCampaign {
   start_date?: string | null;
   end_date?: string | null;
   frequency?: CampaignFrequency | null;
-  rewards?: string | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
   manager?: CampaignsOverviewApiPerson | null;

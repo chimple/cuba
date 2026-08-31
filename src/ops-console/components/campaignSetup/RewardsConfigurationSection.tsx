@@ -104,9 +104,6 @@ export const RewardsConfigurationSection: React.FC<
               )
             }
             size="small"
-            MenuProps={{
-              PaperProps: { className: 'campaign-setup-dropdown-menu' },
-            }}
           >
             <MenuItem value="" disabled>
               {t('Select Reward Type')}

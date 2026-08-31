@@ -1,3 +1,4 @@
+// AddNoteModal.tsx
 import React, { useEffect, useState } from 'react';
 import { t } from 'i18next';
 import './AddNoteModal.css';
@@ -97,10 +98,12 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   return (
     <div className="add-note-modal-overlay" id="add-note-modal-overlay">
       <div className="add-note-modal-container" id="add-note-modal-container">
+        {/* Header */}
         <div className="add-note-modal-header" id="add-note-modal-header">
           <h3 className="add-note-modal-title" id="add-note-modal-title">
             {source === 'school' ? t('Add School Note') : t('Add Class Note')}
           </h3>
+
           <button
             className="add-note-modal-close"
             id="add-note-modal-close"
@@ -112,6 +115,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
           </button>
         </div>
 
+        {/* Textarea */}
         <textarea
           className="add-note-modal-textarea"
           id="add-note-modal-textarea"
@@ -136,6 +140,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
           media={media}
           disabled={isSaving}
         />
+        {/* Actions */}
         <div className="add-note-modal-actions" id="add-note-modal-actions">
           <button
             className="add-note-modal-btn-outline"
@@ -236,7 +241,10 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
               <div
                 className="add-note-modal-camera-hint"
                 id="add-note-modal-camera-hint"
-              />
+              >
+                {/* {t("Camera permission is required to use the in-app camera.") ||
+                  "Camera permission is required to use the in-app camera."} */}
+              </div>
             )}
 
             <div

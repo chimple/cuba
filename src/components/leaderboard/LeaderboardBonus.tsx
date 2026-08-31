@@ -6,6 +6,7 @@ import './LeaderboardBonus.css';
 import LessonCard from '../LessonCard';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
+
 interface BonusInfo {
   bonus: TableTypes<'lesson'> | undefined;
   isUnlocked: boolean;
@@ -15,31 +16,39 @@ interface BonusInfo {
 const LeaderboardBonus: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
+
   const [bonuses, setBonuses] = useState<BonusInfo[]>();
   const [lostBonus, setLostBonus] = useState<BonusInfo[]>();
+
   const [allBonus, setAllBonus] =
     useState<(TableTypes<'lesson'> | undefined)[]>();
+
   useEffect(() => {
     if (!currentStudent) return;
     init();
   }, []);
+
   async function init() {
     if (!currentStudent) return;
+
     const unlockedBonuses = await getUnlockedBonus();
     const prevBonus = await getPrevBonus();
     const nextUnlockBonus = await getNextUnlockBonus();
     const allBonuses = await getBonus();
     const upcomingBonus = await getUpcomingBadges();
     setAllBonus(allBonuses);
+
     const bonusInfoArray: BonusInfo[] = prevBonus.map((bonus) => ({
       bonus,
       isUnlocked: unlockedBonuses.some((b) => b?.id === bonus?.id),
     }));
+
     nextUnlockBonus.forEach((bonus) => {
       if (bonus) {
         bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
       }
     });
+
     unlockedBonuses.forEach((bonus) => {
       const isInNextUnlock = bonusInfoArray?.some(
         (nextBonus) => nextBonus?.bonus?.id === bonus?.id,
@@ -52,6 +61,7 @@ const LeaderboardBonus: FC = () => {
         });
       }
     });
+
     upcomingBonus.forEach((bonus) => {
       if (bonus) {
         bonusInfoArray.push({
@@ -69,6 +79,7 @@ const LeaderboardBonus: FC = () => {
       if (!bonus.isUnlocked && !bonus.isUpcomingBonus) return 4; // Lost
       return 5; // Remaining
     };
+
     bonusInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
     // Filter lost badges
     const lostBonusArray = bonusInfoArray.filter(
@@ -130,26 +141,32 @@ const LeaderboardBonus: FC = () => {
   };
   const getUnlockedBonus = async (): Promise<TableTypes<'lesson'>[]> => {
     if (!currentStudent) return [];
+
     try {
       const userBonuses = await api.getUserBonus(currentStudent.id);
       if (!userBonuses || userBonuses.length === 0) return [];
+
       let isSeen = true;
+
       const lessonIds = userBonuses.map((bonus) => {
         if (!bonus.is_seen) {
           isSeen = false;
         }
         return bonus.bonus_id;
       });
+
       const lessons = await api.getBonusesByIds(lessonIds);
       if (!isSeen) {
         await api.updateRewardAsSeen(currentStudent.id);
       }
+
       return lessons.reverse();
     } catch (error) {
       logger.error('Error fetching unlocked bonuses:', error);
       return [];
     }
   };
+
   const getPrevBonus = async (): Promise<
     (TableTypes<'lesson'> | undefined)[]
   > => {
@@ -174,6 +191,7 @@ const LeaderboardBonus: FC = () => {
     const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
+
   const getNextUnlockBonus = async (): Promise<TableTypes<'lesson'>[]> => {
     const rewardsDoc = await api.getRewardsById(
       Util.getCurrentYearForLeaderboard(),
@@ -197,6 +215,7 @@ const LeaderboardBonus: FC = () => {
     const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
+
   return currentStudent ? (
     <div className="leaderboard-bonus-page">
       {/* Section for Current, Upcoming, and Won Bonuses */}
@@ -257,7 +276,9 @@ const LeaderboardBonus: FC = () => {
             ))}
         </div>
       </div>
+
       <hr className="section-divider" />
+
       {/* Section for Lost Bonuses */}
       <div className="leaderboard-bonus-section">
         <div className="leaderboard-bonus-container">
@@ -295,4 +316,5 @@ const LeaderboardBonus: FC = () => {
     <div></div>
   );
 };
+
 export default LeaderboardBonus;

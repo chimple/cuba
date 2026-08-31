@@ -200,12 +200,6 @@
   background-color: #ffffff !important;
 }
 
-.campaign-setup-dropdown-menu,
-.campaign-setup-dropdown-listbox {
-  max-height: 14.375rem !important;
-  overflow-y: auto !important;
-}
-
 .campaign-setup-page input:-webkit-autofill,
 .campaign-setup-page input:-webkit-autofill:hover,
 .campaign-setup-page input:-webkit-autofill:focus,

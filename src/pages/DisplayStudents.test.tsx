@@ -14,11 +14,6 @@ import logger from '../utility/logger';
 const mockHistoryReplace = jest.fn();
 const mockSetGbUpdated = jest.fn();
 const mockPresentToast = jest.fn();
-const mockLocation = {
-  pathname: '/display-students',
-  search: '',
-  state: undefined,
-};
 
 const mockApi = {
   getParentStudentProfiles: jest.fn(),
@@ -72,7 +67,6 @@ jest.mock('react-router', () => ({
     replace: mockHistoryReplace,
     location: { pathname: '/display-students' },
   }),
-  useLocation: () => mockLocation,
 }));
 
 jest.mock('i18next', () => ({
@@ -336,7 +330,7 @@ describe('DisplayStudents', () => {
     });
   });
 
-  test('navigates to home when profile is complete', async () => {
+  test('navigates to home with current query params when profile is complete', async () => {
     window.history.replaceState(
       {},
       '',
@@ -348,12 +342,9 @@ describe('DisplayStudents', () => {
     await clickStudentOnePlayButton();
 
     await waitFor(() => {
-      expect(mockHistoryReplace).toHaveBeenCalledWith({
-        pathname: PAGES.HOME,
-        search: '',
-        hash: '',
-        state: undefined,
-      });
+      expect(mockHistoryReplace).toHaveBeenCalledWith(
+        `${PAGES.HOME}?tab=ASSIGNMENT&page=/join-class`,
+      );
     });
   });
 });

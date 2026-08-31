@@ -16,7 +16,6 @@ import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import { ClearCacheData } from './DataClear';
 import { logAuthDebug } from '../../utility/authDebug';
-import { getAppPathname } from '../../utility/routerLocation';
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -37,7 +36,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     logAuthDebug('Navigating to login after parent logout.', {
       source: 'ParentLogout.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: getAppPathname(),
+      from_page: window.location.pathname,
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);
