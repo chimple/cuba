@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import ClassDetailsPage from './ClassDetailsPage';
 import type { ClassRow, SchoolDetailsData } from './SchoolClass';
@@ -21,7 +20,9 @@ jest.mock('../../../utility/logger', () => ({
   error: jest.fn(),
 }));
 
-const mockSchoolStudents = jest.fn(() => <div data-testid="school-students" />);
+const mockSchoolStudents = jest.fn((_props: unknown) => (
+  <div data-testid="school-students" />
+));
 
 jest.mock('./SchoolStudents', () => ({
   __esModule: true,
@@ -89,8 +90,15 @@ describe('ClassDetailsPage', () => {
 
     await waitFor(() => expect(mockSchoolStudents).toHaveBeenCalled());
 
+    await waitFor(() =>
+      expect(mockApiHandler.getActiveStudentsCountByClass).toHaveBeenCalledWith(
+        'class-1',
+      ),
+    );
+    expect(mockApiHandler.getStudentInfoBySchoolId).not.toHaveBeenCalled();
     expect(mockSchoolStudents.mock.calls[0][0]).toEqual(
       expect.objectContaining({
+        optionalClassId: 'class-1',
         data: expect.objectContaining({
           classData: classRows,
         }),

@@ -32,6 +32,7 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { LessonNode } from './useLearningPath';
 import logger from '../utility/logger';
 import { AudioUtil } from '../utility/AudioUtil';
+import { parsePath } from 'history';
 
 export interface MascotProps {
   stateMachine: string;

@@ -33,3 +33,17 @@
   align-items: center;
   color: white;
 }
+
+@supports (-webkit-touch-callout: none) {
+  @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+    .assignment-count-container {
+      position: fixed;
+      left: 5vw;
+      right: 5vw;
+      bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+      width: 90vw;
+      transform: none;
+      z-index: 1400;
+    }
+  }
+}

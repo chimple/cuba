@@ -1,407 +1,46 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { useShowChapters } from '../hooks/useShowChapters';
 import './ShowChapters.css';
-import { useHistory } from 'react-router';
-import Header from '../components/homePage/Header';
-import {
-  AssignmentSource,
-  COURSES,
-  PAGES,
-  TableTypes,
-} from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import ChapterContainer from '../components/library/ChapterContainer';
-import AssigmentCount from '../components/library/AssignmentCount';
-import { Util } from '../../utility/util';
-import { t } from 'i18next';
-import {
-  getCartChapterIdsForCourse,
-  resolveInitialChapterId,
-  resolveVisibleChapterId,
-} from './ShowChaptersLogic';
-import logger from '../../utility/logger';
-import { filterHiddenTeacherLessons } from '../utils/lessonFilters';
-import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
-const ShowChapters: React.FC = () => {
-  const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
-    null,
-  );
-  const history = useHistory();
-  const locationState = (history.location.state ?? {}) as {
-    course: TableTypes<'course'>;
-    chapterId?: string;
-    gradeName?: string;
-  };
-  const course: TableTypes<'course'> = locationState.course;
-  const routeChapterId = locationState.chapterId;
-  const [gradeName, setGradeName] = useState<string>(
-    locationState.gradeName ?? '',
-  );
-  const [lessons, setLessons] = useState<Map<string, TableTypes<'lesson'>[]>>();
-  const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
-  const [courseCode, setCourseCode] = useState<string>();
-  const [assignmentCount, setAssignmentCount] = useState<number>(0);
-  const [classSelectedLesson, setClassSelectedLesson] = useState<
-    Map<string, Partial<Record<AssignmentSource, string[]>>>
-  >(new Map());
-  const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
-    new Map(),
-  );
-  const [isShowAssigned, setIsShowAssigned] = useState<boolean>(false);
-  const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [activeChapterId, setActiveChapterId] = useState<string | undefined>(
-    routeChapterId,
-  );
-  const [hasLoadedAssignedLessons, setHasLoadedAssignedLessons] =
-    useState<boolean>(false);
-  const [isLoadingAssignedLessons, setIsLoadingAssignedLessons] =
-    useState<boolean>(false);
+const ShowChapters = () => {
+  const viewProps = useShowChapters();
 
-  const chapterRefs = useRef<(HTMLDivElement | null)[]>([]); // Create an array of refs for each chapter
-  const lastScrolledChapterIdRef = useRef<string | undefined>(undefined);
-  const auth = ServiceConfig.getI().authHandler;
-  const api = ServiceConfig.getI().apiHandler;
-  const current_class = Util.getCurrentClass();
-  const selectedCourseName = t(course.name ?? '');
-  const selectedCourseGrade = t(gradeName ?? '');
-
-  const getVisibleSelectedLessonCount = (
-    selectedLessonMap: Map<string, Partial<Record<AssignmentSource, string[]>>>,
-    lessonLookup = lessons,
-  ): number => {
-    let count = 0;
-
-    selectedLessonMap.forEach((sourceMap, chapterId) => {
-      const visibleLessonIds = new Set(
-        (lessonLookup?.get(chapterId) ?? [])
-          .map((lesson) => lesson.id)
-          .filter((lessonId): lessonId is string => Boolean(lessonId)),
-      );
-      const manual = sourceMap[AssignmentSource.MANUAL] || [];
-      const qr = sourceMap[AssignmentSource.QR_CODE] || [];
-
-      [...manual, ...qr].forEach((lessonId) => {
-        if (visibleLessonIds.has(lessonId)) {
-          count++;
-        }
-      });
-    });
-
-    return count;
-  };
-
-  useEffect(() => {
-    const fetchClassDetails = async () => {
-      try {
-        const tempClass = await Util.getCurrentClass();
-        setCurrentClass(tempClass || null);
-      } catch (err) {
-        logger.error('ShowChapters → Failed to load current class:', err);
-        setCurrentClass(null);
-      }
-    };
-    fetchClassDetails();
-  }, []);
-
-  useEffect(() => {
-    const fetchGradeName = async () => {
-      if (gradeName || !course.grade_id) return;
-      const grade = await api.getGradeById(course.grade_id);
-      setGradeName(grade?.name ?? '');
-    };
-    fetchGradeName();
-  }, [api, course.grade_id, gradeName]);
-
-  const syncSelectedLesson = async (lesson: string): Promise<void> => {
-    if (currentUser?.id)
-      await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
-  };
-
-  const init = useCallback(async () => {
-    const currUser = await auth.getCurrentUser();
-    setCurrentUser(currUser);
-    const classId = currentClass?.id ?? current_class?.id ?? '';
-    const chapter_res = await api.getChaptersForCourse(course.id);
-    const chapterOrder = chapter_res.map((chapter) => chapter.id);
-    const validChapterIds = new Set(chapterOrder);
-    const course_data = await api.getCourse(course.id);
-    const lesson_map: Map<string, TableTypes<'lesson'>[]> = new Map();
-    for (const chapter of chapter_res) {
-      const lessons = filterHiddenTeacherLessons(
-        await api.getLessonsForChapter(chapter.id),
-      );
-      lesson_map.set(chapter.id, lessons);
-    }
-    const previous_sync_lesson = currUser?.id
-      ? await api.getUserAssignmentCart(currUser?.id)
-      : null;
-    if (previous_sync_lesson?.lessons) {
-      const sync_lesson: Map<string, string> = new Map(
-        Object.entries(JSON.parse(previous_sync_lesson?.lessons)),
-      );
-      setSelectedLesson(sync_lesson);
-      const sync_lesson_data = sync_lesson.get(current_class?.id ?? '');
-      const class_sync_lesson: Map<
-        string,
-        Partial<Record<AssignmentSource, string[]>>
-      > = new Map(
-        Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {}),
-      );
-      setClassSelectedLesson(class_sync_lesson);
-      setAssignmentCount(
-        getVisibleSelectedLessonCount(class_sync_lesson, lesson_map),
-      );
-    }
-
-    const cartChapterIdsForCourse = getCartChapterIdsForCourse(
-      previous_sync_lesson?.lessons,
-      classId,
-      validChapterIds,
-    );
-
-    let lastAssignmentForCourse: TableTypes<'assignment'> | undefined;
-    if (classId) {
-      const lastAssignmentsByCourse =
-        await api.getLastAssignmentsForRecommendations(classId);
-      lastAssignmentForCourse = lastAssignmentsByCourse?.find(
-        (assignment) => assignment.course_id === course.id,
-      );
-    }
-
-    const resolvedChapterId = resolveInitialChapterId({
-      routeChapterId,
-      chapterOrder,
-      lessonsByChapter: lesson_map,
-      lastAssignmentForCourse,
-      cartChapterIds: cartChapterIdsForCourse,
-    });
-    setActiveChapterId(resolvedChapterId);
-
-    setChapters(chapter_res);
-    setLessons(lesson_map);
-    setCourseCode(course_data?.code ?? '');
-  }, [
-    api,
-    auth,
-    course.id,
-    currentClass?.id,
-    current_class?.id,
-    routeChapterId,
-  ]);
-
-  const handleOnLessonClick = (
-    lesson: TableTypes<'lesson'>,
-    chapter: TableTypes<'chapter'>,
-  ) => {
-    history.replace(PAGES.LESSON_DETAILS, {
-      course: course,
-      lesson: lesson,
-      chapterId: chapter.id,
-      selectedLesson: selectedLesson,
-      chapterName: chapter.name,
-      gradeName: selectedCourseGrade,
-      from: PAGES.SHOW_CHAPTERS,
-    });
-  };
-  //   if (lessonIds !== undefined) {
-  //     const newClassSelectedLesson = new Map(classSelectedLesson);
-  //     const existing = newClassSelectedLesson.get(chapterId) ?? {};
-  //     newClassSelectedLesson.set(chapterId, {
-  //       ...existing,
-  //       [AssignmentSource.MANUAL]: lessonIds,
-  //     });
-  //     setClassSelectedLesson(newClassSelectedLesson);
-
-  //     const _selectedLessonJson = JSON.stringify(
-  //       Object.fromEntries(newClassSelectedLesson)
-  //     );
-  //     const newSelectedLesson = new Map(selectedLesson);
-  //     newSelectedLesson.set(current_class?.id ?? "", _selectedLessonJson);
-  //     setSelectedLesson(newSelectedLesson);
-
-  //     const _totalSelectedLessonJson = JSON.stringify(
-  //       Object.fromEntries(newSelectedLesson)
-  //     );
-  //     syncSelectedLesson(_totalSelectedLessonJson);
-
-  //     let _assignmentCount = 0;
-  //     for (const value of newClassSelectedLesson.values()) {
-  //       const manual = value[AssignmentSource.MANUAL] || [];
-  //       const qr = value[AssignmentSource.QR_CODE] || [];
-  //       _assignmentCount += manual.length + qr.length;
-  //     }
-  //     setAssignmentCount(_assignmentCount);
-  //   }
-  // };
-
-  const updateLessonSelection = (
-    chapterId: string,
-    lessonId: string,
-    isSelected: boolean,
-  ) => {
-    setClassSelectedLesson((prevClassSelectedLesson) => {
-      const newClassSelectedLesson = new Map(prevClassSelectedLesson);
-      const existing = { ...newClassSelectedLesson.get(chapterId) };
-
-      if (isSelected) {
-        const manual = new Set(existing[AssignmentSource.MANUAL] || []);
-        manual.add(lessonId);
-        existing[AssignmentSource.MANUAL] = Array.from(manual);
-      } else {
-        const manual = new Set(existing[AssignmentSource.MANUAL] || []);
-        const qr = new Set(existing[AssignmentSource.QR_CODE] || []);
-
-        if (manual.has(lessonId)) {
-          manual.delete(lessonId);
-        } else if (qr.has(lessonId)) {
-          qr.delete(lessonId);
-        }
-
-        existing[AssignmentSource.MANUAL] = Array.from(manual);
-        existing[AssignmentSource.QR_CODE] = Array.from(qr);
-      }
-
-      newClassSelectedLesson.set(chapterId, existing);
-
-      const _selectedLessonJson = JSON.stringify(
-        Object.fromEntries(newClassSelectedLesson),
-      );
-
-      setSelectedLesson((prevSelectedLesson) => {
-        const newSelectedLesson = new Map(prevSelectedLesson);
-        newSelectedLesson.set(current_class?.id ?? '', _selectedLessonJson);
-        syncSelectedLesson(
-          JSON.stringify(Object.fromEntries(newSelectedLesson)),
-        );
-        return newSelectedLesson;
-      });
-
-      setAssignmentCount(getVisibleSelectedLessonCount(newClassSelectedLesson));
-
-      return newClassSelectedLesson;
-    });
-  };
-
-  const loadAssignedLessonsForCourse = useCallback(async () => {
-    if (hasLoadedAssignedLessons || isLoadingAssignedLessons) return;
-    const classId = currentClass?.id ?? current_class?.id;
-    if (!classId || !course?.id) return;
-
-    setIsLoadingAssignedLessons(true);
-    try {
-      const chapterList =
-        chapters && chapters.length > 0
-          ? chapters
-          : await api.getChaptersForCourse(course.id);
-
-      const chapterIds = (chapterList ?? [])
-        .map((chapter) => chapter?.id)
-        .filter((id): id is string => Boolean(id));
-
-      const assignmentIds = await api.getUniqueAssignmentIdsByCourseAndChapter(
-        classId,
-        course.id,
-        chapterIds,
-      );
-
-      const allAssignmentIds = new Set<string>(assignmentIds);
-
-      const assignmentDocs = await api.getAssignmentsByIds(
-        Array.from(allAssignmentIds),
-      );
-
-      const assignedLessonSet = new Set<string>();
-      assignmentDocs.forEach((assignmentDoc) => {
-        if (assignmentDoc?.lesson_id) {
-          assignedLessonSet.add(String(assignmentDoc.lesson_id));
-        }
-      });
-
-      setAssignedLessonIds(assignedLessonSet);
-      setHasLoadedAssignedLessons(true);
-    } catch (error) {
-      logger.error('Failed to load assigned lessons for course:', error);
-    } finally {
-      setIsLoadingAssignedLessons(false);
-    }
-  }, [
-    api,
-    chapters,
-    course?.id,
-    currentClass?.id,
-    current_class?.id,
-    hasLoadedAssignedLessons,
+  const {
+    AssigmentCount,
+    AssignedVisibilityToggle,
+    AssignmentSource,
+    ChapterContainer,
+    Header,
+    PAGES,
+    assignedLessonIds,
+    assignmentCount,
+    chapterRefs,
+    classSelectedLesson,
+    courseCode,
+    handleOnLessonClick,
+    handleShowAssignedChange,
+    history,
     isLoadingAssignedLessons,
-  ]);
-
-  useEffect(() => {
-    init();
-  }, [init]);
-
-  useEffect(() => {
-    if (!isShowAssigned) {
-      loadAssignedLessonsForCourse();
-    }
-  }, [isShowAssigned, loadAssignedLessonsForCourse]);
-
-  const handleShowAssignedChange = async (nextShowAssigned: boolean) => {
-    setIsShowAssigned(nextShowAssigned);
-    if (!nextShowAssigned) {
-      await loadAssignedLessonsForCourse();
-    }
-  };
-
-  const visibleChapters = (chapters ?? []).filter((chapter) => {
-    const chapterLessons = lessons?.get(chapter.id) ?? [];
-    if (chapterLessons.length === 0) {
-      return false;
-    }
-
-    if (isShowAssigned) {
-      return true;
-    }
-
-    return chapterLessons.some(
-      (lesson) => !lesson.id || !assignedLessonIds.has(lesson.id),
-    );
-  });
-  const chapterOrder = (chapters ?? []).map((chapter) => chapter.id);
-  const visibleChapterIds = visibleChapters.map((chapter) => chapter.id);
-  const resolvedActiveChapterId = resolveVisibleChapterId({
-    preferredChapterId: activeChapterId,
-    visibleChapterIds,
-    chapterOrder,
-  });
-
-  useEffect(() => {
-    // Scroll to the resolved active chapter when chapters are set.
-    if (
-      !resolvedActiveChapterId ||
-      lastScrolledChapterIdRef.current === resolvedActiveChapterId
-    ) {
-      return;
-    }
-
-    const chapterIndex = visibleChapters.findIndex(
-      (chapter) => chapter.id === resolvedActiveChapterId,
-    );
-    if (chapterIndex !== -1 && chapterRefs.current[chapterIndex]) {
-      chapterRefs.current[chapterIndex]?.scrollIntoView({
-        behavior: 'auto',
-      });
-      lastScrolledChapterIdRef.current = resolvedActiveChapterId;
-    }
-  }, [visibleChapters, resolvedActiveChapterId]);
+    isShowAssigned,
+    loadLessonsForChapter,
+    loadingLessonChapterIds,
+    lessons,
+    parsePath,
+    resolvedActiveChapterId,
+    selectedCourseGrade,
+    selectedCourseName,
+    updateLessonSelection,
+    visibleChapters,
+  } = viewProps;
 
   return (
     <div id="showchapters-container" className="showchapters-container">
       <Header
         isBackButton={true}
         onBackButtonClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 1 },
+          });
         }}
         customText="Library"
         showSearchIcon={true}
@@ -445,6 +84,8 @@ const ShowChapters: React.FC = () => {
                   ] ?? []),
                 ]}
                 lessons={lessons?.get(chapter.id) ?? []}
+                loadLessonsForChapter={loadLessonsForChapter}
+                isLoadingLessons={loadingLessonChapterIds.has(chapter.id)}
                 chapterSelectedLessons={updateLessonSelection}
                 lessonClickCallBack={(lesson) => {
                   handleOnLessonClick(lesson, chapter);

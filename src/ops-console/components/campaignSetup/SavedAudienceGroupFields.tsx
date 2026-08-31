@@ -13,7 +13,7 @@ import {
 } from './types';
 
 type SavedAudienceGroupFieldsProps = {
-  form: CampaignSetupFormState;
+  form: Pick<CampaignSetupFormState, 'groupName'>;
   selectedSavedGroupId: string;
   saveGroup: boolean;
   savingGroup: boolean;

@@ -758,6 +758,220 @@ export type Database = {
           },
         ];
       };
+      campaign_notification: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          end_date: string | null;
+          id: string;
+          image_url: string | null;
+          is_deleted: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days: number[] | null;
+          send_date: string | null;
+          send_time: string | null;
+          status: string;
+          target_type: Database['public']['Enums']['notification_target_type'];
+          target_audience: string;
+          user_type: Database['public']['Enums']['role'] | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
+          target_audience: string;
+          user_type?: Database['public']['Enums']['role'] | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label?: string;
+          message?: string;
+          program_id?: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
+          target_audience?: string;
+          user_type?: Database['public']['Enums']['role'] | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_target_audience_fkey';
+            columns: ['target_audience'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_student_performance: {
+        Row: {
+          calculated_at: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name: string | null;
+          completion_percentage: number | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean;
+          program_id: string;
+          rank: number | null;
+          school_id: string | null;
+          school_name: string | null;
+          student_id: string;
+          student_name: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          calculated_at?: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          calculated_at?: string | null;
+          campaign_id?: string;
+          class_id?: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id?: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id?: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_student_performance_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_student_performance_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_campaign';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_class';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_student';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_target_audience: {
         Row: {
           created_at: string | null;
@@ -4247,6 +4461,8 @@ export type Database = {
         Row: {
           activated_students: number | null;
           active_students: number | null;
+          active_students_homework: number;
+          active_students_learning_pathway: number;
           active_teachers: number | null;
           activities_assigned: number | null;
           avg_activities_completed: number | null;
@@ -4254,16 +4470,19 @@ export type Database = {
           avg_time_spent: number | null;
           block: string | null;
           cluster: string | null;
+          community_parents_reached: number | null;
+          community_visits: number | null;
           created_at: string | null;
           district: string | null;
           field_coordinators: string[] | null;
+          grade_id: string | null;
           id: string;
           is_deleted: boolean;
           metric_window: string | null;
           onboarded_students: number | null;
-          partners: string[] | null;
           parents_in_group: number | null;
-          parents_reached: number | null;
+          parents_on_whatsapp: number | null;
+          partners: string[] | null;
           program_id: string | null;
           program_managers: string[] | null;
           program_name: string | null;
@@ -4272,7 +4491,11 @@ export type Database = {
           school_model: Database['public']['Enums']['program_model'] | null;
           school_name: string | null;
           school_performance: string | null;
+          school_visits: number | null;
           state: string | null;
+          student_parent_calls: number | null;
+          student_parent_inperson: number | null;
+          teacher_hm_calls: number | null;
           total_teachers: number | null;
           udise: string | null;
           updated_at: string | null;
@@ -4280,6 +4503,8 @@ export type Database = {
         Insert: {
           activated_students?: number | null;
           active_students?: number | null;
+          active_students_homework?: number;
+          active_students_learning_pathway?: number;
           active_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
@@ -4287,16 +4512,19 @@ export type Database = {
           avg_time_spent?: number | null;
           block?: string | null;
           cluster?: string | null;
+          community_parents_reached?: number | null;
+          community_visits?: number | null;
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
+          grade_id?: string | null;
           id?: string;
           is_deleted?: boolean;
           metric_window?: string | null;
           onboarded_students?: number | null;
-          partners?: string[] | null;
           parents_in_group?: number | null;
-          parents_reached?: number | null;
+          parents_on_whatsapp?: number | null;
+          partners?: string[] | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
@@ -4305,7 +4533,11 @@ export type Database = {
           school_model?: Database['public']['Enums']['program_model'] | null;
           school_name?: string | null;
           school_performance?: string | null;
+          school_visits?: number | null;
           state?: string | null;
+          student_parent_calls?: number | null;
+          student_parent_inperson?: number | null;
+          teacher_hm_calls?: number | null;
           total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
@@ -4313,6 +4545,8 @@ export type Database = {
         Update: {
           activated_students?: number | null;
           active_students?: number | null;
+          active_students_homework?: number;
+          active_students_learning_pathway?: number;
           active_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
@@ -4320,16 +4554,19 @@ export type Database = {
           avg_time_spent?: number | null;
           block?: string | null;
           cluster?: string | null;
+          community_parents_reached?: number | null;
+          community_visits?: number | null;
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
+          grade_id?: string | null;
           id?: string;
           is_deleted?: boolean;
           metric_window?: string | null;
           onboarded_students?: number | null;
-          partners?: string[] | null;
           parents_in_group?: number | null;
-          parents_reached?: number | null;
+          parents_on_whatsapp?: number | null;
+          partners?: string[] | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
@@ -4338,7 +4575,11 @@ export type Database = {
           school_model?: Database['public']['Enums']['program_model'] | null;
           school_name?: string | null;
           school_performance?: string | null;
+          school_visits?: number | null;
           state?: string | null;
+          student_parent_calls?: number | null;
+          student_parent_inperson?: number | null;
+          teacher_hm_calls?: number | null;
           total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
@@ -6152,6 +6393,13 @@ export type Database = {
         };
         Returns: boolean;
       };
+      calculate_campaign_student_performance: {
+        Args: never;
+        Returns: {
+          processed_campaigns: number;
+          upserted_rows: number;
+        }[];
+      };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -6185,6 +6433,7 @@ export type Database = {
         Args: { p_days: number; p_school_id?: string };
         Returns: undefined;
       };
+      compute_campaign_school_metrics: { Args: {}; Returns: void };
       compute_program_metrics: {
         Args: { p_days: number; p_program_id?: string };
         Returns: undefined;
@@ -7875,6 +8124,26 @@ export type Database = {
           total_count: number;
         }[];
       };
+      get_campaign_assignments_report: {
+        Args: {
+          p_campaign_id: string;
+          p_total_students?: number | null;
+        };
+        Returns: {
+          rows: {
+            completionPercent: number;
+            lessonsAssigned: number;
+            subjectId: string;
+            subjectName: string;
+          }[];
+          summary: {
+            activeStudents: number;
+            assignedStudents: number;
+            averageAssignmentsCompletion: number;
+            totalAssignments: number;
+          };
+        };
+      };
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[];
@@ -8003,6 +8272,7 @@ export type Database = {
         | 'completed'
         | 'assessment_terminated';
       rive_type: 'idle' | 'normal' | 'celebrating';
+      notification_target_type: 'all' | 'inactive_7days' | 'active_7days';
       role:
         | 'coordinator'
         | 'principal'
@@ -8020,7 +8290,8 @@ export type Database = {
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
         | 'regular_visit'
-        | 'community_visit';
+        | 'community_visit'
+        | 'work_from_home';
       special_roles:
         | 'super_admin'
         | 'operational_director'
@@ -8235,6 +8506,7 @@ export const Constants = {
         'parents_teacher_meeting',
         'regular_visit',
         'community_visit',
+        'work_from_home',
       ],
       special_roles: [
         'super_admin',
@@ -8251,6 +8523,7 @@ export const Constants = {
         'yellow_band',
       ],
       target_type: ['number_of_lessons', 'percentage_completion'],
+      notification_target_type: ['all', 'inactive_7days', 'active_7days'],
       wa_validate: ['yes', 'no'],
     },
   },

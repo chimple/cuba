@@ -18,6 +18,7 @@ import { Util } from '../../utility/util';
 import Header from '../components/homePage/Header';
 import UserList from '../components/studentProfile/UserList';
 import './ClassUsers.css';
+import { parsePath } from 'history';
 
 const ClassUsers: React.FC = () => {
   const history = useHistory();
@@ -73,15 +74,21 @@ const ClassUsers: React.FC = () => {
         action_type: AUTO_USER_ACTION_TYPES.ADD_STUDENT,
       });
     }
-    history.replace(PAGES.ADD_STUDENT, {
-      classDoc: classData,
-      school: currentSchool,
+    history.replace({
+      ...parsePath(PAGES.ADD_STUDENT),
+      state: {
+        classDoc: classData,
+        school: currentSchool,
+      },
     });
   };
   const addTeacher = () => {
-    history.replace(PAGES.ADD_TEACHER, {
-      classDoc: classData,
-      school: currentSchool,
+    history.replace({
+      ...parsePath(PAGES.ADD_TEACHER),
+      state: {
+        classDoc: classData,
+        school: currentSchool,
+      },
     });
   };
 

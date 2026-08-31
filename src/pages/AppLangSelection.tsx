@@ -8,6 +8,7 @@ import i18n from '../i18n';
 import NextButton from '../components/common/NextButton';
 import DropDown from '../components/DropDown';
 import { logAuthDebug } from '../utility/authDebug';
+import { getAppPathname } from '../utility/routerLocation';
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
@@ -49,7 +50,7 @@ const AppLangSelection: React.FC = () => {
     logAuthDebug('Navigating to login from language selection screen.', {
       source: 'AppLangSelection.handleNextClick',
       reason: 'language_selected_continue_to_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);

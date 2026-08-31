@@ -1,0 +1,865 @@
+.messages-review-send__layout {
+  display: grid;
+  gap: 1rem 1.25rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(17rem, 0.85fr);
+  align-items: start;
+  grid-auto-rows: auto;
+}
+
+body.ops-sidebar-open .messages-review-send__layout {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.8fr);
+}
+
+.messages-review-send__summary-column,
+.messages-review-send__preview-column {
+  display: grid;
+  gap: 0.875rem;
+  align-items: start;
+}
+
+.messages-review-send__summary-card {
+  padding: 0.625rem 0.75rem;
+  min-height: 14rem;
+  border: 1px solid var(--messages-divider);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgba(18, 22, 25, 0.04);
+  overflow: visible;
+}
+
+.messages-review-send__notification-summary-card {
+  min-height: 8rem;
+  padding-bottom: 1rem;
+}
+
+.messages-review-send__audience-summary-card {
+  padding: 0.875rem 0.875rem 0.75rem;
+  background: #ffffff;
+}
+
+.messages-review-send__summary-card-header {
+  display: flex;
+  margin-bottom: 0.625rem;
+}
+
+.messages-review-send__card-heading {
+  margin: 0 !important;
+  color: var(--messages-text) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.messages-review-send__card-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.messages-review-send__inline-edit-button.MuiButton-root {
+  min-width: 3rem;
+  min-height: 1.75rem;
+  padding: 0 0.75rem;
+  text-transform: none;
+}
+
+.messages-review-send__summary-list {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(0, 1.15fr);
+  row-gap: 0.4rem;
+  column-gap: 1rem;
+  margin: 0;
+}
+
+.messages-review-send__summary-list dt {
+  color: var(--messages-muted);
+  font-size: 0.8125rem;
+  line-height: 1.1rem;
+}
+
+.messages-review-send__summary-list dd {
+  margin: 0;
+  color: var(--messages-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.1rem;
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.messages-review-send__summary-estimated-row {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 0.35rem;
+  align-items: center;
+  width: 100%;
+  background: #edf2ff;
+  border-radius: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.messages-review-send__summary-estimated-row span {
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.messages-review-send__summary-estimated-row strong {
+  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.messages-review-send__summary-value--attached {
+  color: var(--messages-blue);
+}
+
+.messages-review-send__summary-attachment-text {
+  display: inline;
+}
+
+.messages-review-send__summary-label--attached {
+  color: var(--messages-muted) !important;
+  font-weight: 400;
+}
+
+.messages-review-send__attached-image-preview {
+  display: none;
+}
+
+.messages-review-send__delivery-card {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.messages-review-send__recurring-card {
+  display: grid;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border: 1px solid var(--messages-divider);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.messages-review-send__recurring-title {
+  margin: 0 !important;
+  width: 100%;
+  color: var(--messages-text) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+}
+
+.messages-review-send__delivery-toggle.MuiToggleButtonGroup-root {
+  gap: 0.5rem;
+}
+
+.messages-review-send__delivery-toggle .MuiToggleButton-root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.125rem;
+  padding: 0.25rem 0.875rem !important;
+  border: 1px solid #e2e6ef !important;
+  border-radius: 0.5rem !important;
+  background: #fff;
+  color: var(--messages-text);
+  font-size: 0.875rem;
+  text-transform: none;
+}
+
+.messages-review-send__delivery-toggle .MuiToggleButton-root.Mui-selected {
+  background: var(--messages-blue);
+  color: #fff;
+  border-color: var(--messages-blue) !important;
+}
+
+.messages-review-send__delivery-toggle
+  .MuiToggleButton-root.Mui-selected:hover {
+  background: var(--messages-blue);
+  color: #fff;
+}
+
+.messages-review-send__delivery-toggle .MuiToggleButton-root:hover {
+  background: #eef4ff;
+}
+
+.messages-review-send__delivery-toggle
+  .MuiToggleButton-root.Mui-selected:hover {
+  background: var(--messages-blue);
+}
+
+.messages-review-send__toggle-icon {
+  font-size: 1rem !important;
+}
+
+.messages-review-send__day-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.messages-review-send__delivery-error {
+  justify-self: start;
+  margin-top: -0.25rem !important;
+  max-width: 100%;
+  color: var(--messages-error) !important;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  text-align: left;
+}
+
+.messages-review-send__day-pill {
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid #d5dbe6;
+  border-radius: 0.375rem;
+  background: #fff;
+  color: var(--messages-text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.messages-review-send__day-pill--active {
+  border-color: var(--messages-blue);
+  color: var(--messages-blue);
+  background: #edf2ff;
+}
+
+.messages-review-send__schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.messages-review-send__schedule-field {
+  display: grid;
+  gap: 0.375rem;
+  color: var(--messages-muted);
+  font-size: 0.875rem;
+}
+
+.messages-review-send__end-date-row {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.messages-review-send__schedule-field input {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--messages-border);
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+.messages-review-send__date-field {
+  position: relative;
+}
+
+.messages-review-send__date-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--messages-border);
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: var(--messages-text);
+  font: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.messages-review-send__date-display span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages-review-send__date-field input[type='date'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.messages-review-send__date-icon {
+  color: #667085;
+  flex: 0 0 auto;
+}
+
+.messages-review-send__end-date-row {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: stretch;
+  grid-column: 1 / -1;
+}
+
+.messages-review-send__end-date-row .messages-review-send__schedule-field {
+  max-width: 26rem;
+  width: 100%;
+  justify-self: stretch;
+}
+
+.messages-review-send__end-date-hint {
+  width: 100%;
+  margin: 0;
+  text-align: center !important;
+  justify-self: center;
+}
+
+.messages-review-send__time-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--messages-border);
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: var(--messages-text);
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.messages-review-send__time-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages-review-send__time-button svg {
+  flex: 0 0 auto;
+  color: #667085;
+}
+
+.messages-review-send__time-picker {
+  width: 7.375rem;
+  max-height: 8.75rem;
+  overflow: hidden;
+  border: 0.0625rem solid #b8c0cc;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.messages-review-send__time-picker [role='listbox'] {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.messages-review-send__time-picker-column {
+  max-height: 8.25rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.messages-review-send__time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+.messages-review-send__time-picker-period-column {
+  overflow-y: hidden;
+}
+
+.messages-review-send__time-picker-option {
+  width: 100%;
+  min-height: 1.875rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.messages-review-send__time-picker-option:hover {
+  background: #eef4ff;
+}
+
+.messages-review-send__time-picker-option:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  background: transparent;
+  opacity: 1;
+}
+
+.messages-review-send__time-picker-option:disabled:hover {
+  background: transparent;
+}
+
+.messages-review-send__time-picker-option[aria-selected='true'] {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.messages-review-send__schedule-field .MuiTextField-root {
+  width: 100%;
+}
+
+.messages-review-send__ends-row {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--messages-text);
+  font-size: 0.875rem;
+  justify-items: start;
+}
+
+.messages-review-send__ends-title {
+  margin: 0 !important;
+  color: var(--messages-text) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.messages-review-send__ends-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.messages-review-send__ends-options > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.messages-review-send__ends-row .MuiRadio-root {
+  padding: 0.1875rem;
+  margin: 0;
+}
+
+.messages-review-send__ends-row .MuiRadio-root svg {
+  font-size: 1rem;
+}
+
+.messages-review-send__schedule-panel,
+.messages-review-send__recurring-panel {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.messages-review-send__recurring-panel {
+  padding: 0;
+}
+
+.messages-review-send__preview-column {
+  align-content: start;
+  min-width: 0;
+  justify-items: stretch;
+  box-sizing: border-box;
+  align-self: start;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-column {
+  padding-right: 0.25rem;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-frame {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 17.2rem;
+}
+
+.messages-review-send__preview {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: center;
+  width: 100%;
+}
+
+.messages-review-send__preview-frame {
+  width: 100%;
+  min-height: 15rem;
+  height: auto;
+  padding: 1rem;
+  border: 0.5rem solid #171827;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgba(18, 22, 25, 0.04);
+  box-sizing: border-box;
+  overflow: visible;
+  align-items: stretch;
+}
+
+.messages-review-send__device-status {
+  color: #697077;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+.messages-review-send__preview-status {
+  display: flex;
+  justify-content: space-between;
+  color: #697077;
+  font-size: 0.6875rem;
+  margin-bottom: 0.375rem;
+}
+
+.messages-review-send__preview-card {
+  display: grid;
+  gap: 0.0625rem;
+  padding: 0.375rem;
+  min-height: 9rem;
+  border-radius: 0.5rem;
+  text-align: left;
+  background: #f3f4f8;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-card {
+  min-height: 10rem;
+  overflow: visible;
+}
+
+body.ops-sidebar-open .messages-review-send__preview {
+  justify-items: stretch;
+  max-width: 100%;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-copy {
+  gap: 0.125rem;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-copy p {
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-image {
+  height: 3rem;
+}
+
+body.ops-sidebar-open .messages-review-send__preview-image-placeholder {
+  height: 3rem;
+}
+
+body:not(.ops-sidebar-open) .messages-review-send__preview-frame {
+  max-width: 100%;
+}
+
+.messages-review-send__preview-app-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  color: #8d98a7;
+  font-size: 0.625rem;
+  justify-content: flex-start;
+}
+
+.messages-review-send__preview-app-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.messages-review-send__preview-app-name {
+  display: block;
+  font-size: 0.625rem;
+}
+
+.messages-review-send__preview-app-time {
+  color: var(--messages-muted);
+  font-size: 0.625rem;
+}
+
+.messages-review-send__preview-copy {
+  display: grid;
+  gap: 0;
+  justify-items: start;
+  text-align: left;
+}
+
+.messages-review-send__preview-copy strong {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.messages-review-send__preview-copy p {
+  margin: 0;
+  width: 100%;
+  color: var(--messages-text);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.messages-review-send__preview-image {
+  width: 100%;
+  height: 5.5rem;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.messages-review-send__preview-image-placeholder {
+  width: 100%;
+  min-height: 5.5rem;
+  height: auto;
+  border-radius: 0.75rem;
+  background: #e9edf2;
+}
+
+.messages-review-send__preview-title {
+  text-align: center;
+  color: var(--messages-muted);
+  font-size: 0.875rem !important;
+  margin-top: 0.75rem !important;
+}
+
+.messages-review-send__preview-note {
+  text-align: center;
+  color: #afb5bf !important;
+  font-size: 0.75rem !important;
+  line-height: 1.25rem !important;
+}
+
+.messages-review-send__delivery-section {
+  max-width: 84%;
+  display: grid;
+  gap: 0.875rem;
+  grid-column: 1 / -1;
+  margin-top: 0;
+  padding: 0.875rem;
+  border: 1px solid var(--messages-divider);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgba(18, 22, 25, 0.04);
+  box-sizing: border-box;
+}
+
+.messages-review-send__actions {
+  position: relative;
+  display: block;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--messages-divider);
+  width: 100%;
+  min-height: 3.5rem;
+}
+
+.messages-review-send__actions-left {
+  display: flex;
+  justify-content: flex-start;
+  position: absolute;
+  left: -1.5rem;
+  top: 1.5rem;
+}
+
+.messages-review-send__actions-right {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  right: 0;
+  top: 1.5rem;
+}
+
+.messages-review-send__back-button.MuiButton-root {
+  min-width: 6.5rem;
+  background: #ffffff;
+  color: var(--messages-text);
+  border: 1px solid var(--messages-divider);
+  border-radius: 0.75rem;
+  text-transform: none;
+}
+
+.messages-review-send__primary-button.MuiButton-root {
+  min-width: auto;
+  width: fit-content;
+  padding-inline: 1.25rem;
+  background: var(--messages-blue);
+  color: #ffffff;
+  border-radius: 0.75rem;
+  text-transform: none;
+}
+
+@media (max-width: 48rem) and (orientation: portrait) {
+  .messages-review-send__delivery-section {
+    max-width: 100%;
+  }
+
+  .messages-review-send__layout,
+  .messages-review-send__schedule-grid {
+    grid-template-columns: 1fr;
+    margin-top: 1.5rem;
+  }
+
+  .messages-review-send__inline-edit-button.MuiButton-root {
+    display: none;
+  }
+
+  .messages-review-send__summary-estimated-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 0.5rem;
+  }
+
+  .messages-review-send__summary-estimated-row span,
+  .messages-review-send__summary-estimated-row strong {
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  .messages-review-send__summary-estimated-row span {
+    font-weight: 600;
+  }
+
+  .messages-review-send__summary-estimated-row strong {
+    color: #1a71f6;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  .messages-review-send__notification-summary-card {
+    min-height: auto;
+    padding: 0.75rem 0.75rem 0.875rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+    column-gap: 0;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dt {
+    font-size: 0.6875rem;
+    line-height: 0.875rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd {
+    font-size: 0.8125rem;
+    line-height: 1rem;
+    text-align: left;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd:has(.messages-review-send__summary-value--attached) {
+    margin-top: 0.125rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd:has(.messages-review-send__summary-value--attached)
+    .messages-review-send__summary-value--attached {
+    display: inline-block;
+    margin-top: 0;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd
+    .messages-review-send__summary-value--attached {
+    font-size: 0.8125rem;
+    line-height: 1rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-label--attached {
+    color: #8d98a7 !important;
+    font-weight: 500;
+  }
+
+  .messages-review-send__end-date-row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .messages-review-send__end-date-hint {
+    text-align: center !important;
+  }
+
+  .messages-review-send__card-title-row {
+    gap: 0.5rem;
+  }
+
+  .messages-review-send__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .messages-review-send__actions-left,
+  .messages-review-send__actions-right {
+    position: static;
+    display: flex;
+    flex: 1 1 0;
+  }
+
+  .messages-review-send__actions-left {
+    justify-content: flex-start;
+  }
+
+  .messages-review-send__actions-right {
+    justify-content: flex-end;
+  }
+
+  .messages-review-send__back-button.MuiButton-root,
+  .messages-review-send__primary-button.MuiButton-root {
+    width: auto;
+    min-width: 0;
+    white-space: nowrap;
+    padding-inline: 0.75rem;
+  }
+}
+
+.messages-review-send__send-error {
+  color: var(--mui-palette-error-main, #d32f2f);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+  text-align: right;
+}
+
+.messages-review-send__end-date-error {
+  color: var(--mui-palette-error-main, #d32f2f);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0;
+  text-align: left;
+}
