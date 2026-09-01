@@ -43,6 +43,7 @@ import logger from '../utility/logger';
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
+const BUNDLE_DOWNLOAD_TIMEOUT_MS = 30000;
 
 type CocosGameListeners = {
   lessonEnd?: EventListener;
@@ -90,6 +91,8 @@ const CocosGame: React.FC = () => {
   const savingPromiseRef = useRef<Promise<void> | null>(null);
   const gameListenersRef = useRef<CocosGameListeners>({});
   const gameExitTimeoutRef = useRef<number | null>(null);
+  const isNavigatingRef = useRef(false);
+  const isActiveRef = useRef(false);
   const courseDetail: TableTypes<'course'> = state.course
     ? JSON.parse(state.course)
     : undefined;
@@ -133,6 +136,54 @@ const CocosGame: React.FC = () => {
     Util.killCocosGame();
   };
 
+  const saveTempDataInBackground = (lessonData: CocosLessonData) => {
+    const savePromise = saveTempData(lessonData);
+    savingPromiseRef.current = savePromise;
+    void savePromise.catch((error) => {
+      logger.error('[CocosGame] Error saving lesson completion data', error);
+    });
+  };
+
+  const continueAfterLessonEnd = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    setShowDialogBox(false);
+    setIsLoading(false);
+    cleanupGameRuntime();
+    push();
+  };
+
+  const downloadLessonBundleWithTimeout = (
+    lessonToDownload: TableTypes<'lesson'>,
+  ): Promise<boolean> =>
+    new Promise((resolve) => {
+      let settled = false;
+      const timeoutId = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        logger.error('[CocosGame] Lesson bundle download timed out', {
+          lessonId: lessonToDownload.id,
+          timeoutMs: BUNDLE_DOWNLOAD_TIMEOUT_MS,
+        });
+        resolve(false);
+      }, BUNDLE_DOWNLOAD_TIMEOUT_MS);
+
+      void Util.downloadZipBundle([lessonToDownload])
+        .then((downloaded) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          resolve(downloaded);
+        })
+        .catch((error) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          logger.error('[CocosGame] Lesson bundle download failed', error);
+          resolve(false);
+        });
+    });
+
   useIonViewWillLeave(() => {
     cleanupGameRuntime();
   });
@@ -153,7 +204,8 @@ const CocosGame: React.FC = () => {
   };
 
   useEffect(() => {
-    init();
+    isActiveRef.current = true;
+    void init();
     Util.checkingIfGameCanvasAvailable();
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: 'landscape' });
@@ -175,6 +227,7 @@ const CocosGame: React.FC = () => {
     addAppStateListener();
 
     return () => {
+      isActiveRef.current = false;
       disposed = true;
       appStateListener?.remove();
       cleanupGameRuntime();
@@ -247,13 +300,14 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+
     const api = ServiceConfig.getI().apiHandler;
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
     const data = e.detail as CocosLessonData;
 
-    await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent?.id ?? _currentUser?.id,
+    void Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+      user_id: api.currentStudent?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -280,6 +334,8 @@ const CocosGame: React.FC = () => {
       quiz_time_spent: data.quizTimeSpent,
       played_from: playedFrom,
       assignment_type: assignmentType,
+    }).catch((error) => {
+      logger.error('[CocosGame] Error logging incomplete lesson', error);
     });
 
     cleanupGameListeners();
@@ -292,7 +348,7 @@ const CocosGame: React.FC = () => {
   };
 
   const handleLessonEndListner = (event: any) => {
-    savingPromiseRef.current = saveTempData(event.detail); // Store the promise
+    saveTempDataInBackground(event.detail);
     setGameResult(event);
 
     // Cocos is still completing its own event sequence at this point. Pause and
@@ -360,15 +416,17 @@ const CocosGame: React.FC = () => {
     prevCorrectMovesRef.current = 0;
     prevWrongMovesRef.current = 0;
 
-    const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
     if (!lessonDetail) {
+      setIsLoading(false);
       presentToast();
       push();
       return;
     }
-    const dow = await Util.downloadZipBundle([lessonDetail]);
+    const dow = await downloadLessonBundleWithTimeout(lessonDetail);
+    if (!isActiveRef.current || isNavigatingRef.current) return;
     if (!dow) {
+      setIsLoading(false);
       presentToast();
       push();
       return;
@@ -691,7 +749,7 @@ const CocosGame: React.FC = () => {
   return (
     <IonPage id="cocos-game-page">
       <IonContent>
-        <Loading isLoading={isLoading} />
+        <Loading isLoading={Boolean(isLoading) && !showDialogBox} />
         {showDialogBox && (
           <div>
             <ScoreCard
@@ -703,18 +761,8 @@ const CocosGame: React.FC = () => {
               handleClose={(e: any) => {
                 setShowDialogBox(true);
               }}
-              onContinueButtonClicked={async (e: any) => {
-                setIsLoading(true);
-                try {
-                  if (savingPromiseRef.current) {
-                    await savingPromiseRef.current;
-                  }
-                } catch (error) {
-                  logger.error('Error saving data', error);
-                }
-                setShowDialogBox(false);
-                cleanupGameRuntime();
-                push();
+              onContinueButtonClicked={() => {
+                continueAfterLessonEnd();
               }}
             />
           </div>
