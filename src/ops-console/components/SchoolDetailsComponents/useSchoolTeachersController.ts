@@ -1,6 +1,7 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useMediaQuery } from '@mui/material';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import { ContactTarget, PerformanceLevel } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
@@ -20,6 +21,8 @@ import { useSchoolTeachersFields } from './useSchoolTeachersFields';
 import { useSchoolTeachersList } from './useSchoolTeachersList';
 import { useSchoolTeachersPerformance } from './useSchoolTeachersPerformance';
 import { useSchoolTeachersWhatsapp } from './useSchoolTeachersWhatsapp';
+import { ensureQuestionsCached } from '../../../services/offline/offlineCache';
+import logger from '../../../utility/logger';
 
 export const useSchoolTeachersController = ({
   data,
@@ -147,6 +150,37 @@ export const useSchoolTeachersController = ({
   const isFilteringOrSearching =
     searchTerm.trim() !== '' ||
     Object.values(filters).some((filter) => filter.length > 0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const preloadTeacherQuestions = async () => {
+      if (cancelled) return;
+
+      try {
+        await ensureQuestionsCached({
+          api,
+          statuses: [
+            PerformanceLevel.NOT_ASSIGNING,
+            PerformanceLevel.ONE_TO_TWO_ASSIGNED,
+            PerformanceLevel.THREE_TO_FOUR_ASSIGNED,
+            PerformanceLevel.FOUR_PLUS_ASSIGNED,
+          ],
+          target: ContactTarget.TEACHER,
+        });
+      } catch (error) {
+        logger.error('Failed to preload teacher interaction questions', {
+          error,
+        });
+      }
+    };
+
+    void preloadTeacherQuestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
 
   return {
     contentProps: {

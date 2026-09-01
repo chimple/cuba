@@ -1,3 +1,4 @@
+import { App } from '@capacitor/app';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EnumType,
@@ -81,6 +82,7 @@ let syncRunner: SyncRunner | null = null;
 let syncScheduled = false;
 let syncRunning = false;
 let listenersRegistered = false;
+let appStateListenerRegistered = false;
 
 const hasWindow = (): boolean => typeof window !== 'undefined';
 
@@ -441,12 +443,24 @@ const registerBrowserListeners = () => {
   });
 };
 
+const registerAppStateListener = () => {
+  if (appStateListenerRegistered) return;
+  appStateListenerRegistered = true;
+
+  App.addListener('appStateChange', ({ isActive }) => {
+    if (isActive) {
+      scheduleSync();
+    }
+  });
+};
+
 export const registerFcTouchPointSyncRunner = (
   runner: SyncRunner,
   options?: { scheduleImmediately?: boolean },
 ) => {
   syncRunner = runner;
   registerBrowserListeners();
+  registerAppStateListener();
   if (options?.scheduleImmediately) {
     scheduleSync();
   }
@@ -454,5 +468,6 @@ export const registerFcTouchPointSyncRunner = (
 
 export const requestFcTouchPointSync = () => {
   registerBrowserListeners();
+  registerAppStateListener();
   scheduleSync();
 };
