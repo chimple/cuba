@@ -48,6 +48,7 @@ type SchoolListHeaderControlsProps = {
   isExportDisabled: boolean;
   isExporting: boolean;
   isExternalUser: boolean;
+  isFilterLoading: boolean;
   isFilterOpen: boolean;
   percentageFilters: PercentageFilters;
   schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
@@ -88,6 +89,7 @@ export default function SchoolListHeaderControls({
   isExportDisabled,
   isExporting,
   isExternalUser,
+  isFilterLoading,
   isFilterOpen,
   percentageFilters,
   schoolPerformanceFilter,
@@ -280,6 +282,7 @@ export default function SchoolListHeaderControls({
         columns={columns}
         filterOptions={filterOptions}
         filters={filters}
+        isFilterLoading={isFilterLoading}
         isFilterOpen={isFilterOpen}
         percentageFilters={percentageFilters}
         schoolPerformanceFilter={schoolPerformanceFilter}

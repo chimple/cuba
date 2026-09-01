@@ -9,6 +9,7 @@ import {
   TextField,
   Checkbox,
   Button,
+  CircularProgress,
   Drawer,
   useMediaQuery,
   useTheme,
@@ -20,6 +21,7 @@ import type { SchoolFilterOption } from '../pages/SchoolList.helpers';
 
 interface FilterSliderProps {
   isOpen: boolean;
+  isLoading?: boolean;
   onClose: () => void;
   filters: Record<string, string[]>;
   filterOptions: Record<string, SchoolFilterOption[]>;
@@ -33,6 +35,7 @@ interface FilterSliderProps {
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
   isOpen,
+  isLoading = false,
   onClose,
   filters,
   filterOptions,
@@ -81,136 +84,152 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       </Box>
       <Divider sx={{ mb: 3 }} />
 
-      <Stack className="filter-content-FilterSlider">
-        {filterConfigs.map(({ key, label, placeholder }) => (
-          <Autocomplete
-            key={key}
-            multiple
-            options={filterOptions[key] || []}
-            filterOptions={
-              key === 'school'
-                ? (options, state) => {
-                    const query = state.inputValue.trim().toLowerCase();
-                    if (!query) return options;
+      {isLoading ? (
+        <Box
+          data-testid="filter-slider-loading"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          flex={1}
+        >
+          <CircularProgress size={28} />
+        </Box>
+      ) : (
+        <>
+          <Stack className="filter-content-FilterSlider">
+            {filterConfigs.map(({ key, label, placeholder }) => (
+              <Autocomplete
+                key={key}
+                multiple
+                options={filterOptions[key] || []}
+                filterOptions={
+                  key === 'school'
+                    ? (options, state) => {
+                        const query = state.inputValue.trim().toLowerCase();
+                        if (!query) return options;
 
-                    const rank = (name: string) => {
-                      const lower = name.toLowerCase();
-                      if (lower.startsWith(query)) return 0;
-                      if (lower.includes(` ${query}`)) return 1;
-                      if (lower.includes(query)) return 2;
-                      return 3;
-                    };
+                        const rank = (name: string) => {
+                          const lower = name.toLowerCase();
+                          if (lower.startsWith(query)) return 0;
+                          if (lower.includes(` ${query}`)) return 1;
+                          if (lower.includes(query)) return 2;
+                          return 3;
+                        };
 
-                    return [...options]
-                      .filter((option) =>
-                        getOptionLabel(option).toLowerCase().includes(query),
-                      )
-                      .sort((a, b) => {
-                        const left = getOptionLabel(a);
-                        const right = getOptionLabel(b);
-                        return (
-                          rank(left) - rank(right) ||
-                          left.localeCompare(right, undefined, {
-                            sensitivity: 'base',
-                          })
-                        );
-                      });
-                  }
-                : undefined
-            }
-            disableCloseOnSelect
-            filterSelectedOptions={false}
-            getOptionLabel={getOptionLabel}
-            isOptionEqualToValue={(option, value) =>
-              getOptionValue(option) === getOptionValue(value)
-            }
-            value={
-              key === 'program'
-                ? (filterOptions[key] || []).filter((option) =>
-                    (filters[key] ?? []).includes(getOptionValue(option)),
-                  )
-                : (filters[key] ?? [])
-            }
-            inputValue={key === 'school' ? schoolSearchValue : undefined}
-            onInputChange={(_, newInputValue, reason) => {
-              if (key !== 'school') return;
-
-              if (reason === 'clear') {
-                setSchoolSearchValue('');
-                return;
-              }
-
-              if (reason === 'input') {
-                setSchoolSearchValue(newInputValue);
-                return;
-              }
-
-              // Keep the current search text after a selection so the filtered
-              // result set stays visible for additional picks.
-            }}
-            onChange={(e, value) => {
-              const nextValues = Array.isArray(value)
-                ? value.map(getOptionValue)
-                : [];
-              onFilterChange(
-                key,
-                key === 'program' || singleSelectKeys.includes(key)
-                  ? nextValues.slice(0, 1)
-                  : nextValues,
-              );
-            }}
-            getOptionDisabled={(option) =>
-              (key === 'program' || singleSelectKeys.includes(key)) &&
-              (filters[key]?.length ?? 0) > 0 &&
-              !(filters[key] ?? []).includes(getOptionValue(option))
-            }
-            renderOption={(props, option, { selected }) => (
-              <li {...props}>
-                <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-                {getOptionLabel(option)}
-              </li>
-            )}
-            renderTags={() => null}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={label}
-                placeholder={
-                  (placeholder
-                    ? t('Search {{placeholder}}...', { placeholder })
-                    : t('Search {{key}}...', { key })) ?? ''
+                        return [...options]
+                          .filter((option) =>
+                            getOptionLabel(option)
+                              .toLowerCase()
+                              .includes(query),
+                          )
+                          .sort((a, b) => {
+                            const left = getOptionLabel(a);
+                            const right = getOptionLabel(b);
+                            return (
+                              rank(left) - rank(right) ||
+                              left.localeCompare(right, undefined, {
+                                sensitivity: 'base',
+                              })
+                            );
+                          });
+                      }
+                    : undefined
                 }
-                variant="outlined"
-              />
-            )}
-            className={`filter-autocomplete${
-              filters[key]?.length > 0
-                ? ' filter-autocomplete-selected-FilterSlider'
-                : ''
-            }`}
-            sx={autocompleteStyles}
-          />
-        ))}
-      </Stack>
+                disableCloseOnSelect
+                filterSelectedOptions={false}
+                getOptionLabel={getOptionLabel}
+                isOptionEqualToValue={(option, value) =>
+                  getOptionValue(option) === getOptionValue(value)
+                }
+                value={
+                  key === 'program'
+                    ? (filterOptions[key] || []).filter((option) =>
+                        (filters[key] ?? []).includes(getOptionValue(option)),
+                      )
+                    : (filters[key] ?? [])
+                }
+                inputValue={key === 'school' ? schoolSearchValue : undefined}
+                onInputChange={(_, newInputValue, reason) => {
+                  if (key !== 'school') return;
 
-      <Box className="filter-footer-FilterSlider">
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={onCancel}
-          className="filter-outlined-button-FilterSlider"
-        >
-          {t('Clear All')}
-        </Button>
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={onApply}
-          className="filter-contained-button-FilterSlider"
-        >
-          {t('Apply')}
-        </Button>
-      </Box>
+                  if (reason === 'clear') {
+                    setSchoolSearchValue('');
+                    return;
+                  }
+
+                  if (reason === 'input') {
+                    setSchoolSearchValue(newInputValue);
+                    return;
+                  }
+
+                  // Keep the current search text after a selection so the filtered
+                  // result set stays visible for additional picks.
+                }}
+                onChange={(e, value) => {
+                  const nextValues = Array.isArray(value)
+                    ? value.map(getOptionValue)
+                    : [];
+                  onFilterChange(
+                    key,
+                    key === 'program' || singleSelectKeys.includes(key)
+                      ? nextValues.slice(0, 1)
+                      : nextValues,
+                  );
+                }}
+                getOptionDisabled={(option) =>
+                  (key === 'program' || singleSelectKeys.includes(key)) &&
+                  (filters[key]?.length ?? 0) > 0 &&
+                  !(filters[key] ?? []).includes(getOptionValue(option))
+                }
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox checked={selected} sx={{ marginRight: 1 }} />
+                    {getOptionLabel(option)}
+                  </li>
+                )}
+                renderTags={() => null}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={label}
+                    placeholder={
+                      (placeholder
+                        ? t('Search {{placeholder}}...', { placeholder })
+                        : t('Search {{key}}...', { key })) ?? ''
+                    }
+                    variant="outlined"
+                  />
+                )}
+                className={`filter-autocomplete${
+                  filters[key]?.length > 0
+                    ? ' filter-autocomplete-selected-FilterSlider'
+                    : ''
+                }`}
+                sx={autocompleteStyles}
+              />
+            ))}
+          </Stack>
+
+          <Box className="filter-footer-FilterSlider">
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={onCancel}
+              className="filter-outlined-button-FilterSlider"
+            >
+              {t('Clear All')}
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={onApply}
+              className="filter-contained-button-FilterSlider"
+            >
+              {t('Apply')}
+            </Button>
+          </Box>
+        </>
+      )}
     </Drawer>
   );
 };

@@ -20,6 +20,7 @@ type SchoolListAppliedFiltersProps = {
   columns: Column<SchoolListRow>[];
   filterOptions: SchoolFilterOptions;
   filters: Filters;
+  isFilterLoading: boolean;
   isFilterOpen: boolean;
   percentageFilters: PercentageFilters;
   schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
@@ -38,6 +39,7 @@ export default function SchoolListAppliedFilters({
   columns,
   filterOptions,
   filters,
+  isFilterLoading,
   isFilterOpen,
   percentageFilters,
   schoolPerformanceFilter,
@@ -52,6 +54,14 @@ export default function SchoolListAppliedFilters({
   const gradeOptions = useMemo(
     () => filterOptions.grade ?? [],
     [filterOptions],
+  );
+  const availableFilterConfigs = useMemo(
+    () =>
+      filterConfigsForSchool.filter(
+        ({ key }) =>
+          key !== 'program' || (filterOptions.program?.length ?? 0) > 0,
+      ),
+    [filterOptions.program],
   );
   const getFilterLabel = useMemo(
     () => (key: string, value: string) => {
@@ -168,6 +178,7 @@ export default function SchoolListAppliedFilters({
 
       <FilterSlider
         isOpen={isFilterOpen}
+        isLoading={isFilterLoading}
         onClose={() => {
           setIsFilterOpen(false);
           setTempFilters(filters);
@@ -192,7 +203,7 @@ export default function SchoolListAppliedFilters({
           setPage(1);
         }}
         autocompleteStyles={{}}
-        filterConfigs={filterConfigsForSchool}
+        filterConfigs={availableFilterConfigs}
       />
     </>
   );
