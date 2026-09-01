@@ -207,7 +207,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
 
     try {
       const [schoolUserResult, programUserResult] = await Promise.all([
-        shouldRestrictToSchoolLinks || !isAdminOrDirector
+        !isAdminOrDirector && !shouldRestrictToSchoolLinks
           ? this.supabase
               .from(TABLES.SchoolUser)
               .select('school_id')
@@ -217,7 +217,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
               data: [] as Array<{ school_id?: string | null }>,
               error: null,
             }),
-        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+        !isAdminOrDirector &&
+        !shouldRestrictToSchoolLinks &&
+        specialRoles.includes(RoleType.PROGRAM_MANAGER)
           ? this.supabase
               .from(TABLES.ProgramUser)
               .select('program_id')
@@ -257,10 +259,22 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           ? date_range.trim().toLowerCase()
           : null;
 
+      // Filter school-linked ops users through relationships in PostgREST.
+      // Sending every linked school UUID in an `in.(...)` URL can exceed the
+      // request-size limit for external users connected to many schools.
+      const schoolMetricsSelect: string = shouldRestrictToSchoolLinks
+        ? '*,school_access:school_id!inner(school_user!inner(user_id))'
+        : '*';
       let query = this.supabase
         .from(TABLES.SchoolMetrics)
-        .select('*', { count: 'exact' })
+        .select(schoolMetricsSelect, { count: 'exact' })
         .eq('is_deleted', false);
+
+      if (shouldRestrictToSchoolLinks) {
+        query = query
+          .eq('school_access.school_user.user_id', authUser.id)
+          .eq('school_access.school_user.is_deleted', false);
+      }
 
       if (metricWindow) {
         query = query.eq('metric_window', metricWindow);
@@ -270,7 +284,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         query = query.eq('program_id', programId);
       }
 
-      if (!isAdminOrDirector) {
+      if (!isAdminOrDirector && !shouldRestrictToSchoolLinks) {
         if (schoolIds.length > 0 && programIds.length > 0) {
           query = query.or(
             `school_id.in.(${schoolIds.join(',')}),program_id.in.(${programIds.join(',')})`,
@@ -286,6 +300,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
 
       if (
         !isAdminOrDirector &&
+        !shouldRestrictToSchoolLinks &&
         schoolIds.length === 0 &&
         programIds.length === 0
       ) {
@@ -435,7 +450,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
 
       // Selected grade rows are aggregated per school before sorting/filtering.
       const { data, error, count } = requiresClientSideProcessing
-        ? await fetchAllSchoolMetricRows(query)
+        ? await fetchAllSchoolMetricRows(
+            query as unknown as SchoolMetricsRangeQuery,
+          )
         : await query
             .order(sortBy, { ascending: sortAscending })
             .range(from, from + normalizedPageSize - 1);
@@ -512,41 +529,47 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         ? rows.slice(from, from + normalizedPageSize)
         : rows;
 
-      const mappedRows = pagedRows.map((row: Record<string, unknown>) => ({
-        ...row,
-        school_name: typeof row.school_name === 'string' ? row.school_name : '',
-        udise: row.udise ?? null,
-        num_students:
-          typeof row.onboarded_students === 'number'
-            ? row.onboarded_students
-            : 0,
-        num_teachers: getNumericMetric(row.num_teachers) ?? 0,
-        total_teachers: getNumericMetric(row.total_teachers),
-        onboarded_students: row.onboarded_students ?? null,
-        activated_students: row.activated_students ?? null,
-        active_students: row.active_students ?? null,
-        avg_time_spent: row.avg_time_spent ?? null,
-        active_teachers: row.active_teachers ?? null,
-        active_teacher_percentage: getNumericMetric(
-          row.active_teacher_percentage,
-        ),
-        activities_assigned: row.activities_assigned ?? null,
-        avg_assignments_completed: row.avg_assignments_completed ?? null,
-        avg_activities_completed: row.avg_activities_completed ?? null,
-        phone_calls_students_parents: row.student_parent_calls ?? null,
-        inperson_students_parents: row.student_parent_inperson ?? null,
-        phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
-        community_visits: row.community_visits ?? null,
-        school_visits: row.school_visits ?? null,
-        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
-        parents_in_whatsapp_group: row.parents_in_group ?? null,
-        parents_reached:
-          typeof row.community_parents_reached === 'number'
-            ? row.community_parents_reached
-            : 0,
-        program_managers: row.program_managers ?? [],
-        field_coordinators: row.field_coordinators ?? [],
-      })) as FilteredSchoolsForSchoolListingOps[];
+      const mappedRows = pagedRows.map((row: Record<string, unknown>) => {
+        const metricRow = { ...row };
+        delete metricRow.school_access;
+
+        return {
+          ...metricRow,
+          school_name:
+            typeof row.school_name === 'string' ? row.school_name : '',
+          udise: row.udise ?? null,
+          num_students:
+            typeof row.onboarded_students === 'number'
+              ? row.onboarded_students
+              : 0,
+          num_teachers: getNumericMetric(row.num_teachers) ?? 0,
+          total_teachers: getNumericMetric(row.total_teachers),
+          onboarded_students: row.onboarded_students ?? null,
+          activated_students: row.activated_students ?? null,
+          active_students: row.active_students ?? null,
+          avg_time_spent: row.avg_time_spent ?? null,
+          active_teachers: row.active_teachers ?? null,
+          active_teacher_percentage: getNumericMetric(
+            row.active_teacher_percentage,
+          ),
+          activities_assigned: row.activities_assigned ?? null,
+          avg_assignments_completed: row.avg_assignments_completed ?? null,
+          avg_activities_completed: row.avg_activities_completed ?? null,
+          phone_calls_students_parents: row.student_parent_calls ?? null,
+          inperson_students_parents: row.student_parent_inperson ?? null,
+          phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
+          community_visits: row.community_visits ?? null,
+          school_visits: row.school_visits ?? null,
+          parents_on_whatsapp: row.parents_on_whatsapp ?? null,
+          parents_in_whatsapp_group: row.parents_in_group ?? null,
+          parents_reached:
+            typeof row.community_parents_reached === 'number'
+              ? row.community_parents_reached
+              : 0,
+          program_managers: row.program_managers ?? [],
+          field_coordinators: row.field_coordinators ?? [],
+        };
+      }) as FilteredSchoolsForSchoolListingOps[];
 
       return {
         data: mappedRows,
