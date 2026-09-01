@@ -125,3 +125,15 @@ export const clearAllSchoolHeaderCache = async () => {
 
   await Promise.all(schoolHeaderKeys.map((key) => Preferences.remove({ key })));
 };
+
+export const clearOtherSchoolHeaderCache = async (schoolId: string) => {
+  const { keys } = await Preferences.keys();
+  const currentKey = schoolKey(schoolId);
+  const otherSchoolHeaderKeys = keys.filter(
+    (key) => key.startsWith('school_header_') && key !== currentKey,
+  );
+
+  await Promise.all(
+    otherSchoolHeaderKeys.map((key) => Preferences.remove({ key })),
+  );
+};

@@ -16,6 +16,7 @@ import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
 import {
+  clearOtherSchoolHeaderCache,
   readSchoolHeaderCache,
   writeSchoolHeaderCache,
 } from '../../services/offline/offlineCache';
@@ -312,6 +313,7 @@ export const useSchoolDetailsPage = (id: string) => {
       if (cachedSchool) {
         setData((prev) => ({ ...prev, schoolData: cachedSchool }));
       }
+      await clearOtherSchoolHeaderCache(id);
 
       const [
         schoolSettled,
