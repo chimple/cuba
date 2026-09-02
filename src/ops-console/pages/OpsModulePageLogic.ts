@@ -31,6 +31,12 @@ export const MODULE_CARD_DEFINITIONS: ModuleCardDefinition[] = [
     description:
       'Open the parent WhatsApp invitation workflow and continue to the detailed operations page for invites, messaging, and follow-up actions.',
   },
+  {
+    title: 'WhatsApp Integration Status',
+    description:
+      'View Maytapi and Periskope connection status for school WhatsApp groups.',
+    route: `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}${PAGES.WHATSAPP_INTEGRATION_STATUS}`,
+  },
 ];
 
 export const getModuleCardRoute = (title: string, route?: string): string => {

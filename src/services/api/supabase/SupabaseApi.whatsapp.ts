@@ -3,11 +3,45 @@ import { TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
+import type {
+  WhatsappIntegrationStatusParams,
+  WhatsappIntegrationStatusResponse,
+} from '../serviceapi/ServiceApi.whatsapp';
 
 export interface SupabaseApiWhatsApp {
   [key: string]: any;
 }
 export class SupabaseApiWhatsApp extends SupabaseApiSticker {
+  async getWhatsappIntegrationStatus(
+    params: WhatsappIntegrationStatusParams = {},
+  ): Promise<WhatsappIntegrationStatusResponse> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    const { data, error } = await this.supabase.functions.invoke(
+      'get-whatsapp-integration-status',
+      { body: params },
+    );
+
+    if (error) throw error;
+    if (!data?.success) {
+      throw new Error(
+        data?.error || 'Failed to fetch WhatsApp integration status.',
+      );
+    }
+
+    return {
+      data: data.data ?? [],
+      pagination: data.pagination ?? {
+        page: params.page ?? 1,
+        page_size: params.page_size ?? 25,
+        total: 0,
+        total_pages: 0,
+      },
+    };
+  }
+
   // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;

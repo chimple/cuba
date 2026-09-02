@@ -1,7 +1,17 @@
 import { ApiHandlerFieldActivities } from './ApiHandler.fieldActivities';
 import { Json } from '../../database';
+import type {
+  WhatsappIntegrationStatusParams,
+  WhatsappIntegrationStatusResponse,
+} from '../serviceapi/ServiceApi.whatsapp';
 
 export class ApiHandlerWhatsApp extends ApiHandlerFieldActivities {
+  async getWhatsappIntegrationStatus(
+    params: WhatsappIntegrationStatusParams = {},
+  ): Promise<WhatsappIntegrationStatusResponse> {
+    return await this.s.getWhatsappIntegrationStatus(params);
+  }
+
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this.s.getWhatsappGroupDetails(groupId, bot);
   }
