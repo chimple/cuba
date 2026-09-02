@@ -51,7 +51,7 @@ const Home = () => {
               showActivationLessonBanner ? (
                 <ActivationLessonBanner source={SOURCE.INITIAL_ASSESSMENT} />
               ) : (
-                <LearningPathway />
+                <LearningPathway key={refreshKey} />
               )
             ) : null}
 

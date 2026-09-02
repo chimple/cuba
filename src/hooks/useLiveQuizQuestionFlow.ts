@@ -512,7 +512,8 @@ export function useLiveQuizQuestionFlow({
   const handleOptionSelect = async (optionIndex: number) => {
     if (!canAnswer || !liveQuizConfig || currentQuestionIndex == null) return;
 
-    const option = liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
+    const option =
+      liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
     setCanAnswer(false);
     setSelectedAnswerIndex(optionIndex);
     handleOptionClick(currentQuestionIndex, optionIndex);

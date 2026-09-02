@@ -48,7 +48,6 @@ export type LessonNode = {
   chapter_id?: string | undefined;
   skill_id?: string | undefined;
   assignment_id?: string | undefined;
-  assessment_batch_id?: string | null;
   source?: SOURCE;
   is_assessment: boolean;
   isPlayed: boolean;
@@ -98,7 +97,6 @@ export const toAssignedAssessmentNode = (
   lesson_id: assignment.lesson_id,
   chapter_id: undefined,
   assignment_id: assignment.id,
-  assessment_batch_id: assignment.batch_id,
   source: SOURCE.INITIAL_ASSESSMENT,
   is_assessment: true,
   isPlayed: false,
@@ -122,24 +120,15 @@ export const mergeAssignedAssessmentIdsIntoPath = (
   assessmentPath: LessonNode[],
 ) => {
   const assignmentByLessonId = new Map(
-    assessmentPath.map((node) => [
-      node.lesson_id,
-      {
-        assignmentId: node.assignment_id,
-        batchId: node.assessment_batch_id,
-      },
-    ]),
+    assessmentPath.map((node) => [node.lesson_id, node.assignment_id]),
   );
   let updated = false;
 
   const mergedPath = path.map((node) => {
-    const assignment = assignmentByLessonId.get(node.lesson_id);
     if (
       node.is_assessment !== true ||
-      !assignment ||
-      (node.assignment_id && node.assignment_id !== assignment.assignmentId) ||
-      (node.assignment_id === assignment.assignmentId &&
-        node.assessment_batch_id === assignment.batchId)
+      node.assignment_id ||
+      !assignmentByLessonId.has(node.lesson_id)
     ) {
       return node;
     }
@@ -147,8 +136,7 @@ export const mergeAssignedAssessmentIdsIntoPath = (
     updated = true;
     return {
       ...node,
-      assignment_id: assignment.assignmentId ?? node.assignment_id,
-      assessment_batch_id: assignment.batchId,
+      assignment_id: assignmentByLessonId.get(node.lesson_id),
       source: SOURCE.INITIAL_ASSESSMENT,
     };
   });
@@ -360,7 +348,6 @@ export async function recommendNextLesson({
   /* -------------------------------
    * 1️⃣ TEACHER ASSIGNED ASSESSMENT
    * ------------------------------- */
-  // A completed or terminated assessment must not restart cold-start on refresh.
   const hasCompletedInitialAssessment = shouldUseAssessment(mode)
     ? hasPlayedNormalLessonInPath ||
       (!hasAssessmentProgressInPath &&

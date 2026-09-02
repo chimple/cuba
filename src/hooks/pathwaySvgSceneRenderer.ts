@@ -234,7 +234,6 @@ export function renderPathwaySvgScene(params: any) {
             pathItem?.skill_id,
             isAssessment,
             assessmentId,
-            pathItem?.assessment_batch_id,
             pathItem?.source,
           );
         });
@@ -265,7 +264,7 @@ export function renderPathwaySvgScene(params: any) {
       'http://www.w3.org/2000/svg',
       'g',
     ) as SVGGElement;
-    rewardGroup.style.setProperty('transform-box', 'fill-box');
+    rewardGroup.style.transformBox = 'fill-box';
     rewardGroup.style.transformOrigin = 'center';
     rewardWrapper.appendChild(rewardGroup);
 
