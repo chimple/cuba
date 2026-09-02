@@ -83,7 +83,11 @@ export class UtilNotifications extends UtilLessonProgress {
       );
     }
 
-    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    if (student) {
+      localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    } else {
+      localStorage.removeItem(CURRENT_STUDENT);
+    }
     window.dispatchEvent(
       new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
     );
