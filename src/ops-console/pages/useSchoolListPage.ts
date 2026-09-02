@@ -152,7 +152,7 @@ export function useSchoolListPage() {
     () => mapSchoolRowsToRenderRows(schools),
     [schools],
   );
-  const isLoading = isFilterLoading || isDataLoading;
+  const isLoading = isDataLoading;
   const { isExporting, isExportDisabled, handleExportSchools } =
     useSchoolListExport({
       api,
@@ -172,12 +172,6 @@ export function useSchoolListPage() {
   useEffect(() => {
     setTempFilters(filters);
   }, [filters]);
-
-  useEffect(() => {
-    if (hasSchoolListFilters(filters)) {
-      void loadSchoolFilterOptions();
-    }
-  }, [filters, loadSchoolFilterOptions]);
 
   const triggerActionsButtonCloseShine = useCallback(() => {
     setIsActionsButtonCloseShine(false);
@@ -385,6 +379,7 @@ export function useSchoolListPage() {
     isExportDisabled,
     isExporting,
     isExternalUser,
+    isFilterLoading,
     isFilterOpen,
     isLoading,
     orderBy,

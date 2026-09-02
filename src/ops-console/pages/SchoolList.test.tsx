@@ -143,6 +143,7 @@ jest.mock('../components/SearchAndFilter', () => {
 jest.mock('../components/FilterSlider', () => {
   return function MockFilterSlider(props: {
     isOpen?: boolean;
+    isLoading?: boolean;
     filterConfigs?: Array<{ key: string; label: string }>;
     filterOptions?: Record<
       string,
@@ -155,6 +156,9 @@ jest.mock('../components/FilterSlider', () => {
     onClose?: () => void;
   }) {
     if (!props.isOpen) return null;
+    if (props.isLoading) {
+      return <div data-testid="filter-slider-loading">loading filters</div>;
+    }
 
     return (
       <div data-testid="filter-slider">
@@ -336,24 +340,94 @@ describe('SchoolList actions menu', () => {
         mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
-
     expect(
       mockApiHandler.getSchoolFilterOptionsForSchoolListing,
     ).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Filter' }));
-
     await waitFor(() =>
       expect(
         mockApiHandler.getSchoolFilterOptionsForSchoolListing,
       ).toHaveBeenCalledTimes(1),
     );
-
     await user.click(screen.getByRole('button', { name: 'Filter' }));
 
     expect(
       mockApiHandler.getSchoolFilterOptionsForSchoolListing,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading inside the filter drawer until options are available', async () => {
+    let resolveFilterOptions: (value: Record<string, unknown[]>) => void = () =>
+      undefined;
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFilterOptions = resolve;
+      }),
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    expect(screen.getByTestId('filter-slider-loading')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFilterOptions({ program: [] });
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId('filter-slider-loading'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('hides the program filter when the API returns no programs', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValueOnce(
+      {
+        program: [],
+      },
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId('filter-slider-loading'),
+      ).not.toBeInTheDocument(),
+    );
+
+    expect(screen.getByTestId('filter-slider')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('filter-group-program'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows migrate, upload and add school actions for privileged users', async () => {
@@ -833,6 +907,7 @@ describe('SchoolList percentage filters', () => {
   });
 
   it('restores the selected program filter name after returning to the school listing', async () => {
+    const user = userEvent.setup();
     mockLocationSearch = '?filters=%7B%22program%22%3A%5B%22program-a%22%5D%7D';
 
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
@@ -853,6 +928,16 @@ describe('SchoolList percentage filters', () => {
 
     renderPage();
 
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
     await waitFor(() =>
       expect(
         mockApiHandler.getSchoolFilterOptionsForSchoolListing,

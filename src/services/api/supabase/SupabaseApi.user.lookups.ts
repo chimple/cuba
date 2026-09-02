@@ -7,6 +7,8 @@ import { SupabaseApiResultsProgress } from './SupabaseApi.results.progress';
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
+const MAX_SCHOOLS_PER_PAGE = 20;
+
 export interface SupabaseApiUserLookups {
   [key: string]: any;
 }
@@ -110,8 +112,11 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
     if (!this.supabase) return [];
 
     const search = options?.search?.trim();
-    const page = options?.page ?? 1;
-    const page_size = options?.page_size ?? 20;
+    const page = Math.max(1, Math.trunc(options?.page ?? 1));
+    const page_size = Math.min(
+      MAX_SCHOOLS_PER_PAGE,
+      Math.max(1, Math.trunc(options?.page_size ?? MAX_SCHOOLS_PER_PAGE)),
+    );
     const from = (page - 1) * page_size;
     const to = from + page_size - 1;
 
@@ -150,18 +155,34 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
         return (allSchools ?? []).map((school) => ({ school, role }));
       }
 
-      // --- FIELD COORDINATOR ---
-      if (role === RoleType.FIELD_COORDINATOR) {
-        const { data: schoolUsers, error: schoolUserErr } = await this.supabase
+      // --- SCHOOL-LINKED OPS USERS ---
+      if (
+        role === RoleType.FIELD_COORDINATOR ||
+        role === RoleType.EXTERNAL_USER
+      ) {
+        let query = this.supabase
           .from(TABLES.SchoolUser)
-          .select('role, school:school_id(*)')
+          .select('role, school:school_id!inner(*)')
           .eq('user_id', userId)
-          .eq('role', RoleType.FIELD_COORDINATOR)
-          .eq('is_deleted', false);
+          .eq('is_deleted', false)
+          .eq('school.is_deleted', false)
+          .order('name', {
+            ascending: true,
+            referencedTable: 'school',
+          })
+          .order('school_id', { ascending: true })
+          .range(from, to);
+
+        if (role === RoleType.FIELD_COORDINATOR) {
+          query = query.eq('role', RoleType.FIELD_COORDINATOR);
+        }
+        if (search) query = query.ilike('school.name', `%${search}%`);
+
+        const { data: schoolUsers, error: schoolUserErr } = await query;
 
         if (schoolUserErr) {
           logger.error(
-            'Error fetching field coordinator school_user rows:',
+            'Error fetching school-linked ops user school_user rows:',
             schoolUserErr,
           );
           return [];
@@ -173,14 +194,7 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
         >();
         for (const row of schoolUsers ?? []) {
           const school = firstOrSelf(row.school);
-          if (
-            !school?.id ||
-            school.is_deleted ||
-            (search &&
-              !String(school.name ?? '')
-                .toLowerCase()
-                .includes(search.toLowerCase()))
-          ) {
+          if (!school?.id) {
             continue;
           }
 
@@ -190,13 +204,7 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
           });
         }
 
-        return Array.from(unique.values())
-          .sort((a, b) =>
-            String(a.school.name ?? '').localeCompare(
-              String(b.school.name ?? ''),
-            ),
-          )
-          .slice(from, to + 1);
+        return Array.from(unique.values());
       }
 
       // --- PROGRAM MANAGER ---
@@ -323,33 +331,14 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
     const query = searchTerm.trim();
     if (!query) return [];
 
-    const pageSize = 100;
-    let page = 1;
-    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
-
-    while (true) {
-      const pageResults = await this.getSchoolsForUser(userId, {
-        page,
-        page_size: pageSize,
-        search: query,
-      });
-
-      allResults.push(...pageResults);
-
-      if (pageResults.length < pageSize) break;
-      page += 1;
-    }
-
-    const uniqueBySchool = new Map<
-      string,
-      { school: TableTypes<'school'>; role: RoleType }
-    >();
-    for (const item of allResults) {
-      uniqueBySchool.set(item.school.id, item);
-    }
+    const results = await this.getSchoolsForUser(userId, {
+      page: 1,
+      page_size: MAX_SCHOOLS_PER_PAGE,
+      search: query,
+    });
 
     return sortBySchoolSearchRelevance(
-      Array.from(uniqueBySchool.values()),
+      results,
       query,
       (item) => item.school.name ?? '',
     );
