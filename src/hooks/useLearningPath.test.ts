@@ -512,7 +512,8 @@ describe('useLearningPath features used by Home tab', () => {
     const coursePath = parsed.courses.courseList[0];
 
     expect(parsed.courses.currentCourseIndex).toBe(0);
-    expect(coursePath.completedPath).toBe(2);
+    // A newly assigned assessment replaces the prior pathway state.
+    expect(coursePath.completedPath).toBe(0);
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'teacher-asmt-11',
@@ -651,7 +652,7 @@ describe('useLearningPath features used by Home tab', () => {
     ]);
   });
 
-  test('does not reset an already assigned assessment path when a new batch arrives mid-assessment', async () => {
+  test('resets an assigned assessment path when a new batch arrives mid-assessment', async () => {
     const existingPath = {
       courses: {
         currentCourseIndex: 0,
@@ -706,7 +707,28 @@ describe('useLearningPath features used by Home tab', () => {
       });
     });
 
-    expect(mockApi.updateLearningPath).not.toHaveBeenCalled();
+    expect(mockApi.updateLearningPath).toHaveBeenCalledTimes(1);
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved);
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(coursePath.completedPath).toBe(0);
+    expect(coursePath.path).toEqual([
+      {
+        lesson_id: 'new-math-assessment-1',
+        assignment_id: 'new-assignment-1',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'new-math-assessment-2',
+        assignment_id: 'new-assignment-2',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
   });
 
   test('initializes a newly added same-framework assessment course with synced active index', async () => {
