@@ -4,7 +4,7 @@ import {
   TABLES,
   TableTypes,
 } from '../../../common/constants';
-import Course from '../../../models/Course';
+import Course from '../../../models/course';
 import Lesson from '../../../models/Lesson';
 import { readAssignmentCartFromStorage } from '../../../teachers-module/pages/AssignmentCartStorage';
 import logger from '../../../utility/logger';

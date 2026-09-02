@@ -1,6 +1,6 @@
 import { TableTypes } from '../../../common/constants';
 import { AvatarObj } from '../../../components/animation/Avatar';
-import Course from '../../../models/Course';
+import Course from '../../../models/course';
 import Lesson from '../../../models/Lesson';
 
 export interface ServiceApiContentCatalog {

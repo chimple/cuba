@@ -18,9 +18,8 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
     /* ==========================================
      * Get latest valid assessment batch
      * ========================================== */
-    // Condition 1: the newest pending batch overrides completed assessment flow.
     const latestBatchQuery = `
-      SELECT a.batch_id, a.created_at
+      SELECT a.batch_id
       FROM assignment a
       LEFT JOIN assignment_user au
         ON a.id = au.assignment_id
@@ -54,14 +53,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
     `;
 
     const batchRes = await this._db?.query(latestBatchQuery);
-    type LatestBatchRow = {
-      batch_id?: string | null;
-      created_at?: string | null;
-    };
-    const latestBatch = (batchRes?.values ?? [])[0] as
-      | LatestBatchRow
-      | undefined;
-    const latestBatchId = latestBatch?.batch_id;
+    const latestBatchId = batchRes?.values?.[0]?.batch_id;
 
     if (!latestBatchId) return [];
 
@@ -106,7 +98,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
     );
 
     const courseTerminationQuery = `
-      SELECT r.lesson_id, r.status, r.created_at
+      SELECT r.lesson_id, r.status
       FROM result r
       INNER JOIN assignment a
         ON a.id = r.assignment_id
@@ -116,8 +108,8 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
         AND a.class_id = ?
         AND a.course_id = ?
         AND a.type = 'assessment'
+        -- A termination in an older batch cannot close a newer reassignment.
         AND a.batch_id = ?
-      ORDER BY r.created_at DESC
       LIMIT 1;
     `;
 
@@ -129,15 +121,11 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
     ]);
     const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
       lesson_id?: string | null;
-      created_at?: string | null;
     }[];
-    const latestTerminationAt = courseTerminationRows[0]?.created_at;
-    const isLatestBatchReassignment =
-      latestBatchLessonIds.size > 0 &&
-      !!latestBatch?.created_at &&
-      !!latestTerminationAt &&
-      Date.parse(latestBatch.created_at) > Date.parse(latestTerminationAt);
-    // Only a termination from the selected batch can close this fresh assessment.
+    const isLatestBatchReassignment = courseTerminationRows.some(
+      (result) =>
+        !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
+    );
     if (courseTerminationRows.length && !isLatestBatchReassignment) {
       return [];
     }

@@ -5,7 +5,7 @@ import {
   TABLES,
   TableTypes,
 } from '../../../common/constants';
-import Course from '../../../models/Course';
+import Course from '../../../models/course';
 import logger from '../../../utility/logger';
 import { SqliteApiOpsValidation } from './SqliteApi.ops.validation';
 import { ServiceConfig } from '../../ServiceConfig';

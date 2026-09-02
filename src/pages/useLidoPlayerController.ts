@@ -95,7 +95,6 @@ export const useLidoPlayerController = () => {
     : ({} as Lesson);
   const isAssessmentLesson = state?.is_assessment;
   const assignment = state?.assessmentId;
-  const assessmentBatchId = state?.assessmentBatchId;
 
   const courseDetail: TableTypes<'course'> = state?.course
     ? JSON.parse(state.course)
@@ -135,7 +134,6 @@ export const useLidoPlayerController = () => {
     getNormalizedMoveCounts,
     getStoredLidoScores,
     getTotalStoredLessonTime,
-    hasAssessmentFailMarker,
     doesSkillBelongToCourseSubject,
     logUserActivationLessonEvent,
     parseNumericValue,
@@ -144,8 +142,6 @@ export const useLidoPlayerController = () => {
     shouldTerminateAssessmentPathway,
   } = createLidoPlayerControllerHelpers({
     api,
-    assignmentId: assignment,
-    assessmentBatchId,
     assignmentType,
     chapterDetail,
     courseDetail,
@@ -268,7 +264,6 @@ export const useLidoPlayerController = () => {
         getAssessmentFailStreak,
         getAssessmentProgressKey,
         getCoursePalContext,
-        hasAssessmentFailMarker,
         getNormalizedMoveCounts,
         getStoredLidoScores,
         isAssessmentLesson,

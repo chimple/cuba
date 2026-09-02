@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Course from '../models/Course';
+import Course from '../models/course';
 import { useHistory } from 'react-router-dom';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {

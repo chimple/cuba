@@ -1,5 +1,5 @@
 import { TABLES, TableTypes } from '../../../common/constants';
-import Course from '../../../models/Course';
+import Course from '../../../models/course';
 import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
 import { SupabaseApiUserLeaderboards } from './SupabaseApi.user.leaderboards';

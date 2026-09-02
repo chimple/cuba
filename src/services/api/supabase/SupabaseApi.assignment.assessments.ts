@@ -161,7 +161,6 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
     /* ==========================================
      * STEP 1️⃣  Get latest valid batch for course
      * ========================================== */
-    // Condition 1: the newest pending batch overrides completed assessment flow.
     const { data: latestBatchData, error: batchError } = await this.supabase
       .from(TABLES.Assignment)
       .select(
@@ -230,8 +229,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
           `
           lesson_id,
           status,
-          created_at,
-          assignment!inner(class_id, course_id, type)
+          assignment!inner(class_id, course_id, type, batch_id)
         `,
         )
         .eq('student_id', studentId)
@@ -240,8 +238,8 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
         .eq('assignment.class_id', classId)
         .eq('assignment.course_id', courseId)
         .eq('assignment.type', 'assessment')
+        // A termination in an older batch cannot close a newer reassignment.
         .eq('assignment.batch_id', latestBatchId)
-        .order('created_at', { ascending: false })
         .limit(1);
 
     if (courseTerminationError) {
@@ -252,14 +250,13 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
       return [];
     }
 
-    const latestTerminationAt = courseTerminationResults?.[0]?.created_at;
-    const isLatestBatchReassignment =
-      latestBatchLessonIds.size > 0 &&
-      !!latestAssignedBatch?.created_at &&
-      !!latestTerminationAt &&
-      Date.parse(latestAssignedBatch.created_at) >
-        Date.parse(latestTerminationAt);
-    // Only a termination from the selected batch can close this fresh assessment.
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
     if (courseTerminationResults?.length && !isLatestBatchReassignment) {
       return [];
     }

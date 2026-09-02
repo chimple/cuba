@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import Auth from '../../models/Auth';
+import Auth from '../../models/auth';
 import { TABLES } from './schema';
 
 export const SCREEN_WIDTH = window.innerWidth;

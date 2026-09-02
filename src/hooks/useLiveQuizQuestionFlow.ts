@@ -16,7 +16,7 @@ import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from '../models/LiveQuiz';
+} from '../models/liveQuiz';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 import logger from '../utility/logger';
@@ -512,7 +512,8 @@ export function useLiveQuizQuestionFlow({
   const handleOptionSelect = async (optionIndex: number) => {
     if (!canAnswer || !liveQuizConfig || currentQuestionIndex == null) return;
 
-    const option = liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
+    const option =
+      liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
     setCanAnswer(false);
     setSelectedAnswerIndex(optionIndex);
     handleOptionClick(currentQuestionIndex, optionIndex);

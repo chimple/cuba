@@ -5,7 +5,7 @@ import {
   TABLES,
   TableTypes,
 } from '../../../common/constants';
-import Course from '../../../models/Course';
+import Course from '../../../models/course';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiResultsStudentProfiles } from './SqliteApi.results.studentProfiles';
 
