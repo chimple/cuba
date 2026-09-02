@@ -79,7 +79,11 @@ export const hasSidebarAccess = (roles: RoleType[]) => ({
     ].includes(role),
   ),
   canAccessModulePage: roles.some((role) =>
-    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(role),
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role),
   ),
   canAccessMessagesPage: roles.some((role) =>
     [

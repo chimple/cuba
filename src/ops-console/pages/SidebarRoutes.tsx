@@ -4,6 +4,7 @@ import { PAGES } from '../../common/constants';
 import ProtectedRoute from '../../ProtectedRoute';
 import NewProgram from '../components/NewProgram';
 import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
+import WhatsappIntegrationStatusPage from '../pages/WhatsappIntegrationStatus/WhatsappIntegrationStatusPage';
 import ActivitiesPage from './ActivitiesPage';
 import AddSchoolPage from './AddSchoolPage';
 import CampaignListingPage from './CampaignListingPage';
@@ -102,6 +103,12 @@ export const SidebarRoutes = ({
       exact
     >
       <ParentWhatsappInvitationPage />
+    </ProtectedRoute>
+    <ProtectedRoute
+      path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.WHATSAPP_INTEGRATION_STATUS}`}
+      exact
+    >
+      <WhatsappIntegrationStatusPage />
     </ProtectedRoute>
     <ProtectedRoute
       path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
