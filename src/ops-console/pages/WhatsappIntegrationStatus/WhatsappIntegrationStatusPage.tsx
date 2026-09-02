@@ -8,6 +8,12 @@ import {
 import { BsFillBellFill } from 'react-icons/bs';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Redirect } from 'react-router-dom';
+import { PAGES } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
 import DataTableBody from '../../components/DataTableBody';
 import DataTablePagination from '../../components/DataTablePagination';
 import FilterSlider from '../../components/FilterSlider';
@@ -19,7 +25,6 @@ import type { SchoolFilterOption } from '../SchoolList.helpers';
 import './WhatsappIntegrationStatusPage.css';
 
 const PAGE_SIZE = 10;
-
 const filterConfigs = [
   {
     key: 'periskope_connected',
@@ -32,7 +37,6 @@ const filterConfigs = [
     placeholder: 'Maytapi status',
   },
 ];
-
 const filterOptions: Record<string, SchoolFilterOption[]> = {
   periskope_connected: [
     { id: 'connected', name: 'Connected' },
@@ -43,14 +47,12 @@ const filterOptions: Record<string, SchoolFilterOption[]> = {
     { id: 'not_connected', name: 'Not Connected' },
   ],
 };
-
 const getFilterValue = (filters: Record<string, string[]>, key: string) => {
   const value = filters[key]?.[0];
   if (value === 'connected') return true;
   if (value === 'not_connected') return false;
   return undefined;
 };
-
 const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
   <span
     className={`whatsapp-integration-status-badge${
@@ -60,11 +62,12 @@ const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
     {connected ? 'Yes' : 'No'}
   </span>
 );
-
 const WhatsappIntegrationStatusPage: React.FC = () => {
   const { t } = useTranslation();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   const [rows, setRows] = useState<WhatsappIntegrationStatusRow[]>([]);
-  const [schoolSortOrder, setSchoolSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(0);
   const [total, setTotal] = useState(0);
@@ -74,14 +77,21 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const hasModuleAccess = (roles ?? []).some(
+    (role) =>
+      role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR,
+  );
   useEffect(() => {
+    if (!hasModuleAccess) {
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     const loadStatus = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const response =
           await ServiceConfig.getI().apiHandler.getWhatsappIntegrationStatus({
@@ -91,7 +101,6 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
             periskope_connected: getFilterValue(filters, 'periskope_connected'),
             maytapi_connected: getFilterValue(filters, 'maytapi_connected'),
           });
-
         if (cancelled) return;
         setRows(response.data);
         setPageCount(response.pagination.total_pages);
@@ -115,7 +124,7 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [filters, page, search, t]);
+  }, [filters, hasModuleAccess, page, search, t]);
 
   const handleApplyFilters = () => {
     setFilters(tempFilters);
@@ -140,19 +149,9 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     setPage(1);
   };
 
-  const sortedRows = [...rows].sort((firstRow, secondRow) => {
-    const comparison = firstRow.school_name.localeCompare(
-      secondRow.school_name,
-    );
-    return schoolSortOrder === 'asc' ? comparison : -comparison;
-  });
-
-  const handleSort = (key: string) => {
-    if (key !== 'school_name') return;
-    setSchoolSortOrder((currentOrder) =>
-      currentOrder === 'asc' ? 'desc' : 'asc',
-    );
-  };
+  if (!hasModuleAccess) {
+    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}`} />;
+  }
 
   return (
     <div className="whatsapp-integration-status-page">
@@ -227,7 +226,12 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
           {!loading && rows.length > 0 && (
             <DataTableBody
               columns={[
-                { key: 'school_name', label: t('School Name'), width: '35%' },
+                {
+                  key: 'school_name',
+                  label: t('School Name'),
+                  sortable: false,
+                  width: '35%',
+                },
                 {
                   key: 'group_id',
                   label: t('Group ID'),
@@ -256,10 +260,10 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
                   ),
                 },
               ]}
-              rows={sortedRows}
-              orderBy="school_name"
-              order={schoolSortOrder}
-              onSort={handleSort}
+              rows={rows}
+              orderBy={null}
+              order="asc"
+              onSort={() => undefined}
               disableRowNavigation
               getRowId={(row) => `${row.school_id}-${row.group_id ?? 'none'}`}
               tableMinWidth={760}
@@ -292,5 +296,4 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     </div>
   );
 };
-
 export default WhatsappIntegrationStatusPage;
