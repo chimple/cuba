@@ -1,4 +1,10 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
+import {
+  getAnalytics,
+  setDefaultEventParameters,
+  setUserId as setFirebaseUserId,
+  type Analytics,
+} from 'firebase/analytics';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { Device } from '@capacitor/device';
 import {
@@ -8,6 +14,25 @@ import {
   persistentMultipleTabManager,
 } from 'firebase/firestore';
 import logger from '../utility/logger';
+import { CURRENT_STUDENT } from '../common/constants';
+
+let webAnalytics: Analytics | null = null;
+
+export const updateFirebaseAnalyticsContext = async ({
+  parentUserId,
+  studentId,
+}: {
+  parentUserId?: string | null;
+  studentId?: string | null;
+}): Promise<void> => {
+  if (!webAnalytics) return;
+  if (parentUserId) {
+    await setFirebaseUserId(webAnalytics, parentUserId);
+  }
+  setDefaultEventParameters({
+    student_id: studentId ?? null,
+  });
+};
 
 const REQUIRED_FIREBASE_ENV_KEYS = [
   'VITE_API_KEY',
@@ -75,6 +100,16 @@ export const initializeFireBase = async () => {
         ...firebaseConfig,
         measurementId,
       });
+      webAnalytics = getAnalytics(app);
+      // Restore the selected profile before any post-startup analytics events.
+      let studentId: string | undefined;
+      try {
+        const storedStudent = localStorage.getItem(CURRENT_STUDENT);
+        studentId = JSON.parse(storedStudent || 'null')?.id;
+      } catch {
+        studentId = undefined;
+      }
+      await updateFirebaseAnalyticsContext({ studentId });
     } catch (error) {
       logger.warn(
         'Firebase Analytics initialization failed. Verify VITE_APP_ID, VITE_PROJECT_ID, and VITE_MEASUREMENT_ID in .env.local.',
