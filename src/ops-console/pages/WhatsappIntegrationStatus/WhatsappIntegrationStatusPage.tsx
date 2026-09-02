@@ -16,43 +16,12 @@ import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { RootState } from '../../../redux/store';
 import DataTableBody from '../../components/DataTableBody';
 import DataTablePagination from '../../components/DataTablePagination';
-import FilterSlider from '../../components/FilterSlider';
 import SearchAndFilter from '../../components/SearchAndFilter';
-import SelectedFilters from '../../components/SelectedFilters';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import type { WhatsappIntegrationStatusRow } from '../../../services/api/serviceapi/ServiceApi.whatsapp';
-import type { SchoolFilterOption } from '../SchoolList.helpers';
 import './WhatsappIntegrationStatusPage.css';
 
 const PAGE_SIZE = 10;
-const filterConfigs = [
-  {
-    key: 'periskope_connected',
-    label: 'Periskope Status',
-    placeholder: 'Periskope status',
-  },
-  {
-    key: 'maytapi_connected',
-    label: 'Maytapi Status',
-    placeholder: 'Maytapi status',
-  },
-];
-const filterOptions: Record<string, SchoolFilterOption[]> = {
-  periskope_connected: [
-    { id: 'connected', name: 'Connected' },
-    { id: 'not_connected', name: 'Not Connected' },
-  ],
-  maytapi_connected: [
-    { id: 'connected', name: 'Connected' },
-    { id: 'not_connected', name: 'Not Connected' },
-  ],
-};
-const getFilterValue = (filters: Record<string, string[]>, key: string) => {
-  const value = filters[key]?.[0];
-  if (value === 'connected') return true;
-  if (value === 'not_connected') return false;
-  return undefined;
-};
 const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
   <span
     className={`whatsapp-integration-status-badge${
@@ -72,9 +41,6 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
   const [pageCount, setPageCount] = useState(0);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Record<string, string[]>>({});
-  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasModuleAccess = (roles ?? []).some(
@@ -98,8 +64,6 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
             page,
             page_size: PAGE_SIZE,
             search,
-            periskope_connected: getFilterValue(filters, 'periskope_connected'),
-            maytapi_connected: getFilterValue(filters, 'maytapi_connected'),
           });
         if (cancelled) return;
         setRows(response.data);
@@ -124,30 +88,7 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [filters, hasModuleAccess, page, search, t]);
-
-  const handleApplyFilters = () => {
-    setFilters(tempFilters);
-    setPage(1);
-    setIsFilterOpen(false);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({});
-    setTempFilters({});
-    setPage(1);
-    setIsFilterOpen(false);
-  };
-
-  const handleDeleteFilter = (key: string, value: string) => {
-    const nextFilters = {
-      ...filters,
-      [key]: (filters[key] ?? []).filter((item) => item !== value),
-    };
-    setFilters(nextFilters);
-    setTempFilters(nextFilters);
-    setPage(1);
-  };
+  }, [hasModuleAccess, page, search, t]);
 
   if (!hasModuleAccess) {
     return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}`} />;
@@ -173,40 +114,11 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              filters={filters}
-              onFilterClick={() => {
-                setTempFilters(filters);
-                setIsFilterOpen(true);
-              }}
-              onClearFilters={handleClearFilters}
+              isFilter={false}
               searchPlaceholder={String(t('Search'))}
             />
           </Box>
         </Box>
-
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteFilter}
-          getFilterLabel={(key, value) => {
-            const label =
-              key === 'periskope_connected' ? 'Periskope' : 'Maytapi';
-            return `${t(label)}: ${t(value === 'connected' ? 'Connected' : 'Not Connected')}`;
-          }}
-        />
-
-        <FilterSlider
-          isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          filters={tempFilters}
-          filterOptions={filterOptions}
-          onFilterChange={(key, value) =>
-            setTempFilters((previous) => ({ ...previous, [key]: value }))
-          }
-          onApply={handleApplyFilters}
-          onCancel={handleClearFilters}
-          filterConfigs={filterConfigs}
-          singleSelectKeys={['periskope_connected', 'maytapi_connected']}
-        />
 
         {error && <Alert severity="error">{error}</Alert>}
 

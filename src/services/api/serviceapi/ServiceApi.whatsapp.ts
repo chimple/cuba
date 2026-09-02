@@ -22,8 +22,6 @@ export type WhatsappIntegrationStatusParams = {
   page?: number;
   page_size?: number;
   search?: string;
-  periskope_connected?: boolean;
-  maytapi_connected?: boolean;
 };
 
 export interface ServiceApiWhatsApp {
