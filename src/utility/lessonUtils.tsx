@@ -1,6 +1,6 @@
 import { PAGES, CONTINUE, PortPlugin } from '../common/constants';
 import Lesson from '../models/Lesson';
-import Course from '../models/course';
+import Course from '../models/Course';
 import { Util } from '../utility/util';
 import { useHistory } from 'react-router-dom';
 import { registerPlugin } from '@capacitor/core';

@@ -9,7 +9,7 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
-import Course from '../../../models/course';
+import Course from '../../../models/Course';
 import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
 import { isRecoverableStorageError } from '../../../utility/recoverableStorageError';

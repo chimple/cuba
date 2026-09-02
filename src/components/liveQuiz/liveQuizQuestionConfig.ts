@@ -1,4 +1,4 @@
-import LiveQuiz, { LIVE_QUIZ_QUESTION_TIME } from '../../models/liveQuiz';
+import LiveQuiz, { LIVE_QUIZ_QUESTION_TIME } from '../../models/LiveQuiz';
 
 export const DEFAULT_LIVE_QUIZ_CONFIG = {
   data: [

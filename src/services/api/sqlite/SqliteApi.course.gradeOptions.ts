@@ -7,7 +7,7 @@ import {
 } from '../../../common/constants';
 import { StudentLessonResult } from '../../../common/courseConstants';
 import { AvatarObj } from '../../../components/animation/Avatar';
-import Course from '../../../models/course';
+import Course from '../../../models/Course';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiCourseCatalog } from './SqliteApi.course.catalog';
 

@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 import BaseObject from './baseObject';
 import { DocumentReference } from 'firebase/firestore';
-import Assignment from './assignment';
+import Assignment from './Assignment';
 
 export default class Lesson extends BaseObject {
   private _title: string;

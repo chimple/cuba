@@ -9,7 +9,7 @@ import {
   TABLES,
   TableTypes,
 } from '../../../common/constants';
-import Course from '../../../models/course';
+import Course from '../../../models/Course';
 import Lesson from '../../../models/Lesson';
 import { ServiceConfig } from '../../ServiceConfig';
 import { v4 as uuidv4 } from 'uuid';

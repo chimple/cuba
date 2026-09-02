@@ -16,7 +16,7 @@ import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from '../models/liveQuiz';
+} from '../models/LiveQuiz';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 import logger from '../utility/logger';
