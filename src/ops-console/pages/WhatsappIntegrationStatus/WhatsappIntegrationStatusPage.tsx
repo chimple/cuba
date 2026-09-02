@@ -45,7 +45,9 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const hasModuleAccess = (roles ?? []).some(
     (role) =>
-      role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR,
+      role === RoleType.SUPER_ADMIN ||
+      role === RoleType.OPERATIONAL_DIRECTOR ||
+      role === RoleType.PROGRAM_MANAGER,
   );
   useEffect(() => {
     if (!hasModuleAccess) {
