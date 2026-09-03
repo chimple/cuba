@@ -6,8 +6,8 @@
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output
 // npx ts-node scripts/build-open-apk.ts --language=en --subjects=math-subject-id --avatar=G:\mascot_with_accessories_sep_2025.riv --output=G:\open-apk-output
-
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips --splashtime=2000 --splashimage=G:\new-splash.png
 
 // Optional flags:
 
@@ -16,6 +16,8 @@
 // --dry-run          Resolve lessons and write manifest only
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
 // --fail-on-missing  Stop if any bundle cannot be found
+// --splashtime=MS    Set the native splash duration in milliseconds
+// --splashimage=PATH Replace the native splash PNG for this APK build
 
 import JSZip from 'jszip';
 import { spawnSync } from 'node:child_process';
@@ -36,6 +38,8 @@ type CliOptions = {
   debug: boolean;
   force: boolean;
   failOnMissing: boolean;
+  splashTime?: number;
+  splashImage?: string;
 };
 
 type CourseRow = {
@@ -177,6 +181,27 @@ const pathwayMascotPath = path.join(
   'pathwayAssets',
   'chimpleRive.riv',
 );
+const splashImagePath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'drawable',
+  'new_splash.png',
+);
+const splashDurationPath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'values',
+  'integers.xml',
+);
+const maxAndroidInteger = 2_147_483_647;
 
 const remoteBundleBaseUrls = [
   'https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/',
@@ -220,6 +245,32 @@ const parseArgs = (argv: string[]): CliOptions => {
     return typeof value === 'string' ? value.trim() : undefined;
   };
 
+  const getPositiveInteger = (key: string): number | undefined => {
+    const value = getString(key);
+    if (value === undefined) {
+      if (raw[key] !== undefined) {
+        throw new Error(`--${key} requires a value in milliseconds`);
+      }
+      return undefined;
+    }
+    if (!/^\d+$/.test(value)) {
+      throw new Error(`--${key} must be a whole number of milliseconds`);
+    }
+
+    const parsed = Number(value);
+    if (
+      !Number.isSafeInteger(parsed) ||
+      parsed < 1 ||
+      parsed > maxAndroidInteger
+    ) {
+      throw new Error(
+        `--${key} must be between 1 and ${maxAndroidInteger} milliseconds`,
+      );
+    }
+
+    return parsed;
+  };
+
   const courseIds = (
     getString('course_ids') ??
     getString('course-ids') ??
@@ -253,7 +304,13 @@ const parseArgs = (argv: string[]): CliOptions => {
     debug: raw.debug === true,
     force: raw.force === true,
     failOnMissing: raw['fail-on-missing'] === true,
+    splashTime: getPositiveInteger('splashtime'),
+    splashImage: getString('splashimage'),
   };
+
+  if (raw.splashimage !== undefined && !options.splashImage) {
+    throw new Error('--splashimage requires a PNG file path');
+  }
 
   const missing = [
     ['language', options.language],
@@ -293,6 +350,67 @@ const fileExists = async (filePath: string): Promise<boolean> => {
     return true;
   } catch {
     return false;
+  }
+};
+
+const prepareSplashConfiguration = async (
+  options: CliOptions,
+): Promise<void> => {
+  if (options.splashTime === undefined && !options.splashImage) return;
+
+  let splashImageSource: string | undefined;
+  if (options.splashImage) {
+    splashImageSource = path.resolve(options.splashImage);
+    if (path.extname(splashImageSource).toLowerCase() !== '.png') {
+      throw new Error('--splashimage must point to a PNG file');
+    }
+
+    const stats = await fs.stat(splashImageSource);
+    if (!stats.isFile()) {
+      throw new Error(
+        `--splashimage must point to a file: ${splashImageSource}`,
+      );
+    }
+  }
+
+  if (options.splashTime !== undefined) {
+    const resourceContent = await fs.readFile(splashDurationPath, 'utf8');
+    if (!resourceContent.includes('name="splash_screen_duration_ms"')) {
+      throw new Error(
+        `Splash duration resource is missing: ${splashDurationPath}`,
+      );
+    }
+  }
+
+  if (options.skipBuild || options.dryRun) {
+    console.log(
+      'Splash configuration was not changed because no APK is built.',
+    );
+    return;
+  }
+
+  if (
+    splashImageSource &&
+    path.resolve(splashImageSource).toLowerCase() !==
+      path.resolve(splashImagePath).toLowerCase()
+  ) {
+    await fs.copyFile(splashImageSource, splashImagePath);
+    console.log(`Replaced native splash image with ${splashImageSource}`);
+  }
+
+  if (options.splashTime !== undefined) {
+    const resourceContent = await fs.readFile(splashDurationPath, 'utf8');
+    const updatedResourceContent = resourceContent.replace(
+      /(<integer name="splash_screen_duration_ms">)\d+(<\/integer>)/,
+      `$1${options.splashTime}$2`,
+    );
+    if (updatedResourceContent === resourceContent) {
+      throw new Error(
+        `Unable to update splash duration: ${splashDurationPath}`,
+      );
+    }
+    await fs.writeFile(splashDurationPath, updatedResourceContent);
+    console.log(`Set native splash duration to ${options.splashTime}ms`);
   }
 };
 
@@ -1258,6 +1376,8 @@ const main = async (): Promise<void> => {
   console.log(
     `Prepared ${imageAssets.length} image assets: ${imageAssets.filter((asset) => asset.status === 'downloaded').length} downloaded, ${imageAssets.filter((asset) => asset.status === 'already-present').length} already present.`,
   );
+
+  await prepareSplashConfiguration(options);
 
   if (options.skipBuild || options.dryRun) {
     console.log('Skipping APK build.');
