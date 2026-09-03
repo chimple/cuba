@@ -41,6 +41,7 @@ const DisplayStudents: FC<{}> = () => {
     const currentClass = Util.getCurrentClass();
     return {
       action_type: 'play',
+      student_id: student.id,
       target_student_id: student.id,
       target_student_grade: student.grade_id ?? '',
       ...(studentMode === MODES.TEACHER_SCHOOL && currentClass?.id
@@ -188,12 +189,15 @@ const DisplayStudents: FC<{}> = () => {
                     id={`display-students-play-${student.id}`}
                     type="button"
                     className="display-students-play-button"
-                    onClick={() => {
-                      void Util.logEvent(
+                    onClick={async () => {
+                      // Set the selected profile before logging the selection event
+                      // so global analytics context contains this student ID.
+                      await Util.setCurrentStudent(student, undefined, true);
+                      await Util.logEvent(
                         EVENTS.PROFILE_CARD_ACTION_CLICKED,
                         getProfileCardPlayActionParams(student),
                       );
-                      onStudentClick(student);
+                      await onStudentClick(student);
                     }}
                   >
                     {t('Play')}

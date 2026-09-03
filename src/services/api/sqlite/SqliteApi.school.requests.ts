@@ -2,6 +2,7 @@ import {
   MUTATE_TYPES,
   PROFILETYPE,
   SCHOOL,
+  STATUS,
   TABLES,
   TableTypes,
 } from '../../../common/constants';
@@ -90,7 +91,13 @@ export class SqliteApiSchoolRequests extends SqliteApiSchoolCreation {
     const query = `
       SELECT *
       FROM ${TABLES.OpsRequests}
-      WHERE requested_by = ? AND is_deleted = 0`;
+      WHERE requested_by = ?
+        AND request_status IN ('${STATUS.REQUESTED}', '${STATUS.FLAGGED}')
+        AND is_deleted = 0
+      ORDER BY
+        CASE WHEN request_status = '${STATUS.REQUESTED}' THEN 0 ELSE 1 END,
+        updated_at DESC
+      LIMIT 1`;
     const res = await this._db?.query(query, [requested_by]);
     return res?.values?.length ? res.values[0] : null;
   }

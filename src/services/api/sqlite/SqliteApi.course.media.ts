@@ -208,7 +208,8 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
         lastTwo.length === 2 &&
         lastTwo.every((r) => r.status === 'system_exit');
 
-      if (isAssessmentTerminated || isAborted) {
+      // A termination advances the assessment sequence; two exits still abort it.
+      if (isAborted && !isAssessmentTerminated) {
         return {} as TableTypes<'subject_lesson'>; // Aborted group
       }
 

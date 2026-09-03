@@ -4,12 +4,13 @@ import FormCard, {
   FieldConfig,
   MessageConfig,
 } from '../components/SchoolDetailsComponents/FormCard';
-import { PrincipalInfo } from '../../common/constants';
+import { ContactTarget, PrincipalInfo } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { ensureQuestionsCached } from '../../services/offline/offlineCache';
 import DeleteIcon from '../assets/icons/deleteicon.svg';
 import logger from '../../utility/logger';
 import { emailRegex, normalizePhone10 } from '../pages/NewUserPageOps';
@@ -104,6 +105,32 @@ export const useSchoolPrincipals = ({
       fetchPrincipals(page);
     }
   }, [page, fetchPrincipals, data.principals, data.totalPrincipalCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const preloadPrincipalQuestions = async () => {
+      if (cancelled) return;
+
+      try {
+        await ensureQuestionsCached({
+          api,
+          statuses: [null],
+          target: ContactTarget.PRINCIPAL,
+        });
+      } catch (error) {
+        logger.error('Failed to preload principal interaction questions:', {
+          error,
+        });
+      }
+    };
+
+    void preloadPrincipalQuestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = useCallback(

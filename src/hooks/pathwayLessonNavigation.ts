@@ -4,7 +4,6 @@ import { CONTINUE, LIVE_QUIZ, PAGES, SOURCE } from '../common/constants';
 import { Util } from '../utility/util';
 
 export function navigateToPathwayLesson({
-  assessmentBatchId,
   assessmentId,
   course,
   history,
@@ -13,7 +12,6 @@ export function navigateToPathwayLesson({
   skillId,
   source = SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
 }: {
-  assessmentBatchId?: string | null;
   assessmentId?: string;
   course: any;
   history: any;
@@ -39,7 +37,6 @@ export function navigateToPathwayLesson({
         learning_path: true,
         skillId: skillId,
         is_assessment: isAssessment,
-        assessmentBatchId,
         source: source,
       },
     });
@@ -64,7 +61,6 @@ export function navigateToPathwayLesson({
       learning_path: true,
       skillId: skillId,
       is_assessment: isAssessment,
-      assessmentBatchId,
       assessmentId: assessmentId,
       source: source,
     },

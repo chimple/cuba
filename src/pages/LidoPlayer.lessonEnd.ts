@@ -29,7 +29,6 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     getAssessmentFailStreak,
     getAssessmentProgressKey,
     getCoursePalContext,
-    hasAssessmentFailMarker,
     getNormalizedMoveCounts,
     getStoredLidoScores,
     isAssessmentLesson,
@@ -87,16 +86,11 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
         studentId,
         courseKey,
       );
-      const hasFailureMarker = hasAssessmentFailMarker(studentId, courseKey);
       const isAssessmentSystemExit =
         !isFullPathwayTerminated &&
-        (getAssessmentFailStreak(studentId, courseKey) >= 4 ||
-          hasFailureMarker);
+        getAssessmentFailStreak(studentId, courseKey) >= 4;
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
-      // Preserve this assignment's marker after four failures for its later two-failure exit.
-      if (isFullPathwayTerminated || !hasFailureMarker) {
-        Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
-      }
+      Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
       if (isFullPathwayTerminated) {
         Util.logEvent(EVENTS.ASSESSMENT_TERMINATED, {
           user_id: parentUserId,
@@ -187,8 +181,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
           classId ?? '',
           currentStudent.id,
         );
-        // Normal lessons must not write results against a pending assessment.
-        if (result && result.type !== 'assessment') {
+        if (result) {
           assignmentId = result?.id;
         }
       }

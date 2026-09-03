@@ -1,0 +1,118 @@
+.whatsapp-integration-status-page {
+  height: 100vh;
+  color: #121619;
+  background: #ffffff;
+}
+
+.whatsapp-integration-status-main-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.whatsapp-integration-status-page-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.whatsapp-integration-status-page-title {
+  width: max-content;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.whatsapp-integration-status-bell-icon {
+  color: #000000 !important;
+}
+
+.whatsapp-integration-status-header-controls {
+  display: flex;
+  width: 100%;
+  padding: 0 20px 12px;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.whatsapp-integration-status-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 40px;
+}
+
+.whatsapp-integration-status-controls .search-filter-container-SearchAndFilter {
+  width: auto;
+  justify-content: flex-end;
+}
+
+.whatsapp-integration-status-table-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 20px;
+  background: #ffffff;
+}
+
+.whatsapp-integration-status-badge {
+  display: inline-flex;
+  min-width: 42px;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.whatsapp-integration-status-badge.is-connected {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.whatsapp-integration-status-badge.is-not-connected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.whatsapp-integration-status-page > .MuiAlert-root {
+  margin: 0 20px 12px;
+}
+
+.whatsapp-integration-status-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 100%;
+  background: #ffffff;
+}
+
+.whatsapp-integration-status-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  color: #182a4f;
+}
+
+@media (max-width: 600px) {
+  .whatsapp-integration-status-page {
+    padding: 0;
+  }
+
+  .whatsapp-integration-status-page-title {
+    font-size: 24px !important;
+  }
+
+  .whatsapp-integration-status-controls
+    .search-filter-container-SearchAndFilter {
+    width: 100%;
+  }
+
+  .whatsapp-integration-status-footer {
+    overflow-x: auto;
+  }
+}

@@ -425,55 +425,6 @@ export const useLearningPath = (opts?: {
       const assessmentPath = toAssignedAssessmentPath(assignments);
 
       const coursePath = oldCourseList[courseIndex];
-      const currentAssessmentLessonIds = coursePath.path
-        .filter((node: LessonNode) => node.is_assessment === true)
-        .map((node: LessonNode) => node.lesson_id);
-      const assignedAssessmentLessonIds = assessmentPath.map(
-        (node) => node.lesson_id,
-      );
-      const hasSameAssessmentLessonSequence =
-        currentAssessmentLessonIds.length ===
-          assignedAssessmentLessonIds.length &&
-        assignedAssessmentLessonIds.every(
-          (lessonId, index) => currentAssessmentLessonIds[index] === lessonId,
-        );
-      const hasStoredAssessmentId = coursePath.path.some(
-        (node: LessonNode) =>
-          node.is_assessment === true && !!node.assignment_id,
-      );
-      // Condition 2: a different in-progress assignment falls through to reset.
-      // Condition 3: a different cold-start assessment falls through to reset.
-      if (
-        hasInProgressAssessmentPath(coursePath.path) &&
-        hasStoredAssessmentId &&
-        hasSameAssessmentLessonSequence &&
-        coursePath.path.some(
-          (node: LessonNode) => node.assignment_id === assignments[0].id,
-        )
-      ) {
-        const mergedPath = mergeAssignedAssessmentIdsIntoPath(
-          coursePath.path,
-          assessmentPath,
-        );
-
-        if (mergedPath !== coursePath.path) {
-          coursePath.path = mergedPath;
-          coursePath.display_name = course.pathway_display_name;
-          coursePath.is_pal_consolidated = course.is_pal_consolidated;
-          coursePath.framework_id = course.framework_id ?? null;
-          coursePath.course_code =
-            course.code ?? coursePath.course_code ?? null;
-          coursePath.type = course.framework_id
-            ? RECOMMENDATION_TYPE.FRAMEWORK
-            : RECOMMENDATION_TYPE.CHAPTER;
-          coursePath.subject_id = course.subject_id ?? null;
-
-          return { updated: true, currentCourseIndex: courseIndex };
-        }
-
-        continue;
-      }
-
       const activeAssessment = coursePath.path?.find(
         (node: LessonNode) =>
           node.isPlayed === false && node.is_assessment === true,
@@ -494,14 +445,33 @@ export const useLearningPath = (opts?: {
             currentPendingAssessmentIds[index] === assignmentId,
         );
 
-      if (
+      const isCurrentPendingAssignment =
         activeAssessment?.assignment_id === assignments[0].id &&
-        hasSamePendingAssessmentSequence
+        hasSamePendingAssessmentSequence;
+
+      // Keep the existing in-progress path only when it already belongs to
+      // the selected assignment. A newer assignment must use the reset below.
+      if (
+        isCurrentPendingAssignment &&
+        hasInProgressAssessmentPath(coursePath.path)
       ) {
-        // Keep the stored path when its pending sequence already matches.
+        const mergedPath = mergeAssignedAssessmentIdsIntoPath(
+          coursePath.path,
+          assessmentPath,
+        );
+
+        if (mergedPath !== coursePath.path) {
+          coursePath.path = mergedPath;
+          return { updated: true, currentCourseIndex: courseIndex };
+        }
+      }
+
+      if (isCurrentPendingAssignment) {
         continue;
       }
 
+      // The newest pending batch is authoritative. Keeping an older path here
+      // would launch its assignment IDs after a teacher has reassigned it.
       coursePath.path_id = uuidv4();
       coursePath.path = assessmentPath;
       coursePath.display_name = course.pathway_display_name;
@@ -570,7 +540,6 @@ export const useLearningPath = (opts?: {
           chapter_id: l.chapter_id,
           skill_id: l.skill_id,
           assignment_id: l.assignment_id,
-          assessment_batch_id: l.assessment_batch_id,
           source: l.source,
           isPlayed: absIndex < activeAbsIndex,
           is_assessment: !!l.is_assessment,

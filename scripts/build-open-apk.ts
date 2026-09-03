@@ -5,7 +5,7 @@
 // Run locally:
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output
-
+// npx ts-node scripts/build-open-apk.ts --language=en --subjects=math-subject-id --avatar=G:\mascot_with_accessories_sep_2025.riv --output=G:\open-apk-output
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips --splash="C:\Users\LENOVO\Downloads\splash_screen.png"
@@ -13,6 +13,7 @@
 // Optional flags:
 
 // --skip-build       Prepare bundles only, do not build APK
+// --debug            Build and copy app-debug.apk instead of release APK
 // --dry-run          Resolve lessons and write manifest only
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
 // --fail-on-missing  Stop if any bundle cannot be found
@@ -29,13 +30,17 @@ type CliOptions = {
   language: string;
   avatar: string;
   courseIds: string[];
+  subjectIds: string[];
   output: string;
   splash?: string;
   zipSource: string;
   skipBuild: boolean;
   dryRun: boolean;
+  debug: boolean;
   force: boolean;
   failOnMissing: boolean;
+  splashTime?: number;
+  splashImage?: string;
 };
 
 type CourseRow = {
@@ -43,6 +48,7 @@ type CourseRow = {
   code: string | null;
   name: string | null;
   subject_id?: string | null;
+  framework_id?: string | null;
 };
 
 type ChapterRow = {
@@ -57,6 +63,23 @@ type ChapterLessonRow = {
   language_id: string | null;
   lesson_id: string | null;
   locale_id: string | null;
+  sort_index: number | null;
+};
+
+type SubjectLessonRow = {
+  id: string;
+  lesson_id: string | null;
+  subject_id: string | null;
+  framework_id: string | null;
+  language_id: string | null;
+  locale_id: string | null;
+  sort_index: number | null;
+};
+
+type SkillLessonRow = {
+  skill_id: string | null;
+  lesson_id: string | null;
+  language_id: string | null;
   sort_index: number | null;
 };
 
@@ -84,6 +107,8 @@ type ImportJson = {
 type LessonRow = {
   id: string;
   name: string | null;
+  subject_id?: string | null;
+  language_id?: string | null;
   cocos_lesson_id: string | null;
   lido_lesson_id: string | null;
   version: number | null;
@@ -183,6 +208,27 @@ const nativeRuntimePath = path.join(
   'startup',
   'nativeRuntime.ts',
 );
+const splashImagePath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'drawable',
+  'new_splash.png',
+);
+const splashDurationPath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'values',
+  'integers.xml',
+);
+const maxAndroidInteger = 2_147_483_647;
 
 const remoteBundleBaseUrls = [
   'https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/',
@@ -226,6 +272,32 @@ const parseArgs = (argv: string[]): CliOptions => {
     return typeof value === 'string' ? value.trim() : undefined;
   };
 
+  const getPositiveInteger = (key: string): number | undefined => {
+    const value = getString(key);
+    if (value === undefined) {
+      if (raw[key] !== undefined) {
+        throw new Error(`--${key} requires a value in milliseconds`);
+      }
+      return undefined;
+    }
+    if (!/^\d+$/.test(value)) {
+      throw new Error(`--${key} must be a whole number of milliseconds`);
+    }
+
+    const parsed = Number(value);
+    if (
+      !Number.isSafeInteger(parsed) ||
+      parsed < 1 ||
+      parsed > maxAndroidInteger
+    ) {
+      throw new Error(
+        `--${key} must be between 1 and ${maxAndroidInteger} milliseconds`,
+      );
+    }
+
+    return parsed;
+  };
+
   const courseIds = (
     getString('course_ids') ??
     getString('course-ids') ??
@@ -237,23 +309,44 @@ const parseArgs = (argv: string[]): CliOptions => {
     .map((courseId) => courseId.trim())
     .filter(Boolean);
 
+  const subjectIds = (
+    getString('subjects') ??
+    getString('subject_ids') ??
+    getString('subject-ids') ??
+    ''
+  )
+    .split(',')
+    .map((subjectId) => subjectId.trim())
+    .filter(Boolean);
+
   const options: CliOptions = {
     language: getString('language') ?? '',
     avatar: getString('avatar') ?? '',
     courseIds,
+    subjectIds,
     output: getString('output') ?? '',
     splash: getString('splash'),
     zipSource: getString('zip-source') ?? 'D:\\chimple-zips',
     skipBuild: raw['skip-build'] === true,
     dryRun: raw['dry-run'] === true,
+    debug: raw.debug === true,
     force: raw.force === true,
     failOnMissing: raw['fail-on-missing'] === true,
+    splashTime: getPositiveInteger('splashtime'),
+    splashImage: getString('splashimage'),
   };
+
+  if (raw.splashimage !== undefined && !options.splashImage) {
+    throw new Error('--splashimage requires a PNG file path');
+  }
 
   const missing = [
     ['language', options.language],
     ['avatar', options.avatar],
-    ['course_ids', options.courseIds.length ? 'ok' : ''],
+    [
+      'course_ids or subjects',
+      options.courseIds.length || options.subjectIds.length ? 'ok' : '',
+    ],
     ['output', options.output],
   ]
     .filter(([, value]) => !value)
@@ -285,6 +378,67 @@ const fileExists = async (filePath: string): Promise<boolean> => {
     return true;
   } catch {
     return false;
+  }
+};
+
+const prepareSplashConfiguration = async (
+  options: CliOptions,
+): Promise<void> => {
+  if (options.splashTime === undefined && !options.splashImage) return;
+
+  let splashImageSource: string | undefined;
+  if (options.splashImage) {
+    splashImageSource = path.resolve(options.splashImage);
+    if (path.extname(splashImageSource).toLowerCase() !== '.png') {
+      throw new Error('--splashimage must point to a PNG file');
+    }
+
+    const stats = await fs.stat(splashImageSource);
+    if (!stats.isFile()) {
+      throw new Error(
+        `--splashimage must point to a file: ${splashImageSource}`,
+      );
+    }
+  }
+
+  if (options.splashTime !== undefined) {
+    const resourceContent = await fs.readFile(splashDurationPath, 'utf8');
+    if (!resourceContent.includes('name="splash_screen_duration_ms"')) {
+      throw new Error(
+        `Splash duration resource is missing: ${splashDurationPath}`,
+      );
+    }
+  }
+
+  if (options.skipBuild || options.dryRun) {
+    console.log(
+      'Splash configuration was not changed because no APK is built.',
+    );
+    return;
+  }
+
+  if (
+    splashImageSource &&
+    path.resolve(splashImageSource).toLowerCase() !==
+      path.resolve(splashImagePath).toLowerCase()
+  ) {
+    await fs.copyFile(splashImageSource, splashImagePath);
+    console.log(`Replaced native splash image with ${splashImageSource}`);
+  }
+
+  if (options.splashTime !== undefined) {
+    const resourceContent = await fs.readFile(splashDurationPath, 'utf8');
+    const updatedResourceContent = resourceContent.replace(
+      /(<integer name="splash_screen_duration_ms">)\d+(<\/integer>)/,
+      `$1${options.splashTime}$2`,
+    );
+    if (updatedResourceContent === resourceContent) {
+      throw new Error(
+        `Unable to update splash duration: ${splashDurationPath}`,
+      );
+    }
+    await fs.writeFile(splashDurationPath, updatedResourceContent);
+    console.log(`Set native splash duration to ${options.splashTime}ms`);
   }
 };
 
@@ -471,6 +625,28 @@ const readRows = <T extends Record<string, unknown>>(
   });
 };
 
+const offlineGraphTables = [
+  'framework',
+  'domain',
+  'competency',
+  'outcome',
+  'skill',
+  'skill_lesson',
+  'skill_relation',
+  'subject_lesson',
+] as const;
+
+const validateOfflineGraphTables = (importJson: ImportJson): void => {
+  const missingTables = offlineGraphTables.filter(
+    (tableName) => !importJson.tables.some((table) => table.name === tableName),
+  );
+  if (missingTables.length > 0) {
+    throw new Error(
+      `import.json is missing offline PAL/assessment table(s): ${missingTables.join(', ')}`,
+    );
+  }
+};
+
 const resolveLanguage = (
   importJson: ImportJson,
   languageCode: string,
@@ -494,15 +670,32 @@ const resolveLanguage = (
   return language;
 };
 
+const resolveEnglishLanguageId = (importJson: ImportJson): string | null =>
+  readRows<LanguageRow & { is_deleted?: unknown }>(importJson, 'language').find(
+    (row) => isActiveRow(row) && row.code?.trim().toLowerCase() === 'en',
+  )?.id ?? null;
+
+const isMathsSubject = (subject: { name?: string | null }): boolean =>
+  /\bmath(?:s|ematics)?\b/i.test(subject.name ?? '');
+
 const resolveLessons = (
   importJson: ImportJson,
   courseIds: string[],
+  requestedSubjectIds: string[],
   languageId: string | null,
 ) => {
+  // Resolve the requested courses and combine lessons from the curriculum,
+  // assessment, and PAL flows into one deduplicated offline lesson set.
   const courses = readRows<CourseRow & { is_deleted?: unknown }>(
     importJson,
     'course',
-  ).filter((course) => courseIds.includes(course.id) && isActiveRow(course));
+  ).filter(
+    (course) =>
+      isActiveRow(course) &&
+      (courseIds.includes(course.id) ||
+        (!!course.subject_id &&
+          requestedSubjectIds.includes(course.subject_id))),
+  );
   const foundCourseIds = new Set(courses.map((course) => course.id));
   const missingCourseIds = courseIds.filter(
     (courseId) => !foundCourseIds.has(courseId),
@@ -545,12 +738,242 @@ const resolveLessons = (
       .map((chapterLesson) => chapterLesson.lesson_id)
       .filter((lessonId): lessonId is string => !!lessonId),
   );
+  // Rule A: always resolve Course -> Chapter -> chapter_lesson for the base
+  // curriculum, applying the requested chapter language.
   const lessons = readRows<LessonRow & { is_deleted?: unknown }>(
     importJson,
     'lesson',
   ).filter((lesson) => lessonIds.includes(lesson.id) && isActiveRow(lesson));
 
-  return { courses, chapters, chapterLessons, lessons };
+  const subjects = getSubjectRowsForCourses(importJson, courses);
+  const subjectIds = new Set(subjects.map((subject) => subject.id));
+  const englishLanguageId = resolveEnglishLanguageId(importJson);
+  const candidateSubjectLessonRows = readRows<
+    SubjectLessonRow & { is_deleted?: unknown }
+  >(importJson, 'subject_lesson').filter((subjectLesson) => {
+    if (!isActiveRow(subjectLesson) || !subjectLesson.subject_id) return false;
+    if (!subjectIds.has(subjectLesson.subject_id)) return false;
+
+    const matchingCourses = courses.filter(
+      (candidate) =>
+        candidate.subject_id === subjectLesson.subject_id &&
+        (!candidate.framework_id ||
+          !subjectLesson.framework_id ||
+          subjectLesson.framework_id === candidate.framework_id),
+    );
+    if (matchingCourses.length === 0) return false;
+    const subject = subjects.find(
+      (candidate) => candidate.id === subjectLesson.subject_id,
+    );
+
+    return !!subject;
+  });
+  // Rule B: subject assessment lessons are always considered. Math language
+  // filtering is applied after linked lesson rows have been resolved.
+
+  const frameworkCourses = courses.filter(
+    (course) => !!course.subject_id && !!course.framework_id,
+  );
+  // Rule C: only courses with framework_id enable PAL traversal through
+  // Framework -> Domain -> Competency -> Outcome -> Skill -> skill_lesson.
+  const frameworkCourseKeys = new Set(
+    frameworkCourses.map(
+      (course) => `${course.subject_id}:${course.framework_id}`,
+    ),
+  );
+  const domains = readRows<{
+    id: string;
+    framework_id: string | null;
+    subject_id: string | null;
+    is_deleted?: unknown;
+  }>(importJson, 'domain').filter(
+    (domain) =>
+      isActiveRow(domain) &&
+      !!domain.subject_id &&
+      !!domain.framework_id &&
+      frameworkCourseKeys.has(`${domain.subject_id}:${domain.framework_id}`),
+  );
+  const domainIds = new Set(domains.map((domain) => domain.id));
+  const subjectByDomainId = new Map(
+    domains.map((domain) => [domain.id, domain.subject_id]),
+  );
+  const competencies = readRows<{
+    id: string;
+    domain_id: string | null;
+    is_deleted?: unknown;
+  }>(importJson, 'competency').filter(
+    (row) =>
+      isActiveRow(row) && !!row.domain_id && domainIds.has(row.domain_id),
+  );
+  const competencyIds = new Set(competencies.map((row) => row.id));
+  const subjectByCompetencyId = new Map(
+    competencies.map((row) => [
+      row.id,
+      subjectByDomainId.get(row.domain_id ?? ''),
+    ]),
+  );
+  const outcomes = readRows<{
+    id: string;
+    competency_id: string | null;
+    is_deleted?: unknown;
+  }>(importJson, 'outcome').filter(
+    (row) =>
+      isActiveRow(row) &&
+      !!row.competency_id &&
+      competencyIds.has(row.competency_id),
+  );
+  const outcomeIds = new Set(outcomes.map((row) => row.id));
+  const subjectByOutcomeId = new Map(
+    outcomes.map((row) => [
+      row.id,
+      subjectByCompetencyId.get(row.competency_id ?? ''),
+    ]),
+  );
+  const skills = readRows<{
+    id: string;
+    outcome_id: string | null;
+    is_deleted?: unknown;
+  }>(importJson, 'skill').filter(
+    (row) =>
+      isActiveRow(row) && !!row.outcome_id && outcomeIds.has(row.outcome_id),
+  );
+  const skillIds = new Set(skills.map((row) => row.id));
+  const subjectBySkillId = new Map(
+    skills.map((row) => [row.id, subjectByOutcomeId.get(row.outcome_id ?? '')]),
+  );
+  const skillLessons = readRows<
+    SkillLessonRow & { id: string; is_deleted?: unknown }
+  >(importJson, 'skill_lesson').filter(
+    (row) => isActiveRow(row) && !!row.skill_id && skillIds.has(row.skill_id),
+  );
+  const skillRelations = readRows<{
+    id: string;
+    source_skill_id: string | null;
+    target_skill_id: string | null;
+    is_deleted?: unknown;
+  }>(importJson, 'skill_relation').filter((row) => isActiveRow(row));
+  const relatedSkillIds = new Set(skillIds);
+  let relationChanged = true;
+  while (relationChanged) {
+    relationChanged = false;
+    for (const relation of skillRelations) {
+      if (
+        (relation.source_skill_id &&
+          relatedSkillIds.has(relation.source_skill_id)) ||
+        (relation.target_skill_id &&
+          relatedSkillIds.has(relation.target_skill_id))
+      ) {
+        for (const skillId of [
+          relation.source_skill_id,
+          relation.target_skill_id,
+        ]) {
+          if (skillId && !relatedSkillIds.has(skillId)) {
+            relatedSkillIds.add(skillId);
+            relationChanged = true;
+          }
+        }
+      }
+    }
+  }
+  const resolvedSkillLessons = skillLessons.filter(
+    (row) => !!row.skill_id && relatedSkillIds.has(row.skill_id),
+  );
+  // PAL lessons are added to the same master set as curriculum and assessment
+  // lessons; Set-based resolution below removes duplicates.
+  const frameworkLessonIds = resolvedSkillLessons
+    .map((row) => row.lesson_id)
+    .filter((lessonId): lessonId is string => !!lessonId);
+  const allLessonIds = unique([
+    ...lessonIds,
+    ...candidateSubjectLessonRows
+      .map((subjectLesson) => subjectLesson.lesson_id)
+      .filter((lessonId): lessonId is string => !!lessonId),
+    ...frameworkLessonIds,
+  ]);
+  const allLessons = readRows<LessonRow & { is_deleted?: unknown }>(
+    importJson,
+    'lesson',
+  ).filter((lesson) => allLessonIds.includes(lesson.id) && isActiveRow(lesson));
+
+  const lessonById = new Map(allLessons.map((lesson) => [lesson.id, lesson]));
+  const desiredLanguageId = languageId ?? englishLanguageId;
+  const subjectLessonRows = candidateSubjectLessonRows.filter((row) => {
+    const subject = subjects.find(
+      (candidate) => candidate.id === row.subject_id,
+    );
+    if (!isMathsSubject(subject ?? {})) return true;
+    const lesson = row.lesson_id ? lessonById.get(row.lesson_id) : undefined;
+    if (!lesson) return false;
+    // For Math, both the subject_lesson mapping and linked lesson must match
+    // the requested language. Null is the database's default English Math
+    // language.
+    const matchesMathLanguage = (rowLanguageId: string | null | undefined) =>
+      desiredLanguageId === englishLanguageId
+        ? rowLanguageId == null || rowLanguageId === desiredLanguageId
+        : rowLanguageId === desiredLanguageId;
+    return (
+      matchesMathLanguage(row.language_id) &&
+      matchesMathLanguage(lesson.language_id)
+    );
+  });
+  const filteredFrameworkLessonIds = resolvedSkillLessons
+    .filter((row) => {
+      const lesson = row.lesson_id ? lessonById.get(row.lesson_id) : undefined;
+      if (!lesson) return false;
+      const subjectId = row.skill_id
+        ? subjectBySkillId.get(row.skill_id)
+        : lesson?.subject_id;
+      const subject = subjectId
+        ? subjects.find((candidate) => candidate.id === subjectId)
+        : undefined;
+      if (!isMathsSubject(subject ?? {})) return true;
+      return desiredLanguageId === englishLanguageId
+        ? lesson.language_id == null || lesson.language_id === desiredLanguageId
+        : lesson.language_id === desiredLanguageId;
+    })
+    .map((row) => row.lesson_id)
+    .filter((lessonId): lessonId is string => !!lessonId);
+  const resolvedLessonIds = new Set([
+    ...lessonIds,
+    ...subjectLessonRows
+      .map((row) => row.lesson_id)
+      .filter((lessonId): lessonId is string => !!lessonId),
+    ...filteredFrameworkLessonIds,
+  ]);
+
+  return {
+    courses,
+    chapters,
+    chapterLessons,
+    lessons: allLessons.filter((lesson) => resolvedLessonIds.has(lesson.id)),
+    subjectLessonRows,
+    skillLessons,
+    palRowIds: {
+      framework: new Set(
+        frameworkCourses
+          .map((course) => course.framework_id)
+          .filter((frameworkId): frameworkId is string => !!frameworkId),
+      ),
+      domain: new Set(domains.map((row) => row.id)),
+      competency: new Set(competencies.map((row) => row.id)),
+      outcome: new Set(outcomes.map((row) => row.id)),
+      skill: new Set(skills.map((row) => row.id)),
+      skill_lesson: new Set(
+        resolvedSkillLessons.map((row) => row.id).filter(Boolean),
+      ),
+      skill_relation: new Set(
+        skillRelations
+          .filter(
+            (row) =>
+              (row.source_skill_id &&
+                relatedSkillIds.has(row.source_skill_id)) ||
+              (row.target_skill_id && relatedSkillIds.has(row.target_skill_id)),
+          )
+          .map((row) => row.id)
+          .filter(Boolean),
+      ),
+    },
+  };
 };
 
 const getSubjectRowsForCourses = (
@@ -565,7 +988,7 @@ const getSubjectRowsForCourses = (
 
   if (subjectIds.size === 0) return [];
 
-  return readRows<{ id: string; is_deleted?: unknown }>(
+  return readRows<{ id: string; name: string | null; is_deleted?: unknown }>(
     importJson,
     'subject',
   ).filter((subject) => subjectIds.has(subject.id) && isActiveRow(subject));
@@ -647,6 +1070,7 @@ const rewriteSelectedImageUrls = async (
 };
 
 const getBundleId = (lesson: LessonRow): string | null =>
+  // Prefer the LIDO bundle ID and fall back to the Cocos bundle ID.
   lesson.lido_lesson_id ?? lesson.cocos_lesson_id ?? null;
 
 const downloadZip = async (
@@ -830,23 +1254,23 @@ const run = (command: string, args: string[], cwd: string): void => {
   }
 };
 
-const findReleaseApk = async (): Promise<string> => {
-  const releaseDir = path.join(
+const findApk = async (variant: 'debug' | 'release'): Promise<string> => {
+  const apkDir = path.join(
     repoRoot,
     'android',
     'app',
     'build',
     'outputs',
     'apk',
-    'release',
+    variant,
   );
-  const entries = await fs.readdir(releaseDir, { withFileTypes: true });
+  const entries = await fs.readdir(apkDir, { withFileTypes: true });
   const apks = entries
     .filter((entry) => entry.isFile() && entry.name.endsWith('.apk'))
-    .map((entry) => path.join(releaseDir, entry.name));
+    .map((entry) => path.join(apkDir, entry.name));
 
   if (apks.length < 1) {
-    throw new Error(`No release APK found in ${releaseDir}`);
+    throw new Error(`No ${variant} APK found in ${apkDir}`);
   }
 
   const apkStats = await Promise.all(
@@ -860,8 +1284,11 @@ const findReleaseApk = async (): Promise<string> => {
 };
 
 const buildAndCopyApk = async (
+  
   outputDir: string,
   splash?: string,
+,
+  debug: boolean,
 ): Promise<void> => {
   let restoreOpenApkSplash: (() => Promise<void>) | null = null;
   let restoreSplash: (() => Promise<void>) | null = null;
@@ -882,7 +1309,9 @@ const buildAndCopyApk = async (
 
     run(
       process.platform === 'win32' ? 'gradlew.bat' : './gradlew',
-      splash ? ['assembleRelease', '--rerun-tasks'] : ['assembleRelease'],
+    // Build a debug APK when --debug is supplied; otherwise preserve the
+    // standard release APK flow.
+      splash ? ['assembleRelease', '--rerun-tasks'] : [debug ? 'assembleDebug' : 'assembleRelease'],
       path.join(repoRoot, 'android'),
     );
   } finally {
@@ -895,7 +1324,7 @@ const buildAndCopyApk = async (
   }
 
   await fs.mkdir(outputDir, { recursive: true });
-  const apkPath = await findReleaseApk();
+  const apkPath = await findApk(debug ? 'debug' : 'release');
   const targetPath = path.join(outputDir, path.basename(apkPath));
   await fs.copyFile(apkPath, targetPath);
   console.log(`APK copied to ${targetPath}`);
@@ -908,25 +1337,73 @@ const main = async (): Promise<void> => {
   await fs.mkdir(imageAssetsDir, { recursive: true });
   const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
   const importJson = JSON.parse(originalImportJsonContent) as ImportJson;
+  validateOfflineGraphTables(importJson);
+  for (const table of importJson.tables) {
+    console.warn(
+      `[OPEN_APK][TABLE] name=${table.name} columns=${table.schema.length} rows=${table.values?.length ?? 0}`,
+    );
+  }
   const avatar = await prepareAvatar(options.avatar);
 
   const language = resolveLanguage(importJson, options.language);
   const courseIds = options.courseIds;
 
   console.log(`Resolving lessons for course IDs: ${courseIds.join(', ')}`);
-  const { courses, chapters, chapterLessons, lessons } = await resolveLessons(
+  const {
+    courses,
+    chapters,
+    chapterLessons,
+    lessons,
+    subjectLessonRows,
+    palRowIds,
+  } = await resolveLessons(
     importJson,
     courseIds,
+    options.subjectIds,
     language?.id ?? null,
   );
   const subjects = getSubjectRowsForCourses(importJson, courses);
+
+  for (const chapterLesson of chapterLessons) {
+    const lesson = lessons.find(
+      (candidate) => candidate.id === chapterLesson.lesson_id,
+    );
+    console.warn(
+      `[OPEN_APK][CHAPTER][LESSON] name=${lesson?.name ?? '(missing)'} id=${chapterLesson.lesson_id ?? 'null'} chapterId=${chapterLesson.chapter_id ?? 'null'} lidoLessonId=${lesson?.lido_lesson_id ?? 'null'} cocosLessonId=${lesson?.cocos_lesson_id ?? 'null'} playableId=${lesson ? (getBundleId(lesson) ?? 'null') : 'null'}`,
+    );
+  }
+
+  console.log(`Subject lessons: ${subjectLessonRows.length}`);
+  for (const subjectLesson of subjectLessonRows) {
+    const lesson = lessons.find(
+      (candidate) => candidate.id === subjectLesson.lesson_id,
+    );
+    console.log(
+      `Subject lesson: ${lesson?.name ?? '(unnamed)'} (${subjectLesson.lesson_id ?? 'missing lesson id'})`,
+    );
+  }
 
   const selectedRowsByTable = new Map<string, Set<string>>([
     ['subject', new Set(subjects.map((subject) => subject.id))],
     ['course', new Set(courses.map((course) => course.id))],
     ['chapter', new Set(chapters.map((chapter) => chapter.id))],
     ['lesson', new Set(lessons.map((lesson) => lesson.id))],
+    // Select resolved PAL and assessment rows for image rewriting. import.json
+    // is not pruned, so raw graph rows remain available to offline SQLite.
+    ['framework', palRowIds.framework],
+    ['domain', palRowIds.domain],
+    ['competency', palRowIds.competency],
+    ['outcome', palRowIds.outcome],
+    ['skill', palRowIds.skill],
+    ['skill_lesson', palRowIds.skill_lesson],
+    ['skill_relation', palRowIds.skill_relation],
+    ['subject_lesson', new Set(subjectLessonRows.map((row) => row.id))],
   ]);
+  for (const [tableName, rowIds] of selectedRowsByTable) {
+    console.warn(
+      `[OPEN_APK][TABLE][SELECTED] name=${tableName} rows=${rowIds.size}`,
+    );
+  }
 
   const imageAssets = await rewriteSelectedImageUrls(
     importJson,
@@ -1040,6 +1517,8 @@ const main = async (): Promise<void> => {
   console.log(
     `Prepared ${imageAssets.length} image assets: ${imageAssets.filter((asset) => asset.status === 'downloaded').length} downloaded, ${imageAssets.filter((asset) => asset.status === 'already-present').length} already present.`,
   );
+
+  await prepareSplashConfiguration(options);
 
   if (options.skipBuild || options.dryRun) {
     console.log('Skipping APK build.');

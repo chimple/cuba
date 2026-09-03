@@ -15,6 +15,11 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import {
+  clearOtherSchoolHeaderCache,
+  readSchoolHeaderCache,
+  writeSchoolHeaderCache,
+} from '../../services/offline/offlineCache';
 
 export type SchoolStats = {
   active_student_percentage: number;
@@ -303,6 +308,13 @@ export const useSchoolDetailsPage = (id: string) => {
     const api = ServiceConfig.getI().apiHandler;
 
     try {
+      const cachedSchool =
+        await readSchoolHeaderCache<Record<string, unknown>>(id);
+      if (cachedSchool) {
+        setData((prev) => ({ ...prev, schoolData: cachedSchool }));
+      }
+      await clearOtherSchoolHeaderCache(id);
+
       const [
         schoolSettled,
         programSettled,
@@ -320,6 +332,10 @@ export const useSchoolDetailsPage = (id: string) => {
       ]);
 
       const school = resolveSettled('getSchoolById', schoolSettled, undefined);
+      if (school) {
+        await writeSchoolHeaderCache(id, school);
+      }
+      const schoolData = school ?? cachedSchool ?? undefined;
       const program = resolveSettled(
         'getProgramForSchool',
         programSettled,
@@ -363,7 +379,7 @@ export const useSchoolDetailsPage = (id: string) => {
 
       setData((prev) => ({
         ...prev,
-        schoolData: school,
+        schoolData,
         programData: program,
         programManagers,
         principals: principalsResponse?.data ?? [],

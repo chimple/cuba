@@ -125,7 +125,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync && npm run build:storybook",
+    "build": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync && storybook build --output-dir dist/storybook",
     "build:android": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync android",
     "build:storybook": "storybook build",
     "build:full": "npm run build",

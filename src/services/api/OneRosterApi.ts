@@ -1128,17 +1128,7 @@ export class OneRosterApi implements ServiceApi {
     orderDir: 'asc' | 'desc',
     filters?: {
       request_type?: string[];
-      school?: //   console.log( //   } //     } //       results.push(Result.fromJson(i));
-      //     "🚀 ~ file: OneRosterApi.ts:134 ~ OneRosterApi ~ getResultsForStudentForClass ~ results:",
-      //     JSON.stringify(results)
-      //   );
-      //   return results;
-      // } catch (error) {
-      //   console.log(
-      //     "🚀 ~ file: OneRosterApi.ts:143 ~ OneRosterApi ~ getResultsForStudentForClass ~ error:",
-      //     JSON.stringify(error)
-      //   );
-      string[];
+      school?: string[]; //   ); //     JSON.stringify(error) //     "🚀 ~ file: OneRosterApi.ts:143 ~ OneRosterApi ~ getResultsForStudentForClass ~ error:", //   console.log( // } catch (error) { //   return results; //   ); //     JSON.stringify(results) //     "🚀 ~ file: OneRosterApi.ts:134 ~ OneRosterApi ~ getResultsForStudentForClass ~ results:", //   console.log( //   } //     } //       results.push(Result.fromJson(i));
     },
     searchTerm?: string,
   ): ReturnType<ServiceApi['getOpsRequests']> {
@@ -2279,8 +2269,14 @@ export class OneRosterApi implements ServiceApi {
       }
     }
 
-    logger.error('Unable to send RESPECT xAPI completion statement.', lastError);
-    throw lastError ?? new Error('Unable to send RESPECT xAPI completion statement.');
+    logger.error(
+      'Unable to send RESPECT xAPI completion statement.',
+      lastError,
+    );
+    throw (
+      lastError ??
+      new Error('Unable to send RESPECT xAPI completion statement.')
+    );
   }
 
   getLanguageWithId(id: string): Promise<TableTypes<'language'> | undefined> {
@@ -3304,11 +3300,11 @@ export class OneRosterApi implements ServiceApi {
     const actorName =
       typeof actorObj.name === 'string'
         ? actorObj.name
-        : actorObj.name?.[0] ?? 'RESPECT learner';
+        : (actorObj.name?.[0] ?? 'RESPECT learner');
     const actorMbox =
       typeof actorObj.mbox === 'string'
         ? actorObj.mbox
-        : actorObj.mbox?.[0] ?? 'mailto:respect-learner@respect.local';
+        : (actorObj.mbox?.[0] ?? 'mailto:respect-learner@respect.local');
     // RESPECT launches can omit registration. Its xAPI account name is the
     // stable learner identifier, so use it before falling back to the actor.
     const registration =

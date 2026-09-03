@@ -11,8 +11,6 @@ import logger from '../utility/logger';
 export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const {
     api,
-    assessmentBatchId,
-    assignmentId,
     assignmentType,
     chapterDetail,
     courseDetail,
@@ -26,11 +24,7 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     previousAssessmentSkippedRef,
     source,
   } = ctx;
-  const getAssessmentProgressKey = (includeAssignment: boolean = true) => {
-    // A reassigned assessment needs a fresh wrong-move streak, not its course's old one.
-    const assessmentKey = assessmentBatchId ?? assignmentId;
-    const assignmentProgressSuffix =
-      includeAssignment && assessmentKey ? `:assignment:${assessmentKey}` : '';
+  const getAssessmentProgressKey = () => {
     if (isAssessmentLesson && courseDetailWithPathFields?.subject_id) {
       const courseCode = (
         courseDetailWithPathFields.code ??
@@ -43,15 +37,15 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
         courseDetailWithPathFields.course_id ??
         courseDocId;
       return courseCode
-        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}${assignmentProgressSuffix}`
-        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}${assignmentProgressSuffix}`;
+        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}`
+        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}`;
     }
-    const courseKey =
+    return (
       courseDetailWithPathFields?.id ??
       courseDetailWithPathFields?.course_id ??
       courseDocId ??
-      '';
-    return `${courseKey}${assignmentProgressSuffix}`;
+      ''
+    );
   };
 
   const resolveStudentContext = async (): Promise<{
@@ -93,10 +87,6 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const resolvePreviousAssessmentSkipped = async (
     studentId: string,
   ): Promise<boolean> => {
-    // A teacher reassignment must earn its own four-failure marker.
-    if (assignmentId) {
-      return false;
-    }
     if (previousAssessmentSkippedRef.current !== null) {
       return previousAssessmentSkippedRef.current;
     }
@@ -288,17 +278,6 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     return streakMap[courseKey] || 0;
   };
 
-  const hasAssessmentFailMarker = (
-    studentId: string,
-    courseKey: string,
-  ): boolean => {
-    const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
-    const failMap: Record<string, boolean> = JSON.parse(
-      localStorage.getItem(failKey) || '{}',
-    );
-    return !!failMap[courseKey];
-  };
-
   const logUserActivationLessonEvent = ({
     detail,
     userId,
@@ -362,7 +341,6 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     getNormalizedMoveCounts,
     getStoredLidoScores,
     getTotalStoredLessonTime,
-    hasAssessmentFailMarker,
     doesSkillBelongToCourseSubject,
     logUserActivationLessonEvent,
     parseNumericValue,

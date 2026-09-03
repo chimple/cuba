@@ -269,8 +269,9 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
         lastTwoUniqueLessons.length === 2 &&
         lastTwoUniqueLessons.every((r) => r.status === 'system_exit');
 
-      if (isAssessmentTerminated || isAborted) {
-        logger.info('Assessment is terminated or aborted.');
+      // A termination advances the assessment sequence; two exits still abort it.
+      if (isAborted && !isAssessmentTerminated) {
+        logger.info('Assessment is aborted.');
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 

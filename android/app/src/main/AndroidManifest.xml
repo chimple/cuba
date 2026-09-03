@@ -20,20 +20,26 @@
 
         <!-- ✅ Main Activity: Handles Deep Linking -->
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            tools:ignore="LockedOrientationActivity"
-            android:name="org.chimple.bahama.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:launchMode="singleTask"
+            android:name="org.chimple.bahama.SplashActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="landscape"
             android:exported="true">
-
-            <!-- ✅ App Launcher Intent -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
 
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            tools:ignore="LockedOrientationActivity"
+            android:name="org.chimple.bahama.MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <!-- ✅ App Launcher Intent -->
             <!-- intent for chimple-prod.firebaseapp.com  -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

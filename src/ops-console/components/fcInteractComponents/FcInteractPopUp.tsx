@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { IoClose } from 'react-icons/io5';
 import './FcInteractPopUp.css';
 import {
@@ -19,7 +19,8 @@ import FcInteractContactCard from './FcInteractContactCard';
 import FcInteractFooter from './FcInteractFooter';
 import FcInteractQuestionsPanel from './FcInteractQuestionsPanel';
 import type { FcQuestion } from './fcInteractOptions';
-
+import { prepareFcUserFormMedia } from '../../../services/offline/fctouchpoints/fcTouchPointOfflineMedia';
+import { useFcInteractPopup } from './useFcInteractPopup';
 type FcInteractPopUpProps = {
   schoolId: string;
   studentData?: StudentInfo;
@@ -58,11 +59,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   const hasProcessingMedia = media.mediaUploads.some(
     (m) => m.status !== 'done',
   );
-
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
-  const [localQuestions, setLocalQuestions] = useState<FcQuestion[]>([]);
-  const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
   let userData: TableTypes<'user'> | null = null;
   let parentData: TableTypes<'user'> | null = null;
   let className = '';
@@ -82,6 +80,20 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     userData = principalData;
   }
 
+  const { isQuestionsLoading, localQuestions } = useFcInteractPopup({
+    status,
+    initialUserType,
+    spokeWith,
+  });
+
+  useEffect(() => {
+    setResponses({});
+    setOtherComments('');
+    setTechIssueMarked(null);
+    setTechIssueDetails('');
+    setCallOutcome('');
+  }, [initialUserType, spokeWith, status]);
+
   const contactEntries = studentData
     ? getStudentContactEntries(studentData)
     : getStudentContactEntries({ user: userData, parent: parentData });
@@ -95,43 +107,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     window.location.href =
       type === 'phone' ? `tel:${value}` : `mailto:${value}`;
   };
-
-  useEffect(() => {
-    let mounted = true;
-
-    const load = async () => {
-      if (mounted) {
-        setIsQuestionsLoading(true);
-        setLocalQuestions([]);
-        setResponses({});
-      }
-      try {
-        const questions = await api.getFilteredFcQuestions(
-          status ?? null,
-          spokeWith ?? initialUserType,
-        );
-
-        const formattedQuestions =
-          questions?.map((q) => ({
-            id: q.id,
-            question: q.question_text,
-          })) ?? [];
-
-        if (mounted) {
-          setLocalQuestions(formattedQuestions);
-        }
-      } catch (err) {
-        logger.error('Question fetch error', err);
-      } finally {
-        if (mounted) setIsQuestionsLoading(false);
-      }
-    };
-
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, [status, spokeWith, api]);
 
   const handleResponseChange = (id: string, value: string) => {
     setResponses((p) => ({ ...p, [id]: value }));
@@ -194,10 +169,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
       const currentUser = await authHandler.getCurrentUser();
       const visitId = await api.getTodayVisitId(currentUser?.id!, schoolId);
-
-      const mediaLinks = await media.uploadAllMedia((file) =>
-        api.uploadSchoolVisitMediaFile({ schoolId, file }),
-      );
+      const isOffline =
+        typeof navigator !== 'undefined' && navigator.onLine === false;
+      const { mediaLinks, offlineMediaFiles } = await prepareFcUserFormMedia({
+        isOffline,
+        mediaUploads: media.mediaUploads,
+        userId: currentUser!.id,
+        schoolId,
+        uploadAllMedia: media.uploadAllMedia,
+        uploadFn: (file) => api.uploadSchoolVisitMediaFile({ schoolId, file }),
+      });
 
       const payload = {
         visitId: visitId ?? null,
@@ -214,7 +195,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         techIssueComment:
           techIssueMarked === true ? techIssueDetails.trim() : null,
         techIssuesReported: techIssueMarked === true,
-        mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
+        mediaLinks,
+        offlineMediaFiles,
         activityType: mode === 'call' ? 'call' : 'in_person',
       };
       await api.saveFcUserForm(payload);
@@ -225,7 +207,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       setIsSaving(false);
     }
   };
-
   return (
     <div className="fc-interact-popup-overlay" id="fc-popup-overlay">
       <div

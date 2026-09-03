@@ -1,7 +1,35 @@
 import { Json } from '../../database';
 
+export type WhatsappIntegrationStatusRow = {
+  school_id: string;
+  school_name: string;
+  group_id: string | null;
+  periskope_connected: boolean;
+  maytapi_connected: boolean;
+};
+
+export type WhatsappIntegrationStatusResponse = {
+  data: WhatsappIntegrationStatusRow[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+};
+
+export type WhatsappIntegrationStatusParams = {
+  page?: number;
+  page_size?: number;
+  search?: string;
+};
+
 export interface ServiceApiWhatsApp {
   getWhatsappGroupDetails(groupId: string, bot: string): Promise<Json>;
+
+  getWhatsappIntegrationStatus(
+    params?: WhatsappIntegrationStatusParams,
+  ): Promise<WhatsappIntegrationStatusResponse>;
 
   getParentWhatsappGroupDetails?: (groupId: string) => Promise<Json>;
 
