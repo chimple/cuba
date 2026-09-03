@@ -8,12 +8,15 @@
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
 
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips --splash="C:\Users\LENOVO\Downloads\splash_screen.png"
+
 // Optional flags:
 
 // --skip-build       Prepare bundles only, do not build APK
 // --dry-run          Resolve lessons and write manifest only
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
 // --fail-on-missing  Stop if any bundle cannot be found
+// --splash=PATH      Temporarily replace Android launch splash for this APK build
 
 import JSZip from 'jszip';
 import { spawnSync } from 'node:child_process';
@@ -27,6 +30,7 @@ type CliOptions = {
   avatar: string;
   courseIds: string[];
   output: string;
+  splash?: string;
   zipSource: string;
   skipBuild: boolean;
   dryRun: boolean;
@@ -122,6 +126,10 @@ type Manifest = {
   imageAssetCount: number;
   imageAssets: ImageManifestEntry[];
   importJsonRewrittenForBuild: boolean;
+  splash?: {
+    source: string;
+    target: string;
+  };
   bundles: BundleManifestEntry[];
 };
 
@@ -152,6 +160,28 @@ const pathwayMascotPath = path.join(
   'public',
   'pathwayAssets',
   'chimpleRive.riv',
+);
+const androidSplashPath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'drawable',
+  'new_splash.png',
+);
+const openApkSplashAssetPath = path.join(
+  repoRoot,
+  'public',
+  'assets',
+  'open-apk-splash.png',
+);
+const nativeRuntimePath = path.join(
+  repoRoot,
+  'src',
+  'startup',
+  'nativeRuntime.ts',
 );
 
 const remoteBundleBaseUrls = [
@@ -212,6 +242,7 @@ const parseArgs = (argv: string[]): CliOptions => {
     avatar: getString('avatar') ?? '',
     courseIds,
     output: getString('output') ?? '',
+    splash: getString('splash'),
     zipSource: getString('zip-source') ?? 'D:\\chimple-zips',
     skipBuild: raw['skip-build'] === true,
     dryRun: raw['dry-run'] === true,
@@ -334,6 +365,84 @@ const prepareAvatar = async (
   return {
     avatarPath: animationAssetPath,
     pathwayMascotPath,
+  };
+};
+
+const replaceAndroidSplashForBuild = async (
+  splash: string,
+): Promise<() => Promise<void>> => {
+  const sourcePath = path.isAbsolute(splash)
+    ? splash
+    : path.resolve(repoRoot, splash);
+
+  if (!(await fileExists(sourcePath))) {
+    throw new Error(`Splash image not found: ${sourcePath}`);
+  }
+
+  if (path.extname(sourcePath).toLowerCase() !== '.png') {
+    throw new Error(`Splash image must be a .png file: ${sourcePath}`);
+  }
+
+  const originalSplash = await fs.readFile(androidSplashPath);
+  await fs.copyFile(sourcePath, androidSplashPath);
+  console.log(`Temporarily replaced Android splash with ${sourcePath}`);
+
+  return async () => {
+    await fs.writeFile(androidSplashPath, originalSplash);
+    console.log('Restored original Android splash.');
+  };
+};
+
+const prepareOpenApkSplashOverlayForBuild = async (
+  splash: string,
+): Promise<() => Promise<void>> => {
+  const sourcePath = path.isAbsolute(splash)
+    ? splash
+    : path.resolve(repoRoot, splash);
+
+  if (!(await fileExists(sourcePath))) {
+    throw new Error(`Splash image not found: ${sourcePath}`);
+  }
+
+  if (path.extname(sourcePath).toLowerCase() !== '.png') {
+    throw new Error(`Splash image must be a .png file: ${sourcePath}`);
+  }
+
+  const hadExistingAsset = await fileExists(openApkSplashAssetPath);
+  const originalAsset = hadExistingAsset
+    ? await fs.readFile(openApkSplashAssetPath)
+    : null;
+  const originalNativeRuntime = await fs.readFile(nativeRuntimePath, 'utf8');
+  const updatedNativeRuntime = originalNativeRuntime
+    .replace(
+      'const OPEN_APK_SPLASH_ENABLED = false;',
+      'const OPEN_APK_SPLASH_ENABLED = true;',
+    )
+    .replace(
+      "const OPEN_APK_SPLASH_IMAGE_PATH = '';",
+      "const OPEN_APK_SPLASH_IMAGE_PATH = '/assets/open-apk-splash.png';",
+    );
+
+  if (updatedNativeRuntime === originalNativeRuntime) {
+    throw new Error(
+      `Unable to enable open APK splash overlay in ${nativeRuntimePath}`,
+    );
+  }
+
+  await fs.mkdir(path.dirname(openApkSplashAssetPath), { recursive: true });
+  await fs.copyFile(sourcePath, openApkSplashAssetPath);
+  await fs.writeFile(nativeRuntimePath, updatedNativeRuntime);
+  console.log(`Prepared web splash overlay with ${sourcePath}`);
+
+  return async () => {
+    if (originalAsset) {
+      await fs.writeFile(openApkSplashAssetPath, originalAsset);
+    } else {
+      await fs.rm(openApkSplashAssetPath, { force: true });
+    }
+
+    await fs.writeFile(nativeRuntimePath, originalNativeRuntime);
+    console.log('Restored open APK splash overlay source files.');
   };
 };
 
@@ -750,13 +859,40 @@ const findReleaseApk = async (): Promise<string> => {
   return apkStats[0].apkPath;
 };
 
-const buildAndCopyApk = async (outputDir: string): Promise<void> => {
-  run('npm', ['run', 'build:android'], repoRoot);
-  run(
-    process.platform === 'win32' ? 'gradlew.bat' : './gradlew',
-    ['assembleRelease'],
-    path.join(repoRoot, 'android'),
-  );
+const buildAndCopyApk = async (
+  outputDir: string,
+  splash?: string,
+): Promise<void> => {
+  let restoreOpenApkSplash: (() => Promise<void>) | null = null;
+  let restoreSplash: (() => Promise<void>) | null = null;
+  try {
+    if (splash) {
+      restoreOpenApkSplash = await prepareOpenApkSplashOverlayForBuild(splash);
+    }
+
+    run('npm', ['run', 'build:android'], repoRoot);
+
+    if (splash) {
+      restoreSplash = await replaceAndroidSplashForBuild(splash);
+    } else {
+      console.warn(
+        'No --splash image provided. APK will use the existing Android splash resource.',
+      );
+    }
+
+    run(
+      process.platform === 'win32' ? 'gradlew.bat' : './gradlew',
+      splash ? ['assembleRelease', '--rerun-tasks'] : ['assembleRelease'],
+      path.join(repoRoot, 'android'),
+    );
+  } finally {
+    if (restoreSplash) {
+      await restoreSplash();
+    }
+    if (restoreOpenApkSplash) {
+      await restoreOpenApkSplash();
+    }
+  }
 
   await fs.mkdir(outputDir, { recursive: true });
   const apkPath = await findReleaseApk();
@@ -851,6 +987,14 @@ const main = async (): Promise<void> => {
     imageAssetCount: imageAssets.length,
     imageAssets,
     importJsonRewrittenForBuild: importJsonNeedsRewrite,
+    splash: options.splash
+      ? {
+          source: path.isAbsolute(options.splash)
+            ? options.splash
+            : path.resolve(repoRoot, options.splash),
+          target: androidSplashPath,
+        }
+      : undefined,
     bundles,
   };
 
@@ -913,7 +1057,7 @@ const main = async (): Promise<void> => {
       );
     }
 
-    await buildAndCopyApk(path.resolve(options.output));
+    await buildAndCopyApk(path.resolve(options.output), options.splash);
   } finally {
     if (importJsonNeedsRewrite) {
       await fs.writeFile(importJsonPath, originalImportJsonContent);
