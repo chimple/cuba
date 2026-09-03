@@ -1,6 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
 import {
-  getAnalytics,
   setDefaultEventParameters,
   setUserId as setFirebaseUserId,
   type Analytics,
@@ -100,7 +99,6 @@ export const initializeFireBase = async () => {
         ...firebaseConfig,
         measurementId,
       });
-      webAnalytics = getAnalytics(app);
       // Restore the selected profile before any post-startup analytics events.
       let studentId: string | undefined;
       try {
