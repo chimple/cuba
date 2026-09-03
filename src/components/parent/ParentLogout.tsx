@@ -8,9 +8,6 @@ import { useHistory } from 'react-router';
 import {
   CLASS,
   CURRENT_MODE,
-  CURRENT_STUDENT,
-  CURRENT_USER,
-  isRespectMode,
   PAGES,
   SCHOOL,
   SCHOOL_LOGIN,
@@ -20,8 +17,9 @@ import { Util } from '../../utility/util';
 import { ClearCacheData } from './DataClear';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
+import logger from '../../utility/logger';
 
-const ParentLogout: React.FC<{}> = ({}) => {
+const ParentLogout: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const history = useHistory();
   const onSignOut = async () => {
@@ -30,6 +28,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
       source: 'ParentLogout.onSignOut',
       reason: 'parent_logout_button',
     });
+    await Util.setCurrentStudent(null, undefined, false, false);
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(SCHOOL);
@@ -71,7 +70,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
           ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(
             APIMode.SUPABASE,
           );
-          console.log('Switched to Supabase mode on logout');
+          logger.info('Switched to Supabase mode on logout');
         }}
         onNoButtonClicked={onSignOut}
       />
