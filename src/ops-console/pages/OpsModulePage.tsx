@@ -27,7 +27,7 @@ const OpsModulePage: React.FC = () => {
       role === RoleType.PROGRAM_MANAGER,
   );
   const visibleModules = MODULE_CARD_DEFINITIONS.filter((module) =>
-    userRoles.some((role) => module.allowedRoles.includes(role)),
+    userRoles.some((role) => module.allowedRoles.includes(role as RoleType)),
   );
 
   if (!hasModuleAccess) {
