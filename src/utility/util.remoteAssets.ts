@@ -102,6 +102,54 @@ export interface HotUpdateState {
 export class UtilRemoteAssets extends UtilLessonDownloads {
   static [key: string]: any;
 
+  // Extract packaged ZIPs into external storage before trying remote URLs.
+  private static async extractPackagedLessonBundle(
+    lessonId: string,
+  ): Promise<LessonBundleDownloadResult | null> {
+    try {
+      const response = await fetch(
+        `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(lessonId)}.zip`,
+      );
+      if (!response.ok) {
+        return null;
+      }
+
+      const createFilesystem = await getCreateFilesystem();
+      const fs = createFilesystem(Filesystem, {
+        rootDir: '',
+        directory: Directory.External,
+      });
+      const data = new Uint8Array(await response.arrayBuffer());
+      const tempPath = `${lessonId}_temp`;
+
+      await fs.promises
+        .rmdir(tempPath, { recursive: true })
+        .catch(() => undefined);
+      await unzip({
+        fs,
+        extractTo: tempPath,
+        filepaths: ['.'],
+        filter: (filepath: string) => !filepath.startsWith('dist/'),
+        data,
+      });
+
+      if (!(await fs.promises.exists(`${tempPath}/index.xml`))) {
+        await fs.promises.rmdir(tempPath, { recursive: true });
+        throw new Error(
+          `Packaged lesson bundle is missing index.xml: ${lessonId}`,
+        );
+      }
+
+      await fs.promises
+        .rmdir(lessonId, { recursive: true })
+        .catch(() => undefined);
+      await fs.promises.rename(tempPath, lessonId);
+      return { byteLength: data.byteLength };
+    } catch (error) {
+      return null;
+    }
+  }
+
   protected static async runDownloadZipBundle(
     lessons: TableTypes<'lesson'>[],
     chapterId?: string,
@@ -198,6 +246,18 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
+              // Prefer the APK copy so the first lesson launch works offline.
+              const packagedBundle =
+                await this.extractPackagedLessonBundle(lessonId);
+              if (packagedBundle) {
+                this.setGameUrl(androidPath);
+                this.storeLessonIdToLocalStorage(
+                  lessonId,
+                  DOWNLOADED_LESSON_ID,
+                );
+                return true;
+              }
+
               const fallbackBundleZipUrls =
                 getBundleZipUrlsFallback(bundleZipUrlsKey);
               const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
