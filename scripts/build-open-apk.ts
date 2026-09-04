@@ -116,7 +116,7 @@ type LessonRow = {
 type BundleManifestEntry = {
   bundleId: string;
   lessonIds: string[];
-  status: 'already-extracted' | 'extracted' | 'missing' | 'dry-run';
+  status: 'already-packaged' | 'packaged' | 'missing' | 'dry-run';
   source?: string;
   sourceUrl?: string;
   zipPath?: string;
@@ -160,7 +160,6 @@ const lessonBundlesDir = path.join(
   'assets',
   'lessonBundles',
 );
-const tmpRoot = path.join(lessonBundlesDir, '.tmp-open-apk');
 const manifestPath = path.join(repoRoot, 'scripts', 'open-apk-manifest.json');
 const imageAssetsDir = path.join(
   repoRoot,
@@ -329,19 +328,6 @@ const parseArgs = (argv: string[]): CliOptions => {
   }
 
   return options;
-};
-
-const safeWithin = (parent: string, child: string): boolean => {
-  const relative = path.relative(parent, child);
-  return !!relative && !relative.startsWith('..') && !path.isAbsolute(relative);
-};
-
-const ensureCleanTmpDir = async (dir: string): Promise<void> => {
-  if (!safeWithin(tmpRoot, dir)) {
-    throw new Error(`Refusing to clean unsafe temp directory: ${dir}`);
-  }
-  await fs.rm(dir, { recursive: true, force: true });
-  await fs.mkdir(dir, { recursive: true });
 };
 
 const fileExists = async (filePath: string): Promise<boolean> => {
@@ -1011,66 +997,49 @@ const detectCommonRoot = (fileNames: string[], bundleId: string): string => {
   return '';
 };
 
-const extractZipToBundleDir = async (
+// Keep one ZIP entry per lesson bundle; Lido consumes it directly offline.
+const packageZipForBundle = async (
   zipData: Buffer,
   bundleId: string,
-  force: boolean,
   dbVersion: number,
 ): Promise<void> => {
   const finalDir = path.join(lessonBundlesDir, bundleId);
-  const indexPath = path.join(finalDir, 'index.xml');
+  const finalZipPath = path.join(lessonBundlesDir, `${bundleId}.zip`);
+  const zip = await JSZip.loadAsync(zipData);
+  const files = Object.values(zip.files).filter((file) => !file.dir);
+  const normalizedNames = files.map((file) => file.name.replace(/\\/g, '/'));
+  const commonRoot = detectCommonRoot(normalizedNames, bundleId);
+  const packagedZip = new JSZip();
 
-  if (await fileExists(indexPath)) return;
+  for (const file of files) {
+    const normalizedName = file.name.replace(/\\/g, '/');
+    const relativeName = commonRoot
+      ? normalizedName.slice(commonRoot.length)
+      : normalizedName;
 
-  if ((await fileExists(finalDir)) && !force) {
-    throw new Error(
-      `Bundle folder exists without index.xml: ${finalDir}. Re-run with --force to replace it.`,
-    );
+    if (
+      !relativeName ||
+      relativeName.startsWith('../') ||
+      relativeName.startsWith('dist/')
+    ) {
+      continue;
+    }
+
+    packagedZip.file(relativeName, await file.async('nodebuffer'));
   }
 
-  await fs.mkdir(tmpRoot, { recursive: true });
-  const tmpDir = path.join(tmpRoot, `${bundleId}-${process.pid}`);
-  await ensureCleanTmpDir(tmpDir);
-
-  try {
-    const zip = await JSZip.loadAsync(zipData);
-    const files = Object.values(zip.files).filter((file) => !file.dir);
-    const normalizedNames = files.map((file) => file.name.replace(/\\/g, '/'));
-    const commonRoot = detectCommonRoot(normalizedNames, bundleId);
-
-    for (const file of files) {
-      const normalizedName = file.name.replace(/\\/g, '/');
-      const relativeName = commonRoot
-        ? normalizedName.slice(commonRoot.length)
-        : normalizedName;
-
-      if (!relativeName || relativeName.startsWith('../')) continue;
-
-      const outputPath = path.resolve(tmpDir, relativeName);
-      if (!safeWithin(tmpDir, outputPath)) {
-        throw new Error(`Unsafe ZIP entry path: ${file.name}`);
-      }
-
-      await fs.mkdir(path.dirname(outputPath), { recursive: true });
-      await fs.writeFile(outputPath, await file.async('nodebuffer'));
-    }
-
-    if (!(await fileExists(path.join(tmpDir, 'index.xml')))) {
-      throw new Error(
-        `Extracted bundle ${bundleId} does not contain index.xml`,
-      );
-    }
-
-    await fs.writeFile(path.join(tmpDir, '.version'), String(dbVersion));
-
-    if (force) {
-      await fs.rm(finalDir, { recursive: true, force: true });
-    }
-    await fs.rename(tmpDir, finalDir);
-  } catch (error) {
-    await fs.rm(tmpDir, { recursive: true, force: true });
-    throw error;
+  if (!packagedZip.file('index.xml')) {
+    throw new Error(`Packaged bundle ${bundleId} does not contain index.xml`);
   }
+
+  packagedZip.file('.version', String(dbVersion));
+  const packagedData = await packagedZip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'DEFLATE',
+  });
+
+  await fs.rm(finalDir, { recursive: true, force: true });
+  await fs.writeFile(finalZipPath, packagedData);
 };
 
 const prepareBundle = async (
@@ -1079,12 +1048,12 @@ const prepareBundle = async (
   dbVersion: number,
   options: CliOptions,
 ): Promise<BundleManifestEntry> => {
-  const finalIndexPath = path.join(lessonBundlesDir, bundleId, 'index.xml');
-  if (await fileExists(finalIndexPath)) {
+  const finalZipPath = path.join(lessonBundlesDir, `${bundleId}.zip`);
+  if (await fileExists(finalZipPath)) {
     return {
       bundleId,
       lessonIds,
-      status: 'already-extracted',
+      status: 'already-packaged',
       source: 'bundled',
       dbVersion,
     };
@@ -1097,11 +1066,11 @@ const prepareBundle = async (
   const localZipPath = path.join(options.zipSource, `${bundleId}.zip`);
   if (await fileExists(localZipPath)) {
     const zipData = await fs.readFile(localZipPath);
-    await extractZipToBundleDir(zipData, bundleId, options.force, dbVersion);
+    await packageZipForBundle(zipData, bundleId, dbVersion);
     return {
       bundleId,
       lessonIds,
-      status: 'extracted',
+      status: 'packaged',
       source: 'local',
       zipPath: localZipPath,
       dbVersion,
@@ -1110,16 +1079,11 @@ const prepareBundle = async (
 
   const remoteZip = await downloadZip(bundleId);
   if (remoteZip) {
-    await extractZipToBundleDir(
-      remoteZip.data,
-      bundleId,
-      options.force,
-      dbVersion,
-    );
+    await packageZipForBundle(remoteZip.data, bundleId, dbVersion);
     return {
       bundleId,
       lessonIds,
-      status: 'extracted',
+      status: 'packaged',
       source: 'remote',
       sourceUrl: remoteZip.sourceUrl,
       dbVersion,
@@ -1200,6 +1164,10 @@ const buildAndCopyApk = async (
 const main = async (): Promise<void> => {
   const options = parseArgs(process.argv.slice(2));
 
+  // Remove stale extracted bundles so they cannot inflate the APK entry count.
+  if (!options.dryRun) {
+    await fs.rm(lessonBundlesDir, { recursive: true, force: true });
+  }
   await fs.mkdir(lessonBundlesDir, { recursive: true });
   await fs.mkdir(imageAssetsDir, { recursive: true });
   const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
@@ -1371,7 +1339,7 @@ const main = async (): Promise<void> => {
   }
 
   console.log(
-    `Prepared ${bundles.length} bundles: ${bundles.filter((bundle) => bundle.status === 'extracted').length} extracted, ${bundles.filter((bundle) => bundle.status === 'already-extracted').length} already present.`,
+    `Prepared ${bundles.length} bundles: ${bundles.filter((bundle) => bundle.status === 'packaged').length} packaged, ${bundles.filter((bundle) => bundle.status === 'already-packaged').length} already present.`,
   );
   console.log(
     `Prepared ${imageAssets.length} image assets: ${imageAssets.filter((asset) => asset.status === 'downloaded').length} downloaded, ${imageAssets.filter((asset) => asset.status === 'already-present').length} already present.`,
