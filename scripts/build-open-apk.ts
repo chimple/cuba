@@ -997,7 +997,7 @@ const detectCommonRoot = (fileNames: string[], bundleId: string): string => {
   return '';
 };
 
-// Keep one ZIP entry per lesson bundle; the app extracts it on demand offline.
+// Keep one ZIP entry per lesson bundle; Lido consumes it directly offline.
 const packageZipForBundle = async (
   zipData: Buffer,
   bundleId: string,
