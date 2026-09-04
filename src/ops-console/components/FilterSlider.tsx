@@ -154,13 +154,13 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                 : [];
               onFilterChange(
                 key,
-                key === 'program' || singleSelectKeys.includes(key)
+                singleSelectKeys.includes(key)
                   ? nextValues.slice(0, 1)
                   : nextValues,
               );
             }}
             getOptionDisabled={(option) =>
-              (key === 'program' || singleSelectKeys.includes(key)) &&
+              singleSelectKeys.includes(key) &&
               (filters[key]?.length ?? 0) > 0 &&
               !(filters[key] ?? []).includes(getOptionValue(option))
             }
