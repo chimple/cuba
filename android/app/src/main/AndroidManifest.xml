@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".RespectHttpClient"
         android:allowBackup="false"
         android:icon="@mipmap/chimple_monkey_icon"
         android:label="@string/app_name"
@@ -56,6 +57,17 @@
             <!-- RESPECT downloads an HTTPS TinCan launch URL; this route opens it in Cuba. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="chimple-respect.web.app"
+                    android:pathPrefix="/respect/launch" />
+            </intent-filter>
+
+            <!-- RESPECT uses this action when launching an intent URI. -->
+            <intent-filter>
+                <action android:name="org.openeel.action.LAUNCH" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data

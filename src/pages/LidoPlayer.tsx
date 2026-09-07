@@ -14,6 +14,7 @@ interface LidoPlayerViewProps {
   isActivationLesson: boolean;
   isLoading: boolean;
   isReady: boolean;
+  isRespectLidoLaunch: boolean;
   lessonDetail?: TableTypes<'lesson'>;
   lessonId?: string;
   playerLanguage: string;
@@ -43,6 +44,7 @@ const LidoPlayer: FC = () => {
     isActivationLesson,
     isLoading,
     isReady,
+    isRespectLidoLaunch,
     lessonDetail,
     lessonId,
     playerLanguage,
@@ -71,10 +73,9 @@ const LidoPlayer: FC = () => {
           message={t('You Completed the Lesson:')}
           showDialogBox={showDialogBox}
           lessonName={lessonDetail?.name ?? ''}
-          noText={t('Continue Playing')}
+          noText={t(isRespectLidoLaunch ? 'Exit' : 'Continue Playing')}
           handleClose={() => setShowDialogBox(false)}
           onContinueButtonClicked={() => {
-            setShowDialogBox(false);
             setIsLoading(true);
             push();
           }}

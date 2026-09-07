@@ -10,7 +10,6 @@ import {
 } from '../common/constants';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
 import { Util } from '../utility/util';
-import { ServiceConfig } from '../services/ServiceConfig';
 import { AvatarObj } from '../components/animation/Avatar';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
@@ -21,6 +20,7 @@ import {
 export const handleLidoLessonEnd = async (ctx: any, e: any) => {
   const {
     assessmentLessonEndSettlingRef,
+    api,
     assignmentType,
     chapterDetail,
     courseDetail,
@@ -108,7 +108,6 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       );
       return;
     }
-    const api = ServiceConfig.getI().apiHandler;
     const assignment = state.assignment;
     const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
     const { subjectId: courseSubjectId, hasFramework: courseHasFramework } =

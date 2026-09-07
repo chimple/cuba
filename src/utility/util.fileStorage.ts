@@ -157,7 +157,7 @@ export class UtilFileStorage extends UtilSchoolContext {
 
         if (path && path.uri) {
           const uri = Capacitor.convertFileSrc(path.uri);
-          return uri + '/'; // file:///data/user/0/org.chimple.bahama/cache
+          return `${uri.replace(/\/+$/, '')}/`;
         }
       } catch (error) {
         logger.error('path error', error);

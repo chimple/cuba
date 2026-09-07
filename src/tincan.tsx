@@ -42,11 +42,10 @@ function registerCapacitorPlugin<T>(name: string): T {
 }
 
 const portPlugin = registerCapacitorPlugin<PortPlugin>('Port');
-const respectXapiPlugin = registerCapacitorPlugin<RespectXapiPlugin>(
-  'RespectXapi',
-);
+const respectXapiPlugin =
+  registerCapacitorPlugin<RespectXapiPlugin>('RespectXapi');
 
-interface RespectLaunchParameters {
+export interface RespectLaunchParameters {
   endpoint: string;
   auth: string;
   actor: string;
@@ -54,6 +53,8 @@ interface RespectLaunchParameters {
   lessonId: string;
   xapiIpcPackage: string;
 }
+
+let cachedRespectLaunchData: RespectLaunchData | null = null;
 
 const getActorMbox = (actor: RespectActor): string | null => {
   const mbox = actor.mbox;
@@ -114,16 +115,38 @@ const getRespectLaunchDataFromUrl = (): RespectLaunchData | null => {
   });
 };
 
+export const cacheRespectLaunchData = (
+  launchParameters: RespectLaunchParameters,
+): RespectLaunchData | null => {
+  const launchData = toRespectLaunchData(launchParameters);
+  if (launchData) {
+    cachedRespectLaunchData = launchData;
+  }
+  return launchData;
+};
+
 export const getRespectLaunchData =
   async (): Promise<RespectLaunchData | null> => {
+    if (cachedRespectLaunchData) return cachedRespectLaunchData;
+
     try {
-      const nativeLaunchData = toRespectLaunchData(
+      const nativeLaunchData = cacheRespectLaunchData(
         await portPlugin.sendLaunchData(),
       );
 
-      return nativeLaunchData ?? getRespectLaunchDataFromUrl();
+      if (nativeLaunchData) return nativeLaunchData;
+
+      const urlLaunchData = getRespectLaunchDataFromUrl();
+      if (urlLaunchData) {
+        cachedRespectLaunchData = urlLaunchData;
+      }
+      return urlLaunchData;
     } catch {
-      return getRespectLaunchDataFromUrl();
+      const urlLaunchData = getRespectLaunchDataFromUrl();
+      if (urlLaunchData) {
+        cachedRespectLaunchData = urlLaunchData;
+      }
+      return urlLaunchData;
     }
   };
 
