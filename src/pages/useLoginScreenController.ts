@@ -46,9 +46,11 @@ import {
   normalizeTcVersion,
   resolveTermsBaseUrl,
 } from '../utility/termsAndConditions';
+import { getAppPathname } from '../utility/routerLocation';
 import { isTeacherAppRole } from '../utility/roleUtil';
 import { createLoginCredentialAuthHandlers } from './LoginScreen.credentialAuth';
 import { createLoginPrimaryAuthHandlers } from './LoginScreen.primaryAuth';
+import { wasRespectLessonLaunchReceived } from '../services/respect/RespectLessonLaunchService';
 
 const NATIVE_LOADING_ANIMATIONS = ['/assets/home.gif'];
 const WEB_LOADING_ANIMATIONS = [
@@ -133,6 +135,11 @@ export const useLoginScreenController = () => {
     : WEB_LOADING_ANIMATIONS;
   const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  // The login screen can unmount while startup auth calls are still pending.
+  // RESPECT lesson launches own navigation once received, so late login
+  // redirects must not pull the learner away from the Lido player.
+  const shouldRespectOwnNavigation = (): boolean =>
+    wasRespectLessonLaunchReceived() || getAppPathname() === PAGES.LIDO_PLAYER;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -148,13 +155,15 @@ export const useLoginScreenController = () => {
   }, [loadingAnimations.length, loadingMessages.length]);
 
   useEffect(() => {
+    let isCancelled = false;
     const initialize = async () => {
       try {
+        if (shouldRespectOwnNavigation()) return;
         // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
         }
-
+        if (isCancelled || shouldRespectOwnNavigation()) return;
         // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
@@ -165,26 +174,32 @@ export const useLoginScreenController = () => {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);
         }
+        if (isCancelled || shouldRespectOwnNavigation()) return;
 
         const authHandler = ServiceConfig.getI().authHandler;
         let isLoggedIn = await authHandler.isUserLoggedIn();
+        if (isCancelled || shouldRespectOwnNavigation()) return;
 
         if (!isLoggedIn) {
           Util.migrateSupabaseSession();
           isLoggedIn = await authHandler.isUserLoggedIn();
         }
+        if (isCancelled || shouldRespectOwnNavigation()) return;
 
         if (isLoggedIn) {
           await redirectAuthenticatedUser();
           return;
         }
       } finally {
-        setInitializing(false);
+        if (!isCancelled) {
+          setInitializing(false);
+        }
       }
     };
     initialize();
 
     return () => {
+      isCancelled = true;
       if (Capacitor.isNativePlatform()) {
         document.removeEventListener(
           'visibilitychange',
@@ -196,11 +211,13 @@ export const useLoginScreenController = () => {
 
   // Handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
+    if (shouldRespectOwnNavigation()) return;
+
     if (document.visibilityState === 'visible') {
       // App came to foreground
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
-        if (isUserLoggedIn) {
+        if (isUserLoggedIn && !shouldRespectOwnNavigation()) {
           void redirectAuthenticatedUser();
         }
       });
@@ -270,14 +287,18 @@ export const useLoginScreenController = () => {
   };
 
   const redirectAuthenticatedUser = async (): Promise<void> => {
+    if (shouldRespectOwnNavigation()) return;
     const currentUser = await authInstance.getCurrentUser();
+    if (shouldRespectOwnNavigation()) return;
     if (!currentUser?.id) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
 
     const isOpsUser = await api.isSplUser();
+    if (shouldRespectOwnNavigation()) return;
     const schools = await getSchoolsForUser(currentUser.id);
+    if (shouldRespectOwnNavigation()) return;
     await redirectUser(schools, isOpsUser);
   };
 
@@ -285,16 +306,20 @@ export const useLoginScreenController = () => {
     schools: { role: RoleType }[],
     isOpsUser: boolean,
   ) => {
+    if (shouldRespectOwnNavigation()) return;
     if (isOpsUser) {
       await ScreenOrientation.unlock();
+      if (shouldRespectOwnNavigation()) return;
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       return history.replace(PAGES.SIDEBAR_PAGE);
     } else {
       if (schools.length === 0) {
         const currentUser = await authInstance.getCurrentUser();
+        if (shouldRespectOwnNavigation()) return;
         const existingRequest = currentUser?.id
           ? await getExistingSchoolRequest(currentUser.id)
           : null;
+        if (shouldRespectOwnNavigation()) return;
         if (existingRequest?.request_status === STATUS.REQUESTED) {
           return history.replace(PAGES.POST_SUCCESS);
         }
@@ -309,7 +334,7 @@ export const useLoginScreenController = () => {
       if (hasTeacherAppRole) {
         const authHandler = ServiceConfig.getI()?.authHandler;
         const currentUser = await authHandler?.getCurrentUser();
-
+        if (shouldRespectOwnNavigation()) return;
         schoolUtil.setCurrMode(MODES.TEACHER);
         if (!currentUser?.name || currentUser.name.trim() === '') {
           return history.replace(PAGES.ADD_TEACHER_NAME);
@@ -330,7 +355,7 @@ export const useLoginScreenController = () => {
       }
       const authHandler = ServiceConfig.getI()?.authHandler;
       const currentUser = await authHandler?.getCurrentUser();
-
+      if (shouldRespectOwnNavigation()) return;
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
       if (!currentUser?.name || currentUser.name.trim() === '') {

@@ -43,7 +43,7 @@ export async function initializeLidoPlayer(ctx: any) {
   const lessonId =
     Util.getLessonBundleId(lessonToDownload) ??
     urlSearchParams.get('lessonid') ??
-    state.lessonId;
+    state?.lessonId;
   if (!lessonToDownload || !lessonId) {
     presentToast();
     push();
@@ -82,16 +82,18 @@ export async function initializeLidoPlayer(ctx: any) {
       }
       const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${languageId}`;
 
-      let commonAudioUri;
+      let commonAudioUri: Awaited<ReturnType<typeof Filesystem.getUri>>;
       try {
         commonAudioUri = await Filesystem.getUri({
           directory: Directory.Data,
           path: audioPath,
         });
       } catch (firstError) {
-        logger.error(
-          '[LidoPlayer] Common audio not accessible, retrying once...',
+        logger.warn(
+          '[LidoPlayer] Common audio missing, preparing before playback',
+          firstError,
         );
+        await Util.ensureLidoCommonAudioForStudent(student);
         // small delay to handle async extract race (very common on Android)
         await new Promise((r) => setTimeout(r, 150));
         commonAudioUri = await Filesystem.getUri({

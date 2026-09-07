@@ -1,36 +1,27 @@
 package org.chimple.bahama;
 
 import android.app.Application;
-//import okhttp3.OkHttpClient;
-//import world.respect.librespect.LibRespectCache;
-//import world.respect.librespect.LibRespectCacheBuilder;
-//import world.respect.librespect.LibRespectCacheInterceptor;
-//import world.respect.librespect.LibRespectProxyServer;
+import okhttp3.OkHttpClient;
+import org.openeel.libcache.ipc.client.HttpIpcClient;
+import org.openeel.libcache.ipc.client.HttpIpcClientBuilder;
+import org.openeel.libcache.ipc.client.interceptor.HttpIpcInterceptor;
 
 public class RespectHttpClient extends Application {
-//    private static OkHttpClient okHttpClient;
-//    private static LibRespectProxyServer httpProxy;
+    private static OkHttpClient okHttpClient;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-//        LibRespectCache libRespectCache = LibRespectCacheBuilder.build();
-        // Option 1
-//        okHttpClient = new OkHttpClient.Builder()
-//                .addInterceptor(new LibRespectCacheInterceptor(libRespectCache))
-//                .build();
-
-        // Option 2
-        // httpProxy = new LibRespectProxyServer(libRespectCache);
-        // httpProxy.start();
+        HttpIpcClient httpIpcClient = new HttpIpcClientBuilder(this)
+                .setIpcServicePackageName("world.respect.app")
+                .build();
+        okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new HttpIpcInterceptor(httpIpcClient))
+                .build();
     }
 
-//    public static OkHttpClient getOkHttpClient() {
-//        return okHttpClient;
-//    }
-
-//    public static LibRespectProxyServer getHttpProxy() {
-//        return httpProxy;
-//    }
+    public static OkHttpClient getOkHttpClient() {
+        return okHttpClient;
+    }
 }

@@ -7,19 +7,20 @@ import {
 } from '../../common/constants';
 import { ServiceConfig, APIMode } from '../ServiceConfig';
 import { SqliteApi } from '../api/SqliteApi';
+import { OneRosterApi } from '../api/OneRosterApi';
 import { REMOTE_CONFIG_KEYS } from '../RemoteConfig';
 import { Util } from '../../utility/util';
 import { ScreenOrientation } from '../../utility/screenOrientation';
+import logger from '../../utility/logger';
+import { cachePreparedRespectLessonLaunchState } from './RespectLaunchCache';
+import type { RespectLessonLaunchState } from './RespectLaunchCache';
+import { cacheRespectLaunchData } from '../../tincan';
 
 export interface RespectLessonLaunch {
   pathname: PAGES;
   search: string;
-  state: {
-    courseDocId: string;
-    lesson: string;
-  };
+  state: RespectLessonLaunchState;
 }
-
 const portPlugin = registerPlugin<PortPlugin>('Port');
 let receivedRespectLessonLaunch = false;
 
@@ -88,6 +89,7 @@ export const prepareRespectLessonLaunch =
       const launchData = await portPlugin.sendLaunchData();
       if (!launchData.lessonId) return null;
 
+      if (!cacheRespectLaunchData(launchData)) return null;
       receivedRespectLessonLaunch = true;
       localStorage.setItem(isRespectMode, 'true');
       // Rotate before downloading so the lesson never flashes in portrait.
@@ -95,7 +97,8 @@ export const prepareRespectLessonLaunch =
 
       // The xAPI activity remains canonical while the launch supplies the
       // playable Cuba bundle ID needed by the local offline catalogue.
-      const cubaLessonId = launchData.chimpleLessonId || getCubaLessonId(launchData.lessonId);
+      const cubaLessonId =
+        launchData.chimpleLessonId || getCubaLessonId(launchData.lessonId);
       const serviceConfig = ServiceConfig.getI();
       serviceConfig.switchMode(APIMode.ONEROSTER);
       const launchedLesson =
@@ -111,8 +114,7 @@ export const prepareRespectLessonLaunch =
           ? launchedLesson
           : ((await SqliteApi.getI().getLessonWithCocosLessonId(
               launchedLesson?.cocos_lesson_id ?? cubaLessonId,
-            )) ??
-            launchedLesson)) ??
+            )) ?? launchedLesson)) ??
         (launchData.chimpleLessonId
           ? createRespectBundleLesson(launchData.chimpleLessonId)
           : null);
@@ -120,7 +122,8 @@ export const prepareRespectLessonLaunch =
       // LidoPlayer cannot select it ahead of the RESPECT-provided bundle.
       const lesson = launchData.chimpleLessonId.startsWith('LIDO_')
         ? {
-            ...(resolvedLesson ?? createRespectBundleLesson(launchData.chimpleLessonId)),
+            ...(resolvedLesson ??
+              createRespectBundleLesson(launchData.chimpleLessonId)),
             cocos_lesson_id: null,
             lido_lesson_id: launchData.chimpleLessonId,
           }
@@ -145,23 +148,27 @@ export const prepareRespectLessonLaunch =
         if (!downloaded || !downloadedBundlePath) return null;
       }
 
-      await serviceConfig.apiHandler.createDeeplinkUser();
+      await OneRosterApi.getInstance().createDeeplinkUser();
 
       const search = new URLSearchParams({
         courseid: lesson.cocos_subject_code ?? '',
         chapterid: lesson.cocos_chapter_code ?? '',
         lessonid: playableLessonId,
       }).toString();
+      const state = {
+        courseDocId: lesson.cocos_subject_code ?? '',
+        lesson: JSON.stringify(lesson),
+        lessonId: playableLessonId,
+      };
+      cachePreparedRespectLessonLaunchState(state);
 
       return {
         pathname: PAGES.LIDO_PLAYER,
         search: `?${search}`,
-        state: {
-          courseDocId: lesson.cocos_subject_code ?? '',
-          lesson: JSON.stringify(lesson),
-        },
+        state,
       };
-    } catch {
+    } catch (error) {
+      logger.error('[RespectLessonLaunch] Failed to prepare lesson', error);
       return null;
     }
   };

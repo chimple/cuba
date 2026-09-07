@@ -1,5 +1,4 @@
 import { HttpHeaders } from '@capacitor-community/http';
-import { registerPlugin } from '@capacitor/core';
 import { Timestamp } from '@firebase/firestore';
 import { Activity, Agent, Score, Statement } from 'tincants';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +21,6 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
-  PortPlugin,
   PrincipalAPIResponse,
   PROFILETYPE,
   RequestTypes,
@@ -63,6 +61,7 @@ import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
 import { ServiceConfig } from '../ServiceConfig';
 import ApiDataProcessor from './ApiDataProcessor';
+import { SqliteApi } from './SqliteApi';
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
@@ -2063,10 +2062,12 @@ export class OneRosterApi implements ServiceApi {
     }
 
     // No existing statements for the lessonId yet, So creating a new one
-    // tincants initializes only the first configured score field. Set both values on its
-    // Score model so the serialized RESPECT statement includes raw and scaled scores.
+    // tincants initializes only the first configured score field. Set the
+    // percentage range explicitly so RESPECT can display raw as 0-100%.
     const xapiScore = new Score({ raw: score });
     xapiScore.scaled = Math.max(0, Math.min(1, score / 100));
+    xapiScore.min = 0;
+    xapiScore.max = 100;
 
     const statement = new Statement({
       id: uuidv4(),
@@ -2208,6 +2209,8 @@ export class OneRosterApi implements ServiceApi {
           score: {
             raw: score,
             scaled: Math.max(0, Math.min(1, score / 100)),
+            min: 0,
+            max: 100,
           },
           duration: this.formatDuration(timeSpent),
           response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
@@ -2833,6 +2836,13 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<AssignmentCartData | undefined> {
     throw new Error('Method not implemented.');
   }
+  public async getChapterByLesson(
+    lessonId: string,
+    classId?: string,
+    userId?: string,
+  ): Promise<String | undefined> {
+    return this.getChapterIDByLessonID(lessonId, classId, userId);
+  }
   public async getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
@@ -3291,9 +3301,11 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async createDeeplinkUser(): Promise<void> {
-    let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
-    const portPlugin = registerPlugin<PortPlugin>('Port');
-    const data = await portPlugin.sendLaunchData();
+    const appLang = localStorage.getItem(LANGUAGE) ?? 'en';
+    const data = await getRespectLaunchData();
+    if (!data) {
+      throw new Error('RESPECT launch data is unavailable for deeplink user.');
+    }
     const actorObj =
       typeof data.actor === 'string' ? JSON.parse(data.actor) : data.actor;
 
@@ -3437,11 +3449,13 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
-  getLidoCommonAudioUrl(
+  async getLidoCommonAudioUrl(
     languageId: string,
     localeId?: string | null,
   ): Promise<{ lido_common_audio_url: string | null } | null> {
-    throw new Error('Method not implemented.');
+    // RESPECT playback still uses Cuba's local media catalogue for bundled
+    // Lido shared audio, even though progress is sent through OneRoster/xAPI.
+    return await SqliteApi.getI().getLidoCommonAudioUrl(languageId, localeId);
   }
 
   async getAssignmentDateRangeDataForClassAndSchool(
