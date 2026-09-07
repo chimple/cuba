@@ -33,9 +33,25 @@ export const extractPackagedQuizBundle = async (
     const configRoot = configPath.endsWith('/config.json')
       ? configPath.slice(0, -'config.json'.length)
       : '';
+    const configData = await configEntry.async('base64');
+    const configText = await configEntry.async('string');
+    const configRelativePath = 'config.json';
+    try {
+      await Filesystem.writeFile({
+        path: `${bundleId}/${configRelativePath}`,
+        data: configData,
+        directory: Directory.External,
+        recursive: true,
+      });
+    } catch {
+      // The parsed config can still start the quiz even if local persistence
+      // is unavailable on this device.
+    }
+
     const files = Object.values(zip.files).filter(
       (file) => !file.dir && !file.name.startsWith('dist/'),
     );
+    const writtenPaths = new Set<string>([configRelativePath]);
     for (const file of files) {
       // Normalize paths and reject traversal/absolute paths from the ZIP.
       const filePath = file.name.replace(/\\/g, '/');
@@ -51,21 +67,29 @@ export const extractPackagedQuizBundle = async (
         continue;
       }
 
+      if (writtenPaths.has(relativePath)) continue;
+      writtenPaths.add(relativePath);
+
       // Capacitor accepts base64 for binary files and creates parent folders
       // when recursive is enabled.
-      await Filesystem.writeFile({
-        path: `${bundleId}/${relativePath}`,
-        data: await file.async('base64'),
-        directory: Directory.External,
-        recursive: true,
-      });
+      try {
+        await Filesystem.writeFile({
+          path: `${bundleId}/${relativePath}`,
+          data: await file.async('base64'),
+          directory: Directory.External,
+          recursive: true,
+        });
+      } catch {
+        // A broken optional media file must not prevent config.json from
+        // loading and blank the Live Quiz screen.
+      }
     }
 
     // Point Live Quiz media URLs to the extracted external lesson folder.
     const androidPath = await Util.getAndroidBundlePath();
     Util.setGameUrl(androidPath);
 
-    return JSON.parse(await configEntry.async('string')) as LiveQuiz;
+    return JSON.parse(configText) as LiveQuiz;
   } catch (error) {
     return undefined;
   }
