@@ -1028,8 +1028,12 @@ const packageZipForBundle = async (
     packagedZip.file(relativeName, await file.async('nodebuffer'));
   }
 
-  if (!packagedZip.file('index.xml')) {
-    throw new Error(`Packaged bundle ${bundleId} does not contain index.xml`);
+  // Standard Lido lessons use index.xml, while Live Quiz bundles use
+  // config.json. Both formats are valid offline lesson bundles.
+  if (!packagedZip.file('index.xml') && !packagedZip.file('config.json')) {
+    throw new Error(
+      `Packaged bundle ${bundleId} contains neither index.xml nor config.json`,
+    );
   }
 
   packagedZip.file('.version', String(dbVersion));
