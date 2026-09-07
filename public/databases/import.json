@@ -7426,6 +7426,17 @@
           0
         ],
         [
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          "ಸೂರಜ್‌ಕುಂಡ್ ಜಾತ್ರೆ",
+          "https://db.chimple.net/storage/v1/object/sign/lesson-bundles/chapter-icons/778f25c8-4809-4b1e-9bdb-7adb22d2d503/539b4552-66c2-476c-bb99-273d13ed2165.png?token=eyJraWQiOiJiYjZmMTMzYS01OWM2LTQ1YWItYjViZC0xYThhZTExZDYxZWUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsZXNzb24tYnVuZGxlcy9jaGFwdGVyLWljb25zLzc3OGYyNWM4LTQ4MDktNGIxZS05YmRiLTdhZGIyMmQyZDUwMy81MzliNDU1Mi02NmMyLTQ3NmMtYmI5OS0yNzNkMTNlZDIxNjUucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODQyNzIxOCwiZXhwIjoyMTA0MDAzMjE4fQ.dT-3M8-R0ViYwGmw4ikUu3KvJwtkFsUNtUKwh5Ody7I",
+          "778f25c8-4809-4b1e-9bdb-7adb22d2d503",
+          14,
+          null,
+          "2026-09-03T09:20:19.857+00:00",
+          "2026-09-03T09:20:19.857+00:00",
+          0
+        ],
+        [
           "53c045ee-ac25-4285-b13b-c95b56dd5b5a",
           "बरखा और मेघा",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/chapter-icons/53c045ee-ac25-4285-b13b-c95b56dd5b5a-70803191.png",
@@ -9969,12 +9980,12 @@
         [
           "822ecd3c-8028-4e09-9d37-58118d7b2aa5",
           "ಆಡೋಣ ಬಾ",
-          "https://db.chimple.net/storage/v1/object/sign/lesson-bundles/chapter-icons/629c9813-fe46-4b41-abcd-5889d2817ca0/822ecd3c-8028-4e09-9d37-58118d7b2aa5.png?token=eyJraWQiOiJiYjZmMTMzYS01OWM2LTQ1YWItYjViZC0xYThhZTExZDYxZWUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsZXNzb24tYnVuZGxlcy9jaGFwdGVyLWljb25zLzYyOWM5ODEzLWZlNDYtNGI0MS1hYmNkLTU4ODlkMjgxN2NhMC84MjJlY2QzYy04MDI4LTRlMDktOWQzNy01ODExOGQ3YjJhYTUucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODI0NTM4OCwiZXhwIjoyMTAzODIxMzg4fQ.svMIcPRHA66W3HomD4rwbIEU7JadUvyiD2UfhMChUg4",
+          "https://db-stage.chimple.net/storage/v1/object/public/template-assets/chapter-images/image3.jpg",
           "629c9813-fe46-4b41-abcd-5889d2817ca0",
           15,
           null,
           "2026-09-01T06:49:48.568+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-03T08:41:39+00:00",
           0
         ],
         [
@@ -10305,6 +10316,17 @@
           null,
           "2026-04-27T04:01:52.899905+00:00",
           "2026-06-26T06:41:55.49941+00:00",
+          0
+        ],
+        [
+          "89ad3134-c7f2-4545-a203-e8814497f366",
+          "syncing",
+          "https://db.chimple.net/storage/v1/object/sign/lesson-bundles/chapter-icons/00857d01-ff57-46c5-9f5b-fc92ed885404/89ad3134-c7f2-4545-a203-e8814497f366.jpg?token=eyJraWQiOiJiYjZmMTMzYS01OWM2LTQ1YWItYjViZC0xYThhZTExZDYxZWUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsZXNzb24tYnVuZGxlcy9jaGFwdGVyLWljb25zLzAwODU3ZDAxLWZmNTctNDZjNS05ZjViLWZjOTJlZDg4NTQwNC84OWFkMzEzNC1jN2YyLTQ1NDUtYTIwMy1lODgxNDQ5N2YzNjYuanBnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODc3MjU0MywiZXhwIjoyMTA0MzQ4NTQzfQ.q3aXh0zeNMPxcf1nfSZ4DLzZp7rhEKtgzs8p3TO1PXg",
+          "00857d01-ff57-46c5-9f5b-fc92ed885404",
+          200,
+          null,
+          "2026-09-07T09:15:43.218+00:00",
+          "2026-09-07T09:15:43.218+00:00",
           0
         ],
         [
@@ -15051,12 +15073,12 @@
         [
           "f09ef979-4c9c-4763-aad8-9acf2f81401c",
           "ಸ್ವಾತಂತ್ರ್ಯ ದಿನಾಚರಣೆ",
-          "https://db.chimple.net/storage/v1/object/sign/lesson-bundles/chapter-icons/629c9813-fe46-4b41-abcd-5889d2817ca0/f09ef979-4c9c-4763-aad8-9acf2f81401c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYjZmMTMzYS01OWM2LTQ1YWItYjViZC0xYThhZTExZDYxZWUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJsZXNzb24tYnVuZGxlcy9jaGFwdGVyLWljb25zLzYyOWM5ODEzLWZlNDYtNGI0MS1hYmNkLTU4ODlkMjgxN2NhMC9mMDllZjk3OS00YzljLTQ3NjMtYWFkOC05YWNmMmY4MTQwMWMuanBnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NjA4Nzk0NiwiZXhwIjoyMTAxNjYzOTQ2fQ.CnbblvotdNzMH2Z6P9vUVgUVcJWtwsq2a4bt6FH813I",
+          "https://db-stage.chimple.net/storage/v1/object/public/template-assets/chapter-images/image.png",
           "629c9813-fe46-4b41-abcd-5889d2817ca0",
           3,
           null,
           "2026-08-07T07:32:26+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-03T07:11:04+00:00",
           0
         ],
         [
@@ -25816,10 +25838,10 @@
           "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/07d43f43-7f9a-4c56-b761-3e9c80fabe12.png",
           null,
           "lido",
-          "approved",
+          "published",
           null,
           null,
-          "81cf7934-1331-4e2c-9df2-6c528fced342",
+          "0e908dff-f815-4a84-90e2-d194f1a80036",
           "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
           "c5674cc5-48f8-40b8-8123-f5246ea0c5e8",
           null,
@@ -25827,11 +25849,11 @@
           "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
           "#1592d2",
           "2026-08-06T08:37:07.091+00:00",
-          "2026-08-06T08:37:27.055+00:00",
+          "2026-09-06T13:20:28.123+00:00",
           0,
           null,
-          "81cf7934-1331-4e2c-9df2-6c528fced342",
-          1
+          "0e908dff-f815-4a84-90e2-d194f1a80036",
+          2
         ],
         [
           "07da1612-e031-439e-b7ad-f97a008ee616",
@@ -32405,11 +32427,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-18T05:07:00.531548+00:00",
-          "2026-08-21T05:53:43.726+00:00",
+          "2026-09-03T10:12:44.937+00:00",
           0,
           null,
           "83ae7547-444c-44f9-b1f2-e73de54fc067",
-          3
+          5
         ],
         [
           "0d53e4e4-4f89-4850-8850-3a98b89546f1",
@@ -34641,6 +34663,29 @@
           null,
           null,
           null
+        ],
+        [
+          "0f089a9e-c195-44a3-a23e-7a290a8cb3ee",
+          "Utpaad 2_8 wrong",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "0f089a9e-c195-44a3-a23e-7a290a8cb3ee",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T08:34:59.1074+00:00",
+          "2026-09-03T08:47:07.891+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "0f164451-1750-40cd-ad34-f0b5c6dc241b",
@@ -39289,6 +39334,29 @@
           2
         ],
         [
+          "130e7d6f-3575-4237-b431-0ba800cc5b2d",
+          "mathSet2",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "130e7d6f-3575-4237-b431-0ba800cc5b2d",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-03T06:13:51.100294+00:00",
+          "2026-09-03T06:13:51.100294+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "1310fd9b-5ae1-400e-a0cc-8411461710b8",
           "संख्या 1 - 100 को व्यवस्थित करें",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/e10f1416-283f-491c-a5b8-9993d46dc83b-b5f42bcb.webp",
@@ -43000,7 +43068,7 @@
           "published",
           null,
           null,
-          "160bd9ea-17eb-492a-919e-2dd287fd2cd3",
+          "4e148985-eb5a-46e5-8ac5-8be5f3b60033",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -43008,11 +43076,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#f58ab2",
           "2026-08-17T10:41:28.505296+00:00",
-          "2026-08-19T11:59:42.744+00:00",
+          "2026-09-03T07:28:04.188+00:00",
           0,
           null,
-          "160bd9ea-17eb-492a-919e-2dd287fd2cd3",
-          2
+          "4e148985-eb5a-46e5-8ac5-8be5f3b60033",
+          3
         ],
         [
           "160cf0d8-7020-49d5-94ee-25feaa76e44b",
@@ -49034,11 +49102,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-24T04:31:37.755511+00:00",
-          "2026-09-01T05:36:10.721+00:00",
+          "2026-09-03T07:28:11.308+00:00",
           0,
           null,
           "2137f891-e1c8-4f0d-bddb-7453b0889dfa",
-          2
+          3
         ],
         [
           "1af16e1e-ecee-4140-ba23-d26ceef84a55",
@@ -61852,6 +61920,29 @@
           null
         ],
         [
+          "260345e2-968e-4a6a-9900-ef51065c47c8",
+          "ವಯಸ್ಸು",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/260345e2-968e-4a6a-9900-ef51065c47c8.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "260345e2-968e-4a6a-9900-ef51065c47c8",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#FFFFFF",
+          "2026-09-03T07:08:20.797485+00:00",
+          "2026-09-03T07:09:17.428+00:00",
+          0,
+          null,
+          "260345e2-968e-4a6a-9900-ef51065c47c8",
+          2
+        ],
+        [
           "260804a3-fbcd-4efb-8e55-5e3e36bbb7ff",
           "3-8 ಗುಣಿಸಿ",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/ac65d70a-8311-4a96-ba54-8a211eb8b6c9-fe675c5c.webp",
@@ -73978,10 +74069,10 @@
           "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/2ffdd197-b68d-463d-b8b6-4f946ac4d494.png",
           null,
           "lido",
-          "approved",
+          "published",
           null,
           null,
-          "e557e871-2aef-4e0c-aa82-232ca23e5341",
+          "cbd3dbc9-932b-471c-972c-e6bfcd37abd8",
           "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
           "c5674cc5-48f8-40b8-8123-f5246ea0c5e8",
           null,
@@ -73989,11 +74080,11 @@
           "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
           "#1592d2",
           "2026-08-06T05:34:18.899+00:00",
-          "2026-08-06T05:34:30.099+00:00",
+          "2026-09-03T10:23:18.18+00:00",
           0,
           null,
-          "e557e871-2aef-4e0c-aa82-232ca23e5341",
-          1
+          "cbd3dbc9-932b-471c-972c-e6bfcd37abd8",
+          2
         ],
         [
           "3007ac11-a2d4-4e0e-bd87-6fc9e830f38a",
@@ -95716,7 +95807,7 @@
           "published",
           null,
           null,
-          "418fdbfa-a5e8-4143-8ad3-8e73c0dd40e5",
+          "7ffe8a72-d7a9-4b55-b319-7bcd56556016",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -95724,11 +95815,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#a37bd4",
           "2026-08-18T19:53:43.459483+00:00",
-          "2026-09-01T05:36:35.939+00:00",
+          "2026-09-03T07:28:25.045+00:00",
           0,
           null,
-          "418fdbfa-a5e8-4143-8ad3-8e73c0dd40e5",
-          2
+          "7ffe8a72-d7a9-4b55-b319-7bcd56556016",
+          3
         ],
         [
           "419505d6-bf58-4109-9f7c-a9bd2523ac7a",
@@ -98269,7 +98360,7 @@
           "published",
           null,
           null,
-          "4396dc16-b03c-4d41-b21b-cc612af7200d",
+          "da297db4-a9da-48be-b499-72f9b6994284",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -98277,11 +98368,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#ffc107",
           "2026-08-21T10:41:02.855901+00:00",
-          "2026-09-01T05:36:19.234+00:00",
+          "2026-09-03T07:28:11.957+00:00",
           0,
           null,
-          "4396dc16-b03c-4d41-b21b-cc612af7200d",
-          2
+          "da297db4-a9da-48be-b499-72f9b6994284",
+          3
         ],
         [
           "43972eb9-dff6-4b95-8162-adf931284220",
@@ -102355,6 +102446,29 @@
           null
         ],
         [
+          "471ad620-5e47-450b-8c52-b11e9610661b",
+          "multiplybeeds",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "471ad620-5e47-450b-8c52-b11e9610661b",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-03T06:39:12.131747+00:00",
+          "2026-09-03T06:39:12.131747+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "4721b470-27c0-4478-9bf7-a4e7827eadf9",
           "Medial Vowels 1",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/f1b7383b-42c3-414a-a4d5-4227bebc5d25-070d63a5.webp",
@@ -104341,7 +104455,7 @@
           "published",
           null,
           null,
-          "4904488f-2ab6-4558-863e-40384ee6da12",
+          "295ca101-0cd0-4a8e-86f9-a91ebdd892cf",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -104349,11 +104463,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#2fb36d",
           "2026-08-17T08:17:58.335896+00:00",
-          "2026-08-19T11:59:41+00:00",
+          "2026-09-03T08:36:16.534+00:00",
           0,
           null,
-          "4904488f-2ab6-4558-863e-40384ee6da12",
-          2
+          "295ca101-0cd0-4a8e-86f9-a91ebdd892cf",
+          3
         ],
         [
           "490777e5-375d-4c27-abc8-6c0fd2f4b6e5",
@@ -109577,6 +109691,29 @@
           null
         ],
         [
+          "4d4ba477-8a90-4464-b11c-00feba4cd142",
+          "mathSet2",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "4d4ba477-8a90-4464-b11c-00feba4cd142",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T06:12:30.92286+00:00",
+          "2026-09-03T06:12:30.92286+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "4d4bbda1-1d38-4bfc-bd37-23848d89777f",
           "2 ಗಳನ್ನು ಬಿಟ್ಟುಬಿಡಿ",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/d6f5a92f-e97e-42fb-8d16-8a2ac6a6a49c-a66dd8b7.webp",
@@ -113802,11 +113939,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#1592d2",
           "2026-08-25T06:01:28.38382+00:00",
-          "2026-09-01T05:35:56.376+00:00",
+          "2026-09-03T07:28:05.221+00:00",
           0,
           null,
           "29a8ab89-150a-4c65-9091-9046d4215fbe",
-          2
+          3
         ],
         [
           "50a91232-6506-4613-838b-1eddc089c334",
@@ -114727,6 +114864,29 @@
           null,
           "LIDO_en4008",
           null
+        ],
+        [
+          "5151b8dc-106e-4077-8100-c5ad4e86446a",
+          "multiply",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "5151b8dc-106e-4077-8100-c5ad4e86446a",
+          "dc3b6f7b-fe28-48d1-904e-6d9c073996b2",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-03T06:33:08.34725+00:00",
+          "2026-09-03T06:33:08.34725+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "5153a85d-d357-42ad-b010-c41f4836393f",
@@ -118110,6 +118270,29 @@
           1
         ],
         [
+          "547e7d3a-26d8-432c-b93b-8ac68ed4238b",
+          "testingimage",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "547e7d3a-26d8-432c-b93b-8ac68ed4238b",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-04T06:12:51.126718+00:00",
+          "2026-09-04T06:12:51.126718+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "547f2974-a398-4b3c-b0d1-d5229da9beff",
           "ನೋಡಿ ಕಲಿಯಿರಿ  4",
           "kn4103.png",
@@ -118499,6 +118682,29 @@
           null,
           "LIDO_en4005",
           null
+        ],
+        [
+          "54d902fc-0d2b-453b-a196-72a992ea1a02",
+          "Ch2 maths L1",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "54d902fc-0d2b-453b-a196-72a992ea1a02",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T11:53:08.489268+00:00",
+          "2026-09-03T11:53:08.489268+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "54da6884-bc48-4609-86dd-e3742e8f1162",
@@ -121765,6 +121971,29 @@
           null,
           null,
           1
+        ],
+        [
+          "576538e2-f9eb-471c-8bac-e78da22b7f4f",
+          "ಪುನರಾವರ್ತನೆ - 14",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/576538e2-f9eb-471c-8bac-e78da22b7f4f.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "7c6c07ba-3b32-4f9f-8117-7236e24c5dcc",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#2fb36d",
+          "2026-09-07T04:21:01.630095+00:00",
+          "2026-09-07T04:24:26.615+00:00",
+          0,
+          null,
+          "7c6c07ba-3b32-4f9f-8117-7236e24c5dcc",
+          3
         ],
         [
           "57705526-9857-46ed-a2a5-10e79f4b83a9",
@@ -125677,6 +125906,29 @@
           null
         ],
         [
+          "5a431bf5-f7c5-4019-9b56-b46e2d4db51b",
+          "english set5",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "5a431bf5-f7c5-4019-9b56-b46e2d4db51b",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-04T06:14:59.612185+00:00",
+          "2026-09-04T06:14:59.612185+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "5a499604-c783-4e5f-aa4c-d59701b59601",
           "घड़ी 1",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/68960e71-2810-4024-b8f9-0acbf1da4113-e96e0057.png",
@@ -126779,6 +127031,29 @@
           null,
           "LIDO_en3408",
           null
+        ],
+        [
+          "5b495bbe-2dca-4613-b547-32de5fcaaa3a",
+          "ವಿನ್ಯಾಸಗಳು",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/5b495bbe-2dca-4613-b547-32de5fcaaa3a.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "210cb4d8-6fa3-4e4a-a521-3166d33d3857",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#a37bd4",
+          "2026-09-04T07:18:04.122253+00:00",
+          "2026-09-06T07:17:06.371+00:00",
+          0,
+          null,
+          "210cb4d8-6fa3-4e4a-a521-3166d33d3857",
+          3
         ],
         [
           "5b571be8-e5e3-4258-81b2-eaae924c55d6",
@@ -130576,6 +130851,29 @@
           1
         ],
         [
+          "5e4df134-9321-466d-a9ff-7fe6560d99a9",
+          "CHimple math G2 उत्पाद 2-8 खोजें",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "5e4df134-9321-466d-a9ff-7fe6560d99a9",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T06:33:54.799781+00:00",
+          "2026-09-03T06:33:54.799781+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "5e5e68e5-b75e-47b5-bf43-1f5ce8d777fd",
           "कीड़े मकोड़े",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/5e5e68e5-b75e-47b5-bf43-1f5ce8d777fd-6d77ac36.png",
@@ -131501,7 +131799,7 @@
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/5efa4200-a22b-4f78-b6ee-757a994b4a1a-43ff8fb8.webp",
           null,
           "cocos",
-          "approved",
+          "published",
           "en",
           "en05",
           "en0505",
@@ -131512,11 +131810,11 @@
           "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
           null,
           "2024-05-24T07:08:22.390012+00:00",
-          "2026-06-26T06:41:55.49941+00:00",
+          "2026-09-03T08:36:06.349+00:00",
           0,
           null,
-          "LIDO_en0505",
-          null
+          "ad9c23d3-0665-40ac-bcd9-ad3a2208da21",
+          2
         ],
         [
           "5efaa014-1541-4cd3-9e82-883171a4a821",
@@ -135109,10 +135407,10 @@
         [
           "61d52425-6ca2-4857-982a-d4d6bb4b0f90",
           "ದಿನಾಂಕಗಳು",
-          null,
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/61d52425-6ca2-4857-982a-d4d6bb4b0f90.png",
           null,
           "lido",
-          null,
+          "published",
           null,
           null,
           "61d52425-6ca2-4857-982a-d4d6bb4b0f90",
@@ -135121,13 +135419,13 @@
           null,
           null,
           "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
-          null,
+          "#FFFFFF",
           "2026-09-03T06:01:02.515307+00:00",
-          "2026-09-03T06:01:02.515307+00:00",
+          "2026-09-03T06:11:42.689+00:00",
           0,
           null,
-          null,
-          1
+          "61d52425-6ca2-4857-982a-d4d6bb4b0f90",
+          2
         ],
         [
           "61db68bd-bf34-49ba-b7b3-afa67bad5e26",
@@ -139424,11 +139722,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#f58ab2",
           "2026-08-28T08:38:09.386885+00:00",
-          "2026-09-01T05:36:03.241+00:00",
+          "2026-09-03T07:28:08.203+00:00",
           0,
           null,
           "224d8fc2-9129-4273-bbeb-a5dfed71a288",
-          2
+          3
         ],
         [
           "6561167b-2b04-4ebf-994c-dded3e9b1c55",
@@ -143254,10 +143552,10 @@
           null,
           null,
           "lido",
-          "approved",
+          "published",
           null,
           null,
-          "mz_fc1_0012",
+          "c705f337-d45c-467c-9ed9-3eacfa970f32",
           null,
           "de84c323-fc20-43cf-b24a-4e8a3c00e3e3",
           3,
@@ -143265,11 +143563,11 @@
           "9e67c6c4-a095-4b90-b8f5-8fae1715bf11",
           null,
           "2025-09-05T11:57:16.35818+00:00",
-          "2025-11-08T09:00:30.642512+00:00",
+          "2026-09-07T09:07:11.037+00:00",
           0,
           null,
-          null,
-          1
+          "c705f337-d45c-467c-9ed9-3eacfa970f32",
+          2
         ],
         [
           "683a47c8-986a-4b94-bf99-121485a353bd",
@@ -149199,11 +149497,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-17T06:20:19.851204+00:00",
-          "2026-08-21T05:53:42.146+00:00",
+          "2026-09-03T08:36:17.549+00:00",
           0,
           null,
           "132cd5a4-e148-4020-a46d-241295de9b45",
-          3
+          4
         ],
         [
           "6c7c11d2-f800-4cf5-8098-e9e606600895",
@@ -152434,7 +152732,7 @@
           "published",
           null,
           null,
-          "6f55f237-946b-417f-8d02-c0328a43fc59",
+          "3b9c3980-f042-4179-857f-432ea11be877",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -152442,11 +152740,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#1592d2",
           "2026-08-19T11:46:27.649896+00:00",
-          "2026-09-01T05:36:38.298+00:00",
+          "2026-09-03T07:28:18.423+00:00",
           0,
           null,
-          "6f55f237-946b-417f-8d02-c0328a43fc59",
-          2
+          "3b9c3980-f042-4179-857f-432ea11be877",
+          3
         ],
         [
           "6f5953bc-6042-4357-b9d7-cb30099551e6",
@@ -154750,11 +155048,11 @@
         ],
         [
           "7125e64b-ba30-495d-95e9-d648276f05ea",
-          "सतह और किनारे",
+          "फलक और किनारे",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/7125e64b-ba30-495d-95e9-d648276f05ea-6e3af434.png",
           null,
           "lido",
-          "approved",
+          "published",
           "maths",
           null,
           "HM_NC_00013",
@@ -154763,13 +155061,13 @@
           3,
           8,
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
-          null,
+          "#1592d2",
           "2026-05-19T07:57:14.395996+00:00",
-          "2026-06-30T08:21:13.813044+00:00",
+          "2026-09-03T08:36:23.149+00:00",
           0,
           null,
-          null,
-          1
+          "HM_NC_00013",
+          2
         ],
         [
           "71274597-723e-42be-8f9c-22bd8e81b1e5",
@@ -164869,6 +165167,29 @@
           null
         ],
         [
+          "79389c69-718b-4525-b0dd-c2d79e985bdf",
+          "ಟೈಲ್‌ ಮತ್ತು ಮಾರ್ಗ",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "79389c69-718b-4525-b0dd-c2d79e985bdf",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          null,
+          "2026-09-06T17:55:11.037608+00:00",
+          "2026-09-06T17:55:11.037608+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "7938f7a3-f33e-450d-95ff-3d4404112ef2",
           "अधिक बड़े और छोटे 1 - 50",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/07b21062-ead6-4e3f-b449-6eda54c29135-8208ede1.webp",
@@ -167036,7 +167357,7 @@
           null,
           null,
           "lido",
-          null,
+          "published",
           null,
           null,
           "7a9d9417-55d3-4ff9-a083-e732710e8356",
@@ -167045,13 +167366,13 @@
           null,
           null,
           "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
-          null,
+          "#1592d2",
           "2026-08-14T08:15:18.251114+00:00",
-          "2026-08-14T08:15:18.251114+00:00",
+          "2026-09-07T09:29:27.34+00:00",
           0,
           null,
-          null,
-          1
+          "7a9d9417-55d3-4ff9-a083-e732710e8356",
+          2
         ],
         [
           "7aa05977-944c-404e-ae08-79650fb65829",
@@ -169796,10 +170117,10 @@
           "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/POP-UPS/lesson-images/lesson-row-48-7d3876bd-8bfd-41ad-9cd5-f5003c107e8b-1bupbhwi5u4kjj6t2ykxwl19cox3ygedj-14.png",
           null,
           "lido",
-          "approved",
+          "published",
           "haryana-maths",
           null,
-          "HM_NC_00094",
+          "72e9bbfd-db2c-4664-ac30-7fb787d1a1bc",
           null,
           "efecca8c-a820-4b6b-a93a-9575f593af2d",
           3,
@@ -169807,11 +170128,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           null,
           "2026-07-24T07:34:48.718977+00:00",
-          "2026-07-24T07:34:52.239365+00:00",
+          "2026-09-04T09:32:48.092+00:00",
           0,
           null,
-          null,
-          1
+          "72e9bbfd-db2c-4664-ac30-7fb787d1a1bc",
+          2
         ],
         [
           "7d3d1b27-d9b4-48db-a7c2-9712ce9eddb7",
@@ -183315,6 +183636,29 @@
           null
         ],
         [
+          "88eb57a1-e143-4f93-ab3b-8113582b23c0",
+          "ದಿಕ್ಕುಗಳು",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/88eb57a1-e143-4f93-ab3b-8113582b23c0.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "88eb57a1-e143-4f93-ab3b-8113582b23c0",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#a37bd4",
+          "2026-09-07T04:04:24.345289+00:00",
+          "2026-09-07T04:07:15.946+00:00",
+          0,
+          null,
+          "88eb57a1-e143-4f93-ab3b-8113582b23c0",
+          2
+        ],
+        [
           "88f6af74-2f59-4894-9308-0d143dca01b2",
           "Formas-1",
           null,
@@ -192025,11 +192369,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-17T08:44:29.221614+00:00",
-          "2026-08-19T11:59:42.12+00:00",
+          "2026-09-03T07:28:02.969+00:00",
           0,
           null,
           "a3619395-389f-4046-8cac-c644c4a82a09",
-          2
+          3
         ],
         [
           "8fdba2e5-1ad3-4efa-9407-93f55ac57454",
@@ -192352,6 +192696,29 @@
           null,
           "LIDO_hi1106",
           null
+        ],
+        [
+          "90209209-8d43-4fe6-847c-0dd695bdc907",
+          "ಪದಗಳ ಅರ್ಥ - 14",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/90209209-8d43-4fe6-847c-0dd695bdc907.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "90209209-8d43-4fe6-847c-0dd695bdc907",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#FFFFFF",
+          "2026-09-03T11:24:13.067018+00:00",
+          "2026-09-03T11:26:12.941+00:00",
+          0,
+          null,
+          "90209209-8d43-4fe6-847c-0dd695bdc907",
+          2
         ],
         [
           "90288282-caa1-4a2c-a97f-d203a57e8713",
@@ -193535,7 +193902,7 @@
           "published",
           null,
           null,
-          "91078b0a-c0f8-483b-a86c-b0badf4779dd",
+          "ee700a4d-42f4-4f82-9177-2406e701b753",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -193543,11 +193910,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#1592d2",
           "2026-08-19T12:22:16.064785+00:00",
-          "2026-09-01T05:36:20.007+00:00",
+          "2026-09-03T07:28:12.87+00:00",
           0,
           null,
-          "91078b0a-c0f8-483b-a86c-b0badf4779dd",
-          2
+          "ee700a4d-42f4-4f82-9177-2406e701b753",
+          3
         ],
         [
           "91187144-1dfc-4b42-bc8f-388c35a40c0c",
@@ -194746,6 +195113,29 @@
           null
         ],
         [
+          "91f8e6f3-72fd-482d-92c1-6dfe923c5c62",
+          "ಪುನರಾವರ್ತನೆ - 13",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/91f8e6f3-72fd-482d-92c1-6dfe923c5c62.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "91f8e6f3-72fd-482d-92c1-6dfe923c5c62",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#FFFFFF",
+          "2026-09-03T08:42:29.981096+00:00",
+          "2026-09-03T08:43:12.557+00:00",
+          0,
+          null,
+          "91f8e6f3-72fd-482d-92c1-6dfe923c5c62",
+          2
+        ],
+        [
           "91fbfd21-3fe3-409d-99ba-55c50e355cd1",
           "फूल",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/30f2145d-30f8-4aa2-9c61-52c951d0b07e-5169fa34.webp",
@@ -195372,10 +195762,10 @@
           "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/POP-UPS/lesson-images/lesson-row-2-927bbd86-3fef-4a59-9916-3a6783b21f03-1smddxz5krkinycuykbnzk6wloiya5uou-2.png",
           null,
           "lido",
-          "approved",
+          "published",
           "haryana-maths",
           null,
-          "HM_NC_00009",
+          "2c9ab5f1-18d1-4964-830f-8d39e3cac316",
           null,
           "efecca8c-a820-4b6b-a93a-9575f593af2d",
           3,
@@ -195383,11 +195773,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           null,
           "2026-07-23T06:23:09.27731+00:00",
-          "2026-07-23T06:23:12.349665+00:00",
+          "2026-09-04T09:32:49.486+00:00",
           0,
           null,
-          null,
-          1
+          "2c9ab5f1-18d1-4964-830f-8d39e3cac316",
+          2
         ],
         [
           "9282a79d-dc82-4c90-9385-c68828a33b48",
@@ -199967,6 +200357,29 @@
           null
         ],
         [
+          "96890a42-cf14-475f-abda-a97f8484ffb6",
+          "testing",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "96890a42-cf14-475f-abda-a97f8484ffb6",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-03T06:36:34.392404+00:00",
+          "2026-09-03T06:36:34.392404+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "968e300e-e520-43c6-9b50-15e94dc583c6",
           "First Words 4",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/81164dbe-145f-4659-b608-207925edffff-a3a2a2bb.png",
@@ -202428,6 +202841,29 @@
           null
         ],
         [
+          "98743273-2bda-4f38-9ef6-60437d023959",
+          "FITB",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "98743273-2bda-4f38-9ef6-60437d023959",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-04T05:51:36.496934+00:00",
+          "2026-09-04T05:51:36.496934+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "98771fbf-953c-4328-9973-b2f00c7b3449",
           "ळी  चे शब्द",
           "mr1201.png",
@@ -203024,6 +203460,29 @@
           null,
           "LIDO_maths1002_hi",
           null
+        ],
+        [
+          "991c48c2-2d16-4476-aa46-2fcb7140df36",
+          "G2 Shabd samasya Gunana 1",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "991c48c2-2d16-4476-aa46-2fcb7140df36",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-07T06:02:31.717176+00:00",
+          "2026-09-07T06:02:31.717176+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "991d6ba4-5580-4c6a-a054-f14b9a208171",
@@ -221610,6 +222069,29 @@
           2
         ],
         [
+          "a7bd1fe0-b6f1-4d52-8e81-474949cca0aa",
+          "ದಾರಿಗಳಿಗೆ ಟೈಲ್ಸ್ ಹಾಕುವುದು",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/a7bd1fe0-b6f1-4d52-8e81-474949cca0aa.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "a7bd1fe0-b6f1-4d52-8e81-474949cca0aa",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          "#FFFFFF",
+          "2026-09-07T03:27:03.63001+00:00",
+          "2026-09-07T03:34:25.722+00:00",
+          0,
+          null,
+          "a7bd1fe0-b6f1-4d52-8e81-474949cca0aa",
+          2
+        ],
+        [
           "a7be071a-c03a-4412-a050-d6970c87cba8",
           "2D और 3D आकार",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/b02ddcac-726b-40bd-8dec-f30848218070-2c9b0cb6.webp",
@@ -221730,10 +222212,10 @@
           "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/POP-UPS/lesson-images/lesson-row-6-a7d2377b-3002-411b-9a6f-78e0977ffa88-1b-lbhy4lj5kv-9nwjfnacmdoaype3pqw.png",
           null,
           "lido",
-          "approved",
+          "published",
           "haryana-maths",
           null,
-          "HM_NC_00013",
+          "f5404e2c-92c6-4179-8608-702072539953",
           null,
           "efecca8c-a820-4b6b-a93a-9575f593af2d",
           3,
@@ -221741,11 +222223,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           null,
           "2026-07-23T06:23:43.188472+00:00",
-          "2026-07-23T06:23:44.958203+00:00",
+          "2026-09-03T08:36:02.668+00:00",
           0,
           null,
-          null,
-          1
+          "f5404e2c-92c6-4179-8608-702072539953",
+          2
         ],
         [
           "a7de3ffd-cbe1-417e-8d67-cacbb2aa33b3",
@@ -234998,10 +235480,10 @@
         [
           "b26d18f4-c432-4e9c-862a-ac884e1bc1a4",
           "Meena and Her Paper Boats",
-          "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/b26d18f4-c432-4e9c-862a-ac884e1bc1a4-a71ae0c1.png",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/EN_NC_00064.png",
           null,
           "lido",
-          "approved",
+          "published",
           "english",
           null,
           "EN_NC_00064",
@@ -235010,13 +235492,13 @@
           3,
           8,
           "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
-          null,
+          "#ffc107",
           "2026-04-08T06:54:39.690737+00:00",
-          "2026-08-31T11:46:36.611804+00:00",
+          "2026-09-03T10:08:43.511+00:00",
           0,
           null,
           "EN_NC_00064",
-          2
+          3
         ],
         [
           "b274de54-d6b0-4bf3-9ee8-548810830219",
@@ -236384,7 +236866,7 @@
           "published",
           null,
           null,
-          "b38ce6f0-93f9-4b57-af09-49c6ff0dc76a",
+          "45489538-c49a-4e9c-bd00-69ac8aee9649",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -236392,11 +236874,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-19T11:48:16.555855+00:00",
-          "2026-09-01T05:36:38.828+00:00",
+          "2026-09-03T07:28:15.055+00:00",
           0,
           null,
-          "b38ce6f0-93f9-4b57-af09-49c6ff0dc76a",
-          2
+          "45489538-c49a-4e9c-bd00-69ac8aee9649",
+          3
         ],
         [
           "b38d50cc-f73a-4ad0-86c6-d764d96e7603",
@@ -246565,6 +247047,29 @@
           null
         ],
         [
+          "bb577ddc-1d64-4541-b431-9bece2c5bff9",
+          "ಮುಖಗಳು",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "bb577ddc-1d64-4541-b431-9bece2c5bff9",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          null,
+          "2026-09-06T13:18:43.851867+00:00",
+          "2026-09-06T13:18:43.851867+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "bb5da3ca-0c6a-4a62-b9ee-5d7c88e56813",
           "ಪದ ಕಲಿಯಿರಿ   -  3",
           "kn3003.png",
@@ -254086,6 +254591,29 @@
           1
         ],
         [
+          "c17cb941-0fcb-4a31-9e27-2b6f4be1ae84",
+          "Ch14 L1 Maths",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "c17cb941-0fcb-4a31-9e27-2b6f4be1ae84",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T12:29:04.918095+00:00",
+          "2026-09-03T12:29:04.918095+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "c17de279-d234-408b-a04a-394e11e22020",
           "Count & Add-1",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/be5af6ea-b5cc-4def-8566-07ee5012412c-9f5fb075.webp",
@@ -259836,6 +260364,29 @@
           null
         ],
         [
+          "c6005c69-3ac7-473d-9be3-bdb89fe4bec8",
+          "gametesting",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "c6005c69-3ac7-473d-9be3-bdb89fe4bec8",
+          "0c552ed8-8e92-4245-9d91-e30c7f2d495c",
+          null,
+          null,
+          null,
+          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
+          null,
+          "2026-09-04T06:18:36.319763+00:00",
+          "2026-09-04T06:18:36.319763+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
           "c6020d71-8b14-4529-bb5f-065f081c8d08",
           "सारांश",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/c6020d71-8b14-4529-bb5f-065f081c8d08-f7eb1230.png",
@@ -264756,6 +265307,29 @@
           null,
           "LIDO_hi0117",
           null
+        ],
+        [
+          "c9d23a59-03b7-4295-9ae4-16757193939e",
+          "ಕನ್ನಡಿಯ ಪ್ರತಿಬಿಂಬ",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/c9d23a59-03b7-4295-9ae4-16757193939e.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "c9d23a59-03b7-4295-9ae4-16757193939e",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#ffc107",
+          "2026-09-06T12:35:31.078092+00:00",
+          "2026-09-06T13:18:00.993+00:00",
+          0,
+          null,
+          "c9d23a59-03b7-4295-9ae4-16757193939e",
+          2
         ],
         [
           "c9e4b190-4188-4d7b-bf73-5f21bd95c8f9",
@@ -271031,6 +271605,29 @@
           null,
           "2025-03-28T06:29:26.226821+00:00",
           "2025-03-28T06:29:26.226821+00:00",
+          0,
+          null,
+          null,
+          1
+        ],
+        [
+          "cecb74a6-1171-4a07-abb4-5fef90949883",
+          "सतह और किनारे",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "cecb74a6-1171-4a07-abb4-5fef90949883",
+          "0e6cc90e-2ed9-4a5b-bfac-1520993e44dc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-03T07:33:56.81927+00:00",
+          "2026-09-03T07:33:56.81927+00:00",
           0,
           null,
           null,
@@ -279923,7 +280520,7 @@
           "published",
           null,
           null,
-          "d6af7f37-5016-47c4-8f9f-0e29785c2d90",
+          "e62dc27d-bf83-4154-aa21-0cbb7d0e20ef",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -279931,11 +280528,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#FFFFFF",
           "2026-08-28T08:53:54.287408+00:00",
-          "2026-09-01T05:36:01.624+00:00",
+          "2026-09-03T07:28:06.176+00:00",
           0,
           null,
-          "d6af7f37-5016-47c4-8f9f-0e29785c2d90",
-          2
+          "e62dc27d-bf83-4154-aa21-0cbb7d0e20ef",
+          3
         ],
         [
           "d6b23412-37d4-4d83-b85f-adf7bb1d9b96",
@@ -283823,6 +284420,29 @@
           null,
           null,
           1
+        ],
+        [
+          "da1e6972-b784-4146-80da-fca191f0ae4e",
+          "ಸಮಯ",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/da1e6972-b784-4146-80da-fca191f0ae4e.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "da1e6972-b784-4146-80da-fca191f0ae4e",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#FFFFFF",
+          "2026-09-03T07:20:27.566687+00:00",
+          "2026-09-03T07:29:04.483+00:00",
+          0,
+          null,
+          "da1e6972-b784-4146-80da-fca191f0ae4e",
+          5
         ],
         [
           "da216509-c386-4bd6-9e99-2e6ff4f70874",
@@ -288433,7 +289053,7 @@
           "published",
           null,
           null,
-          "dd7950cf-e3ad-439e-af91-f7b49791455a",
+          "0e524484-28bd-4b90-a137-fe880014a537",
           "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
           null,
           null,
@@ -288441,11 +289061,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#1592d2",
           "2026-08-19T12:20:13.33202+00:00",
-          "2026-09-01T05:36:20.861+00:00",
+          "2026-09-03T07:28:14.501+00:00",
           0,
           null,
-          "dd7950cf-e3ad-439e-af91-f7b49791455a",
-          2
+          "0e524484-28bd-4b90-a137-fe880014a537",
+          3
         ],
         [
           "dd7fb12d-bc97-4955-a963-df239659bda2",
@@ -296565,6 +297185,29 @@
           null,
           "LIDO_maths2803_en",
           null
+        ],
+        [
+          "e3d2bcff-800f-44af-bdfc-48b75691b09c",
+          "Utpaad 2_8 (final)",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "e3d2bcff-800f-44af-bdfc-48b75691b09c",
+          "ee4ff447-0804-4cc8-b196-df3ace8b23fc",
+          null,
+          null,
+          null,
+          "aca183d0-c416-4917-a0c8-f78538b6e51b",
+          null,
+          "2026-09-07T06:12:32.406514+00:00",
+          "2026-09-07T06:12:32.406514+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "e3d5bd48-efd7-4c54-879e-029e7670902f",
@@ -316462,6 +317105,29 @@
           1
         ],
         [
+          "f4acf4b5-673c-4948-8ae5-63798a950aeb",
+          "ಸಮಮಿತಿ",
+          "https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/lesson-covers/f4acf4b5-673c-4948-8ae5-63798a950aeb.png",
+          null,
+          "lido",
+          "published",
+          null,
+          null,
+          "f4acf4b5-673c-4948-8ae5-63798a950aeb",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          "#ff7a1a",
+          "2026-09-06T07:25:50.078122+00:00",
+          "2026-09-06T07:28:35.523+00:00",
+          0,
+          null,
+          "f4acf4b5-673c-4948-8ae5-63798a950aeb",
+          2
+        ],
+        [
           "f4ad656b-9bcd-4af2-aaaf-2b5d4f85c90f",
           "Gender Nouns",
           "https://pub-3a82c17429da40d1989930ae7eb2f2d1.r2.dev/lesson-icons/f4ad656b-9bcd-4af2-aaaf-2b5d4f85c90f-66a4b795.webp",
@@ -325563,11 +326229,11 @@
           "aca183d0-c416-4917-a0c8-f78538b6e51b",
           "#ff7a1a",
           "2026-08-19T10:36:47.255133+00:00",
-          "2026-09-01T05:36:36.942+00:00",
+          "2026-09-03T07:28:23.552+00:00",
           0,
           null,
           "fa0ee60f-a090-49da-a464-de030d6e022b",
-          2
+          3
         ],
         [
           "fc0fafd2-d8f4-4022-b135-ca8f47aee76e",
@@ -326948,6 +327614,29 @@
           null,
           "LIDO_maths1311_hi",
           null
+        ],
+        [
+          "fd3600aa-5a53-43b7-8975-00ff168649ec",
+          "ಪದಗಳ ಅರ್ಥ - 1",
+          null,
+          null,
+          "lido",
+          null,
+          null,
+          null,
+          "fd3600aa-5a53-43b7-8975-00ff168649ec",
+          "c90722c0-b8df-4cbc-a6a3-2e86051775ee",
+          null,
+          null,
+          null,
+          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
+          null,
+          "2026-09-03T10:21:24.110466+00:00",
+          "2026-09-03T10:21:24.110466+00:00",
+          0,
+          null,
+          null,
+          1
         ],
         [
           "fd3658be-cdf6-416c-9923-bad843929c38",
@@ -338065,6 +338754,17 @@
           0
         ],
         [
+          "0bea89ab-91d3-435c-adb6-e13c100474a8",
+          "a7bd1fe0-b6f1-4d52-8e81-474949cca0aa",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          5,
+          "2026-09-07T03:34:25.632661+00:00",
+          "2026-09-07T03:34:25.632661+00:00",
+          0
+        ],
+        [
           "0bf73932-2ebc-4700-80b0-5f9453926614",
           "0e1c1390-f7ab-4e1d-ae98-2bab2e2da4b1",
           "31a995cf-10aa-49e1-a633-abd2b0686142",
@@ -338425,6 +339125,17 @@
           12,
           "2025-07-10T11:08:37.971735+00:00",
           "2025-07-15T12:11:05.076238+00:00",
+          0
+        ],
+        [
+          "0c8ebad5-50e3-4a0f-b263-336d567781f4",
+          "88eb57a1-e143-4f93-ab3b-8113582b23c0",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          6,
+          "2026-09-07T04:07:15.878239+00:00",
+          "2026-09-07T04:07:15.878239+00:00",
           0
         ],
         [
@@ -339082,9 +339793,9 @@
           "42db678d-0939-455a-8e10-43f1bda005b0",
           null,
           null,
-          11,
+          5,
           "2026-08-19T11:59:33.555556+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:50:16+00:00",
           0
         ],
         [
@@ -343416,9 +344127,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          17,
+          7,
           "2026-08-19T11:59:41.099935+00:00",
-          "2026-08-19T11:59:41.099935+00:00",
+          "2026-09-03T07:26:11+00:00",
           0
         ],
         [
@@ -345011,9 +345722,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          11,
+          2,
           "2026-08-21T07:53:21.437219+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:25+00:00",
           0
         ],
         [
@@ -345495,9 +346206,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          9,
+          4,
           "2026-08-21T07:53:19.883297+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:19+00:00",
           0
         ],
         [
@@ -346298,9 +347009,9 @@
           "42db678d-0939-455a-8e10-43f1bda005b0",
           null,
           null,
-          10,
+          4,
           "2026-08-19T11:59:33.042012+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:50:12+00:00",
           0
         ],
         [
@@ -348355,9 +349066,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          9,
+          3,
           "2026-08-25T05:21:52.351382+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:27+00:00",
           0
         ],
         [
@@ -355835,9 +356546,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          13,
+          4,
           "2026-08-19T11:59:37.075786+00:00",
-          "2026-08-19T11:59:37.075786+00:00",
+          "2026-09-03T07:34:52+00:00",
           0
         ],
         [
@@ -356924,9 +357635,9 @@
           "20b514be-c6d5-4f4c-a728-4b7c8d15291d",
           null,
           null,
-          5,
+          4,
           "2026-08-21T07:53:24.405218+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T08:53:49+00:00",
           0
         ],
         [
@@ -357243,9 +357954,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          11,
+          5,
           "2026-08-25T05:21:57.727046+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:34+00:00",
           0
         ],
         [
@@ -358387,9 +359098,9 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          12,
+          5,
           "2026-08-14T14:11:30.481614+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:48:59+00:00",
           0
         ],
         [
@@ -367187,9 +367898,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          11,
+          5,
           "2026-08-19T11:59:35.977044+00:00",
-          "2026-08-19T11:59:35.977044+00:00",
+          "2026-09-03T07:35:46+00:00",
           0
         ],
         [
@@ -369415,6 +370126,17 @@
           0
         ],
         [
+          "401eb2a6-6acb-4ebc-936f-c88a6948d2a2",
+          "576538e2-f9eb-471c-8bac-e78da22b7f4f",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          7,
+          "2026-09-07T04:22:25.460705+00:00",
+          "2026-09-07T04:22:25.460705+00:00",
+          0
+        ],
+        [
           "402030f6-f681-403d-a396-6c665e1b9be7",
           "85e4cdbe-adf7-4309-a7d9-ba8aae4738ae",
           "c90518de-518b-4563-a10e-02588bbc1760",
@@ -371186,6 +371908,17 @@
           0
         ],
         [
+          "42d8d000-45f9-4a3a-8695-b8f2035488a6",
+          "260345e2-968e-4a6a-9900-ef51065c47c8",
+          "cd864daa-1216-4b52-843a-7b11181094c1",
+          null,
+          null,
+          4,
+          "2026-09-03T07:09:16.387663+00:00",
+          "2026-09-03T07:09:16.387663+00:00",
+          0
+        ],
+        [
           "42de7f2e-611f-42a9-aa25-85ad00abc297",
           "dc94aa3f-b81e-444d-a79b-56581bc25a48",
           "8ee1953d-bf9e-4b9d-8f51-b2e2a03f043d",
@@ -372382,6 +373115,17 @@
           2,
           "2026-05-05T10:19:04.144768+00:00",
           "2026-06-26T06:41:55.49941+00:00",
+          0
+        ],
+        [
+          "44d1c36a-42a5-450c-8cee-4d1c5a2d622c",
+          "90209209-8d43-4fe6-847c-0dd695bdc907",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          1,
+          "2026-09-03T11:26:11.609482+00:00",
+          "2026-09-03T11:26:11.609482+00:00",
           0
         ],
         [
@@ -374678,9 +375422,9 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          9,
+          2,
           "2026-08-14T14:11:27.596916+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:48:48+00:00",
           0
         ],
         [
@@ -383214,9 +383958,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          10,
+          4,
           "2026-08-25T05:21:53.434427+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:30+00:00",
           0
         ],
         [
@@ -390023,9 +390767,9 @@
           "20b514be-c6d5-4f4c-a728-4b7c8d15291d",
           null,
           null,
-          7,
+          2,
           "2026-08-21T07:53:26.141397+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T08:53:42+00:00",
           0
         ],
         [
@@ -393576,9 +394320,9 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          13,
+          6,
           "2026-08-14T14:11:31.201579+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:49:02+00:00",
           0
         ],
         [
@@ -398449,9 +399193,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          14,
+          1,
           "2026-08-19T11:59:37.711149+00:00",
-          "2026-08-19T11:59:37.711149+00:00",
+          "2026-09-03T07:21:44+00:00",
           0
         ],
         [
@@ -398768,9 +399512,9 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          2,
+          1,
           "2026-08-14T09:40:55.452725+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:48:44+00:00",
           0
         ],
         [
@@ -418029,9 +418773,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          12,
+          6,
           "2026-08-19T11:59:36.577246+00:00",
-          "2026-08-19T11:59:36.577246+00:00",
+          "2026-09-03T07:25:13+00:00",
           0
         ],
         [
@@ -419748,6 +420492,17 @@
           6,
           "2025-11-02T13:23:34.301033+00:00",
           "2025-11-08T09:00:30.642512+00:00",
+          0
+        ],
+        [
+          "9029eda0-45ca-427e-ac5e-70a8e5dc9cca",
+          "da1e6972-b784-4146-80da-fca191f0ae4e",
+          "cd864daa-1216-4b52-843a-7b11181094c1",
+          null,
+          null,
+          5,
+          "2026-09-03T07:27:30.144769+00:00",
+          "2026-09-03T07:27:30.144769+00:00",
           0
         ],
         [
@@ -422319,9 +423074,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          10,
+          3,
           "2026-08-21T07:53:20.807489+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:22+00:00",
           0
         ],
         [
@@ -425531,9 +426286,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          12,
+          6,
           "2026-08-25T05:21:58.828696+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:46+00:00",
           0
         ],
         [
@@ -427495,6 +428250,17 @@
           0
         ],
         [
+          "9c9e9650-5c51-40a9-aaee-53928eae66eb",
+          "7a9d9417-55d3-4ff9-a083-e732710e8356",
+          "89ad3134-c7f2-4545-a203-e8814497f366",
+          null,
+          null,
+          1,
+          "2026-09-07T09:29:27.575821+00:00",
+          "2026-09-07T09:29:27.575821+00:00",
+          0
+        ],
+        [
           "9c9f8c64-af06-4e2c-85e1-c7eac7229f71",
           "dad36a43-57dd-4437-aa11-a5f4274b6a72",
           "0623291c-c618-4988-92ce-9416deaabb75",
@@ -427830,9 +428596,9 @@
           "42db678d-0939-455a-8e10-43f1bda005b0",
           null,
           null,
-          7,
+          1,
           "2026-08-19T11:59:30.527404+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:50:02+00:00",
           0
         ],
         [
@@ -431559,9 +432325,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          20,
+          10,
           "2026-08-19T11:59:42.824194+00:00",
-          "2026-08-19T11:59:42.824194+00:00",
+          "2026-09-03T07:33:38+00:00",
           0
         ],
         [
@@ -434793,9 +435559,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          12,
+          1,
           "2026-08-21T07:53:23.753533+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:28+00:00",
           0
         ],
         [
@@ -435082,6 +435848,17 @@
           7,
           "2026-05-05T10:25:27.620585+00:00",
           "2026-06-26T06:41:55.49941+00:00",
+          0
+        ],
+        [
+          "a8783c5c-6b7a-40d8-af45-79dcc01725c6",
+          "5b495bbe-2dca-4613-b547-32de5fcaaa3a",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          2,
+          "2026-09-04T07:18:52.944597+00:00",
+          "2026-09-04T07:18:52.944597+00:00",
           0
         ],
         [
@@ -435574,9 +436351,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          8,
+          6,
           "2026-08-21T07:53:19.086698+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:15+00:00",
           0
         ],
         [
@@ -437796,9 +438573,9 @@
           "42db678d-0939-455a-8e10-43f1bda005b0",
           null,
           null,
-          8,
+          2,
           "2026-08-19T11:59:31.3326+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:50:05+00:00",
           0
         ],
         [
@@ -437939,9 +438716,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          19,
+          9,
           "2026-08-19T11:59:42.223159+00:00",
-          "2026-08-19T11:59:42.223159+00:00",
+          "2026-09-03T07:27:30+00:00",
           0
         ],
         [
@@ -441663,6 +442440,17 @@
           0
         ],
         [
+          "b2ff5bbf-b21a-4151-8f84-b1b63d3ee800",
+          "f4acf4b5-673c-4948-8ae5-63798a950aeb",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          3,
+          "2026-09-06T07:28:35.571165+00:00",
+          "2026-09-06T07:28:35.571165+00:00",
+          0
+        ],
+        [
           "b3018a7b-84b4-496c-80cd-99e7b8e1ee3f",
           "85746f65-53ce-41e2-b193-9fc7d2e930ab",
           "3afee21e-89de-4843-aee3-412f65d6ddd3",
@@ -443626,9 +444414,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          7,
+          1,
           "2026-08-25T05:21:49.682325+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:20+00:00",
           0
         ],
         [
@@ -452008,9 +452796,9 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          11,
+          4,
           "2026-08-14T14:11:29.416057+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:48:55+00:00",
           0
         ],
         [
@@ -455325,6 +456113,17 @@
           1
         ],
         [
+          "c8ce1a1b-5d60-4380-aba8-a170f10e27e5",
+          "61d52425-6ca2-4857-982a-d4d6bb4b0f90",
+          "cd864daa-1216-4b52-843a-7b11181094c1",
+          null,
+          null,
+          3,
+          "2026-09-03T06:11:41.828393+00:00",
+          "2026-09-03T06:11:41.828393+00:00",
+          0
+        ],
+        [
           "c8cfcf88-0c43-49a7-b523-e54291437e85",
           "474c0a92-40a5-4b2b-a621-e5e965dfc83a",
           "f9c4a98e-df2d-4b11-8da1-5df526642f8d",
@@ -456947,9 +457746,9 @@
           "b8b250be-aedb-46f4-9688-d53f55e8c16d",
           null,
           null,
-          8,
+          2,
           "2026-08-25T05:21:51.35188+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:53:24+00:00",
           0
         ],
         [
@@ -459653,9 +460452,20 @@
           "fd75dee2-b526-4fdd-8d63-06e694d818e8",
           null,
           null,
-          10,
+          3,
           "2026-08-14T14:11:28.582+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:48:52+00:00",
+          0
+        ],
+        [
+          "cfc7c98b-9f6a-4c73-ac49-2748a8401c68",
+          "91f8e6f3-72fd-482d-92c1-6dfe923c5c62",
+          "cd864daa-1216-4b52-843a-7b11181094c1",
+          null,
+          null,
+          7,
+          "2026-09-03T08:43:11.069706+00:00",
+          "2026-09-03T08:43:11.069706+00:00",
           0
         ],
         [
@@ -462205,9 +463015,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          15,
+          3,
           "2026-08-19T11:59:38.314434+00:00",
-          "2026-08-19T11:59:38.314434+00:00",
+          "2026-09-03T08:38:36+00:00",
           0
         ],
         [
@@ -465263,9 +466073,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          18,
+          8,
           "2026-08-19T11:59:41.665274+00:00",
-          "2026-08-19T11:59:41.665274+00:00",
+          "2026-09-03T07:32:54+00:00",
           0
         ],
         [
@@ -471764,9 +472574,9 @@
           "20b514be-c6d5-4f4c-a728-4b7c8d15291d",
           null,
           null,
-          8,
+          1,
           "2026-08-21T07:53:26.736267+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T08:53:39+00:00",
           0
         ],
         [
@@ -473315,9 +474125,9 @@
           "42db678d-0939-455a-8e10-43f1bda005b0",
           null,
           null,
-          9,
+          3,
           "2026-08-19T11:59:32.330144+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:50:09+00:00",
           0
         ],
         [
@@ -474276,6 +475086,17 @@
           "2025-05-13T08:52:59.898482+00:00",
           "2025-07-15T12:11:05.076238+00:00",
           1
+        ],
+        [
+          "e6d22ec4-5b01-4777-b4cc-7ac1b9756f32",
+          "c9d23a59-03b7-4295-9ae4-16757193939e",
+          "539b4552-66c2-476c-bb99-273d13ed2165",
+          null,
+          null,
+          4,
+          "2026-09-06T13:18:00.915951+00:00",
+          "2026-09-06T13:18:00.915951+00:00",
+          0
         ],
         [
           "e6d30219-f7bf-4a20-a249-5d3201c48c61",
@@ -475735,9 +476556,9 @@
           "d93b06c1-1d03-4f8b-b7c3-881b635c9b15",
           null,
           null,
-          16,
+          2,
           "2026-08-19T11:59:40.657836+00:00",
-          "2026-08-19T11:59:40.657836+00:00",
+          "2026-09-03T07:22:16+00:00",
           0
         ],
         [
@@ -476824,9 +477645,9 @@
           "c36bbe9a-fd11-4dc1-ad29-c0d715cf3abe",
           null,
           null,
-          7,
+          5,
           "2026-08-21T07:53:17.746435+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T04:52:12+00:00",
           0
         ],
         [
@@ -480971,9 +481792,9 @@
           "20b514be-c6d5-4f4c-a728-4b7c8d15291d",
           null,
           null,
-          6,
+          3,
           "2026-08-21T07:53:25.498112+00:00",
-          "2026-09-02T05:40:37.217897+00:00",
+          "2026-09-07T08:53:45+00:00",
           0
         ],
         [
@@ -490298,14 +491119,14 @@
         { "column": "last_pulled", "value": "TIMESTAMP NOT NULL" }
       ],
       "values": [
-        ["curriculum", "2026-09-02T06:50:46.964+00:00"],
-        ["subject", "2026-09-02T06:11:20.073+00:00"],
-        ["grade", "2026-09-02T06:50:46.964+00:00"],
-        ["language", "2026-09-02T06:11:20.073+00:00"],
-        ["course", "2026-09-02T06:11:20.073+00:00"],
+        ["curriculum", "2026-09-06T09:44:49.212+00:00"],
+        ["subject", "2026-09-06T09:44:49.212+00:00"],
+        ["grade", "2026-09-06T09:44:49.212+00:00"],
+        ["language", "2026-09-06T09:44:49.212+00:00"],
+        ["course", "2026-09-06T09:44:49.212+00:00"],
         ["school", "2024-01-01 01:01:01"],
-        ["chapter", "2026-09-02T06:11:20.073+00:00"],
-        ["lesson", "2026-09-02T06:11:20.073+00:00"],
+        ["chapter", "2026-09-06T09:44:49.212+00:00"],
+        ["lesson", "2026-09-06T09:44:49.212+00:00"],
         ["badge", "2026-06-14T11:33:34.373+00:00"],
         ["sticker", "2026-06-14T11:33:34.373+00:00"],
         ["reward", "2026-06-14T11:33:34.373+00:00"],
@@ -490315,7 +491136,7 @@
         ["class_user", "2024-01-01 01:01:01"],
         ["favorite_lesson", "2024-01-01 01:01:01"],
         ["class_course", "2024-01-01 01:01:01"],
-        ["chapter_lesson", "2026-09-02T06:11:20.073+00:00"],
+        ["chapter_lesson", "2026-09-06T09:44:49.212+00:00"],
         ["chapter_links", "2026-06-14T11:33:34.373+00:00"],
         ["parent_user", "2024-01-01 01:01:01"],
         ["school_course", "2024-01-01 01:01:01"],
@@ -490330,14 +491151,14 @@
         ["program", "2024-01-01 01:01:01"],
         ["rive_reward", "2026-06-14T11:33:34.373+00:00"],
         ["ops_requests", "2024-01-01 01:01:01"],
-        ["framework", "2026-09-02T06:11:20.073+00:00"],
-        ["domain", "2026-09-02T06:11:20.073+00:00"],
-        ["competency", "2026-09-02T06:11:20.073+00:00"],
-        ["outcome", "2026-09-02T06:11:20.073+00:00"],
-        ["skill", "2026-09-02T06:11:20.073+00:00"],
-        ["skill_relation", "2026-09-02T06:11:20.073+00:00"],
-        ["skill_lesson", "2026-09-02T06:11:20.073+00:00"],
-        ["subject_lesson", "2026-09-02T06:11:20.073+00:00"],
+        ["framework", "2026-09-06T09:44:49.212+00:00"],
+        ["domain", "2026-09-06T09:44:49.212+00:00"],
+        ["competency", "2026-09-06T09:44:49.212+00:00"],
+        ["outcome", "2026-09-06T09:44:49.212+00:00"],
+        ["skill", "2026-09-06T09:44:49.212+00:00"],
+        ["skill_relation", "2026-09-06T09:44:49.212+00:00"],
+        ["skill_lesson", "2026-09-06T09:44:49.212+00:00"],
+        ["subject_lesson", "2026-09-06T09:44:49.212+00:00"],
         ["language_locale", "2026-06-14T11:33:34.373+00:00"],
         ["locale", "2026-06-14T11:33:34.373+00:00"],
         ["sticker_book", "2026-07-26T09:22:15.141+00:00"],

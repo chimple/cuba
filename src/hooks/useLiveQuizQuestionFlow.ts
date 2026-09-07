@@ -22,6 +22,7 @@ import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 import logger from '../utility/logger';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
+import { extractPackagedQuizBundle } from './useLiveQuizQuestionFlow.helpers';
 import {
   calculateScoreForQuestion,
   DEFAULT_LIVE_QUIZ_CONFIG,
@@ -206,12 +207,22 @@ export function useLiveQuizQuestionFlow({
 
     let configFile: LiveQuiz | undefined;
 
+    // Offline devices first reuse an already extracted lesson, then fall back
+    // to the packaged APK ZIP. Online devices retain remote-first behavior.
+    const isOffline =
+      typeof navigator !== 'undefined' && navigator.onLine === false;
+
     const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
       BUNDLE_ZIP_URLS,
       getBundleZipUrlsForEnv(),
     );
 
-    for (const baseUrl of remoteUrls) {
+    const localConfigPath = lessonKey ? `${lessonKey}/config.json` : '';
+    if (isOffline && localConfigPath) {
+      configFile = await readLocalConfig(localConfigPath);
+    }
+
+    for (const baseUrl of configFile || isOffline ? [] : remoteUrls) {
       try {
         const response = await fetch(
           baseUrl + (lessonId || cocosLessonId) + '/config.json',
@@ -223,6 +234,11 @@ export function useLiveQuizQuestionFlow({
       } catch {
         logger.warn('Failed to fetch from remote:', baseUrl);
       }
+    }
+
+    // Use the packaged APK copy when remote URLs are unavailable or fail.
+    if (!configFile && lessonKey) {
+      configFile = await extractPackagedQuizBundle(lessonKey);
     }
 
     if (!configFile) {
@@ -512,7 +528,8 @@ export function useLiveQuizQuestionFlow({
   const handleOptionSelect = async (optionIndex: number) => {
     if (!canAnswer || !liveQuizConfig || currentQuestionIndex == null) return;
 
-    const option = liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
+    const option =
+      liveQuizConfig.data[currentQuestionIndex].options[optionIndex];
     setCanAnswer(false);
     setSelectedAnswerIndex(optionIndex);
     handleOptionClick(currentQuestionIndex, optionIndex);

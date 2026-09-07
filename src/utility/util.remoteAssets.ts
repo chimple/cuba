@@ -182,11 +182,15 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
+              // Packaged APK bundles are ZIP files. Live Quiz config.json is
+              // inside the ZIP, not exposed as a loose asset.
               const localBundlePath =
-                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}.zip`;
 
               try {
-                const response = await fetch(localBundlePath);
+                const response = await fetch(localBundlePath, {
+                  method: 'HEAD',
+                });
                 if (response.ok && localVersion === 0) {
                   this.setGameUrl(LOCAL_BUNDLES_PATH);
                   return true;
