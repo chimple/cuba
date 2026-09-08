@@ -15,6 +15,11 @@ import logger from './logger';
 import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 import { getAppSearchParams } from './routerLocation';
 import { UtilSessionContext } from './util.sessionContext';
+import {
+  PENDING_TEACHER_DEEP_LINK,
+  resolveTeacherDeepLink,
+  TeacherDeepLinkTarget,
+} from './teacherDeepLinks';
 
 declare global {
   interface Window {
@@ -35,8 +40,40 @@ export class UtilSchoolContext extends UtilSessionContext {
   static [key: string]: any;
 
   public static async onAppUrlOpen(event: URLOpenListenerEvent) {
+    let url: URL;
+    try {
+      url = new URL(event.url);
+    } catch {
+      logger.warn('Ignoring invalid app URL', event.url);
+      return;
+    }
+    const teacherTarget = resolveTeacherDeepLink(url);
+    if (teacherTarget) {
+      const serialized = JSON.stringify(teacherTarget);
+      const currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser && teacherTarget.teacherOnly) {
+        const schools = await ServiceConfig.getI().apiHandler.getSchoolsForUser(
+          currentUser.id,
+        );
+        if (
+          !schools.some(
+            (school) => school.role?.toLowerCase() === RoleType.TEACHER,
+          )
+        ) {
+          return;
+        }
+      }
+      if (!currentUser) {
+        sessionStorage.setItem(PENDING_TEACHER_DEEP_LINK, serialized);
+        replaceWithNavigationTarget(PAGES.LOGIN);
+      } else {
+        replaceWithNavigationTarget(teacherTarget);
+      }
+      return;
+    }
+
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    const url = new URL(event.url);
     const slug = event.url.split('.cc').pop();
     // Determine target page for logging
     let destinationPage = '';
@@ -67,6 +104,19 @@ export class UtilSchoolContext extends UtilSessionContext {
       replaceWithNavigationTarget(
         PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
+    }
+  }
+
+  public static consumePendingTeacherDeepLink(): TeacherDeepLinkTarget | null {
+    try {
+      const value = sessionStorage.getItem(PENDING_TEACHER_DEEP_LINK);
+      if (!value) return null;
+      sessionStorage.removeItem(PENDING_TEACHER_DEEP_LINK);
+      const target = JSON.parse(value) as TeacherDeepLinkTarget;
+      return target?.pathname ? target : null;
+    } catch {
+      sessionStorage.removeItem(PENDING_TEACHER_DEEP_LINK);
+      return null;
     }
   }
 

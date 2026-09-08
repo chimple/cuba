@@ -28,7 +28,6 @@ import { Util } from '../utility/util';
 import i18n from '../i18n';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { useHistory } from 'react-router-dom';
-// redux store, slice, hook imports
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { RootState } from '../redux/store';
 import {
@@ -59,7 +58,6 @@ const WEB_LOADING_ANIMATIONS = [
   '/assets/profiles-grid.gif',
   '/assets/subjects-book.gif',
 ];
-
 export const useLoginScreenController = () => {
   const history = useHistory();
   const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
@@ -77,12 +75,10 @@ export const useLoginScreenController = () => {
   >(LOGIN_TYPES.PHONE);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-
   const { error: authErrors, loading: isLoading } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
   const dispatch = useAppDispatch();
-
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState(false);
   const [showResendOtp, setShowResendOtp] = useState(false);
@@ -115,13 +111,11 @@ export const useLoginScreenController = () => {
   const [initializing, setInitializing] = useState(true);
   const [showStudentCredentialLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
-
   const loginTermsBaseUrl = resolveTermsBaseUrl(tcHtmlUrlFeature);
   const loginTermsUrl = loginTermsBaseUrl
     ? buildTermsUrl(loginTermsBaseUrl, currentLang)
     : 'assets/termsandconditions/TermsandConditionsofChimple.html';
   const isNativePlatform = Capacitor.isNativePlatform();
-
   const loadingMessages = [
     t('Track your learning progress.'),
     t('Preparing 400+ fun lessons.'),
@@ -159,12 +153,10 @@ export const useLoginScreenController = () => {
     const initialize = async () => {
       try {
         if (shouldRespectOwnNavigation()) return;
-        // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
         }
         if (isCancelled || shouldRespectOwnNavigation()) return;
-        // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
           localStorage.setItem(LANGUAGE, 'en');
@@ -175,17 +167,14 @@ export const useLoginScreenController = () => {
           await i18n.changeLanguage(appLang);
         }
         if (isCancelled || shouldRespectOwnNavigation()) return;
-
         const authHandler = ServiceConfig.getI().authHandler;
         let isLoggedIn = await authHandler.isUserLoggedIn();
         if (isCancelled || shouldRespectOwnNavigation()) return;
-
         if (!isLoggedIn) {
           Util.migrateSupabaseSession();
           isLoggedIn = await authHandler.isUserLoggedIn();
         }
         if (isCancelled || shouldRespectOwnNavigation()) return;
-
         if (isLoggedIn) {
           await redirectAuthenticatedUser();
           return;
@@ -197,7 +186,6 @@ export const useLoginScreenController = () => {
       }
     };
     initialize();
-
     return () => {
       isCancelled = true;
       if (Capacitor.isNativePlatform()) {
@@ -208,13 +196,9 @@ export const useLoginScreenController = () => {
       }
     };
   }, []);
-
-  // Handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
     if (shouldRespectOwnNavigation()) return;
-
     if (document.visibilityState === 'visible') {
-      // App came to foreground
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
         if (isUserLoggedIn && !shouldRespectOwnNavigation()) {
@@ -223,11 +207,8 @@ export const useLoginScreenController = () => {
       });
     }
   };
-
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = '';
-
-  // Timer effect for OTP resend
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (showTimer && counter > 0) {
@@ -246,7 +227,6 @@ export const useLoginScreenController = () => {
     };
   }, [showTimer, counter]);
 
-  // Timer effect for OTP expiration
   useEffect(() => {
     if (loginType === LOGIN_TYPES.OTP) {
       const expiryTimer = setInterval(() => {
@@ -301,7 +281,24 @@ export const useLoginScreenController = () => {
     if (shouldRespectOwnNavigation()) return;
     await redirectUser(schools, isOpsUser);
   };
+  const redirectToPendingTeacherLink = (
+    schools: { role: RoleType }[],
+  ): boolean => {
+    const pendingTeacherLink = Util.consumePendingTeacherDeepLink();
+    if (!pendingTeacherLink) return false;
 
+    if (
+      pendingTeacherLink.teacherOnly &&
+      !schools.some((school) => school.role === RoleType.TEACHER)
+    ) {
+      history.replace(PAGES.HOME_PAGE);
+      return true;
+    }
+
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(pendingTeacherLink);
+    return true;
+  };
   const redirectUser = async (
     schools: { role: RoleType }[],
     isOpsUser: boolean,
@@ -326,12 +323,11 @@ export const useLoginScreenController = () => {
         schoolUtil.setCurrMode(MODES.PARENT);
         return history.replace(PAGES.DISPLAY_STUDENT);
       }
-
-      // AUTOUSER ? school-mode
       const hasTeacherAppRole = schools.some((school) =>
         isTeacherAppRole(school.role),
       );
       if (hasTeacherAppRole) {
+        if (redirectToPendingTeacherLink(schools)) return;
         const authHandler = ServiceConfig.getI()?.authHandler;
         const currentUser = await authHandler?.getCurrentUser();
         if (shouldRespectOwnNavigation()) return;
@@ -354,6 +350,7 @@ export const useLoginScreenController = () => {
         }
       }
       const authHandler = ServiceConfig.getI()?.authHandler;
+      if (redirectToPendingTeacherLink(schools)) return;
       const currentUser = await authHandler?.getCurrentUser();
       if (shouldRespectOwnNavigation()) return;
       // else teacher
@@ -364,12 +361,10 @@ export const useLoginScreenController = () => {
       return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
   };
-
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
     ([id, displayName]) => ({ id, displayName }),
   );
-
   // Handle language change
   const handleLanguageChange = async (selectedLang: string) => {
     if (!selectedLang) return;

@@ -29,6 +29,7 @@ const mockUpdateLocalAttributes = jest.fn();
 const mockSetCurrMode = jest.fn();
 const mockLogEvent = jest.fn();
 const mockMigrateSupabaseSession = jest.fn();
+const mockConsumePendingTeacherDeepLink = jest.fn(() => null);
 let mockCurrentLanguage = 'en';
 const mockTranslations: Record<string, Record<string, string>> = {
   en: {
@@ -113,6 +114,7 @@ jest.mock('../utility/util', () => ({
     logEvent: (eventName: unknown, payload: unknown) =>
       mockLogEvent(eventName, payload),
     migrateSupabaseSession: () => mockMigrateSupabaseSession(),
+    consumePendingTeacherDeepLink: () => mockConsumePendingTeacherDeepLink(),
   },
 }));
 
