@@ -10,6 +10,8 @@ describe('resolveTeacherDeepLink', () => {
     ['/#/teacher/reports', 3],
     ['/#/teacher/library?isReload=true', 1],
     ['/teacher/library', 1],
+    ['/teacher-library', 1],
+    ['/teacher-reports', 3],
   ])('resolves %s', (path, tabValue) => {
     expect(
       resolveTeacherDeepLink(new URL(`https://chimple.cc${path}`)),
@@ -24,6 +26,13 @@ describe('resolveTeacherDeepLink', () => {
       resolveTeacherDeepLink(new URL('https://chimple.cc/#/teacher/streak')),
     ).toEqual({
       pathname: PAGES.STREAK_PAGE,
+      teacherOnly: true,
+    });
+    expect(
+      resolveTeacherDeepLink(new URL('https://chimple.cc/teacher-streak')),
+    ).toEqual({
+      pathname: PAGES.STREAK_PAGE,
+      teacherOnly: true,
     });
     expect(
       resolveTeacherDeepLink(new URL('https://example.com/library')),

@@ -52,6 +52,18 @@ export class UtilSchoolContext extends UtilSessionContext {
       const serialized = JSON.stringify(teacherTarget);
       const currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser && teacherTarget.teacherOnly) {
+        const schools = await ServiceConfig.getI().apiHandler.getSchoolsForUser(
+          currentUser.id,
+        );
+        if (
+          !schools.some(
+            (school) => school.role?.toLowerCase() === RoleType.TEACHER,
+          )
+        ) {
+          return;
+        }
+      }
       if (!currentUser) {
         sessionStorage.setItem(PENDING_TEACHER_DEEP_LINK, serialized);
         replaceWithNavigationTarget(PAGES.LOGIN);
