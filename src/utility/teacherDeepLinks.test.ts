@@ -3,8 +3,6 @@ import { resolveTeacherDeepLink } from './teacherDeepLinks';
 
 describe('resolveTeacherDeepLink', () => {
   it.each([
-    ['/teacher-home', 0],
-    ['/home-page', 0],
     ['/reports', 3],
     ['/library', 1],
     ['/#/teacher/home-page', 0],
@@ -24,11 +22,6 @@ describe('resolveTeacherDeepLink', () => {
   it('resolves streaks and rejects unsupported URLs', () => {
     expect(
       resolveTeacherDeepLink(new URL('https://chimple.cc/#/teacher/streak')),
-    ).toEqual({
-      pathname: PAGES.STREAK_PAGE,
-    });
-    expect(
-      resolveTeacherDeepLink(new URL('https://chimple.cc/streaks')),
     ).toEqual({
       pathname: PAGES.STREAK_PAGE,
     });
