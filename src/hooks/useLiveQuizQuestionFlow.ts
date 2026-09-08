@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
@@ -87,6 +87,7 @@ export function useLiveQuizQuestionFlow({
   const [audio, setAudio] = useState<boolean>(false);
   const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const configLoadPromise = useRef<Promise<LiveQuiz> | null>(null);
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
@@ -179,7 +180,7 @@ export function useLiveQuizQuestionFlow({
     }
   };
 
-  const getConfigJson = async () => {
+  const loadConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     const lessonKey = lessonId || cocosLessonId;
     if (lessonKey) {
@@ -264,6 +265,19 @@ export function useLiveQuizQuestionFlow({
     if (onConfigLoaded) onConfigLoaded(configFile);
 
     return configFile;
+  };
+
+  // The initial effect and the showQuiz effect can run before the first
+  // request updates state. Share that request so the APK bundle is not
+  // extracted twice concurrently.
+  const getConfigJson = () => {
+    if (liveQuizConfig) return Promise.resolve(liveQuizConfig);
+    if (!configLoadPromise.current) {
+      configLoadPromise.current = loadConfigJson().finally(() => {
+        configLoadPromise.current = null;
+      });
+    }
+    return configLoadPromise.current;
   };
 
   const handleRoomChange = () => {
