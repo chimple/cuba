@@ -11,6 +11,7 @@ import logger from '../utility/logger';
 export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const {
     api,
+    assignmentId,
     assignmentType,
     chapterDetail,
     courseDetail,
@@ -25,6 +26,9 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     source,
   } = ctx;
   const getAssessmentProgressKey = () => {
+    const assignmentProgressSuffix = assignmentId
+      ? `:assignment:${assignmentId}`
+      : '';
     if (isAssessmentLesson && courseDetailWithPathFields?.subject_id) {
       const courseCode = (
         courseDetailWithPathFields.code ??
@@ -37,15 +41,15 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
         courseDetailWithPathFields.course_id ??
         courseDocId;
       return courseCode
-        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}`
-        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}`;
+        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}${assignmentProgressSuffix}`
+        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}${assignmentProgressSuffix}`;
     }
-    return (
+    const courseKey =
       courseDetailWithPathFields?.id ??
       courseDetailWithPathFields?.course_id ??
       courseDocId ??
-      ''
-    );
+      '';
+    return `${courseKey}${assignmentProgressSuffix}`;
   };
 
   const resolveStudentContext = async (): Promise<{
@@ -87,6 +91,8 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const resolvePreviousAssessmentSkipped = async (
     studentId: string,
   ): Promise<boolean> => {
+    // A new assigned assessment starts with fresh termination state.
+    if (assignmentId) return false;
     if (previousAssessmentSkippedRef.current !== null) {
       return previousAssessmentSkippedRef.current;
     }
