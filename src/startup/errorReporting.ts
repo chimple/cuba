@@ -7,23 +7,38 @@ import { TableTypes } from '../common/constants';
 import logger from '../utility/logger';
 
 export const initializeErrorReporting = () => {
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  const dsn = import.meta.env.VITE_SENTRY_DSN?.trim();
+  // Invalid configuration must not reach the native SDK: it can crash Android.
+  let hasValidDsn = false;
+  try {
+    const parsed = new URL(dsn ?? '');
+    hasValidDsn =
+      ['https:', 'http:'].includes(parsed.protocol) &&
+      Boolean(parsed.hostname && parsed.username) &&
+      /^\d+$/.test(parsed.pathname.split('/').pop() ?? '');
+  } catch {
+    // Missing or malformed optional telemetry configuration.
+  }
 
-  Sentry.init(
-    {
-      dsn,
-      sendDefaultPii: true,
-      integrations: [Sentry.browserTracingIntegration()],
-    },
-    SentryReact.init,
-  );
+  if (hasValidDsn) {
+    Sentry.init(
+      {
+        dsn,
+        sendDefaultPii: true,
+        integrations: [Sentry.browserTracingIntegration()],
+      },
+      SentryReact.init,
+    );
+  } else {
+    logger.warn('Skipping Sentry initialization: missing or invalid DSN.');
+  }
 
   persistor.subscribe(() => {
     const { bootstrapped } = persistor.getState();
     if (!bootstrapped) return;
 
     const user = store.getState().auth?.user;
-    if (user?.id) {
+    if (hasValidDsn && user?.id) {
       Sentry.setUser({ id: user.id });
     }
   });

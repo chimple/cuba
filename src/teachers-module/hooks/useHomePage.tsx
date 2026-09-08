@@ -55,6 +55,12 @@ export const useHomePage = () => {
       ? 0
       : (location.state?.tabValue ?? 0);
   const [tabValue, setTabValue] = useState<number>(initialTab);
+  useEffect(() => {
+    // Home stays mounted when a deep link replaces only its navigation state.
+    if (location.state?.tabValue !== undefined) {
+      setTabValue(initialTab);
+    }
+  }, [location.key, location.state?.tabValue, initialTab]);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
   const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);

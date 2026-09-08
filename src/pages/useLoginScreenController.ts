@@ -28,7 +28,6 @@ import { Util } from '../utility/util';
 import i18n from '../i18n';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { useHistory } from 'react-router-dom';
-// redux store, slice, hook imports
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { RootState } from '../redux/store';
 import {
@@ -159,12 +158,10 @@ export const useLoginScreenController = () => {
     const initialize = async () => {
       try {
         if (shouldRespectOwnNavigation()) return;
-        // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
         }
         if (isCancelled || shouldRespectOwnNavigation()) return;
-        // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
           localStorage.setItem(LANGUAGE, 'en');
@@ -208,13 +205,10 @@ export const useLoginScreenController = () => {
       }
     };
   }, []);
-
-  // Handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
     if (shouldRespectOwnNavigation()) return;
 
     if (document.visibilityState === 'visible') {
-      // App came to foreground
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
         if (isUserLoggedIn && !shouldRespectOwnNavigation()) {
@@ -223,11 +217,8 @@ export const useLoginScreenController = () => {
       });
     }
   };
-
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = '';
-
-  // Timer effect for OTP resend
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (showTimer && counter > 0) {
@@ -246,7 +237,6 @@ export const useLoginScreenController = () => {
     };
   }, [showTimer, counter]);
 
-  // Timer effect for OTP expiration
   useEffect(() => {
     if (loginType === LOGIN_TYPES.OTP) {
       const expiryTimer = setInterval(() => {
@@ -301,7 +291,14 @@ export const useLoginScreenController = () => {
     if (shouldRespectOwnNavigation()) return;
     await redirectUser(schools, isOpsUser);
   };
+  const redirectToPendingTeacherLink = (): boolean => {
+    const pendingTeacherLink = Util.consumePendingTeacherDeepLink();
+    if (!pendingTeacherLink) return false;
 
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(pendingTeacherLink);
+    return true;
+  };
   const redirectUser = async (
     schools: { role: RoleType }[],
     isOpsUser: boolean,
@@ -326,12 +323,11 @@ export const useLoginScreenController = () => {
         schoolUtil.setCurrMode(MODES.PARENT);
         return history.replace(PAGES.DISPLAY_STUDENT);
       }
-
-      // AUTOUSER ? school-mode
       const hasTeacherAppRole = schools.some((school) =>
         isTeacherAppRole(school.role),
       );
       if (hasTeacherAppRole) {
+        if (redirectToPendingTeacherLink()) return;
         const authHandler = ServiceConfig.getI()?.authHandler;
         const currentUser = await authHandler?.getCurrentUser();
         if (shouldRespectOwnNavigation()) return;
@@ -354,6 +350,7 @@ export const useLoginScreenController = () => {
         }
       }
       const authHandler = ServiceConfig.getI()?.authHandler;
+      if (redirectToPendingTeacherLink()) return;
       const currentUser = await authHandler?.getCurrentUser();
       if (shouldRespectOwnNavigation()) return;
       // else teacher
