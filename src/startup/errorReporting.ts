@@ -21,14 +21,21 @@ export const initializeErrorReporting = () => {
   }
 
   if (hasValidDsn) {
-    Sentry.init(
-      {
-        dsn,
-        sendDefaultPii: true,
-        integrations: [Sentry.browserTracingIntegration()],
-      },
-      SentryReact.init,
-    );
+    try {
+      Sentry.init(
+        {
+          dsn,
+          sendDefaultPii: true,
+          integrations: [Sentry.browserTracingIntegration()],
+        },
+        SentryReact.init,
+      );
+    } catch (error) {
+      logger.warn(
+        'Sentry initialization failed; continuing without Sentry.',
+        error,
+      );
+    }
   } else {
     logger.warn('Skipping Sentry initialization: missing or invalid DSN.');
   }
