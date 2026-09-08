@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
 import { TableTypes } from '../common/constants';
@@ -57,10 +57,43 @@ const LidoPlayer: FC = () => {
     xmlPath,
     zipUrl,
   } = useLidoPlayerController() as LidoPlayerViewProps;
+  const playerRef = useRef<HTMLElement | null>(null);
+  const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isReady || showDialogBox) {
+      setIsPlayerLoaded(false);
+      return;
+    }
+
+    const player = playerRef.current as
+      | (HTMLElement & {
+          componentOnReady?: () => Promise<unknown>;
+        })
+      | null;
+
+    if (!player) return;
+
+    let cancelled = false;
+    const waitForPlayer = async () => {
+      try {
+        if (player.componentOnReady) {
+          await player.componentOnReady();
+        }
+      } finally {
+        if (!cancelled) setIsPlayerLoaded(true);
+      }
+    };
+
+    void waitForPlayer();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, showDialogBox, xmlPath, basePath, zipUrl]);
 
   return (
     <IonPage>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={isLoading || (isReady && !isPlayerLoaded)} />
       {showDialogBox && (
         <ScoreCard
           score={
@@ -110,6 +143,7 @@ const LidoPlayer: FC = () => {
       )}
       {isReady && (xmlPath || basePath || zipUrl) && !showDialogBox
         ? React.createElement('lido-standalone', {
+            ref: playerRef,
             'xml-path': xmlPath,
             'base-url': basePath,
             canplay: true,
