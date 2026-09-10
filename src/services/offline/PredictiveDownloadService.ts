@@ -1,7 +1,13 @@
 import { Capacitor } from '@capacitor/core';
 import { Network } from '@capacitor/network';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { PREDICTIVE_BUFFER_LESSON_IDS } from '../../common/constants';
+import {
+  PREDICTIVE_ASSESSMENT_STATUS,
+  PREDICTIVE_BUFFER_LESSON_IDS,
+  RESULT_STATUS,
+  SOURCE,
+  TableTypes,
+} from '../../common/constants';
 import { ServiceConfig } from '../ServiceConfig';
 import { getPredictiveBundleZipUrls } from '../../utility/util.remoteAssets';
 import { Util } from '../../utility/util';
@@ -54,6 +60,7 @@ export type PredictiveDownloadQueue = {
 
 export type PredictiveDownloadDependencies = {
   bufferSize: number;
+  completedAssessmentCourses: ReadonlySet<string>;
   downloadMissingLessons: (
     lessonIds: string[],
     courseByLessonId: Map<string, PredictiveDownloadContext>,
@@ -62,6 +69,12 @@ export type PredictiveDownloadDependencies = {
 
 type NavigatorWithConnection = Navigator & {
   connection?: { saveData?: boolean };
+};
+
+type AssessmentStatusEntry = {
+  student_id: string;
+  course_id: string;
+  assessment_completed_or_terminated: true;
 };
 
 export class PredictiveDownloadService {
@@ -120,6 +133,8 @@ export class PredictiveDownloadService {
         return;
       }
 
+      const completedAssessmentCourses =
+        await this.refreshAssessmentStatusCache();
       // Membership is only routing. Each flow owns its complete class or
       // no-class prediction pipeline after this decision.
       const isStudentLinked =
@@ -129,6 +144,7 @@ export class PredictiveDownloadService {
         );
       const dependencies: PredictiveDownloadDependencies = {
         bufferSize: PREDICTIVE_BUFFER_SIZE,
+        completedAssessmentCourses,
         downloadMissingLessons: (lessonIds, courseByLessonId) =>
           this.downloadMissingLessons(lessonIds, courseByLessonId),
       };
@@ -142,6 +158,141 @@ export class PredictiveDownloadService {
       );
     } catch (error) {
       logger.info('[***] Refresh failed', error);
+    }
+  }
+
+  private static async refreshAssessmentStatusCache(): Promise<
+    ReadonlySet<string>
+  > {
+    const storedStatuses = this.readAssessmentStatusCache();
+    try {
+      const parent = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!parent?.id) return storedStatuses;
+
+      const api = ServiceConfig.getI().apiHandler;
+      const students = await api.getParentStudentProfiles();
+      const statuses: AssessmentStatusEntry[] = [];
+      for (const student of students) {
+        const results = await api.getStudentResult(student.id, false);
+        const courseIds = new Set(
+          results
+            .filter(
+              (result) =>
+                result.source === SOURCE.INITIAL_ASSESSMENT &&
+                (result.status === RESULT_STATUS.COMPLETED ||
+                  result.status === RESULT_STATUS.ASSESSMENT_TERMINATED) &&
+                Boolean(result.course_id),
+            )
+            .map((result) => result.course_id)
+            .filter((courseId): courseId is string => Boolean(courseId)),
+        );
+
+        for (const courseId of courseIds) {
+          if (await this.isAssessmentClosed(student, courseId, results)) {
+            statuses.push({
+              student_id: student.id,
+              course_id: courseId,
+              assessment_completed_or_terminated: true,
+            });
+          }
+        }
+      }
+
+      localStorage.setItem(
+        PREDICTIVE_ASSESSMENT_STATUS,
+        JSON.stringify(statuses),
+      );
+      return new Set(
+        statuses.map((status) =>
+          this.getAssessmentStatusKey(status.student_id, status.course_id),
+        ),
+      );
+    } catch (error) {
+      logger.info('[***] Assessment status refresh failed', error);
+      return storedStatuses;
+    }
+  }
+
+  private static readAssessmentStatusCache(): ReadonlySet<string> {
+    try {
+      const statuses = JSON.parse(
+        localStorage.getItem(PREDICTIVE_ASSESSMENT_STATUS) || '[]',
+      ) as AssessmentStatusEntry[];
+      return new Set(
+        statuses
+          .filter(
+            (status) =>
+              status.assessment_completed_or_terminated === true &&
+              Boolean(status.student_id) &&
+              Boolean(status.course_id),
+          )
+          .map((status) =>
+            this.getAssessmentStatusKey(status.student_id, status.course_id),
+          ),
+      );
+    } catch {
+      return new Set();
+    }
+  }
+
+  private static getAssessmentStatusKey(
+    studentId: string,
+    courseId: string,
+  ): string {
+    return `${studentId}:${courseId}`;
+  }
+
+  private static async isAssessmentClosed(
+    student: TableTypes<'user'>,
+    courseId: string,
+    results: TableTypes<'result'>[],
+  ): Promise<boolean> {
+    if (
+      results.some(
+        (result) =>
+          result.course_id === courseId &&
+          result.source === SOURCE.INITIAL_ASSESSMENT &&
+          result.status === RESULT_STATUS.ASSESSMENT_TERMINATED,
+      )
+    ) {
+      return true;
+    }
+
+    const learningPath = this.parseLearningPath(student.learning_path);
+    const coursePath = learningPath?.courses?.courseList?.find(
+      (path) => path.course_id === courseId,
+    );
+    if (coursePath) {
+      const assessmentLessons = (coursePath.path ?? []).filter(
+        (lesson) => lesson.is_assessment === true,
+      );
+      return !assessmentLessons.some((lesson) => lesson.isPlayed !== true);
+    }
+
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const course = await api.getCourse(courseId);
+      if (!course?.subject_id) return false;
+      const pendingLessons = await api.getSubjectLessonsBySubjectId(
+        course.subject_id,
+        student,
+        course.id,
+        true,
+      );
+      return pendingLessons.length === 0;
+    } catch {
+      return false;
+    }
+  }
+
+  private static parseLearningPath(
+    value: string | null | undefined,
+  ): StoredLearningPath | null {
+    if (!value) return null;
+    try {
+      return JSON.parse(value) as StoredLearningPath;
+    } catch {
+      return null;
     }
   }
 

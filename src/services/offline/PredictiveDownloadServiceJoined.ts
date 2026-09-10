@@ -108,6 +108,14 @@ export class PredictiveDownloadServiceJoined {
     // Assessments are a separate phase so five assignments cannot suppress
     // the assessment set for the same course.
     for (const course of eligibleCourses) {
+      if (
+        dependencies.completedAssessmentCourses.has(
+          `${student.id}:${course.id}`,
+        )
+      ) {
+        courseAssessmentCounts.set(course.id, 0);
+        continue;
+      }
       const assignedAssessments = await api.getLatestAssessmentGroup(
         classId,
         student,

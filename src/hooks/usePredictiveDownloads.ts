@@ -10,7 +10,7 @@ import {
 } from '../common/constants';
 import { useAppSelector } from '../redux/hooks';
 import { PredictiveDownloadService } from '../services/offline/PredictiveDownloadService';
-import logger from '../utility/logger';
+import { logger } from '../utility/logger';
 
 const PREDICTIVE_REFRESH_INTERVAL_MS = 2 * 60 * 1000;
 
@@ -19,11 +19,11 @@ export const usePredictiveDownloads = (): void => {
 
   useEffect(() => {
     if (!student?.id) {
-      logger.warn('[***] Waiting for authenticated student');
+      logger.info('[***] Waiting for authenticated student');
       return;
     }
 
-    logger.warn('[***] Hook active', {
+    logger.info('[***] Hook active', {
       page: window.location.pathname,
     });
 

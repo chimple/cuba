@@ -63,10 +63,12 @@ export class PredictiveDownloadServiceNotJoined {
     // No class means no assignment lookup; assessment is followed by the
     // sequential fallback for the remaining slots.
     for (const course of eligibleCourses) {
-      const assessments = await this.getIndependentAssessmentIds(
-        course,
-        student,
+      const assessmentIsClosed = dependencies.completedAssessmentCourses.has(
+        `${student.id}:${course.id}`,
       );
+      const assessments = assessmentIsClosed
+        ? []
+        : await this.getIndependentAssessmentIds(course, student);
       this.addCourseLessons(queue, course, assessments, 'assessment');
 
       // Completed or terminated assessments resolve to no pending lessons;
