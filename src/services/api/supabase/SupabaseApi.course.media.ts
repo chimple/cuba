@@ -81,8 +81,21 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
     subjectId: string,
     student?: TableTypes<'user'>,
     courseId?: string,
-  ): Promise<TableTypes<'subject_lesson'>> {
-    if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
+  ): Promise<TableTypes<'subject_lesson'>>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student: TableTypes<'user'>,
+    courseId: string | undefined,
+    returnAllPending: true,
+  ): Promise<TableTypes<'subject_lesson'>[]>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<'user'>,
+    courseId?: string,
+    returnAllPending = false,
+  ): Promise<TableTypes<'subject_lesson'> | TableTypes<'subject_lesson'>[]> {
+    if (!this.supabase || !student)
+      return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
 
     const studentId = student.id;
     let langId = student.language_id ?? null;
@@ -146,7 +159,8 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
         .not('set_number', 'is', null);
 
       if (setError) throw setError;
-      if (!setRows?.length) return {} as TableTypes<'subject_lesson'>;
+      if (!setRows?.length)
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
 
       const uniqueSets = Array.from(
         new Set(
@@ -156,7 +170,8 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
         ),
       );
 
-      if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
+      if (!uniqueSets.length)
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
 
       const preferredSets = langId
         ? Array.from(
@@ -214,7 +229,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
       );
 
       if (!assessmentLessonIds.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       /* ==========================================
@@ -235,7 +250,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
       logger.info('Abort query result:', data);
       if (error) {
         logger.error('Abort query error:', error);
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       // Empty result set is expected for first-time.
@@ -272,7 +287,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
       // A termination advances the assessment sequence; two exits still abort it.
       if (isAborted && !isAssessmentTerminated) {
         logger.info('Assessment is aborted.');
-        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>); // 🚫 Aborted group
       }
 
       /* ==========================================
@@ -323,7 +338,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
       const { data: lessons, error: lessonError } = await lessonsQuery;
 
       if (lessonError || !lessons?.length)
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
 
       const matchedLessons = lessons.filter(
         (lesson) => lesson.language_id === langId,
@@ -354,7 +369,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
       }
 
       if (!candidateLessons.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       /* ==========================================
@@ -380,6 +395,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
         (lesson) => !completedLessonIds.has(lesson.lesson_id),
       );
 
+      if (returnAllPending) return pendingLessons;
       return pendingLessons.length
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
@@ -388,7 +404,7 @@ export class SupabaseApiCourseMedia extends SupabaseApiCourseGradeOptions {
         '❌ Error fetching subject lessons by subject (Supabase):',
         error,
       );
-      return {} as TableTypes<'subject_lesson'>;
+      return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
     }
   }
 }

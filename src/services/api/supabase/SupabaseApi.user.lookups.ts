@@ -51,13 +51,13 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
       .eq('user_id', studentId)
       .eq('role', RoleType.STUDENT)
       .eq('is_deleted', false)
-      .single();
+      .limit(1);
 
     if (error) {
       logger.error('Error in isStudentLinked', error);
       return false;
     }
-    return true;
+    return (data?.length ?? 0) > 0;
   }
   async getPendingAssignments(
     classId: string,
@@ -78,7 +78,7 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
       )
       .eq('class_id', classId)
       .eq('is_deleted', false)
-      .neq('type', 'assessment')
+      .eq('type', 'assignment')
       .or(`starts_at.is.null,starts_at.lte."${nowIso}"`)
       .or(`ends_at.is.null,ends_at.gt."${nowIso}"`)
       .order('created_at', { ascending: false });

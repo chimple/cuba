@@ -391,6 +391,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       assignment_type: assignmentType,
       source,
     });
+    window.dispatchEvent(new CustomEvent(EVENTS.LESSON_END));
     logUserActivationLessonEvent({
       detail: data,
       userId: parentUserId,

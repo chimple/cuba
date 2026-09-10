@@ -2,27 +2,27 @@ import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { unzip } from 'zip2';
 import {
-  TableTypes,
-  DOWNLOADED_LESSON_ID,
-  DOWNLOAD_LESSON_BATCH_SIZE,
-  LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  DOWNLOADING_CHAPTER_ID,
-  LOCAL_BUNDLES_PATH,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
-  LOCAL_LESSON_BUNDLES_PATH,
+  DOWNLOAD_LESSON_BATCH_SIZE,
+  DOWNLOADED_LESSON_ID,
   DOWNLOADED_LESSONS_SIZE,
+  DOWNLOADING_CHAPTER_ID,
+  LESSON_DOWNLOAD_SUCCESS_EVENT,
+  LOCAL_BUNDLES_PATH,
+  LOCAL_LESSON_BUNDLES_PATH,
+  TableTypes,
 } from '../common/constants';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
   getBundleZipUrlsForEnv,
   getLidoBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
-import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { StorageManager } from '../utility/storageManager';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from './logger';
 import { UtilLessonDownloads } from './util.lessonDownloads';
-import { StorageManager } from '../utility/storageManager';
 type LessonBundleDownloadOptions = {
   lessonId: string;
   zipUrls: string[];
@@ -59,6 +59,34 @@ const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
       ),
     ),
   );
+
+export const getPredictiveBundleZipUrls = (
+  bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+): string[] => {
+  const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<string[] | null>(
+    bundleZipUrlsKey,
+    null,
+  );
+  const fallbackBundleZipUrls = getBundleZipUrlsFallback(bundleZipUrlsKey);
+  const cachedGeneralBundleZipUrls =
+    bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+      ? getCachedGrowthBookFeatureValue<string[] | null>(
+          REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+          null,
+        )
+      : null;
+  const fallbackGeneralBundleZipUrls =
+    bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+      ? getBundleZipUrlsForEnv()
+      : [];
+
+  return mergeBundleZipUrls(
+    cachedBundleZipUrls,
+    fallbackBundleZipUrls,
+    cachedGeneralBundleZipUrls,
+    fallbackGeneralBundleZipUrls,
+  );
+};
 
 const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   if (lessonBundlePluginInstance) {
@@ -333,6 +361,66 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
       });
       return true;
     } catch {
+      return false;
+    }
+  }
+
+  public static async extractDownloadedLessonZip(
+    lessonId: string,
+    arrayBuffer: ArrayBuffer,
+    dbVersion: number,
+  ): Promise<boolean> {
+    try {
+      if (
+        !Capacitor.isNativePlatform() ||
+        !lessonId ||
+        !arrayBuffer.byteLength
+      ) {
+        return false;
+      }
+
+      const fs = (await getCreateFilesystem())(Filesystem, {
+        rootDir: '',
+        directory: Directory.External,
+      });
+
+      await unzip({
+        fs,
+        // Lesson ZIPs contain config.json at their root; the native bundle
+        // downloader places that root inside the lesson-id directory.
+        extractTo: lessonId,
+        filepaths: ['.'],
+        filter: (filepath: string) => !filepath.startsWith('dist/'),
+        data: new Uint8Array(arrayBuffer),
+      });
+
+      await Filesystem.readFile({
+        path: `${lessonId}/config.json`,
+        directory: Directory.External,
+      });
+      await Filesystem.writeFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+        data: btoa(String(Math.max(dbVersion, 1))),
+      });
+
+      this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+      const sizes = JSON.parse(
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
+      ) as Record<string, { size: number }>;
+      sizes[lessonId] = { size: arrayBuffer.byteLength };
+      localStorage.setItem(DOWNLOADED_LESSONS_SIZE, JSON.stringify(sizes));
+      window.dispatchEvent(
+        new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
+          detail: { lessonId },
+        }),
+      );
+      return true;
+    } catch (error) {
+      logger.error('[***] Failed to extract lesson ZIP', {
+        lessonId,
+        error,
+      });
       return false;
     }
   }
