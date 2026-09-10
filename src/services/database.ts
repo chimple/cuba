@@ -7317,6 +7317,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      send_teacher_weekly_activity_confirmation_message: {
+        Args: { p_assignment_id: string };
+        Returns: Json;
+      };
       set_confirmation: {
         Args: { code: string; phone_number: string };
         Returns: string;

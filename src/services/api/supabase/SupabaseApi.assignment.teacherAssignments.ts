@@ -57,6 +57,21 @@ export class SupabaseApiAssignmentTeacherAssignments extends SupabaseApiAssignme
 
       if (assignmentError) {
         logger.error('Error inserting assignment:', assignmentError.message);
+        return;
+      }
+      // Send the teacher confirmation only after the assignment row is saved.
+      // The RPC validates the assignment and directly sends the WhatsApp template.
+      const { error: confirmationError } = await this.supabase.rpc(
+        'send_teacher_weekly_activity_confirmation_message',
+        { p_assignment_id: assignmentId },
+      );
+
+      if (confirmationError) {
+        // Do not fail an already-created assignment when WhatsApp delivery fails.
+        logger.error(
+          'Error sending teacher homework confirmation:',
+          confirmationError.message,
+        );
       }
 
       // If not class-wise, insert into assignment_user
