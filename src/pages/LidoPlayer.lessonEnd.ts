@@ -300,6 +300,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       parentUserId,
       RESULT_STATUS.COMPLETED,
       source,
+      lesson.name,
     );
 
     if (shouldGiveDailyReward && state?.isDefaultLesson) {
@@ -391,6 +392,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       assignment_type: assignmentType,
       source,
     });
+    window.dispatchEvent(new CustomEvent(EVENTS.LESSON_END));
     logUserActivationLessonEvent({
       detail: data,
       userId: parentUserId,

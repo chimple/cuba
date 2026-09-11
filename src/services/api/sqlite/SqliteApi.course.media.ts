@@ -9,8 +9,21 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
     subjectId: string,
     student?: TableTypes<'user'>,
     courseId?: string,
-  ): Promise<TableTypes<'subject_lesson'>> {
-    if (!student) return {} as TableTypes<'subject_lesson'>;
+  ): Promise<TableTypes<'subject_lesson'>>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student: TableTypes<'user'>,
+    courseId: string | undefined,
+    returnAllPending: true,
+  ): Promise<TableTypes<'subject_lesson'>[]>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<'user'>,
+    courseId?: string,
+    returnAllPending = false,
+  ): Promise<TableTypes<'subject_lesson'> | TableTypes<'subject_lesson'>[]> {
+    if (!student)
+      return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
     const studentId = student.id;
     let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
@@ -98,12 +111,12 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
         []) as SubjectLessonSetRow[];
 
       if (!setRows.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       const uniqueSets = Array.from(new Set(setRows.map((r) => r.set_number)));
       if (!uniqueSets.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       // 2️⃣ Prefer sets that have student's language, fallback to all sets
@@ -161,7 +174,7 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
       );
 
       if (!assessmentLessonIds.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       /* ==========================================
@@ -210,7 +223,7 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
 
       // A termination advances the assessment sequence; two exits still abort it.
       if (isAborted && !isAssessmentTerminated) {
-        return {} as TableTypes<'subject_lesson'>; // Aborted group
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>); // Aborted group
       }
 
       /* ==========================================
@@ -294,7 +307,7 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
       }
 
       if (!candidateLessons.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
       }
 
       const lessonIds = candidateLessons.map((lesson: any) => lesson.lesson_id);
@@ -321,6 +334,7 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
         (lesson: any) => !completedLessonIds.has(lesson.lesson_id),
       );
 
+      if (returnAllPending) return pendingLessons;
       return pendingLessons.length
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
@@ -329,7 +343,7 @@ export class SqliteApiCourseMedia extends SqliteApiCourseGradeOptions {
         '❌ Error fetching subject lessons by subject (SQL):',
         error,
       );
-      return {} as TableTypes<'subject_lesson'>;
+      return returnAllPending ? [] : ({} as TableTypes<'subject_lesson'>);
     }
   }
 

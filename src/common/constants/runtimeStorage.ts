@@ -96,6 +96,7 @@ export interface PortPlugin {
     registration: string;
     lessonId: string;
     chimpleLessonId: string;
+    lessonName: string;
     xapiIpcPackage: string;
   }>;
   returnDataToRespect(): Promise<void>;
@@ -395,6 +396,8 @@ export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 export const NUMBER_REGEX = /^[0-9]+$/;
 export const DOWNLOADED_LESSON_ID = 'downloadedLessonId';
 export const DOWNLOADED_LESSONS_SIZE = 'downloaded_lessons_size';
+export const PREDICTIVE_BUFFER_LESSON_IDS = 'predictiveBufferLessonIds';
+export const PREDICTIVE_ASSESSMENT_STATUS = 'predictiveAssessmentStatus';
 export enum SnackbarType {
   Success = 'success',
   Error = 'error',

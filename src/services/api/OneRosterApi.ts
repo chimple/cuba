@@ -25,10 +25,12 @@ import {
   PROFILETYPE,
   RequestTypes,
   RESPECT_GRADES,
+  RESULT_STATUS,
   SchoolRoleMap,
   SearchSchoolsParams,
   SearchSchoolsResult,
   STATUS,
+  SOURCE,
   STUDENT_LESSON_SCORES,
   StudentAPIResponse,
   TableTypes,
@@ -2006,6 +2008,23 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string | null,
     classId: string | undefined,
     schoolId: string | undefined,
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined,
+    user_id?: string | undefined,
+    status?: RESULT_STATUS | undefined,
+    source?: SOURCE | undefined,
+    lessonName?: string | undefined,
   ): Promise<TableTypes<'result'>> {
     const studentId = student.id;
     if (!studentId) {
@@ -2069,6 +2088,18 @@ export class OneRosterApi implements ServiceApi {
     xapiScore.min = 0;
     xapiScore.max = 100;
 
+    let activityLessonId = launchData.activityId;
+    try {
+      const activityUrl = new URL(launchData.activityId);
+      activityLessonId =
+        activityUrl.pathname.split('/').filter(Boolean).pop() ??
+        activityLessonId;
+    } catch {
+      // The activity may already be a plain UUID.
+    }
+    const resolvedLessonName =
+      lessonName?.trim() || launchData.lessonName?.trim() || 'Lesson';
+
     const statement = new Statement({
       id: uuidv4(),
       actor: toXapiAgent(launchData.actor),
@@ -2080,7 +2111,7 @@ export class OneRosterApi implements ServiceApi {
         objectType: 'Activity',
         id: launchData.activityId,
         definition: {
-          name: { 'en-US': `${lessonId}` },
+          name: { 'en-US': resolvedLessonName },
           extensions: {
             'http://example.com/xapi/courseId': courseId,
             'http://example.com/xapi/lessonId': lessonId,

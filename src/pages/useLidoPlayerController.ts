@@ -15,6 +15,7 @@ import {
   SOURCE,
   CURRENT_HEADER,
   GENERIC_POP_UP,
+  LidoGameStartKey,
 } from '../common/constants';
 import { useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
@@ -343,6 +344,7 @@ export const useLidoPlayerController = () => {
   };
   useEffect(() => {
     // localStorage.removeItem(LIDO_SCORES_KEY);
+    window.dispatchEvent(new Event(LidoGameStartKey));
     init();
     if (
       Capacitor.isNativePlatform() &&

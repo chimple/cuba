@@ -20,6 +20,7 @@ export interface RespectLaunchData {
   activityId: string;
   registration: string;
   xapiIpcPackage: string;
+  lessonName?: string;
 }
 
 type XapiStatement = ReturnType<Statement['asVersion']>;
@@ -52,6 +53,7 @@ export interface RespectLaunchParameters {
   registration: string;
   lessonId: string;
   xapiIpcPackage: string;
+  lessonName?: string;
 }
 
 let cachedRespectLaunchData: RespectLaunchData | null = null;
@@ -96,6 +98,7 @@ const toRespectLaunchData = (
       activityId: launchParameters.lessonId,
       registration: launchParameters.registration,
       xapiIpcPackage: launchParameters.xapiIpcPackage,
+      lessonName: launchParameters.lessonName,
     };
   } catch {
     return null;
@@ -112,6 +115,7 @@ const getRespectLaunchDataFromUrl = (): RespectLaunchData | null => {
     registration: searchParameters.get('registration') ?? '',
     lessonId: searchParameters.get('activity_id') ?? '',
     xapiIpcPackage: searchParameters.get('xapiIpcPackage') ?? '',
+    lessonName: searchParameters.get('lesson_name') ?? undefined,
   });
 };
 

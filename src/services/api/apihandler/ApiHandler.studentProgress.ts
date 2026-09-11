@@ -31,6 +31,7 @@ export class ApiHandlerStudentProgress extends ApiHandlerContentCatalog {
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
     source?: SOURCE | undefined,
+    lessonName?: string | undefined,
   ): Promise<TableTypes<'result'>> {
     return await this.s.updateResult(
       student,
@@ -60,6 +61,7 @@ export class ApiHandlerStudentProgress extends ApiHandlerContentCatalog {
       user_id,
       status,
       source,
+      lessonName,
     );
   }
 
