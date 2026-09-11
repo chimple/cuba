@@ -18,6 +18,8 @@ module.exports = {
       '<rootDir>/src/tests/__mocks__/@aparajita/capacitor-biometric-auth.ts',
     '^@capacitor/app$': '<rootDir>/src/tests/__mocks__/@capacitor/app.ts',
     '^@capacitor/core$': '<rootDir>/src/tests/__mocks__/@capacitor/core.ts',
+    '^@capacitor/network$':
+      '<rootDir>/src/tests/__mocks__/@capacitor/network.ts',
     '^@capacitor/filesystem$':
       '<rootDir>/src/tests/__mocks__/@capacitor/filesystem.ts',
     '^@capacitor/local-notifications$':

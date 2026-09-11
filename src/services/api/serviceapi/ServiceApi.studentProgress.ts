@@ -30,6 +30,7 @@ export interface ServiceApiStudentProgress {
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
     source?: SOURCE | undefined,
+    lessonName?: string | undefined,
   ): Promise<TableTypes<'result'>>;
 
   getLessonLastPlayed(lessonIds: string[]): Promise<

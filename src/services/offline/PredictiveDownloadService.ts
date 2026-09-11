@@ -79,6 +79,11 @@ type AssessmentStatusEntry = {
 
 export class PredictiveDownloadService {
   private static running: Promise<void> | null = null;
+  // Keep one parent-wide snapshot so interval and event refreshes do not
+  // query assessment status repeatedly; the next app launch creates a new one.
+  private static assessmentStatusPromise: Promise<ReadonlySet<string>> | null =
+    null;
+  private static assessmentStatusParentId: string | null = null;
   private static refreshRequested = false;
 
   public static refresh(): Promise<void> {
@@ -164,37 +169,64 @@ export class PredictiveDownloadService {
   private static async refreshAssessmentStatusCache(): Promise<
     ReadonlySet<string>
   > {
-    const storedStatuses = this.readAssessmentStatusCache();
     try {
       const parent = await ServiceConfig.getI().authHandler.getCurrentUser();
-      if (!parent?.id) return storedStatuses;
+      if (!parent?.id) {
+        this.assessmentStatusPromise = null;
+        this.assessmentStatusParentId = null;
+        return new Set();
+      }
 
+      if (
+        !this.assessmentStatusPromise ||
+        this.assessmentStatusParentId !== parent.id
+      ) {
+        this.assessmentStatusParentId = parent.id;
+        localStorage.removeItem(PREDICTIVE_ASSESSMENT_STATUS);
+        this.assessmentStatusPromise = this.loadAssessmentStatusCache();
+      }
+      return await this.assessmentStatusPromise;
+    } catch (error) {
+      logger.info('[***] Assessment status refresh failed', error);
+      return new Set();
+    }
+  }
+
+  private static async loadAssessmentStatusCache(): Promise<
+    ReadonlySet<string>
+  > {
+    try {
       const api = ServiceConfig.getI().apiHandler;
       const students = await api.getParentStudentProfiles();
       const statuses: AssessmentStatusEntry[] = [];
       for (const student of students) {
-        const results = await api.getStudentResult(student.id, false);
-        const courseIds = new Set(
-          results
-            .filter(
-              (result) =>
-                result.source === SOURCE.INITIAL_ASSESSMENT &&
-                (result.status === RESULT_STATUS.COMPLETED ||
-                  result.status === RESULT_STATUS.ASSESSMENT_TERMINATED) &&
-                Boolean(result.course_id),
-            )
-            .map((result) => result.course_id)
-            .filter((courseId): courseId is string => Boolean(courseId)),
-        );
+        try {
+          const results = await api.getStudentResult(student.id, false);
+          const courseIds = new Set(
+            results
+              .filter(
+                (result) =>
+                  result.source === SOURCE.INITIAL_ASSESSMENT &&
+                  (result.status === RESULT_STATUS.COMPLETED ||
+                    result.status === RESULT_STATUS.ASSESSMENT_TERMINATED) &&
+                  Boolean(result.course_id),
+              )
+              .map((result) => result.course_id)
+              .filter((courseId): courseId is string => Boolean(courseId)),
+          );
 
-        for (const courseId of courseIds) {
-          if (await this.isAssessmentClosed(student, courseId, results)) {
-            statuses.push({
-              student_id: student.id,
-              course_id: courseId,
-              assessment_completed_or_terminated: true,
-            });
+          for (const courseId of courseIds) {
+            if (await this.isAssessmentClosed(student, courseId, results)) {
+              statuses.push({
+                student_id: student.id,
+                course_id: courseId,
+                assessment_completed_or_terminated: true,
+              });
+            }
           }
+        } catch {
+          // Continue processing the remaining children when one child lookup
+          // fails, so the shared status value is still populated completely.
         }
       }
 
@@ -209,28 +241,6 @@ export class PredictiveDownloadService {
       );
     } catch (error) {
       logger.info('[***] Assessment status refresh failed', error);
-      return storedStatuses;
-    }
-  }
-
-  private static readAssessmentStatusCache(): ReadonlySet<string> {
-    try {
-      const statuses = JSON.parse(
-        localStorage.getItem(PREDICTIVE_ASSESSMENT_STATUS) || '[]',
-      ) as AssessmentStatusEntry[];
-      return new Set(
-        statuses
-          .filter(
-            (status) =>
-              status.assessment_completed_or_terminated === true &&
-              Boolean(status.student_id) &&
-              Boolean(status.course_id),
-          )
-          .map((status) =>
-            this.getAssessmentStatusKey(status.student_id, status.course_id),
-          ),
-      );
-    } catch {
       return new Set();
     }
   }

@@ -96,6 +96,7 @@ export interface PortPlugin {
     registration: string;
     lessonId: string;
     chimpleLessonId: string;
+    lessonName: string;
     xapiIpcPackage: string;
   }>;
   returnDataToRespect(): Promise<void>;

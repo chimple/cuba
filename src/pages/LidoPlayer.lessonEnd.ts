@@ -300,6 +300,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       parentUserId,
       RESULT_STATUS.COMPLETED,
       source,
+      lesson.name,
     );
 
     if (shouldGiveDailyReward && state?.isDefaultLesson) {
