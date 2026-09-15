@@ -1,6 +1,7 @@
 import {
   ASSESSMENT_FAIL_KEY,
   EVENTS,
+  FRESH_ASSESSMENT_AFTER_JOIN,
   FAIL_STREAK_KEY,
   LIDO_SCORES_KEY,
 } from '../common/constants';
@@ -260,10 +261,13 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     const streakMap: Record<string, number> = JSON.parse(
       localStorage.getItem(streakKey) || '{}',
     );
-    const previousLessonSkipped = assignmentId
-      ? false
-      : !!failMap[courseKey] ||
-        (await resolvePreviousAssessmentSkipped(studentId));
+    const isFreshAfterJoin =
+      localStorage.getItem(FRESH_ASSESSMENT_AFTER_JOIN(studentId)) === 'true';
+    const previousLessonSkipped =
+      !!failMap[courseKey] ||
+      (assignmentId || isFreshAfterJoin
+        ? false
+        : await resolvePreviousAssessmentSkipped(studentId));
 
     return previousLessonSkipped && (streakMap[courseKey] || 0) >= 2;
   };

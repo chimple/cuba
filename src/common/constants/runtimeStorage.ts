@@ -27,6 +27,8 @@ export const SEARCH_LESSON_CACHE_KEY = 'search_lesson_last_state';
 export const CURRENT_MODE = 'currentMode';
 export const LAST_MODE = 'lastMode';
 export const CURRENT_CLASS = 'currentClass';
+export const FRESH_ASSESSMENT_AFTER_JOIN = (studentId: string) =>
+  `fresh_assessment_after_join_${studentId}`;
 export const LANGUAGE = 'language';
 export const LANG_REFRESHED = 'langRefreshed';
 export const EXAM = 'exam';

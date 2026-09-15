@@ -294,6 +294,7 @@ public class PortPlugin extends Plugin {
         String actor = deepLinkData.optString("actor", "");
         String registration = deepLinkData.optString("registration", "");
         String chimpleLessonId = deepLinkData.optString("chimple_lesson_id", "");
+        String lessonName = deepLinkData.optString("lesson_name", "");
         String xapiIpcPackage = deepLinkData.optString("xapiIpcPackage", "");
 
         Log.d(TAG, "Received activity_id: " + activity_id);
@@ -303,6 +304,7 @@ public class PortPlugin extends Plugin {
         result.put("registration", registration);
         result.put("lessonId", activity_id);
         result.put("chimpleLessonId", chimpleLessonId);
+        result.put("lessonName", lessonName);
         result.put("xapiIpcPackage", xapiIpcPackage);
         call.resolve(result);
     }

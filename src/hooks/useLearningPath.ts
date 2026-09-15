@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   ASSESSMENT_FAIL_KEY,
   EVENTS,
+  FRESH_ASSESSMENT_AFTER_JOIN,
   FAIL_STREAK_KEY,
   RECOMMENDATION_TYPE,
   TableTypes,
@@ -53,7 +54,20 @@ export const useLearningPath = (opts?: {
     if (!currentStudent) {
       return;
     }
-    const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+    const resetOnJoinKey = `reset_on_join_${currentStudent.id}`;
+    const shouldResetOnJoin =
+      !!classId && localStorage.getItem(resetOnJoinKey) === 'true';
+
+    if (shouldResetOnJoin) {
+      // A class join starts a new course-level assessment state.
+      localStorage.removeItem(`${FAIL_STREAK_KEY}_${currentStudent.id}`);
+      localStorage.removeItem(`${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`);
+      localStorage.removeItem(resetOnJoinKey);
+    }
+
+    const pathToParse = shouldResetOnJoin
+      ? null
+      : Util.getLatestLearningPathByUpdatedAt(currentStudent);
     let learningPath: LearningPath | null = pathToParse
       ? (JSON.parse(pathToParse) as LearningPath)
       : null;
@@ -64,6 +78,17 @@ export const useLearningPath = (opts?: {
         courses,
         mode,
       });
+      if (
+        shouldResetOnJoin &&
+        learningPath.courses.courseList.some((course) =>
+          course.path.some((node) => node.is_assessment && !node.assignment_id),
+        )
+      ) {
+        localStorage.setItem(
+          FRESH_ASSESSMENT_AFTER_JOIN(currentStudent.id),
+          'true',
+        );
+      }
       await saveLearningPath(currentStudent, learningPath);
 
       const currentCourse =
@@ -98,7 +123,6 @@ export const useLearningPath = (opts?: {
       await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
       return learningPath;
     }
-
     // check if learning path mode is different from current mode, if so rebuild it
     const pathMode = learningPath.pathMode;
     if (!mode || !pathMode) {
@@ -160,12 +184,10 @@ export const useLearningPath = (opts?: {
       if (!coursePath.length) {
         return;
       }
-
       const activeLesson = coursePath.find((l) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
         .reverse()
         .find((l) => l.isPlayed === true);
-
       const eventData = {
         user_id: currentStudent?.id,
         path_id: currentCourse.path_id,
@@ -180,7 +202,6 @@ export const useLearningPath = (opts?: {
       await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
       return learningPath;
     }
-
     // check if learning path has old structure, if so migrate it
     if (learningPath?.courses?.courseList) {
       const courseList = learningPath.courses.courseList as LegacyCoursePath[];
@@ -200,7 +221,6 @@ export const useLearningPath = (opts?: {
         return;
       }
     }
-
     // 🔄 Sync courses between API and stored learningPath
     const res = await updateLearningPathIfNeeded(
       learningPath,
@@ -227,9 +247,7 @@ export const useLearningPath = (opts?: {
       learning_path_completed,
       total_learning_path_completed,
     });
-
     setGbUpdated(true);
-
     return learningPath;
   }
 
@@ -454,7 +472,6 @@ export const useLearningPath = (opts?: {
       const isCurrentPendingAssignment =
         activeAssessment?.assignment_id === assignments[0].id &&
         hasSamePendingAssessmentSequence;
-
       // Keep the existing in-progress path only when it already belongs to
       // the selected assignment. A newer assignment must use the reset below.
       if (
@@ -471,11 +488,9 @@ export const useLearningPath = (opts?: {
           return { updated: true, currentCourseIndex: courseIndex };
         }
       }
-
       if (isCurrentPendingAssignment) {
         continue;
       }
-
       // The newest pending batch is authoritative. Keeping an older path here
       // would launch its assignment IDs after a teacher has reassigned it.
       // Failure markers are course-scoped, so discard them for the new path.
@@ -495,6 +510,7 @@ export const useLearningPath = (opts?: {
           assessmentCourseKey,
         ),
       ]);
+      localStorage.removeItem(FRESH_ASSESSMENT_AFTER_JOIN(student.id));
       coursePath.path_id = uuidv4();
       coursePath.path = assessmentPath;
       coursePath.display_name = course.pathway_display_name;
@@ -507,10 +523,8 @@ export const useLearningPath = (opts?: {
       coursePath.subject_id = course.subject_id ?? null;
       coursePath.completedPath = 0;
       coursePath.lastPlayedLesson = undefined;
-
       return { updated: true, currentCourseIndex: courseIndex };
     }
-
     return {
       updated: false,
       currentCourseIndex: learningPathSafeIndex(oldCourseList, 0),
@@ -539,18 +553,14 @@ export const useLearningPath = (opts?: {
 
   function migrate(coursePath: LegacyCoursePath): StoredCoursePath {
     const lessons: LegacyLessonNode[] = coursePath.path || [];
-
     const startIndex = coursePath.startIndex ?? 0;
     const currentIndex = coursePath.currentIndex ?? 0;
-
     // active lesson absolute index
     const activeAbsIndex = startIndex + currentIndex;
     // Correct completed count
     const completedPath = Math.max(0, Math.floor(startIndex / 5));
-
     // slice exactly the same window user was seeing
     const windowLessons = lessons.slice(0, Math.min(lessons.length, 5));
-
     const newPath: LessonNode[] = windowLessons
       .filter(
         (_lesson: LegacyLessonNode, idx: number) =>
@@ -568,7 +578,6 @@ export const useLearningPath = (opts?: {
           is_assessment: !!l.is_assessment,
         };
       });
-
     return {
       path_id: coursePath.path_id,
       course_id: coursePath.course_id,
@@ -582,7 +591,6 @@ export const useLearningPath = (opts?: {
       completedPath: completedPath,
     };
   }
-
   return {
     getPath,
     saveLearningPath,
