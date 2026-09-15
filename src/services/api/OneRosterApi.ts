@@ -2088,17 +2088,9 @@ export class OneRosterApi implements ServiceApi {
     xapiScore.min = 0;
     xapiScore.max = 100;
 
-    let activityLessonId = launchData.activityId;
-    try {
-      const activityUrl = new URL(launchData.activityId);
-      activityLessonId =
-        activityUrl.pathname.split('/').filter(Boolean).pop() ??
-        activityLessonId;
-    } catch {
-      // The activity may already be a plain UUID.
-    }
     const resolvedLessonName =
       lessonName?.trim() || launchData.lessonName?.trim() || 'Lesson';
+    logger.warn('Resolved lesson name:', resolvedLessonName);
 
     const statement = new Statement({
       id: uuidv4(),

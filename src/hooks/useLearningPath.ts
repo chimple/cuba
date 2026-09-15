@@ -1,7 +1,13 @@
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { v4 as uuidv4 } from 'uuid';
-import { EVENTS, RECOMMENDATION_TYPE, TableTypes } from '../common/constants';
+import {
+  ASSESSMENT_FAIL_KEY,
+  EVENTS,
+  FAIL_STREAK_KEY,
+  RECOMMENDATION_TYPE,
+  TableTypes,
+} from '../common/constants';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import {
   LearningPath,
@@ -472,6 +478,23 @@ export const useLearningPath = (opts?: {
 
       // The newest pending batch is authoritative. Keeping an older path here
       // would launch its assignment IDs after a teacher has reassigned it.
+      // Failure markers are course-scoped, so discard them for the new path.
+      const courseCode = normalizeCourseToken(course.code);
+      const assessmentCourseKey = course.subject_id
+        ? `subject:${course.subject_id}:course:${courseCode || course.id}`
+        : course.id;
+      await Promise.all([
+        Util.removeCourseScopedKey(
+          FAIL_STREAK_KEY,
+          student.id,
+          assessmentCourseKey,
+        ),
+        Util.removeCourseScopedKey(
+          ASSESSMENT_FAIL_KEY,
+          student.id,
+          assessmentCourseKey,
+        ),
+      ]);
       coursePath.path_id = uuidv4();
       coursePath.path = assessmentPath;
       coursePath.display_name = course.pathway_display_name;

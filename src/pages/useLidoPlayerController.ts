@@ -172,7 +172,6 @@ export const useLidoPlayerController = () => {
     shouldTerminateAssessmentPathway,
   } = createLidoPlayerControllerHelpers({
     api,
-    assignmentId: assignment,
     assignmentType,
     chapterDetail,
     courseDetail,
