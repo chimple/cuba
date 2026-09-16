@@ -45,6 +45,8 @@ const ManageSchools: React.FC = () => {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchHasMore, setSearchHasMore] = useState(false);
 
   const history = useHistory();
   const api = ServiceConfig.getI()?.apiHandler;
@@ -92,26 +94,40 @@ const ManageSchools: React.FC = () => {
   };
 
   const loadMoreSchools = async (event: any) => {
-    if (isLoading || !hasMore || !currentUser) {
+    const query = searchQuery.trim();
+    const isOpsSearch = isOpsUser && !!query;
+    const canLoadMore = isOpsSearch ? searchHasMore : hasMore;
+
+    if (isLoading || isSearchLoading || !canLoadMore || !currentUser) {
       event.target.complete();
       return;
     }
 
     setIsLoading(true);
-    const nextPage = page + 1;
+    const nextPage = (isOpsSearch ? searchPage : page) + 1;
 
     try {
       const newSchools = await api.getSchoolsForUser(currentUser.id, {
         page: nextPage,
         page_size: PAGE_SIZE,
+        search: isOpsSearch ? query : undefined,
       });
 
       if (newSchools && newSchools.length > 0) {
-        setAllSchools((prevSchools) => [...prevSchools, ...newSchools]);
-        setPage(nextPage);
-        if (newSchools.length < PAGE_SIZE) {
-          setHasMore(false);
+        if (isOpsSearch) {
+          setSearchedSchools((previous) => [
+            ...(previous ?? []),
+            ...newSchools,
+          ]);
+          setSearchPage(nextPage);
+          setSearchHasMore(newSchools.length === PAGE_SIZE);
+        } else {
+          setAllSchools((prevSchools) => [...prevSchools, ...newSchools]);
+          setPage(nextPage);
+          setHasMore(newSchools.length === PAGE_SIZE);
         }
+      } else if (isOpsSearch) {
+        setSearchHasMore(false);
       } else {
         setHasMore(false);
       }
@@ -148,6 +164,8 @@ const ManageSchools: React.FC = () => {
     const query = searchQuery.trim();
     if (!query || !isOpsUser) {
       setSearchedSchools(null);
+      setSearchPage(1);
+      setSearchHasMore(false);
       setIsSearchLoading(false);
       return;
     }
@@ -158,17 +176,21 @@ const ManageSchools: React.FC = () => {
     const runSearch = async () => {
       setIsSearchLoading(true);
       try {
-        const result = await api.getSchoolsForUserBySearchTerm(
-          currentUser.id,
-          query,
-        );
+        const result = await api.getSchoolsForUser(currentUser.id, {
+          page: 1,
+          page_size: PAGE_SIZE,
+          search: query,
+        });
         if (!cancelled) {
           setSearchedSchools(result);
+          setSearchPage(1);
+          setSearchHasMore(result.length === PAGE_SIZE);
         }
       } catch (error) {
         logger.error('Error searching schools from Supabase:', error);
         if (!cancelled) {
           setSearchedSchools([]);
+          setSearchHasMore(false);
         }
       } finally {
         if (!cancelled) {
@@ -219,7 +241,9 @@ const ManageSchools: React.FC = () => {
             <IonInfiniteScroll
               onIonInfinite={loadMoreSchools}
               threshold="100px"
-              disabled={!hasMore || (!!searchQuery.trim() && isOpsUser)}
+              disabled={
+                isOpsUser && !!searchQuery.trim() ? !searchHasMore : !hasMore
+              }
             >
               <IonInfiniteScrollContent
                 loadingSpinner="bubbles"

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import Header from '../components/homePage/Header';
 import {
@@ -231,6 +231,7 @@ export const useShowChapters = () => {
       lesson_map.set(resolvedChapterId, initialLessons);
     }
     setActiveChapterId(resolvedChapterId);
+
     setCourseCode(course_data?.code ?? '');
   }, [
     api,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
@@ -22,6 +22,7 @@ import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 import logger from '../utility/logger';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
+import { extractPackagedQuizBundle } from './useLiveQuizQuestionFlow.helpers';
 import {
   calculateScoreForQuestion,
   DEFAULT_LIVE_QUIZ_CONFIG,
@@ -86,6 +87,7 @@ export function useLiveQuizQuestionFlow({
   const [audio, setAudio] = useState<boolean>(false);
   const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const configLoadPromise = useRef<Promise<LiveQuiz> | null>(null);
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
@@ -178,7 +180,7 @@ export function useLiveQuizQuestionFlow({
     }
   };
 
-  const getConfigJson = async () => {
+  const loadConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     const lessonKey = lessonId || cocosLessonId;
     if (lessonKey) {
@@ -206,12 +208,22 @@ export function useLiveQuizQuestionFlow({
 
     let configFile: LiveQuiz | undefined;
 
+    // Offline devices first reuse an already extracted lesson, then fall back
+    // to the packaged APK ZIP. Online devices retain remote-first behavior.
+    const isOffline =
+      typeof navigator !== 'undefined' && navigator.onLine === false;
+
     const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
       BUNDLE_ZIP_URLS,
       getBundleZipUrlsForEnv(),
     );
 
-    for (const baseUrl of remoteUrls) {
+    const localConfigPath = lessonKey ? `${lessonKey}/config.json` : '';
+    if (isOffline && localConfigPath) {
+      configFile = await readLocalConfig(localConfigPath);
+    }
+
+    for (const baseUrl of configFile || isOffline ? [] : remoteUrls) {
       try {
         const response = await fetch(
           baseUrl + (lessonId || cocosLessonId) + '/config.json',
@@ -223,6 +235,11 @@ export function useLiveQuizQuestionFlow({
       } catch {
         logger.warn('Failed to fetch from remote:', baseUrl);
       }
+    }
+
+    // Use the packaged APK copy when remote URLs are unavailable or fail.
+    if (!configFile && lessonKey) {
+      configFile = await extractPackagedQuizBundle(lessonKey);
     }
 
     if (!configFile) {
@@ -248,6 +265,19 @@ export function useLiveQuizQuestionFlow({
     if (onConfigLoaded) onConfigLoaded(configFile);
 
     return configFile;
+  };
+
+  // The initial effect and the showQuiz effect can run before the first
+  // request updates state. Share that request so the APK bundle is not
+  // extracted twice concurrently.
+  const getConfigJson = () => {
+    if (liveQuizConfig) return Promise.resolve(liveQuizConfig);
+    if (!configLoadPromise.current) {
+      configLoadPromise.current = loadConfigJson().finally(() => {
+        configLoadPromise.current = null;
+      });
+    }
+    return configLoadPromise.current;
   };
 
   const handleRoomChange = () => {

@@ -1,6 +1,11 @@
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import { BUNDLE_ZIP_URLS, LIDO_COMMON_AUDIO_DIR } from '../common/constants';
+import {
+  BUNDLE_ZIP_URLS,
+  LIDO_COMMON_AUDIO_DIR,
+  // Points native Lido to ZIP files bundled inside the APK.
+  LOCAL_LESSON_BUNDLES_PATH,
+} from '../common/constants';
 import { Util } from '../utility/util';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
@@ -49,11 +54,28 @@ export async function initializeLidoPlayer(ctx: any) {
     push();
     return;
   }
-  const dow = await Util.downloadZipBundle(
-    [lessonToDownload],
-    undefined,
-    REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
-  );
+  // Check for the lesson ZIP packaged by build-open-apk.ts before using the network.
+  const packagedZipUrl = `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(
+    lessonId,
+  )}.zip`;
+  let hasPackagedZip = false;
+  if (Capacitor.isNativePlatform()) {
+    try {
+      // A HEAD request avoids downloading the packaged ZIP just to detect it.
+      hasPackagedZip = (await fetch(packagedZipUrl, { method: 'HEAD' })).ok;
+    } catch {
+      hasPackagedZip = false;
+    }
+  }
+
+  // Packaged ZIPs need no downloader; missing ZIPs retain the remote flow.
+  const dow = hasPackagedZip
+    ? true
+    : await Util.downloadZipBundle(
+        [lessonToDownload],
+        undefined,
+        REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+      );
   if (!dow) {
     presentToast();
     push();
@@ -64,13 +86,18 @@ export async function initializeLidoPlayer(ctx: any) {
   setPlayerLanguage(resolvedPlayerLanguage);
 
   if (Capacitor.isNativePlatform()) {
-    const path = await Util.getLessonPath({ lessonId: lessonId });
-    if (path) {
-      setBasePath(path);
+    // Lido accepts the APK ZIP directly, so native extraction is unnecessary.
+    if (hasPackagedZip) {
+      setZipUrl(packagedZipUrl);
     } else {
-      presentToast();
-      push();
-      return;
+      // Remote downloads still produce an extracted external-storage path.
+      const path = await Util.getLessonPath({ lessonId: lessonId });
+      if (!path) {
+        presentToast();
+        push();
+        return;
+      }
+      setBasePath(path);
     }
     try {
       const { student } = await resolveStudentContext();

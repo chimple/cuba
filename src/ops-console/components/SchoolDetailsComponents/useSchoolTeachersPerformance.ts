@@ -76,6 +76,7 @@ export const useSchoolTeachersPerformance = ({
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
     DisplayTeacher[]
   >([]);
+  const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return sortedTeachers.map((apiTeacher) => ({
@@ -107,9 +108,11 @@ export const useSchoolTeachersPerformance = ({
   useEffect(() => {
     if (!sortedTeachers.length) {
       setTeachersWithPerformance([]);
+      setIsPerformanceLoading(false);
       return;
     }
     let cancelled = false;
+    setIsPerformanceLoading(true);
     async function loadPerformance() {
       const pairByKey = new Map<string, AssignmentCountPair>();
       sortedTeachers.forEach((apiTeacher) => {
@@ -159,6 +162,7 @@ export const useSchoolTeachersPerformance = ({
 
       if (!cancelled) {
         setTeachersWithPerformance(enriched);
+        setIsPerformanceLoading(false);
       }
     }
 
@@ -178,6 +182,7 @@ export const useSchoolTeachersPerformance = ({
   );
 
   return {
+    isPerformanceLoading,
     displayTeachers,
     teachersWithPerformance,
     teachersWithWhatsappStatus,
