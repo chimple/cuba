@@ -104,11 +104,14 @@ export const useSchoolTeachersController = ({
     programScopedClasses,
   });
 
-  const { teachersWithPerformance, teachersWithWhatsappStatus } =
-    useSchoolTeachersPerformance({
-      getWhatsappGroupStatus,
-      sortedTeachers,
-    });
+  const {
+    isPerformanceLoading,
+    teachersWithPerformance,
+    teachersWithWhatsappStatus,
+  } = useSchoolTeachersPerformance({
+    getWhatsappGroupStatus,
+    sortedTeachers,
+  });
 
   const actions = useSchoolTeacherActions({
     api,
@@ -147,6 +150,10 @@ export const useSchoolTeachersController = ({
   }, [totalCount, filters, searchTerm, programFilteredTeachers.length]);
 
   const isDataPresent = teachersWithWhatsappStatus.length > 0;
+  // The teacher list can arrive one render before performance enrichment starts.
+  // Keep the empty state hidden during that synchronous hand-off as well.
+  const isTeacherEnrichmentPending =
+    sortedTeachers.length > 0 && teachersWithWhatsappStatus.length === 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== '' ||
     Object.values(filters).some((filter) => filter.length > 0);
@@ -202,7 +209,8 @@ export const useSchoolTeachersController = ({
       isExternalUser,
       isFilterSliderOpen,
       isFilteringOrSearching,
-      isLoading,
+      isLoading:
+        isLoading || isPerformanceLoading || isTeacherEnrichmentPending,
       isSmallScreen,
       order,
       orderBy,

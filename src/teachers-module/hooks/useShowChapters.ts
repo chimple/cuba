@@ -48,6 +48,13 @@ export const useShowChapters = () => {
   const [loadingLessonChapterIds, setLoadingLessonChapterIds] = useState<
     Set<string>
   >(new Set());
+  const lessonsRef = useRef(new Map<string, TableTypes<'lesson'>[]>());
+  const lessonRequestsRef = useRef(
+    new Map<string, Promise<TableTypes<'lesson'>[]>>(),
+  );
+  const [loadingLessonChapterIds, setLoadingLessonChapterIds] = useState<
+    Set<string>
+  >(new Set());
   const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
   const [courseCode, setCourseCode] = useState<string>();
@@ -170,6 +177,7 @@ export const useShowChapters = () => {
     ]);
     const chapterOrder = chapter_res.map((chapter) => chapter.id);
     const validChapterIds = new Set(chapterOrder);
+    const course_data = await api.getCourse(course.id);
     setChapters(chapter_res);
     const lesson_map = new Map<string, TableTypes<'lesson'>[]>();
     const previous_sync_lesson = currUser?.id
@@ -230,7 +238,12 @@ export const useShowChapters = () => {
       const initialLessons = await loadLessonsForChapter(resolvedChapterId);
       lesson_map.set(resolvedChapterId, initialLessons);
     }
+    if (resolvedChapterId && !lesson_map.has(resolvedChapterId)) {
+      const initialLessons = await loadLessonsForChapter(resolvedChapterId);
+      lesson_map.set(resolvedChapterId, initialLessons);
+    }
     setActiveChapterId(resolvedChapterId);
+
     setCourseCode(course_data?.code ?? '');
   }, [
     api,
