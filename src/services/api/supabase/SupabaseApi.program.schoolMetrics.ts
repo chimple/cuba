@@ -553,6 +553,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           active_teacher_percentage: getNumericMetric(
             row.active_teacher_percentage,
           ),
+          activated_teachers: getNumericMetric(row.activated_teachers),
           activities_assigned: row.activities_assigned ?? null,
           avg_assignments_completed: row.avg_assignments_completed ?? null,
           avg_activities_completed: row.avg_activities_completed ?? null,
