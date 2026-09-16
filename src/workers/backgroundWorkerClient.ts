@@ -9,6 +9,9 @@ import {
   WorkerRequest,
   WorkerStreamErrorMessage,
   WorkerStreamRequest,
+  PredictiveLessonZip,
+  StreamPredictiveLessonZipsPayload,
+  WorkerLessonZipStreamRequest,
   WorkerTaskPayloadMap,
   WorkerTaskResultMap,
 } from './background.worker.types';
@@ -25,10 +28,21 @@ type PendingStreamTask = {
   timeoutId: number;
   timeoutMs: number;
 };
+type PendingLessonZipStreamTask = {
+  resolve: () => void;
+  reject: (reason?: unknown) => void;
+  onLesson: (lesson: PredictiveLessonZip) => Promise<void> | void;
+  timeoutId: number;
+  timeoutMs: number;
+};
 
 let workerInstance: Worker | null = null;
 const pendingTasks = new Map<string, PendingTask>();
 const pendingStreamTasks = new Map<string, PendingStreamTask>();
+const pendingLessonZipStreamTasks = new Map<
+  string,
+  PendingLessonZipStreamTask
+>();
 
 const resetStreamTimeout = (id: string, streamTask: PendingStreamTask) => {
   window.clearTimeout(streamTask.timeoutId);
@@ -61,6 +75,41 @@ const getWorker = (): Worker => {
       }
       pending.resolve(response.result);
       return;
+    }
+
+    if (response.type === 'PREDICTIVE_ZIP_READY') {
+      const pendingLesson = pendingLessonZipStreamTasks.get(response.id);
+      if (!pendingLesson) return;
+      window.clearTimeout(pendingLesson.timeoutId);
+      pendingLesson.timeoutId = window.setTimeout(() => {
+        pendingLessonZipStreamTasks.delete(response.id);
+        pendingLesson.reject(new Error('Predictive ZIP stream timed out'));
+      }, pendingLesson.timeoutMs);
+      Promise.resolve(pendingLesson.onLesson(response.lesson))
+        .then(() => {
+          const ack: WorkerAckMessage = { id: response.id, type: 'ACK' };
+          workerInstance?.postMessage(ack);
+        })
+        .catch((error) => {
+          window.clearTimeout(pendingLesson.timeoutId);
+          pendingLessonZipStreamTasks.delete(response.id);
+          pendingLesson.reject(error);
+        });
+      return;
+    }
+
+    if (response.type === 'DONE' || response.type === 'ERROR') {
+      const pendingLesson = pendingLessonZipStreamTasks.get(response.id);
+      if (pendingLesson) {
+        window.clearTimeout(pendingLesson.timeoutId);
+        pendingLessonZipStreamTasks.delete(response.id);
+        if (response.type === 'ERROR') {
+          pendingLesson.reject(new Error(response.error));
+        } else {
+          pendingLesson.resolve();
+        }
+        return;
+      }
     }
 
     const pendingStream = pendingStreamTasks.get(response.id);
@@ -113,6 +162,11 @@ const getWorker = (): Worker => {
       pending.reject(error);
     }
     pendingStreamTasks.clear();
+    for (const [, pending] of pendingLessonZipStreamTasks) {
+      window.clearTimeout(pending.timeoutId);
+      pending.reject(error);
+    }
+    pendingLessonZipStreamTasks.clear();
   };
   return workerInstance;
 };
@@ -156,6 +210,34 @@ export const runBackgroundWorkerStreamingSync = (
       resolve,
       reject,
       onBatch,
+      timeoutId,
+      timeoutMs,
+    });
+    worker.postMessage(request);
+  });
+};
+
+export const runBackgroundWorkerStreamingLessonZips = (
+  payload: StreamPredictiveLessonZipsPayload,
+  onLesson: (lesson: PredictiveLessonZip) => Promise<void> | void,
+  timeoutMs: number = 180000,
+): Promise<void> => {
+  const worker = getWorker();
+  const id = uuidv4();
+  const request: WorkerLessonZipStreamRequest = {
+    id,
+    type: 'STREAM_PREDICTIVE_LESSON_ZIPS',
+    payload,
+  };
+  return new Promise<void>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      pendingLessonZipStreamTasks.delete(id);
+      reject(new Error('Predictive ZIP stream timed out'));
+    }, timeoutMs);
+    pendingLessonZipStreamTasks.set(id, {
+      resolve,
+      reject,
+      onLesson,
       timeoutId,
       timeoutMs,
     });

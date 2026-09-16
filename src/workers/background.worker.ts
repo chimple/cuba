@@ -24,6 +24,8 @@ import {
   WorkerResponse,
   WorkerStreamErrorMessage,
   WorkerStreamRequest,
+  WorkerLessonZipStreamRequest,
+  PredictiveLessonZipReadyMessage,
 } from './background.worker.types';
 
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope;
@@ -99,8 +101,56 @@ const streamSyncBatches = async (request: WorkerStreamRequest) => {
   }
 };
 
+const downloadPredictiveLessonZip = async (
+  lesson: WorkerLessonZipStreamRequest['payload']['lessons'][number],
+): Promise<PredictiveLessonZipReadyMessage['lesson']> => {
+  let lastError: Error | null = null;
+  for (const baseUrl of lesson.zipUrls) {
+    try {
+      const response = await fetch(`${baseUrl}${lesson.lessonId}.zip`);
+      if (!response.ok) {
+        throw new Error(`ZIP request failed: ${response.status}`);
+      }
+      return { ...lesson, arrayBuffer: await response.arrayBuffer() };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+  throw new Error(
+    `Failed to download predictive lesson ${lesson.lessonId}: ${lastError?.message ?? 'no URL available'}`,
+  );
+};
+
+const streamPredictiveLessonZips = async (
+  request: WorkerLessonZipStreamRequest,
+): Promise<void> => {
+  for (const requestedLesson of request.payload.lessons) {
+    try {
+      const lesson = await downloadPredictiveLessonZip(requestedLesson);
+      const message: PredictiveLessonZipReadyMessage = {
+        id: request.id,
+        type: 'PREDICTIVE_ZIP_READY',
+        lesson,
+      };
+      workerScope.postMessage(message, [lesson.arrayBuffer]);
+      await waitForAck(request.id);
+    } catch (error) {
+      // A failed lesson must not stop the remaining offline window.
+      logger.warn('[BackgroundWorker] Predictive ZIP skipped', {
+        lessonId: requestedLesson.lessonId,
+        error,
+      });
+    }
+  }
+};
+
 workerScope.onmessage = async (
-  event: MessageEvent<WorkerRequest | WorkerStreamRequest | WorkerAckMessage>,
+  event: MessageEvent<
+    | WorkerRequest
+    | WorkerStreamRequest
+    | WorkerLessonZipStreamRequest
+    | WorkerAckMessage
+  >,
 ) => {
   const request = event.data;
   if (request.type === 'ACK') {
@@ -114,6 +164,15 @@ workerScope.onmessage = async (
   try {
     if (request.type === 'STREAM_SYNC_BATCHES') {
       await streamSyncBatches(request);
+      const doneMessage: WorkerDoneMessage = {
+        id: request.id,
+        type: 'DONE',
+      };
+      workerScope.postMessage(doneMessage);
+      return;
+    }
+    if (request.type === 'STREAM_PREDICTIVE_LESSON_ZIPS') {
+      await streamPredictiveLessonZips(request);
       const doneMessage: WorkerDoneMessage = {
         id: request.id,
         type: 'DONE',
@@ -168,7 +227,10 @@ workerScope.onmessage = async (
     };
     workerScope.postMessage(response);
   } catch (error) {
-    if (request.type === 'STREAM_SYNC_BATCHES') {
+    if (
+      request.type === 'STREAM_SYNC_BATCHES' ||
+      request.type === 'STREAM_PREDICTIVE_LESSON_ZIPS'
+    ) {
       const response: WorkerStreamErrorMessage = {
         id: request.id,
         type: 'ERROR',

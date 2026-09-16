@@ -196,9 +196,11 @@ export const initializeSelectMode = async (ctx: any) => {
   }));
   setTeacherAppSchoolList(teacherAppSchoolOptions);
 
+  const fromKidsAppLocationSchool = urlParams.get('schoolKids') === 'true';
+
   const shouldSuppressTeacherAutoEntry =
     currentMode === MODES.TEACHER_SCHOOL &&
-    (location.state?.fromKidsAppLocationSchool === true ||
+    (fromKidsAppLocationSchool ||
       location.state?.fromSwitchProfileReturn === true);
   const shouldAutoEnterTeacherApp =
     teacherRoleEntries.length > 0 && !shouldSuppressTeacherAutoEntry;

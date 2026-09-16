@@ -13,12 +13,15 @@ import {
 import { APIMode, ServiceConfig } from '../services/ServiceConfig';
 import i18n from '../i18n';
 import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { Keyboard } from '@capacitor/keyboard';
 import { schoolUtil } from './schoolUtil';
 import { store } from '../redux/store';
 import { setIsOpsUser } from '../redux/slices/auth/authSlice';
 import { getAppSearchParams } from './routerLocation';
 import { UtilLessonProgress } from './util.lessonProgress';
+import logger from './logger';
+import { updateFirebaseAnalyticsContext } from '../services/Firebase';
 
 declare global {
   interface Window {
@@ -62,7 +65,29 @@ export class UtilNotifications extends UtilLessonProgress {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
 
-    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    // Keep Firebase's persistent user context in sync with the selected child.
+    // An empty value clears the property on native Firebase implementations.
+    try {
+      const parentUserId = await ServiceConfig.getI()
+        .authHandler.getCurrentUser()
+        .then((user) => user?.id);
+      await updateFirebaseAnalyticsContext({
+        parentUserId,
+        studentId: student?.id,
+      });
+    } catch (error) {
+      // Analytics must never prevent profile selection or logout.
+      logger.warn(
+        'Unable to update Firebase student analytics context:',
+        error,
+      );
+    }
+
+    if (student) {
+      localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    } else {
+      localStorage.removeItem(CURRENT_STUDENT);
+    }
     window.dispatchEvent(
       new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
     );

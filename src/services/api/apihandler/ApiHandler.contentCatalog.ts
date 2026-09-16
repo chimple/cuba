@@ -167,7 +167,30 @@ export class ApiHandlerContentCatalog extends ApiHandlerSchoolManagement {
     subjectId: string,
     student?: TableTypes<'user'>,
     courseId?: string,
-  ): Promise<TableTypes<'subject_lesson'> | null> {
+  ): Promise<TableTypes<'subject_lesson'> | null>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student: TableTypes<'user'>,
+    courseId: string | undefined,
+    returnAllPending: true,
+  ): Promise<TableTypes<'subject_lesson'>[]>;
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<'user'>,
+    courseId?: string,
+    returnAllPending = false,
+  ): Promise<
+    TableTypes<'subject_lesson'> | TableTypes<'subject_lesson'>[] | null
+  > {
+    if (returnAllPending) {
+      if (!student) return [];
+      return await this.s.getSubjectLessonsBySubjectId(
+        subjectId,
+        student,
+        courseId,
+        true,
+      );
+    }
     return await this.s.getSubjectLessonsBySubjectId(
       subjectId,
       student,

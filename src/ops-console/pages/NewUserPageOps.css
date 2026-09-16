@@ -38,6 +38,16 @@
   margin-bottom: 24px !important;
 }
 
+.ops-new-user-breadcrumb-link {
+  color: #1a71f6 !important;
+  cursor: pointer;
+}
+
+.ops-new-user-breadcrumb-current {
+  color: #888;
+  font-weight: 600;
+}
+
 .ops-new-user-form_label {
   margin-bottom: 4px !important;
   text-align: left;

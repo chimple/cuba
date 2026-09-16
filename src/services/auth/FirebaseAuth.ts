@@ -215,6 +215,13 @@ export class FirebaseAuth implements ServiceAuth {
       let result: any;
       if (Capacitor.isNativePlatform()) {
         try {
+          // let res = await FirebaseAuthentication.verifyPhoneNumber(
+          //   phoneNumber,
+          //   0
+          // ).then((verificationId) => {
+
+          // });
+
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
               try {
@@ -229,6 +236,15 @@ export class FirebaseAuth implements ServiceAuth {
                     resolve(event);
                   },
                 );
+
+                // // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                // await FirebaseAuthentication.addListener(
+                //   "authStateChange",
+                //   async (event) => {
+
+                //     resolve(event);
+                //   }
+                // );
 
                 await FirebaseAuthentication.addListener(
                   'phoneVerificationFailed',
@@ -284,6 +300,11 @@ export class FirebaseAuth implements ServiceAuth {
         verificationId = result?.verificationId;
         return result;
       }
+
+      // if (verificationId) {
+
+      //   proceedWithVerificationCode(verificationId);
+      // }
     } catch (error) {
       throw error;
     }
@@ -348,6 +369,13 @@ export class FirebaseAuth implements ServiceAuth {
 
       const u = await FirebaseAuthentication.getCurrentUser();
 
+      // Success!
+
+      // await FirebaseAuthentication.confirmVerificationCode({
+      //   verificationId: result.verificationId,
+      //   verificationCode,
+      // });
+
       if (!res.user) {
         throw Error('Verification Failed');
       }
@@ -410,6 +438,31 @@ export class FirebaseAuth implements ServiceAuth {
 
   async isUserLoggedIn(): Promise<boolean> {
     throw new Error('Method not implemented');
+
+    // const user = await this.getCurrentUser();
+
+    // if (!!user) return true;
+
+    // // if (!user && Capacitor.isNativePlatform()) return false;
+
+    // const res = localStorage.getItem(CURRENT_USER);
+
+    // if (!res) return false;
+    // for (var i = 0; i < 1000; i++) {
+    //   await new Promise((res) => setTimeout(res, 100));
+    //   const user = await this.getCurrentUser();
+
+    //   if (!!user) {
+    //     await FirebaseAnalytics.setUserId({
+    //       userId: user.id,
+    //     });
+    //     Util.setUserProperties(user);
+    //     return true;
+    //   }
+    // }
+    // localStorage.removeItem(CURRENT_USER);
+    // if (!user) return false;
+    // return false;
   }
 
   async logOut(): Promise<void> {
@@ -421,6 +474,23 @@ export class FirebaseAuth implements ServiceAuth {
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
     this._currentUser = undefined;
+    localStorage.removeItem(CURRENT_STUDENT);
+  }
+
+  async refreshSession(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  async doRefreshSession(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  async signInWithEmail(email: string, password: string): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+  async sendResetPasswordEmail(email: string): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+  async updateUser(attributes: any): Promise<boolean> {
+    throw new Error('Method not implemented.');
   }
 
   private updateUserFcm = async (userId: string) => {

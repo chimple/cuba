@@ -77,6 +77,7 @@ const ProfileCard: React.FC<{
     const currentClass = Util.getCurrentClass();
     return {
       action_type: actionType,
+      student_id: user.id,
       target_student_id: user.id,
       target_student_grade: user.grade_id ?? '',
       ...(studentCurrMode === MODES.TEACHER_SCHOOL && currentClass?.id

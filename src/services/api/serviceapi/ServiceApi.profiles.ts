@@ -88,6 +88,8 @@ export interface ServiceApiUserProfiles {
     tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
+  createDeeplinkUser?(): void | PromiseLike<void>;
+
   getParentStudentProfiles(): Promise<TableTypes<'user'>[]>;
 
   deleteProfile(studentId: string): Promise<void>;

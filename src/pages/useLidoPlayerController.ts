@@ -15,11 +15,12 @@ import {
   SOURCE,
   CURRENT_HEADER,
   GENERIC_POP_UP,
+  LidoGameStartKey,
 } from '../common/constants';
 import { useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '../utility/screenOrientation';
-import { ServiceConfig } from '../services/ServiceConfig';
+import { APIMode, ServiceConfig } from '../services/ServiceConfig';
 import { Lesson } from '../interface/curriculumInterfaces';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useFeatureValue } from '@growthbook/growthbook-react';
@@ -41,13 +42,41 @@ import {
 } from './LidoPlayer.activityEvents';
 import { initializeLidoPlayer } from './LidoPlayer.init';
 import { createLidoPlayerControllerHelpers } from './LidoPlayer.controllerHelpers';
+import {
+  returnToRespectIfNeeded,
+  wasRespectLessonLaunchReceived,
+} from '../services/respect/RespectLessonLaunchService';
+import { getPreparedRespectLessonLaunchState } from '../services/respect/RespectLaunchCache';
+
+interface LidoPlayerRouteState {
+  courseDocId?: string;
+  lesson?: string;
+  lessonId?: string;
+  source?: string;
+  isHomework?: boolean;
+  learning_path?: boolean;
+  is_assessment?: boolean;
+  isDefaultLesson?: boolean;
+  assignment?: { type?: string };
+  assessmentId?: string;
+  course?: string;
+  chapter?: string;
+  from?: string;
+  returnState?: LidoPlayerRouteState;
+}
 
 export const useLidoPlayerController = () => {
   const history = useHistory();
   const [present] = useIonToast();
 
   // State
-  const state = history.location.state as any;
+  const routeState = history.location.state as LidoPlayerRouteState | undefined;
+  const preparedRespectLaunchState = getPreparedRespectLessonLaunchState();
+  const state: LidoPlayerRouteState | undefined = routeState?.lesson
+    ? routeState
+    : (preparedRespectLaunchState ?? routeState);
+  const isRespectLidoLaunch =
+    wasRespectLessonLaunchReceived() || !!preparedRespectLaunchState;
   const isActivationLesson = state?.isDefaultLesson === true;
   const source: SOURCE =
     getSourceFromState(state?.source) ??
@@ -111,7 +140,9 @@ export const useLidoPlayerController = () => {
     ? JSON.parse(state.lesson)
     : undefined;
 
-  const api = ServiceConfig.getI().apiHandler;
+  const api = isRespectLidoLaunch
+    ? ServiceConfig.getInstance(APIMode.ONEROSTER).apiHandler
+    : ServiceConfig.getI().apiHandler;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
   const previousAssessmentSkippedRef = useRef<boolean | null>(null);
   const resultFinalizationStartedRef = useRef(false);
@@ -141,6 +172,7 @@ export const useLidoPlayerController = () => {
     shouldTerminateAssessmentPathway,
   } = createLidoPlayerControllerHelpers({
     api,
+    assignmentId: assignment,
     assignmentType,
     chapterDetail,
     courseDetail,
@@ -162,10 +194,19 @@ export const useLidoPlayerController = () => {
     }
   };
 
-  const push = () => {
+  const push = async () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
+
+    if (await returnToRespectIfNeeded()) {
+      setIsLoading(false);
+      setTimeout(() => {
+        isExitingRef.current = false;
+      }, 300);
+      return;
+    }
+
     const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
     const returnState = {
@@ -246,6 +287,7 @@ export const useLidoPlayerController = () => {
     handleLidoLessonEnd(
       {
         assessmentLessonEndSettlingRef,
+        api,
         assignmentType,
         chapterDetail,
         courseDetail,
@@ -278,7 +320,9 @@ export const useLidoPlayerController = () => {
       e,
     );
 
-  const onGameExit = (e: any) =>
+  const onGameExit = (e: Event) => {
+    if (resultFinalizationStartedRef.current) return;
+
     handleLidoGameExit(
       {
         assignmentType,
@@ -297,8 +341,10 @@ export const useLidoPlayerController = () => {
       },
       e,
     );
+  };
   useEffect(() => {
     // localStorage.removeItem(LIDO_SCORES_KEY);
+    window.dispatchEvent(new Event(LidoGameStartKey));
     init();
     if (
       Capacitor.isNativePlatform() &&
@@ -378,6 +424,7 @@ export const useLidoPlayerController = () => {
     isActivationLesson,
     isLoading,
     isReady,
+    isRespectLidoLaunch,
     lessonDetail,
     lessonId,
     playerLanguage,

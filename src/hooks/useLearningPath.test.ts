@@ -311,7 +311,7 @@ describe('useLearningPath features used by Home tab', () => {
     );
   });
 
-  test('continues assessment sequence in assessment-only mode after prior assessment history', async () => {
+  test('falls back when assessment-only mode has prior assessment history', async () => {
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
     mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
       id: 'asmt-doc-2',
@@ -324,15 +324,8 @@ describe('useLearningPath features used by Home tab', () => {
       mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
     });
 
-    expect(next).toMatchObject({
-      lesson_id: 'assessment-lesson-2',
-      is_assessment: true,
-    });
-    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
-      's1',
-      { id: 'stu-1' },
-      'c1',
-    );
+    expect(next).toBeNull();
+    expect(mockApi.getSubjectLessonsBySubjectId).not.toHaveBeenCalled();
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
@@ -512,7 +505,8 @@ describe('useLearningPath features used by Home tab', () => {
     const coursePath = parsed.courses.courseList[0];
 
     expect(parsed.courses.currentCourseIndex).toBe(0);
-    expect(coursePath.completedPath).toBe(2);
+    // A newly assigned assessment replaces the prior pathway state.
+    expect(coursePath.completedPath).toBe(0);
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'teacher-asmt-11',
@@ -557,7 +551,7 @@ describe('useLearningPath features used by Home tab', () => {
     ]);
   });
 
-  test('does not rebuild an in-progress assessment path when matching assessments are assigned', async () => {
+  test('rebuilds an in-progress assessment path when assignments do not match', async () => {
     const existingPath = {
       courses: {
         currentCourseIndex: 0,
@@ -614,7 +608,7 @@ describe('useLearningPath features used by Home tab', () => {
     const parsed = JSON.parse(saved) as {
       courses: {
         courseList: Array<{
-          path_id: string;
+          path_id?: string;
           path: Array<{
             lesson_id: string;
             assignment_id?: string;
@@ -625,14 +619,14 @@ describe('useLearningPath features used by Home tab', () => {
     };
     const coursePath = parsed.courses.courseList[0];
 
-    expect(coursePath.path_id).toBe('assessment-path');
+    expect(coursePath.path_id).not.toBe('assessment-path');
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'assessment-lesson-1',
         assignment_id: 'assignment-1',
         source: SOURCE.INITIAL_ASSESSMENT,
         is_assessment: true,
-        isPlayed: true,
+        isPlayed: false,
       },
       {
         lesson_id: 'assessment-lesson-2',
@@ -651,7 +645,7 @@ describe('useLearningPath features used by Home tab', () => {
     ]);
   });
 
-  test('does not reset an already assigned assessment path when a new batch arrives mid-assessment', async () => {
+  test('resets an assigned assessment path when a new batch arrives mid-assessment', async () => {
     const existingPath = {
       courses: {
         currentCourseIndex: 0,
@@ -706,7 +700,28 @@ describe('useLearningPath features used by Home tab', () => {
       });
     });
 
-    expect(mockApi.updateLearningPath).not.toHaveBeenCalled();
+    expect(mockApi.updateLearningPath).toHaveBeenCalledTimes(1);
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved);
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(coursePath.completedPath).toBe(0);
+    expect(coursePath.path).toEqual([
+      {
+        lesson_id: 'new-math-assessment-1',
+        assignment_id: 'new-assignment-1',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'new-math-assessment-2',
+        assignment_id: 'new-assignment-2',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
   });
 
   test('initializes a newly added same-framework assessment course with synced active index', async () => {

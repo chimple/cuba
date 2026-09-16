@@ -27,7 +27,9 @@ export function navigateToPathwayLesson({
 
   if (lesson.plugin_type === LIVE_QUIZ) {
     history.replace({
-      ...parsePath(PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`),
+      ...parsePath(
+        PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+      ),
       state: {
         courseId: course.course_id,
         lesson: JSON.stringify(lesson),

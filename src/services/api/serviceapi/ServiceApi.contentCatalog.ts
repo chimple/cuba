@@ -92,6 +92,13 @@ export interface ServiceApiContentCatalog {
     courseId?: string,
   ): Promise<TableTypes<'subject_lesson'> | null>;
 
+  getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student: TableTypes<'user'>,
+    courseId: string | undefined,
+    returnAllPending: true,
+  ): Promise<TableTypes<'subject_lesson'>[]>;
+
   getLidoCommonAudioUrl(
     languageId: string,
     localeId?: string | null,

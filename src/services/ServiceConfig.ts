@@ -7,6 +7,10 @@ import { FirebaseAuth } from './auth/FirebaseAuth';
 import { OneRosterAuth } from './auth/OneRosterAuth';
 import { SupabaseAuth } from './auth/SupabaseAuth';
 import { SupabaseApi } from './api/SupabaseApi';
+import {
+  registerFcTouchPointSyncRunner,
+  requestFcTouchPointSync,
+} from './offline/fcTouchPointOfflineQueue';
 
 export enum APIMode {
   ONEROSTER,
@@ -26,11 +30,26 @@ export class ServiceConfig {
   public static getInstance(mode: APIMode): ServiceConfig {
     if (!ServiceConfig.instance) {
       ServiceConfig.instance = new ServiceConfig();
-      ServiceConfig.instance.setMode(mode);
-    } else if (ServiceConfig.instance.mode !== mode) {
-      ServiceConfig.instance.setMode(mode);
+      ServiceConfig.instance.mode = mode;
     }
-    return ServiceConfig.instance;
+    switch (mode) {
+      case APIMode.FIREBASE:
+        this.instance.initializeFireBase();
+        break;
+      case APIMode.ONEROSTER:
+        this.instance.initializeOneroster();
+        break;
+      case APIMode.SQLITE:
+        this.instance.initializeSqlite();
+        break;
+      case APIMode.SUPABASE:
+        this.instance.initializeSupabase();
+        break;
+      default:
+        this.instance.initializeFireBase();
+        break;
+    }
+    return this.instance;
   }
 
   public static getI(): ServiceConfig {
@@ -38,16 +57,8 @@ export class ServiceConfig {
   }
 
   public switchMode(newMode: APIMode) {
-    this.setMode(newMode);
-  }
-
-  private setMode(mode: APIMode) {
-    this.mode = mode;
-    this.initializeByMode(mode);
-  }
-
-  private initializeByMode(mode: APIMode) {
-    switch (mode) {
+    this.mode = newMode;
+    switch (newMode) {
       case APIMode.FIREBASE:
         this.initializeFireBase();
         break;
@@ -85,8 +96,14 @@ export class ServiceConfig {
   }
 
   private initializeSupabase() {
+    //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(SupabaseApi.getInstance());
+    //@ts-ignore
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
+    registerFcTouchPointSyncRunner(() =>
+      SupabaseApi.getInstance().syncPendingFcTouchPoints(),
+    );
+    requestFcTouchPointSync();
   }
 
   get apiHandler(): ApiHandler {

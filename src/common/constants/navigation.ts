@@ -427,6 +427,7 @@ export enum PAGES {
   REQUEST_LIST = '/request-list',
   OPS_MODULE_PAGE = '/ops-module-page',
   PARENT_WHATSAPP_INVITATION = '/parentWhatsappInvitation',
+  WHATSAPP_INTEGRATION_STATUS = '/whatsappIntegrationStatus',
   SCHOOL_PENDING_REQUEST = '/school-pending-request',
   SCHOOL_APPROVED_REQUEST = '/school-approved-request',
   SCHOOL_REJECTED_REQUEST = '/school-rejected-request',

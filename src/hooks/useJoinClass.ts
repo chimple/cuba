@@ -11,12 +11,10 @@ import InputWithIcons from '../components/common/InputWithIcons';
 import Loading from '../components/Loading';
 import logger from '../utility/logger';
 import { JoinClassInviteLookupResult } from '../services/api/ServiceApi';
-import { STUDENT_RESULT } from '../common/constants';
+import { CLASS_JOINED_EVENT, STUDENT_RESULT } from '../common/constants';
 const urlClassCode: any = {};
 
-export const useJoinClass = ({ onClassJoin }: {
-  onClassJoin: () => void;
-}) => {
+export const useJoinClass = ({ onClassJoin }: { onClassJoin: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [joiningClass, setJoiningClass] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -308,7 +306,7 @@ export const useJoinClass = ({ onClassJoin }: {
         logger.error('Failed to reset studentResult in sessionStorage', e);
       }
 
-      const event = new CustomEvent('JoinClassListner', { detail: 'Joined' });
+      const event = new CustomEvent(CLASS_JOINED_EVENT, { detail: 'Joined' });
       window.dispatchEvent(event);
       // history.replace("/");
       // window.location.reload();

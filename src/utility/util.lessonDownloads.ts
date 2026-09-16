@@ -332,4 +332,10 @@ export class UtilLessonDownloads {
       releaseQueue();
     }
   }
+
+  public static enqueueLessonBundleTask(
+    downloadTask: () => Promise<boolean>,
+  ): Promise<boolean> {
+    return this.enqueueLessonBundleDownload(downloadTask);
+  }
 }

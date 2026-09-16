@@ -129,8 +129,8 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
       if (assignmet) {
         await this.executeQuery(
           `
-          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id,source,batch_id,set_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
           [
             assignmet.id,
@@ -148,6 +148,8 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
             assignmet.chapter_id,
             assignmet.course_id,
             assignmet.source,
+            assignmet.batch_id,
+            assignmet.set_number,
           ],
         );
         onDataChange(assignmet);

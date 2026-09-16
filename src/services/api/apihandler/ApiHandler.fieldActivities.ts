@@ -13,6 +13,7 @@ import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
 } from '../serviceapi/ServiceApi.fieldActivities';
+import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
 export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
@@ -93,6 +94,7 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
+    offlineMediaFiles?: OfflineMediaFileRef[] | null;
   }) {
     return this.s.saveFcUserForm(payload);
   }

@@ -55,6 +55,12 @@ export const useHomePage = () => {
       ? 0
       : (location.state?.tabValue ?? 0);
   const [tabValue, setTabValue] = useState<number>(initialTab);
+  useEffect(() => {
+    // Home stays mounted when a deep link replaces only its navigation state.
+    if (location.state?.tabValue !== undefined) {
+      setTabValue(initialTab);
+    }
+  }, [location.key, location.state?.tabValue, initialTab]);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
   const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
@@ -129,11 +135,30 @@ export const useHomePage = () => {
     const languageCode = localStorage.getItem(LANGUAGE);
     await Util.updateUserLanguage(languageCode!);
 
+    const activeSchools = await api.getSchoolsForUser(
+      currentUser?.id as string,
+      {
+        page: 1,
+        page_size: 20,
+      },
+    );
+
     const existingRequest = await api.getExistingSchoolRequest(
       currentUser?.id as string,
     );
-    if (existingRequest && existingRequest.request_status === STATUS.REQUESTED)
+
+    if (
+      activeSchools.length === 0 &&
+      existingRequest &&
+      existingRequest.request_status === STATUS.REQUESTED
+    ) {
       history.replace(PAGES.POST_SUCCESS);
+      return;
+    }
+    if (activeSchools.length === 0) {
+      history.replace(PAGES.SEARCH_SCHOOL);
+      return;
+    }
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,

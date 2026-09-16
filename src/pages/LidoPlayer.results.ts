@@ -200,6 +200,7 @@ export const processLidoStoredResults = async (
             ? RESULT_STATUS.SYSTEM_EXIT
             : RESULT_STATUS.COMPLETED,
         source,
+        lesson.name,
       );
     }
 

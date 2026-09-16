@@ -4,6 +4,7 @@ import SelectIconImage from './SelectIconImage';
 import DownloadLesson from '../DownloadChapterAndLesson';
 import { t } from 'i18next';
 import { COURSES, TableTypes } from '../../common/constants';
+import { Util } from '../../utility/util';
 
 const SelectChapter: FC<{
   chapters: TableTypes<'chapter'>[];
@@ -48,7 +49,13 @@ const SelectChapter: FC<{
               <div className="chapter-icon-and-chapter-download-container">
                 <div className="chapter-icon">
                   <SelectIconImage
-                    localSrc={`courses/${course.code}/icons/${chapter.id}.webp`}
+                    localSrc={
+                      'assets/courses/' +
+                      course.code +
+                      '/icons/' +
+                      chapter.id +
+                      (Util.isRespectMode ? '.png' : '.webp')
+                    }
                     defaultSrc={'assets/icons/DefaultIcon.png'}
                     webSrc={chapter.image || 'assets/icons/DefaultIcon.png'}
                     enableOfflineDownload={true}

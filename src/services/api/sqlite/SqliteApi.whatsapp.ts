@@ -1,10 +1,25 @@
 import { Json } from '../../database';
 import { SqliteApiSticker } from './SqliteApi.sticker';
+import type {
+  WhatsappIntegrationStatusParams,
+  WhatsappIntegrationStatusResponse,
+} from '../serviceapi/ServiceApi.whatsapp';
 
 export interface SqliteApiWhatsApp {
   [key: string]: any;
 }
 export class SqliteApiWhatsApp extends SqliteApiSticker {
+  async getWhatsappIntegrationStatus(
+    params: WhatsappIntegrationStatusParams = {},
+  ): Promise<WhatsappIntegrationStatusResponse> {
+    if (!this._serverApi.getWhatsappIntegrationStatus) {
+      throw new Error(
+        'WhatsApp integration status is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getWhatsappIntegrationStatus(params);
+  }
+
   // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;

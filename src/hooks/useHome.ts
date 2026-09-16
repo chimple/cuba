@@ -296,7 +296,7 @@ export const useHome = () => {
     setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
-    await getAssignments(false);
+    await getAssignments(true);
 
     // Call these to ensure attributes are set on Home load
     const updateAtb = async () => {
@@ -378,8 +378,16 @@ export const useHome = () => {
         : null;
     const classDoc = linkedData?.classes[0];
     if (withListeners) {
-      if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
-      if (student) await api.assignmentUserListner(student.id, () => {});
+      if (classDoc?.id) {
+        await api.assignmentListner(classDoc.id, () => {
+          setRefreshKey((oldKey) => oldKey + 1);
+        });
+      }
+      if (student) {
+        await api.assignmentUserListner(student.id, () => {
+          setRefreshKey((oldKey) => oldKey + 1);
+        });
+      }
     }
 
     if (

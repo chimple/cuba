@@ -63,25 +63,25 @@
 .campaign-setup-breadcrumb-link {
   background: transparent;
   border: 0;
-  color: #888888;
+  color: #1a71f6;
   cursor: pointer;
   font: inherit;
   padding: 0;
 }
 
 .campaign-setup-breadcrumb-link:hover {
-  color: #454545;
+  color: #1a71f6;
 }
 
 .campaign-setup-breadcrumb strong {
-  color: #454545;
+  color: #888888;
   font-weight: 700;
 }
 
 .campaign-setup-breadcrumb-icon {
   width: 1rem !important;
   height: 1rem !important;
-  color: #454545;
+  color: #888888;
 }
 
 .campaign-setup-notification {

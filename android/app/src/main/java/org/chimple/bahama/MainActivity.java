@@ -3,6 +3,8 @@ package org.chimple.bahama;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.content.Intent;
@@ -19,6 +21,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import android.app.Activity;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -28,13 +31,19 @@ import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 
+import org.json.JSONObject;
 
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
+    private static final String TAG = "RespectLauncher";
+
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
-
+    // private RespectClientManager respectClientManager; // Declare RespectClientManager
+    public static MainActivity instance;
+    static String activity_id = "";
+    static JSONObject deepLinkData = new JSONObject();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
@@ -45,7 +54,13 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
+        // Register plugins
         registerPlugin(PortPlugin.class);
+        registerPlugin(RespectXapiPlugin.class);
+//        super.onCreate(savedInstanceState);
+//        var respectClientManager = RespectClientManager();
+//        respectClientManager.bindService(this);
+
         registerPlugin(LessonBundlePlugin.class);
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
@@ -54,6 +69,8 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
+        // Handle deep linking on cold start
+        handleDeepLink(getIntent());
         FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
     }
@@ -98,6 +115,10 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleDeepLink(intent);
+        }
     public void onResume() {
         super.onResume();
     }
@@ -106,6 +127,34 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     public void onDestroy() {
         super.onDestroy();
     }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent == null || intent.getData() == null) {
+            return;
+        }
+
+        Uri data = intent.getData();
+        try {
+            for (String key : data.getQueryParameterNames()) {
+                if (key.equals("activity_id")) {
+                    Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
+                    activity_id = data.getQueryParameter(key);
+                    // RESPECT launches a full-screen Lido activity. Lock here,
+                    // before the web player initializes, to prevent portrait UI.
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                }
+                deepLinkData.put(key, data.getQueryParameter(key));
+            }
+        } catch (Exception e) {
+            return;
+        }
+
+        // The web app independently retries launch preparation until its data is ready.
+        // Do not delay this event: a warm Cuba activity otherwise briefly shows the
+        // previous student-selection screen before the RESPECT lesson is opened.
+        PortPlugin.sendLaunch();
+    }
+
 
     public static Context getAppContext() {
         return appContext;

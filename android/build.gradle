@@ -4,10 +4,10 @@ buildscript {
     
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:9.3.1'
         classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
         // NOTE: Do not place your application dependencies here; they belong
@@ -20,7 +20,6 @@ apply from: "variables.gradle"
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
         maven {
             url "https://devserver3.ustadmobile.com/maven2"

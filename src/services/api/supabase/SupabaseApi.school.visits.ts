@@ -7,11 +7,15 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import { ServiceConfig } from '../../ServiceConfig';
+import { getQueuedVisitSnapshot } from '../../offline/fcTouchPointOfflineQueue';
 import { SupabaseApiAssignmentAssessments } from './SupabaseApi.assignment.assessments';
+import { recordSchoolVisit as recordFcTouchPointSchoolVisit } from '../../offline/fctouchpoints/fcTouchPointSchoolVisit';
 
 export interface SupabaseApiSchoolVisits {
-  [key: string]: any;
+  [key: string]: unknown;
 }
+
 export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
   async updateSchoolLocation(
     schoolId: string,
@@ -39,107 +43,16 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     distanceFromSchool?: number,
     numberOfParents?: number,
   ): Promise<TableTypes<'fc_school_visit'> | null> {
-    try {
-      if (!this.supabase) {
-        logger.error('Supabase client not initialized');
-        return null;
-      }
-
-      const {
-        data: { user },
-      } = await this.supabase.auth.getUser();
-      if (!user) {
-        logger.error('SupabaseApi: User not logged in');
-        throw 'User is not Logged in';
-      }
-
-      const now = new Date().toISOString();
-
-      if (action === SchoolVisitAction.CheckIn) {
-        // Enforce enum format: "Regular Visit" -> "regular_visit"
-        const newVisit = {
-          school_id: schoolId,
-          user_id: user.id,
-          check_in_at: now,
-          check_in_lat: lat,
-          check_in_lng: lng,
-          type: visitType,
-          is_deleted: false,
-          distance_from_school:
-            distanceFromSchool == null ? null : String(distanceFromSchool),
-          number_of_parents: null,
-        };
-
-        const { data, error } = await this.supabase
-          .from(TABLES.FcSchoolVisit)
-          .insert(newVisit)
-          .select()
-          .single();
-
-        if (error) {
-          logger.error('SupabaseApi: Insert Error:', error);
-          throw error;
-        }
-        return data;
-      } else {
-        const { data: openVisits, error: fetchError } = await this.supabase
-          .from(TABLES.FcSchoolVisit)
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('school_id', schoolId)
-          .is('check_out_at', null)
-          .eq('is_deleted', false)
-          .order('check_in_at', { ascending: false })
-          .limit(1);
-
-        if (fetchError) {
-          logger.error('SupabaseApi: Error fetching open visit:', fetchError);
-          throw fetchError;
-        }
-
-        if (openVisits && openVisits.length > 0) {
-          const visitToUpdate = openVisits[0];
-          const nextNumberOfParents =
-            visitToUpdate.type === SchoolVisitType.Community
-              ? numberOfParents == null
-                ? visitToUpdate.number_of_parents
-                : numberOfParents
-              : null;
-
-          const { data, error } = await this.supabase
-            .from(TABLES.FcSchoolVisit)
-            .update({
-              check_out_at: now,
-              check_out_lat: lat,
-              check_out_lng: lng,
-              number_of_parents: nextNumberOfParents,
-              updated_at: now,
-              distance_from_school:
-                distanceFromSchool == null
-                  ? visitToUpdate.distance_from_school
-                  : String(distanceFromSchool),
-            })
-            .eq('id', visitToUpdate.id)
-            .select()
-            .single();
-
-          if (error) {
-            logger.error('SupabaseApi: Update Error:', error);
-            throw error;
-          }
-          return data;
-        } else {
-          logger.warn('SupabaseApi: No active visit found to check out from.');
-          return null;
-        }
-      }
-    } catch (error) {
-      logger.error(
-        'SupabaseApi: Unexpected error recording school visit:',
-        error,
-      );
-      return null;
-    }
+    return recordFcTouchPointSchoolVisit.call(
+      this,
+      schoolId,
+      lat,
+      lng,
+      action,
+      visitType,
+      distanceFromSchool,
+      numberOfParents,
+    );
   }
 
   async getLastSchoolVisit(
@@ -147,11 +60,13 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     try {
       if (!this.supabase) return null;
-      const {
-        data: { user },
-      } = await this.supabase.auth.getUser();
-
+      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!user) return null;
+
+      const queuedSnapshot = await getQueuedVisitSnapshot(user.id, schoolId);
+      if (queuedSnapshot) {
+        return queuedSnapshot;
+      }
 
       const { data, error } = await this.supabase
         .from(TABLES.FcSchoolVisit)

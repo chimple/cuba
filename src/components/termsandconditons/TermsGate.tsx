@@ -106,7 +106,11 @@ const TermsGate: React.FC = () => {
   const shouldDeferTermsModal = TERMS_MODAL_DEFERRED_PATHS.has(
     location.pathname,
   );
-  const shouldHideTermsModal = TERMS_MODAL_HIDDEN_PATHS.has(location.pathname);
+  // RESPECT has already authenticated the learner and launches directly into a
+  // lesson, so Cuba must not interrupt that external lesson flow with its own
+  // account-level consent screen.
+  const shouldHideTermsModal =
+    Util.isRespectMode || TERMS_MODAL_HIDDEN_PATHS.has(location.pathname);
   const shouldShowTermsModal =
     !shouldHideTermsModal && !shouldDeferTermsModal && shouldRequireTerms;
 

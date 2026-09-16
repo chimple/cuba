@@ -1,6 +1,5 @@
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
 import { TableTypes } from '../../common/constants';
-// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
   loginWithEmailAndPassword(
@@ -54,6 +53,7 @@ export interface ServiceAuth {
   >;
 
   logOut(): Promise<void>;
+  refreshSession(): Promise<void>;
   doRefreshSession(): Promise<void>;
   /**
    * Authenticates a user using their email and password.

@@ -19,6 +19,8 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        // Keep only required locales from transitive libraries to reduce resources
+        resConfigs 'en', 'hi', 'kn', 'mr'
         buildTypes {
             debug {
                 ndk {
@@ -46,6 +48,13 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    // Exclude unnecessary META-INF files to slightly reduce size
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
+        }
+    }
 }
 
 repositories {
@@ -64,6 +73,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation 'org.openeel.app:lib-http-ipc-client:1.0.41'
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:32.1.0')
 
@@ -72,7 +82,6 @@ dependencies {
 
     implementation "androidx.work:work-runtime:2.8.1"
     implementation 'com.google.firebase:firebase-messaging:23.3.1'
-
     implementation("com.google.firebase:firebase-crashlytics")
 }
 

@@ -67,7 +67,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
             {/* Google Login - Always show */}
             <div
               className={`LoginSwitch-switch-option ${!checkbox ? 'disabled' : ''}`}
-              onClick={() => checkbox && onGoogleSignIn()}
+              onClick={checkbox ? onGoogleSignIn : undefined}
               style={{
                 opacity: checkbox ? 1 : 0.5,
                 cursor: checkbox ? 'pointer' : 'not-allowed',

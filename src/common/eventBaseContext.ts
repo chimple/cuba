@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { CURRENT_MODE, MODES } from './constants';
+import { CURRENT_MODE, CURRENT_STUDENT, MODES } from './constants';
 import { RootState, store } from '../redux/store';
 import { schoolUtil } from '../utility/schoolUtil';
 
@@ -12,6 +12,7 @@ export interface GlobalEventBaseContext {
   school_id: string;
   current_app_mode: string;
   device_platform: string;
+  student_id: string;
 }
 
 const getCurrentModeValue = (): string => {
@@ -34,6 +35,14 @@ export const buildGlobalEventBaseContext = (): GlobalEventBaseContext => {
   const userId = state.auth.user?.id ?? state.auth.authUser?.id;
   const roles = state.auth.roles ?? [];
   const schoolId = schoolUtil.getCurrentSchool()?.id;
+  let studentId = UNKNOWN_CONTEXT_VALUE;
+  try {
+    const storedStudent = localStorage.getItem(CURRENT_STUDENT);
+    const parsedStudent = storedStudent ? JSON.parse(storedStudent) : null;
+    studentId = parsedStudent?.id ?? UNKNOWN_CONTEXT_VALUE;
+  } catch {
+    studentId = UNKNOWN_CONTEXT_VALUE;
+  }
 
   return {
     user_id: userId ?? UNKNOWN_CONTEXT_VALUE,
@@ -41,5 +50,6 @@ export const buildGlobalEventBaseContext = (): GlobalEventBaseContext => {
     school_id: schoolId ?? UNKNOWN_CONTEXT_VALUE,
     current_app_mode: getCurrentModeValue(),
     device_platform: Capacitor.getPlatform(),
+    student_id: studentId,
   };
 };

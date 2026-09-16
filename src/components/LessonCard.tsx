@@ -222,8 +222,8 @@ const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
                   'courses/' +
                   lesson.cocos_subject_code +
                   '/icons/' +
-                  lesson.id +
-                  '.webp'
+                  (Util.isRespectMode ? lesson.cocos_lesson_id : lesson.id) +
+                  (Util.isRespectMode ? '.png' : '.webp')
                 }
                 defaultSrc={'assets/icons/DefaultIcon.png'}
                 webSrc={lesson.image || 'assets/icons/DefaultIcon.png'}

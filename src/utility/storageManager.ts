@@ -1,4 +1,5 @@
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { PREDICTIVE_BUFFER_LESSON_IDS } from '../common/constants';
 import logger from './logger';
 import { REMOTE_CONFIG_KEYS } from '../services/RemoteConfig';
 import { SqliteApi } from '../services/api/SqliteApi';
@@ -176,6 +177,7 @@ export class StorageManager {
     const playedMap = new Map(
       playedLessons.map((lesson) => [lesson.lesson_id, lesson.last_played]),
     );
+    const predictiveBufferLessonIds = this.getPredictiveBufferLessonIds();
 
     const neverPlayed: LessonEvictionCandidate[] = [];
 
@@ -183,6 +185,9 @@ export class StorageManager {
 
     for (const lessonId of lessonFolders) {
       const lastPlayed = playedMap.get(lessonId);
+
+      // Keep the current offline window until a lesson is played or replaced.
+      if (predictiveBufferLessonIds.has(lessonId) && !lastPlayed) continue;
 
       if (!lastPlayed) {
         neverPlayed.push({
@@ -213,6 +218,23 @@ export class StorageManager {
     );
 
     return [...neverPlayed, ...played];
+  }
+
+  private static getPredictiveBufferLessonIds(): Set<string> {
+    try {
+      const value = JSON.parse(
+        localStorage.getItem(PREDICTIVE_BUFFER_LESSON_IDS) || '[]',
+      );
+      return new Set(
+        Array.isArray(value)
+          ? value.filter(
+              (lessonId): lessonId is string => typeof lessonId === 'string',
+            )
+          : [],
+      );
+    } catch {
+      return new Set();
+    }
   }
 
   private static async deleteLessonFolder(lessonId: string): Promise<void> {

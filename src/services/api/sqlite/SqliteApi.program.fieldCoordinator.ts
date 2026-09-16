@@ -10,6 +10,7 @@ import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
 } from '../serviceapi/ServiceApi.fieldActivities';
+import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
 export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManagement {
   [key: string]: any;
@@ -35,6 +36,7 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
+    offlineMediaFiles?: OfflineMediaFileRef[] | null;
   }): Promise<{
     data: TableTypes<'fc_user_forms'> | null;
     error: object | null;

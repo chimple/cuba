@@ -2,7 +2,13 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useMediaQuery } from '@mui/material';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../../services/ServiceConfig';
-import { PerformanceLevel, StudentInfo } from '../../../common/constants';
+import {
+  ContactTarget,
+  OpsSupportLevelMap,
+  OPS_PERFORMANCE_BANDS,
+  PerformanceLevel,
+  StudentInfo,
+} from '../../../common/constants';
 import { ClassRow, SchoolData } from './SchoolClass';
 import {
   filterByProgramGrades,
@@ -22,6 +28,8 @@ import { useSchoolStudentsRows } from './useSchoolStudentsRows';
 import { useSchoolStudentsStatus } from './useSchoolStudentsStatus';
 import { useSchoolStudentsExport } from './useSchoolStudentsExport';
 import type { ApiStudentData, DisplayStudent } from './SchoolStudents.types';
+import { ensureQuestionsCached } from '../../../services/offline/offlineCache';
+import logger from '../../../utility/logger';
 
 export interface SchoolStudentsProps {
   data: {
@@ -325,6 +333,43 @@ export const useSchoolStudentsController = ({
     { key: PerformanceLevel.STILL_LEARNING, label: t('Medium Engagement') },
     { key: PerformanceLevel.NOT_TRACKED, label: t('Not Downloaded') },
   ];
+
+  const studentQuestionTypes = [
+    OpsSupportLevelMap[OPS_PERFORMANCE_BANDS.HIGH],
+    OpsSupportLevelMap[OPS_PERFORMANCE_BANDS.MEDIUM],
+    OpsSupportLevelMap[OPS_PERFORMANCE_BANDS.NOT_ACTIVE],
+    OpsSupportLevelMap[OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED],
+  ];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const preloadStudentQuestions = async () => {
+      for (const target of [ContactTarget.STUDENT, ContactTarget.PARENT]) {
+        if (cancelled) return;
+
+        try {
+          await ensureQuestionsCached({
+            api,
+            statuses: studentQuestionTypes,
+            target,
+          });
+        } catch (error) {
+          logger.error('Failed to preload student interaction questions', {
+            error,
+            target,
+          });
+        }
+      }
+    };
+
+    void preloadStudentQuestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
   return {
     contentProps: {
       classFilterOptions,

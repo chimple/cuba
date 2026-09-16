@@ -27,6 +27,8 @@ export const SEARCH_LESSON_CACHE_KEY = 'search_lesson_last_state';
 export const CURRENT_MODE = 'currentMode';
 export const LAST_MODE = 'lastMode';
 export const CURRENT_CLASS = 'currentClass';
+export const FRESH_ASSESSMENT_AFTER_JOIN = (studentId: string) =>
+  `fresh_assessment_after_join_${studentId}`;
 export const LANGUAGE = 'language';
 export const LANG_REFRESHED = 'langRefreshed';
 export const EXAM = 'exam';
@@ -89,6 +91,17 @@ export const BUNDLE_URL =
   'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/';
 export interface PortPlugin {
   addListener(eventName: string, listenerFunc: (data: any) => void): void;
+  sendLaunchData(): Promise<{
+    endpoint: string;
+    auth: string;
+    actor: string;
+    registration: string;
+    lessonId: string;
+    chimpleLessonId: string;
+    lessonName: string;
+    xapiIpcPackage: string;
+  }>;
+  returnDataToRespect(): Promise<void>;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
@@ -219,6 +232,8 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
+export const MAX_STUDENTS_ALLOWED_RESPECT = 1;
+export const isRespectMode = 'isRespectMode';
 export const INSTANT_SEARCH_INDEX_NAME =
   import.meta.env.VITE_ALGOLIA_INDEX_NAME ?? '';
 
@@ -246,6 +261,9 @@ export enum STAGES {
 }
 
 export const CURRENT_STUDENT = 'currentStudent';
+export const CURRENT_USER = 'currentUser';
+export const USER_COURSES = 'userCourses';
+export const STUDENT_LESSON_SCORES = 'studentLessonScores';
 export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',
@@ -380,6 +398,8 @@ export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 export const NUMBER_REGEX = /^[0-9]+$/;
 export const DOWNLOADED_LESSON_ID = 'downloadedLessonId';
 export const DOWNLOADED_LESSONS_SIZE = 'downloaded_lessons_size';
+export const PREDICTIVE_BUFFER_LESSON_IDS = 'predictiveBufferLessonIds';
+export const PREDICTIVE_ASSESSMENT_STATUS = 'predictiveAssessmentStatus';
 export enum SnackbarType {
   Success = 'success',
   Error = 'error',

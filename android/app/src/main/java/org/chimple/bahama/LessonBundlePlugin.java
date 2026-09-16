@@ -26,6 +26,9 @@ import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import okhttp3.Request;
+import okhttp3.Response;
+
 @CapacitorPlugin(name = "LessonBundle")
 public class LessonBundlePlugin extends Plugin {
     private static final int BUFFER_SIZE = 8192;
@@ -113,6 +116,11 @@ public class LessonBundlePlugin extends Plugin {
 
     private DownloadResult downloadZip(String zipUrl, File destination)
             throws IOException, NoSuchAlgorithmException {
+        if (!MainActivity.activity_id.isEmpty()
+                && RespectHttpClient.getOkHttpClient() != null) {
+            return downloadZipThroughRespectCache(zipUrl, destination);
+        }
+
         HttpURLConnection connection = (HttpURLConnection) new URL(zipUrl).openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
@@ -144,6 +152,34 @@ public class LessonBundlePlugin extends Plugin {
         }
 
         return new DownloadResult(byteLength, bytesToHex(digest.digest()));
+    }
+
+    private DownloadResult downloadZipThroughRespectCache(String zipUrl, File destination)
+            throws IOException, NoSuchAlgorithmException {
+        Request request = new Request.Builder().url(zipUrl).build();
+        try (Response response = RespectHttpClient.getOkHttpClient().newCall(request).execute()) {
+            if (!response.isSuccessful() || response.body() == null) {
+                throw new IOException("Unexpected response " + response.code() + " for " + zipUrl);
+            }
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            long byteLength = 0;
+            try (
+                    InputStream inputStream = new BufferedInputStream(response.body().byteStream());
+                    DigestInputStream digestInputStream = new DigestInputStream(inputStream, digest);
+                    FileOutputStream fileOutputStream = new FileOutputStream(destination);
+                    BufferedOutputStream outputStream = new BufferedOutputStream(fileOutputStream)
+            ) {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = digestInputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                    byteLength += bytesRead;
+                }
+            }
+
+            return new DownloadResult(byteLength, bytesToHex(digest.digest()));
+        }
     }
 
     private void unzip(File zipFile, File destinationDir) throws IOException {

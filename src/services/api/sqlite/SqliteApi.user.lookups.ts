@@ -76,7 +76,7 @@ export class SqliteApiUserLookups extends SqliteApiCorePushSync {
     AND a.is_deleted = 0
     AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
     AND r.assignment_id IS NULL
-    AND a.type <> 'assessment'
+    AND a.type = 'assignment'
     AND (
       a.ends_at IS NULL OR
       TRIM(a.ends_at) = '' OR

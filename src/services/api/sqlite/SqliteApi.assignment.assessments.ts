@@ -108,6 +108,8 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
         AND a.class_id = ?
         AND a.course_id = ?
         AND a.type = 'assessment'
+        -- A termination in an older batch cannot close a newer reassignment.
+        AND a.batch_id = ?
       LIMIT 1;
     `;
 
@@ -115,12 +117,13 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
       studentId,
       classId,
       courseId,
+      latestBatchId,
     ]);
     const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
       lesson_id?: string | null;
     }[];
     const isLatestBatchReassignment = courseTerminationRows.some(
-      (result: any) =>
+      (result) =>
         !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
     );
     if (courseTerminationRows.length && !isLatestBatchReassignment) {

@@ -4464,6 +4464,7 @@ export type Database = {
           active_students_homework: number;
           active_students_learning_pathway: number;
           active_teachers: number | null;
+          activated_teachers: number | null;
           activities_assigned: number | null;
           avg_activities_completed: number | null;
           avg_assignments_completed: number | null;
@@ -4506,6 +4507,7 @@ export type Database = {
           active_students_homework?: number;
           active_students_learning_pathway?: number;
           active_teachers?: number | null;
+          activated_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
           avg_assignments_completed?: number | null;
@@ -4548,6 +4550,7 @@ export type Database = {
           active_students_homework?: number;
           active_students_learning_pathway?: number;
           active_teachers?: number | null;
+          activated_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
           avg_assignments_completed?: number | null;

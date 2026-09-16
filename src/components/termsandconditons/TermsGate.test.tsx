@@ -25,6 +25,10 @@ import TermsGate from './TermsGate';
 jest.mock('@growthbook/growthbook-react');
 
 jest.mock('react-i18next', () => ({
+  initReactI18next: {
+    type: '3rdParty',
+    init: jest.fn(),
+  },
   useTranslation: () => ({
     t: (value: string) => value,
   }),

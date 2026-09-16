@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import type { History } from 'history';
+import type { History, LocationDescriptor } from 'history';
 
 type ReplaceHistory = Pick<History, 'replace'>;
-type PendingNavigationTarget = string;
+type PendingNavigationTarget = LocationDescriptor;
 
 let historyRef: ReplaceHistory | null = null;
 let pendingNavigationTargets: PendingNavigationTarget[] = [];
@@ -30,7 +30,7 @@ export const unregisterNavigationHandler = (): void => {
   historyRef = null;
 };
 
-export const replaceWithNavigationTarget = (url: string): void => {
+export const replaceWithNavigationTarget = (url: LocationDescriptor): void => {
   if (!historyRef) {
     pendingNavigationTargets.push(url);
     return;

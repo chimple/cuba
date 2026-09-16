@@ -180,6 +180,16 @@ export class ApiHandlerUserProfiles {
     return await this.s.createAutoProfile(languageDocId, tcVersion);
   }
 
+  createDeeplinkUser(): void | PromiseLike<void> {
+    if (!this.s.createDeeplinkUser) {
+      throw new Error(
+        'createDeeplinkUser is unavailable for the active API service.',
+      );
+    }
+
+    return this.s.createDeeplinkUser();
+  }
+
   async getParentStudentProfiles(): Promise<TableTypes<'user'>[]> {
     return await this.s.getParentStudentProfiles();
   }

@@ -34,7 +34,7 @@ export const mapSchoolRowsToRenderRows = (
     const activatedStudents = pickFirstNumber(school.activated_students);
     const activeStudents = pickFirstNumber(school.active_students);
     const activeTeachers = pickFirstNumber(school.active_teachers);
-    const totalTeachers = pickFirstNumber(school.total_teachers);
+    const activatedTeachers = pickFirstNumber(school.activated_teachers);
     const completionAssignments = pickFirstNumber(
       school.avg_assignments_completed,
     );
@@ -144,10 +144,10 @@ export const mapSchoolRowsToRenderRows = (
       ),
       activeTeachers: renderMetricWithPercentCell(
         activeTeachers,
-        activeTeachers != undefined &&
-          totalTeachers != undefined &&
-          totalTeachers > 0
-          ? (activeTeachers / totalTeachers) * 100
+        activeTeachers != undefined && activatedTeachers != undefined
+          ? activatedTeachers > 0
+            ? (activeTeachers / activatedTeachers) * 100
+            : 0
           : null,
       ),
       activitiesAssigned: renderMetricCell(

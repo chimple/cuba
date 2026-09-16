@@ -7,6 +7,7 @@ import { useGenericPopup } from '../hooks/useGenericPopup';
 import { useOpsConsoleBodyClass } from '../hooks/useOpsConsoleBodyClass';
 import { useRouteAudioCleanup } from '../hooks/useRouteAudioCleanup';
 import { useUsageLimitModal } from '../hooks/useUsageLimitModal';
+import { usePredictiveDownloads } from '../hooks/usePredictiveDownloads';
 import { useAppSelector } from '../redux/hooks';
 import AppRoutes from './AppRoutes';
 import AppOverlays from './AppOverlays';
@@ -22,6 +23,7 @@ const AppContent: React.FC = () => {
   const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
   const popup = useGenericPopup();
   const usageLimit = useUsageLimitModal();
+  usePredictiveDownloads();
 
   return (
     <>

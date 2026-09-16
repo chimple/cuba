@@ -153,8 +153,9 @@ export function useMediaActions(
           },
         });
       } catch (e) {
-        if ((e as any)?.name === 'AbortError') return;
-        logger.error('Failed to compress media:', e);
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          return;
+        }
       } finally {
         stopCompressionTimer(id);
         compressionAbortRef.current.delete(id);

@@ -1,5 +1,5 @@
 // import { AccountManager } from "account-manager";
-import { IS_USER_LOGED_IN, USER_TOKEN } from '../common/constants';
+import { IS_USER_LOGED_IN, USER_TOKEN } from '../common/authStorage';
 
 export default class Auth {
   private static instance: Auth;

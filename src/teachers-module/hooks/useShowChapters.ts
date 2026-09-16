@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import Header from '../components/homePage/Header';
 import {
@@ -164,10 +164,12 @@ export const useShowChapters = () => {
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const classId = currentClass?.id ?? current_class?.id ?? '';
-    const chapter_res = await api.getChaptersForCourse(course.id);
+    const [chapter_res, course_data] = await Promise.all([
+      api.getChaptersForCourse(course.id),
+      api.getCourse(course.id),
+    ]);
     const chapterOrder = chapter_res.map((chapter) => chapter.id);
     const validChapterIds = new Set(chapterOrder);
-    const course_data = await api.getCourse(course.id);
     setChapters(chapter_res);
     const lesson_map = new Map<string, TableTypes<'lesson'>[]>();
     const previous_sync_lesson = currUser?.id

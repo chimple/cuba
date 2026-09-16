@@ -42,4 +42,8 @@ import { SupabaseAuthOtpAuth } from './SupabaseAuth.otpAuth';
 export class SupabaseAuth extends SupabaseAuthOtpAuth implements ServiceAuth {
   static [key: string]: any;
   [key: string]: any;
+
+  public refreshSession(): Promise<void> {
+    return this.doRefreshSession();
+  }
 }

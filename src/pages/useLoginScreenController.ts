@@ -20,6 +20,7 @@ import {
   MODES,
   PAGES,
   LOGIN_TYPES,
+  STATUS,
   TC_HTML_URL,
 } from '../common/constants';
 import { APP_LANGUAGES } from '../common/constants';
@@ -27,7 +28,6 @@ import { Util } from '../utility/util';
 import i18n from '../i18n';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { useHistory } from 'react-router-dom';
-// redux store, slice, hook imports
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { RootState } from '../redux/store';
 import {
@@ -45,9 +45,11 @@ import {
   normalizeTcVersion,
   resolveTermsBaseUrl,
 } from '../utility/termsAndConditions';
+import { getAppPathname } from '../utility/routerLocation';
 import { isTeacherAppRole } from '../utility/roleUtil';
 import { createLoginCredentialAuthHandlers } from './LoginScreen.credentialAuth';
 import { createLoginPrimaryAuthHandlers } from './LoginScreen.primaryAuth';
+import { wasRespectLessonLaunchReceived } from '../services/respect/RespectLessonLaunchService';
 
 const NATIVE_LOADING_ANIMATIONS = ['/assets/home.gif'];
 const WEB_LOADING_ANIMATIONS = [
@@ -56,7 +58,6 @@ const WEB_LOADING_ANIMATIONS = [
   '/assets/profiles-grid.gif',
   '/assets/subjects-book.gif',
 ];
-
 export const useLoginScreenController = () => {
   const history = useHistory();
   const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
@@ -74,12 +75,10 @@ export const useLoginScreenController = () => {
   >(LOGIN_TYPES.PHONE);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-
   const { error: authErrors, loading: isLoading } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
   const dispatch = useAppDispatch();
-
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState(false);
   const [showResendOtp, setShowResendOtp] = useState(false);
@@ -112,13 +111,11 @@ export const useLoginScreenController = () => {
   const [initializing, setInitializing] = useState(true);
   const [showStudentCredentialLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
-
   const loginTermsBaseUrl = resolveTermsBaseUrl(tcHtmlUrlFeature);
   const loginTermsUrl = loginTermsBaseUrl
     ? buildTermsUrl(loginTermsBaseUrl, currentLang)
     : 'assets/termsandconditions/TermsandConditionsofChimple.html';
   const isNativePlatform = Capacitor.isNativePlatform();
-
   const loadingMessages = [
     t('Track your learning progress.'),
     t('Preparing 400+ fun lessons.'),
@@ -132,6 +129,11 @@ export const useLoginScreenController = () => {
     : WEB_LOADING_ANIMATIONS;
   const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  // The login screen can unmount while startup auth calls are still pending.
+  // RESPECT lesson launches own navigation once received, so late login
+  // redirects must not pull the learner away from the Lido player.
+  const shouldRespectOwnNavigation = (): boolean =>
+    wasRespectLessonLaunchReceived() || getAppPathname() === PAGES.LIDO_PLAYER;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -147,14 +149,14 @@ export const useLoginScreenController = () => {
   }, [loadingAnimations.length, loadingMessages.length]);
 
   useEffect(() => {
+    let isCancelled = false;
     const initialize = async () => {
       try {
-        // lock orientation if native
+        if (shouldRespectOwnNavigation()) return;
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
         }
-
-        // language
+        if (isCancelled || shouldRespectOwnNavigation()) return;
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
           localStorage.setItem(LANGUAGE, 'en');
@@ -164,26 +166,28 @@ export const useLoginScreenController = () => {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);
         }
-
+        if (isCancelled || shouldRespectOwnNavigation()) return;
         const authHandler = ServiceConfig.getI().authHandler;
         let isLoggedIn = await authHandler.isUserLoggedIn();
-
+        if (isCancelled || shouldRespectOwnNavigation()) return;
         if (!isLoggedIn) {
           Util.migrateSupabaseSession();
           isLoggedIn = await authHandler.isUserLoggedIn();
         }
-
+        if (isCancelled || shouldRespectOwnNavigation()) return;
         if (isLoggedIn) {
           await redirectAuthenticatedUser();
           return;
         }
       } finally {
-        setInitializing(false);
+        if (!isCancelled) {
+          setInitializing(false);
+        }
       }
     };
     initialize();
-
     return () => {
+      isCancelled = true;
       if (Capacitor.isNativePlatform()) {
         document.removeEventListener(
           'visibilitychange',
@@ -192,24 +196,19 @@ export const useLoginScreenController = () => {
       }
     };
   }, []);
-
-  // Handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
+    if (shouldRespectOwnNavigation()) return;
     if (document.visibilityState === 'visible') {
-      // App came to foreground
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
-        if (isUserLoggedIn) {
+        if (isUserLoggedIn && !shouldRespectOwnNavigation()) {
           void redirectAuthenticatedUser();
         }
       });
     }
   };
-
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = '';
-
-  // Timer effect for OTP resend
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (showTimer && counter > 0) {
@@ -228,7 +227,6 @@ export const useLoginScreenController = () => {
     };
   }, [showTimer, counter]);
 
-  // Timer effect for OTP expiration
   useEffect(() => {
     if (loginType === LOGIN_TYPES.OTP) {
       const expiryTimer = setInterval(() => {
@@ -259,40 +257,80 @@ export const useLoginScreenController = () => {
     return (await api.getSchoolsForUser(userId)) || [];
   };
 
+  const getExistingSchoolRequest = async (userId: string) => {
+    try {
+      return await api.getExistingSchoolRequest(userId);
+    } catch (error) {
+      logger.error('Error fetching existing school request:', error);
+      return null;
+    }
+  };
+
   const redirectAuthenticatedUser = async (): Promise<void> => {
+    if (shouldRespectOwnNavigation()) return;
     const currentUser = await authInstance.getCurrentUser();
+    if (shouldRespectOwnNavigation()) return;
     if (!currentUser?.id) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
 
     const isOpsUser = await api.isSplUser();
+    if (shouldRespectOwnNavigation()) return;
     const schools = await getSchoolsForUser(currentUser.id);
+    if (shouldRespectOwnNavigation()) return;
     await redirectUser(schools, isOpsUser);
   };
+  const redirectToPendingTeacherLink = (
+    schools: { role: RoleType }[],
+  ): boolean => {
+    const pendingTeacherLink = Util.consumePendingTeacherDeepLink();
+    if (!pendingTeacherLink) return false;
 
+    if (
+      pendingTeacherLink.teacherOnly &&
+      !schools.some((school) => school.role === RoleType.TEACHER)
+    ) {
+      history.replace(PAGES.HOME_PAGE);
+      return true;
+    }
+
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(pendingTeacherLink);
+    return true;
+  };
   const redirectUser = async (
     schools: { role: RoleType }[],
     isOpsUser: boolean,
   ) => {
+    if (shouldRespectOwnNavigation()) return;
     if (isOpsUser) {
       await ScreenOrientation.unlock();
+      if (shouldRespectOwnNavigation()) return;
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       return history.replace(PAGES.SIDEBAR_PAGE);
     } else {
       if (schools.length === 0) {
+        const currentUser = await authInstance.getCurrentUser();
+        if (shouldRespectOwnNavigation()) return;
+        const existingRequest = currentUser?.id
+          ? await getExistingSchoolRequest(currentUser.id)
+          : null;
+        if (shouldRespectOwnNavigation()) return;
+        if (existingRequest?.request_status === STATUS.REQUESTED) {
+          return history.replace(PAGES.POST_SUCCESS);
+        }
         schoolUtil.setCurrMode(MODES.PARENT);
         return history.replace(PAGES.DISPLAY_STUDENT);
       }
-
-      // AUTOUSER ? school-mode
       const hasTeacherAppRole = schools.some((school) =>
         isTeacherAppRole(school.role),
       );
       if (hasTeacherAppRole) {
+        if (redirectToPendingTeacherLink(schools)) return;
         const authHandler = ServiceConfig.getI()?.authHandler;
         const currentUser = await authHandler?.getCurrentUser();
-
+        if (shouldRespectOwnNavigation()) return;
         schoolUtil.setCurrMode(MODES.TEACHER);
         if (!currentUser?.name || currentUser.name.trim() === '') {
           return history.replace(PAGES.ADD_TEACHER_NAME);
@@ -312,8 +350,9 @@ export const useLoginScreenController = () => {
         }
       }
       const authHandler = ServiceConfig.getI()?.authHandler;
+      if (redirectToPendingTeacherLink(schools)) return;
       const currentUser = await authHandler?.getCurrentUser();
-
+      if (shouldRespectOwnNavigation()) return;
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
       if (!currentUser?.name || currentUser.name.trim() === '') {
@@ -322,12 +361,10 @@ export const useLoginScreenController = () => {
       return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
   };
-
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
     ([id, displayName]) => ({ id, displayName }),
   );
-
   // Handle language change
   const handleLanguageChange = async (selectedLang: string) => {
     if (!selectedLang) return;

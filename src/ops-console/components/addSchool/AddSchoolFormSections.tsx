@@ -6,6 +6,8 @@ import DropdownField from '../DropdownField';
 export const AddSchoolDetailsSection = ({
   errorMessage,
   handleUdiseChange,
+  schoolModelDisabled,
+  schoolModelOptions,
   schoolModel,
   schoolName,
   setSchoolModel,
@@ -14,6 +16,8 @@ export const AddSchoolDetailsSection = ({
 }: {
   errorMessage: string;
   handleUdiseChange: (value: string) => void;
+  schoolModelDisabled: boolean;
+  schoolModelOptions: { label: string; value: string }[];
   schoolModel: string;
   schoolName: string;
   setSchoolModel: (value: string) => void;
@@ -69,11 +73,8 @@ export const AddSchoolDetailsSection = ({
           value={schoolModel}
           onChange={setSchoolModel}
           placeholder={t('Select Model') ?? ''}
-          options={[
-            { label: t('At Home'), value: 'at_home' },
-            { label: t('At School'), value: 'at_school' },
-            { label: t('Hybrid'), value: 'hybrid' },
-          ]}
+          options={schoolModelOptions}
+          disabled={schoolModelDisabled}
           openDirection="down"
         />
       </Grid>

@@ -4,6 +4,7 @@ import { Redirect, Route, RouteProps } from 'react-router-dom';
 import { PAGES } from './common/constants';
 import Loading from './components/Loading';
 import { ServiceConfig } from './services/ServiceConfig';
+import { wasRespectLessonLaunchReceived } from './services/respect/RespectLessonLaunchService';
 import { logAuthDebug } from './utility/authDebug';
 import { isRecoverableStorageError } from './utility/recoverableStorageError';
 import { getAppPathname } from './utility/routerLocation';
@@ -17,6 +18,8 @@ export default function ProtectedRoute({
   ...rest
 }: ProtectedRouteProps) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
+  const bypassesAuthForRespectLesson = (): boolean =>
+    rest.path === PAGES.LIDO_PLAYER && wasRespectLessonLaunchReceived();
 
   useEffect(() => {
     const lifecycle: { cancelled: boolean; timeoutId?: number } = {
@@ -36,12 +39,27 @@ export default function ProtectedRoute({
     attempt = 1,
   ) => {
     if (lifecycle.cancelled) return;
+    if (bypassesAuthForRespectLesson()) {
+      setIsAuth(true);
+      return;
+    }
+
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       if (lifecycle.cancelled) return;
+      if (bypassesAuthForRespectLesson()) {
+        setIsAuth(true);
+        return;
+      }
+
       const user = await authHandler?.getCurrentUser();
       if (lifecycle.cancelled) return;
+      if (bypassesAuthForRespectLesson()) {
+        setIsAuth(true);
+        return;
+      }
+
       setIsAuth(!!isUserLoggedIn && !!user);
       if (!isUserLoggedIn || !user) {
         logAuthDebug('ProtectedRoute redirecting to login.', {
@@ -85,6 +103,13 @@ export default function ProtectedRoute({
       setIsAuth(false);
     }
   };
+
+  // RESPECT launches create a transient learner in their own preparation path.
+  // The Lido route must not bounce through Cuba's normal login while that
+  // preparation owns navigation.
+  if (bypassesAuthForRespectLesson()) {
+    return <Route {...rest}>{children}</Route>;
+  }
 
   if (isAuth == null) return <Loading isLoading />;
 

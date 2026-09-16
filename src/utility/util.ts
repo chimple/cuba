@@ -23,6 +23,11 @@ export interface HotUpdateState {
 }
 export class Util extends UtilHomeworkAudio {
   static [key: string]: any;
+
+  public static get isRespectMode(): boolean {
+    return localStorage.getItem('isRespectMode') === 'true';
+  }
+
   public static async updateSchStdAttb(): Promise<any[]> {
     try {
       const student = Util.getCurrentStudent();

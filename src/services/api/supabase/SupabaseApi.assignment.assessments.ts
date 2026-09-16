@@ -229,7 +229,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
           `
           lesson_id,
           status,
-          assignment!inner(class_id, course_id, type)
+          assignment!inner(class_id, course_id, type, batch_id)
         `,
         )
         .eq('student_id', studentId)
@@ -238,6 +238,8 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
         .eq('assignment.class_id', classId)
         .eq('assignment.course_id', courseId)
         .eq('assignment.type', 'assessment')
+        // A termination in an older batch cannot close a newer reassignment.
+        .eq('assignment.batch_id', latestBatchId)
         .limit(1);
 
     if (courseTerminationError) {

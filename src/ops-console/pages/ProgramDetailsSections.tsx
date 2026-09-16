@@ -77,7 +77,7 @@ export const ProgramContactsColumn = ({ data }: { data: ProgramData }) => (
   </Grid>
 );
 
-export const ProgramPerformanceColumn = ({
+export const ProgramStatisticsColumn = ({
   history,
   id,
   stats,
@@ -88,31 +88,6 @@ export const ProgramPerformanceColumn = ({
 }) => (
   <Grid size={{ xs: 12, md: 4 }} order={{ xs: 1, md: 3 }}>
     <Box className="program-detail-page-column-container">
-      <InfoCard title={t('Program Performance')} items={[]}>
-        <Box className="program-performance-card" sx={{ p: 2 }}>
-          <Box display="flex" justifyContent="space-between" mb={1}>
-            <Typography>{t('Active Students')}</Typography>
-            <Typography fontWeight="bold">
-              {`${stats.active_student_percentage.toFixed(2)}%`}
-            </Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between" mb={1}>
-            <Typography>{t('Avg week time in mins')}</Typography>
-            <Typography fontWeight="bold">
-              {`${stats.avg_weekly_time_minutes.toFixed(2)}`}
-            </Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography>{t('Active Teachers')}</Typography>
-            <Typography fontWeight="bold">
-              {`${stats.active_teacher_percentage.toFixed(2)}%`}
-            </Typography>
-          </Box>
-          <Button variant="contained" fullWidth>
-            {t('View Detailed Analytics')}
-          </Button>
-        </Box>
-      </InfoCard>
       <InfoCard title={t('Program Statistics')} items={[]}>
         <Box className="program-detail-page-stats" sx={{ p: 2, mb: 2 }}>
           <Box display="flex" justifyContent="space-between" mb={1}>
