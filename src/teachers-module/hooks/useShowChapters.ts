@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import Header from '../components/homePage/Header';
 import {
@@ -41,13 +41,6 @@ export const useShowChapters = () => {
     locationState.gradeName ?? '',
   );
   const [lessons, setLessons] = useState<Map<string, TableTypes<'lesson'>[]>>();
-  const lessonsRef = useRef(new Map<string, TableTypes<'lesson'>[]>());
-  const lessonRequestsRef = useRef(
-    new Map<string, Promise<TableTypes<'lesson'>[]>>(),
-  );
-  const [loadingLessonChapterIds, setLoadingLessonChapterIds] = useState<
-    Set<string>
-  >(new Set());
   const lessonsRef = useRef(new Map<string, TableTypes<'lesson'>[]>());
   const lessonRequestsRef = useRef(
     new Map<string, Promise<TableTypes<'lesson'>[]>>(),
@@ -177,7 +170,6 @@ export const useShowChapters = () => {
     ]);
     const chapterOrder = chapter_res.map((chapter) => chapter.id);
     const validChapterIds = new Set(chapterOrder);
-    const course_data = await api.getCourse(course.id);
     setChapters(chapter_res);
     const lesson_map = new Map<string, TableTypes<'lesson'>[]>();
     const previous_sync_lesson = currUser?.id
@@ -234,10 +226,6 @@ export const useShowChapters = () => {
       lastAssignmentForCourse,
       cartChapterIds: cartChapterIdsForCourse,
     });
-    if (resolvedChapterId && !lesson_map.has(resolvedChapterId)) {
-      const initialLessons = await loadLessonsForChapter(resolvedChapterId);
-      lesson_map.set(resolvedChapterId, initialLessons);
-    }
     if (resolvedChapterId && !lesson_map.has(resolvedChapterId)) {
       const initialLessons = await loadLessonsForChapter(resolvedChapterId);
       lesson_map.set(resolvedChapterId, initialLessons);
