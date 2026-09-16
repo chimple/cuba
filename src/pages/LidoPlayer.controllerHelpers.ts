@@ -1,12 +1,13 @@
 import {
   ASSESSMENT_FAIL_KEY,
   EVENTS,
+  FRESH_ASSESSMENT_AFTER_JOIN,
   FAIL_STREAK_KEY,
   LIDO_SCORES_KEY,
 } from '../common/constants';
-import { Util } from '../utility/util';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
+import { Util } from '../utility/util';
 
 export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const {
@@ -26,9 +27,6 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     source,
   } = ctx;
   const getAssessmentProgressKey = () => {
-    const assignmentProgressSuffix = assignmentId
-      ? `:assignment:${assignmentId}`
-      : '';
     if (isAssessmentLesson && courseDetailWithPathFields?.subject_id) {
       const courseCode = (
         courseDetailWithPathFields.code ??
@@ -41,15 +39,15 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
         courseDetailWithPathFields.course_id ??
         courseDocId;
       return courseCode
-        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}${assignmentProgressSuffix}`
-        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}${assignmentProgressSuffix}`;
+        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}`
+        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}`;
     }
-    const courseKey =
+    return (
       courseDetailWithPathFields?.id ??
       courseDetailWithPathFields?.course_id ??
       courseDocId ??
-      '';
-    return `${courseKey}${assignmentProgressSuffix}`;
+      ''
+    );
   };
 
   const resolveStudentContext = async (): Promise<{
@@ -91,8 +89,6 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
   const resolvePreviousAssessmentSkipped = async (
     studentId: string,
   ): Promise<boolean> => {
-    // A new assigned assessment starts with fresh termination state.
-    if (assignmentId) return false;
     if (previousAssessmentSkippedRef.current !== null) {
       return previousAssessmentSkippedRef.current;
     }
@@ -265,9 +261,13 @@ export const createLidoPlayerControllerHelpers = (ctx: any) => {
     const streakMap: Record<string, number> = JSON.parse(
       localStorage.getItem(streakKey) || '{}',
     );
+    const isFreshAfterJoin =
+      localStorage.getItem(FRESH_ASSESSMENT_AFTER_JOIN(studentId)) === 'true';
     const previousLessonSkipped =
       !!failMap[courseKey] ||
-      (await resolvePreviousAssessmentSkipped(studentId));
+      (assignmentId || isFreshAfterJoin
+        ? false
+        : await resolvePreviousAssessmentSkipped(studentId));
 
     return previousLessonSkipped && (streakMap[courseKey] || 0) >= 2;
   };

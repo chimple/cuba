@@ -2,6 +2,7 @@ import {
   ACTIVATION_REWARD_FLOW_KEY,
   ASSESSMENT_FAIL_KEY,
   EVENTS,
+  FRESH_ASSESSMENT_AFTER_JOIN,
   FAIL_STREAK_KEY,
   HOMEWORK_PATHWAY,
   LIDO_SCORES_KEY,
@@ -91,6 +92,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
         getAssessmentFailStreak(studentId, courseKey) >= 4;
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
+      localStorage.removeItem(FRESH_ASSESSMENT_AFTER_JOIN(studentId));
       if (isFullPathwayTerminated) {
         Util.logEvent(EVENTS.ASSESSMENT_TERMINATED, {
           user_id: parentUserId,
