@@ -25,6 +25,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
       error: null;
       select: jest.Mock<Chain, []>;
       eq: jest.Mock<Chain, [string, unknown]>;
+      in: jest.Mock<Chain, [string, unknown[]]>;
       not: jest.Mock<Chain, [string, string, unknown]>;
     };
 
@@ -40,6 +41,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.error = null;
     chain.select = jest.fn(() => chain);
     chain.eq = jest.fn(() => chain);
+    chain.in = jest.fn(() => chain);
     chain.not = jest.fn(() => chain);
 
     const supabase = {
@@ -94,6 +96,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
       error: null;
       select: jest.Mock<Chain, []>;
       eq: jest.Mock<Chain, [string, unknown]>;
+      in: jest.Mock<Chain, [string, unknown[]]>;
       not: jest.Mock<Chain, [string, string, unknown]>;
     };
 
@@ -102,6 +105,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.error = null;
     chain.select = jest.fn(() => chain);
     chain.eq = jest.fn(() => chain);
+    chain.in = jest.fn(() => chain);
     chain.not = jest.fn(() => chain);
 
     const supabase = {
@@ -121,5 +125,36 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
         { id: 'school-3', name: 'Teacher School' },
       ],
     });
+  });
+
+  it('includes merged requests in Approved filter options', async () => {
+    type Chain = {
+      data: [];
+      error: null;
+      select: jest.Mock<Chain, []>;
+      eq: jest.Mock<Chain, [string, unknown]>;
+      in: jest.Mock<Chain, [string, unknown[]]>;
+      not: jest.Mock<Chain, [string, string, unknown]>;
+    };
+    const chain = {} as Chain;
+    chain.data = [];
+    chain.error = null;
+    chain.select = jest.fn(() => chain);
+    chain.eq = jest.fn(() => chain);
+    chain.in = jest.fn(() => chain);
+    chain.not = jest.fn(() => chain);
+    const supabase = { from: jest.fn(() => chain) };
+    const api =
+      new SupabaseApiProgramRequests() as SupabaseApiProgramRequests & {
+        supabase: typeof supabase;
+      };
+    api.supabase = supabase;
+
+    await api.getRequestFilterOptions('approved');
+
+    expect(chain.in).toHaveBeenCalledWith('request_status', [
+      'approved',
+      'merged',
+    ]);
   });
 });
