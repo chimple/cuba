@@ -36,6 +36,7 @@ import {
   getRequestApiFilters,
   getRequestExportDateField,
   REQUEST_EXPORT_MIME_TYPE,
+  getRequestExportStatus,
 } from './RequestList.export';
 import type { DateRangeValue } from './SchoolList.helpers';
 
@@ -77,6 +78,7 @@ function mapRequests(
     case REQUEST_TABS.APPROVED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -87,6 +89,7 @@ function mapRequests(
     case REQUEST_TABS.REJECTED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -98,6 +101,7 @@ function mapRequests(
     case REQUEST_TABS.FLAGGED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -121,6 +125,7 @@ function mapRequests(
           : '-';
         return {
           request_id: req.request_id || req.id,
+          status: getRequestExportStatus(req.request_status, selectedTab),
           request_type: req.request_type ?? '-',
           school_name: req.school?.name || '-',
           class: req.classInfo?.name || '-',

@@ -5,6 +5,7 @@ import {
   buildRequestExportCsv,
   buildRequestExportFileName,
   buildRequestExportSheetRows,
+  getRequestExportStatus,
   fetchAllRequestsForExport,
   filterRequestsByDateRange,
 } from './RequestList.export';
@@ -59,6 +60,7 @@ describe('Request list export helpers', () => {
     const rows: RequestRow[] = [
       {
         request_id: 'request-1',
+        status: 'pending',
         request_type: 'student',
         school_name: 'Alpha School',
         class: 'Grade 1',
@@ -73,9 +75,21 @@ describe('Request list export helpers', () => {
         { key: 'school_name', label: 'School Name' },
       ]),
     ).toEqual([
-      ['Request ID', 'School Name'],
-      ['request-1', 'Alpha School'],
+      ['Request ID', 'School Name', 'Status'],
+      ['request-1', 'Alpha School', 'pending'],
     ]);
+  });
+
+  it('keeps approved and merged statuses distinct in the Approved export', () => {
+    expect(getRequestExportStatus('approved', REQUEST_TABS.APPROVED)).toBe(
+      'approved',
+    );
+    expect(getRequestExportStatus('merged', REQUEST_TABS.APPROVED)).toBe(
+      'merged',
+    );
+    expect(getRequestExportStatus('rejected', REQUEST_TABS.REJECTED)).toBe(
+      'rejected',
+    );
   });
 
   it('adds selected filters before the request rows', () => {
@@ -90,7 +104,7 @@ describe('Request list export helpers', () => {
       ['Request Type', 'student'],
       ['School', 'Alpha School'],
       [],
-      ['Request ID'],
+      ['Request ID', 'Status'],
     ]);
   });
 

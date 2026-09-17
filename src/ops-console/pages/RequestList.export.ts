@@ -1,5 +1,5 @@
 import type { Column } from '../components/DataTableBody';
-import { REQUEST_TABS, type EnumType } from '../../common/constants';
+import { REQUEST_TABS, STATUS, type EnumType } from '../../common/constants';
 import type { ServiceApi } from '../../services/api/ServiceApi';
 import { t } from 'i18next';
 import type { DateRangeValue } from './SchoolList.helpers';
@@ -54,6 +54,21 @@ export const getRequestExportDateField = (
   selectedTab: REQUEST_TABS,
 ): 'created_at' | 'updated_at' =>
   selectedTab === REQUEST_TABS.PENDING ? 'created_at' : 'updated_at';
+
+export const getRequestExportStatus = (
+  requestStatus: OpsRequestItem['request_status'],
+  selectedTab: REQUEST_TABS,
+): string => {
+  if (selectedTab === REQUEST_TABS.PENDING) {
+    return REQUEST_TABS.PENDING.toLowerCase();
+  }
+
+  if (selectedTab === REQUEST_TABS.APPROVED) {
+    return requestStatus === STATUS.MERGED ? STATUS.MERGED : STATUS.APPROVED;
+  }
+
+  return requestStatus || selectedTab.toLowerCase();
+};
 
 export const buildRequestExportFileName = (
   selectedTab: REQUEST_TABS,
@@ -195,13 +210,19 @@ export const buildRequestExportSheetRows = (
         [],
       ]
     : []),
-  columns.map((column) => String(column.label ?? '')),
-  ...rows.map((row) =>
-    columns.map((column) => {
+  [
+    ...columns.map((column) => String(column.label ?? '')),
+    getExportLabel('Status', 'Status'),
+  ],
+  ...rows.map((row) => [
+    ...columns.map((column) => {
       const value = row[column.key as keyof RequestRow];
       return value === undefined || value === null || value === ''
         ? '-'
         : String(value);
     }),
-  ),
+    row.status === undefined || row.status === null || row.status === ''
+      ? '-'
+      : String(row.status),
+  ]),
 ];

@@ -27,6 +27,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
       eq: jest.Mock<Chain, [string, unknown]>;
       in: jest.Mock<Chain, [string, unknown[]]>;
       not: jest.Mock<Chain, [string, string, unknown]>;
+      then: PromiseLike<{ data: SchoolRow[]; error: null }>['then'];
     };
 
     const rows = [
@@ -43,6 +44,11 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.eq = jest.fn(() => chain);
     chain.in = jest.fn(() => chain);
     chain.not = jest.fn(() => chain);
+    chain.then = (onfulfilled, onrejected) =>
+      Promise.resolve({ data: chain.data, error: chain.error }).then(
+        onfulfilled,
+        onrejected,
+      );
 
     const supabase = {
       from: jest.fn(() => chain),

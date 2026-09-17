@@ -70,7 +70,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       const requestTypes = [...Constants.public.Enums.ops_request_type];
       const isRequestedStatus =
         requestStatus === Constants.public.Enums.ops_request_status[0];
-      const schoolQuery = await this.supabase
+      const schoolQuery = this.supabase
         .from('ops_requests')
         .select(
           `

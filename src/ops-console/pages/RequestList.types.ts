@@ -34,6 +34,7 @@ export type OpsRequestItem = TableTypes<'ops_requests'> & {
 
 export type RequestRow = {
   request_id: string;
+  status?: string;
   request_type: string;
   school_name: string;
   class: string;
