@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import InlineSvg from '../../components/InlineSvg';
 import { getGeneratedBadge } from './badgeGenerator';
 import './Badges.css';
@@ -8,7 +8,9 @@ interface BadgeProps {
 }
 
 const Badge = memo(({ number }: BadgeProps) => {
-  const badge = getGeneratedBadge(number);
+  // Keep one random combination for this rendered badge while allowing each
+  // child/profile to receive a fresh combination.
+  const [badge] = useState(() => getGeneratedBadge(number));
 
   if (!badge) {
     return null;

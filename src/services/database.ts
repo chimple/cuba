@@ -5617,6 +5617,47 @@ export type Database = {
           },
         ];
       };
+      user_badge_progress: {
+        Row: {
+          id: string;
+          user_id: string;
+          lessons_played_count: number;
+          latest_badge_milestone: number;
+          has_unseen_badge: boolean;
+          created_at: string;
+          updated_at: string | null;
+          is_deleted: boolean | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          lessons_played_count?: number;
+          latest_badge_milestone?: number;
+          has_unseen_badge?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+          is_deleted?: boolean | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          lessons_played_count?: number;
+          latest_badge_milestone?: number;
+          has_unseen_badge?: boolean;
+          created_at?: string;
+          updated_at?: string | null;
+          is_deleted?: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_badge_progress_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       user_bonus: {
         Row: {
           bonus_id: string;

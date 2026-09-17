@@ -29,7 +29,7 @@ export class SqliteApiCoreFoundation {
   protected _db: SQLiteDBConnection | undefined;
   protected _sqlite: SQLiteConnection | undefined;
   protected DB_NAME = 'db_issue10';
-  protected DB_VERSION = 15;
+  protected DB_VERSION = 16;
   protected BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
   protected BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   protected BUNDLED_IMPORT_TABLES = new Set<string>([
