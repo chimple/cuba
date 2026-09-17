@@ -13,6 +13,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { Util } from '../../utility/util';
 import { getRequestListColumns } from './RequestList.columns';
 import {
   getRequestTabOptions,
@@ -25,6 +26,19 @@ import type {
   RequestListFilters,
   RequestRow,
 } from './RequestList.types';
+import {
+  buildRequestExportCsv,
+  buildRequestExportFileName,
+  buildRequestExportSheetRows,
+  fetchAllRequestsForExport,
+  filterRequestsByDateRange,
+  getBackendRequestOrderBy,
+  getRequestApiFilters,
+  getRequestExportDateField,
+  REQUEST_EXPORT_MIME_TYPE,
+  getRequestExportStatus,
+} from './RequestList.export';
+import type { DateRangeValue } from './SchoolList.helpers';
 
 function parseJSONParam<T>(param: string | null, fallback: T): T {
   try {
@@ -64,6 +78,7 @@ function mapRequests(
     case REQUEST_TABS.APPROVED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -74,6 +89,7 @@ function mapRequests(
     case REQUEST_TABS.REJECTED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -85,6 +101,7 @@ function mapRequests(
     case REQUEST_TABS.FLAGGED:
       return requestItems.map((req) => ({
         request_id: req.request_id || req.id,
+        status: getRequestExportStatus(req.request_status, selectedTab),
         request_type: req.request_type ?? '-',
         school_name: req.school?.name || '-',
         class: req.classInfo?.name || '-',
@@ -108,6 +125,7 @@ function mapRequests(
           : '-';
         return {
           request_id: req.request_id || req.id,
+          status: getRequestExportStatus(req.request_status, selectedTab),
           request_type: req.request_type ?? '-',
           school_name: req.school?.name || '-',
           class: req.classInfo?.name || '-',
@@ -154,6 +172,7 @@ export function useRequestListPage() {
   const [rawRequestData, setRawRequestData] = useState<OpsRequestItem[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [total, setTotal] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<RequestListFilters>(() =>
@@ -191,6 +210,7 @@ export function useRequestListPage() {
   const shouldLoadFilterOptions = isFilterOpen || hasSchoolFilter;
   const isLoading =
     isDataLoading || (!isFilterOpen && hasSchoolFilter && isFilterLoading);
+  const isExportDisabled = isLoading || isExporting || total === 0;
   const columns = useMemo(
     () => getRequestListColumns(selectedTab),
     [selectedTab],
@@ -271,32 +291,73 @@ export function useRequestListPage() {
     setTempFilters(filters);
   }, [filters]);
 
+  const handleExportRequests = React.useCallback(
+    async (dateRange: DateRangeValue): Promise<void> => {
+      if (isLoading || isExporting || total === 0) return;
+
+      setIsExporting(true);
+      try {
+        const exportNow = Date.now();
+        const requests = await fetchAllRequestsForExport({
+          api,
+          requestStatus,
+          filters: getRequestApiFilters(filters, schoolNameToIdMapRef.current),
+          orderBy: getRequestExportDateField(selectedTab),
+          orderDir: 'desc',
+          searchTerm: debouncedSearchTerm,
+          selectedTab,
+          dateRange,
+          now: exportNow,
+        });
+        const filteredRequests = filterRequestsByDateRange(
+          requests,
+          selectedTab,
+          dateRange,
+          exportNow,
+        );
+        const sheetRows = buildRequestExportSheetRows(
+          mapRequests(filteredRequests, selectedTab),
+          columns,
+          filters,
+        );
+        const blob = new Blob([buildRequestExportCsv(sheetRows)], {
+          type: REQUEST_EXPORT_MIME_TYPE,
+        });
+
+        await Util.handleBlobDownloadAndSave(
+          blob,
+          buildRequestExportFileName(selectedTab, dateRange),
+        );
+      } catch (error) {
+        logger.error('Failed to export requests', error);
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [
+      api,
+      columns,
+      debouncedSearchTerm,
+      filters,
+      isExporting,
+      isLoading,
+      requestStatus,
+      selectedTab,
+      total,
+    ],
+  );
+
   useEffect(() => {
     if (!isSchoolFilterReady) return;
 
     const fetchData = async () => {
       setIsDataLoading(true);
       try {
-        const filtersWithSchoolIds = {
-          ...filters,
-          school: filters.school
-            .map((name) => schoolNameToIdMapRef.current.get(name) || name)
-            .filter(Boolean),
-        };
-        const cleanedFilters = Object.fromEntries(
-          Object.entries(filtersWithSchoolIds).filter(
-            ([_, v]) => Array.isArray(v) && v.length > 0,
-          ),
-        ) as RequestListFilters;
-        const orderByMapping: Record<string, string> = {
-          approved_date: 'updated_at',
-          rejected_date: 'updated_at',
-          requested_date: 'created_at',
-          auto_approves_on: 'request_ends_at',
-          flagged_date: 'updated_at',
-          school_name: 'school(name)',
-        };
-        const backendOrderBy = orderByMapping[orderBy] || orderBy;
+        const cleanedFilters = getRequestApiFilters(
+          filters,
+          schoolNameToIdMapRef.current,
+        );
+        const backendOrderBy = getBackendRequestOrderBy(orderBy);
         const { data, total } = await api.getOpsRequests(
           requestStatus,
           page,
@@ -445,10 +506,13 @@ export function useRequestListPage() {
     filters,
     handleCancelFilters,
     handleDeleteFilter,
+    handleExportRequests,
     handleOpenFilters,
     handleRowClick,
     handleSort,
     handleTabChange,
+    isExportDisabled,
+    isExporting,
     isFilterOpen,
     isLoading,
     orderBy,

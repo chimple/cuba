@@ -123,7 +123,7 @@ export class SqliteApiUserStudentMerge extends SqliteApiUserStudentLists {
       if (requestId) {
         await this._db.run(
           `UPDATE ops_requests
-         SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ?
+         SET status = 'merged', merged_to = ?, updated_at = ?, responded_by = ?
          WHERE request_id = ?`,
           [newStudentId, now, respondedBy ?? null, requestId],
         );

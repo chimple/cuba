@@ -8256,7 +8256,12 @@ export type Database = {
         | 'three_to_four'
         | 'four_plus';
       login_type: 'student_id' | 'parent_phone_number';
-      ops_request_status: 'requested' | 'rejected' | 'approved' | 'flagged';
+      ops_request_status:
+        | 'requested'
+        | 'rejected'
+        | 'approved'
+        | 'merged'
+        | 'flagged';
       ops_request_type: 'student' | 'teacher' | 'principal' | 'school';
       program_model: 'hybrid' | 'at_home' | 'at_school';
       program_type: 'government' | 'private' | 'learning_centers';
@@ -8469,7 +8474,13 @@ export const Constants = {
         'four_plus',
       ],
       login_type: ['student_id', 'parent_phone_number'],
-      ops_request_status: ['requested', 'rejected', 'approved', 'flagged'],
+      ops_request_status: [
+        'requested',
+        'rejected',
+        'approved',
+        'flagged',
+        'merged',
+      ],
       ops_request_type: ['student', 'teacher', 'principal', 'school'],
       program_model: ['hybrid', 'at_home', 'at_school'],
       program_type: ['government', 'private', 'learning_centers'],
