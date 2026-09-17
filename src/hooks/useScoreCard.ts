@@ -1,4 +1,4 @@
-import React, {
+import {
   MouseEventHandler,
   useCallback,
   useEffect,
@@ -18,6 +18,10 @@ import { EVENTS, TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { buildScoreCardProgressRows } from '../components/scorecards/scoreCardLogic';
+import { PENDING_BADGE_MILESTONE_KEY } from '../common/Badges/badgeProgress';
+import { logBadgeEvent } from '../common/Badges/badgeAnalytics';
+import type { BadgeAnalyticsProgress } from '../common/Badges/badgeAnalytics';
+import logger from '../utility/logger';
 
 const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
 const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
@@ -145,6 +149,7 @@ export const useScoreCard = ({
     loadedProgressRowsKeyRef.current !== progressLookupKey;
   const shouldRenderDialog = showDialogBox && !isProgressRowsPending;
   const hasLoggedGoalProgressRef = useRef(false);
+  const badgeCompletionKeyRef = useRef<string | null>(null);
 
   const logGoalProgressShown = useCallback(async () => {
     const { student, studentId, parentId } =
@@ -327,6 +332,52 @@ export const useScoreCard = ({
     hasLoggedGoalProgressRef.current = true;
     void logGoalProgressShown();
   }, [isLoadingRows, logGoalProgressShown, shouldRenderDialog]);
+
+  useEffect(() => {
+    const completedLessonId = progressContext?.completedLessonId;
+    const api = ServiceConfig.getI()?.apiHandler;
+    if (
+      !shouldRenderDialog ||
+      !progressContext?.showStickerProgress ||
+      !completedLessonId ||
+      !api?.recordBadgeLessonCompletion
+    ) {
+      return;
+    }
+
+    const completionKey = `${completedLessonId}:${progressContext.completedHomeworkIndex ?? ''}`;
+    if (badgeCompletionKeyRef.current === completionKey) return;
+
+    void (async () => {
+      const { studentId } = await resolveScoreCardStudentContext();
+      if (!studentId) return;
+      badgeCompletionKeyRef.current = completionKey;
+      try {
+        const result = await api.recordBadgeLessonCompletion(studentId);
+        if (result.milestoneReached !== null) {
+          // Carry the exact local progress snapshot to Home for popup analytics and display.
+          const badgeProgress = result.progress as BadgeAnalyticsProgress;
+          void logBadgeEvent(
+            EVENTS.BADGE_MILESTONE_REACHED,
+            studentId,
+            badgeProgress,
+            { milestone_awarded: result.milestoneReached },
+          );
+          sessionStorage.setItem(
+            PENDING_BADGE_MILESTONE_KEY,
+            JSON.stringify({
+              milestone: result.milestoneReached,
+              studentId,
+              progress: badgeProgress,
+            }),
+          );
+        }
+      } catch (error) {
+        logger.warn('Badge progress update skipped:', error);
+      }
+    })();
+  }, [progressContext, shouldRenderDialog]);
+
   return {
     Dialog,
     DialogContentText,

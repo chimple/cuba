@@ -1,0 +1,260 @@
+.BadgeCelebrationModal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.BadgeCelebrationModal-confetti {
+  position: fixed !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.BadgeCelebrationModal-modal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 332px;
+  height: 354px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 1rem);
+  box-sizing: border-box;
+  padding: 5px 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-radius: 0 0 24px 24px;
+  background: #fffdee;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+  border: none !important;
+  outline: none !important;
+  overflow: visible;
+  --close-size: 3.6rem;
+  --close-outset: calc(var(--close-size) * 0.82);
+  --close-top: calc(var(--close-size) * 0.1);
+  --close-pad: calc(var(--close-size) * 0.18);
+  --audio-size: 3.6rem;
+  margin-right: calc(var(--close-size) * 1.5);
+  margin-left: calc(var(--audio-size) * 1.5);
+  isolation: isolate;
+  backface-visibility: hidden;
+}
+
+.BadgeCelebrationModal-modal::before,
+.BadgeCelebrationModal-modal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: calc(var(--close-size) * 1.5 + 20px);
+  height: calc(var(--close-size) * 1.35);
+  border-radius: 50%;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.BadgeCelebrationModal-modal::before {
+  right: calc(100% - 20px);
+  border-radius: 999px 1.125rem 0 999px;
+}
+.BadgeCelebrationModal-modal::after {
+  left: calc(100% - 20px);
+  border-radius: 1.125rem 999px 999px 0;
+}
+
+.BadgeCelebrationModal-audio-button {
+  position: absolute;
+  top: calc(var(--audio-size) * 0.175);
+  right: calc(100% + var(--audio-size) * 0.29);
+  width: var(--audio-size);
+  height: var(--audio-size);
+  z-index: 2;
+}
+
+.BadgeCelebrationModal-audio-button-control .audio-button__icon {
+  max-width: none;
+  max-height: none;
+}
+
+.BadgeCelebrationModal-close {
+  position: absolute;
+  width: var(--close-size);
+  height: var(--close-size);
+  top: calc(var(--close-size) * 0.175);
+  left: calc(100% + var(--close-size) * 0.29);
+  border: 2px solid #f34d08;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.BadgeCelebrationModal-close::before,
+.BadgeCelebrationModal-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52%;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: #f34d08;
+}
+
+.BadgeCelebrationModal-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.BadgeCelebrationModal-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.BadgeCelebrationModal-share-card {
+  display: flex;
+  width: 100%;
+  height: 280px;
+  flex: 0 0 280px;
+  align-items: center;
+  justify-content: center;
+}
+
+.BadgeCelebrationModal-badge-art {
+  position: relative;
+  width: 330px;
+  max-width: 100%;
+  height: 280px;
+  margin: 0 auto;
+  overflow: hidden;
+  transform: translateY(2px);
+}
+
+.BadgeCelebrationModal-badge-art > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.BadgeCelebrationModal-badge-art > span > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.BadgeCelebrationModal-badge-art h2 {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  margin: 0;
+  color: #182a4f;
+  text-align: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(14px, 4vw, 16px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.BadgeCelebrationModal-generated-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 164px;
+  height: 151px;
+  transform: translate(-50%, -50%) scale(0.48);
+  transform-origin: center;
+}
+
+.BadgeCelebrationModal-generated-badge [class^='badges-item-'] {
+  margin: 0;
+}
+
+.BadgeCelebrationModal-generated-badge .badges-number {
+  color: #005757 !important;
+  font-family: Baloo, 'Baloo 2', sans-serif !important;
+  font-size: clamp(17.015px, 5vw, 24px) !important;
+  font-style: normal;
+  font-weight: 400 !important;
+  line-height: normal !important;
+}
+
+.BadgeCelebrationModal-badge-copy {
+  position: absolute;
+  right: 0;
+  bottom: 60px;
+  left: 0;
+  max-width: calc(100% - 2rem);
+  margin: 0 auto;
+  z-index: 2;
+  color: #182a4f;
+  text-align: center;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(11px, 3.25vw, 13px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.BadgeCelebrationModal-badge-copy p {
+  margin: 0.1rem 0;
+}
+
+.BadgeCelebrationModal-share {
+  display: flex;
+  width: 90.545px;
+  min-width: 90.545px;
+  height: 48px;
+  min-height: 48px;
+  margin-top: 8px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 2.188px 22.636px 2.992px 22.909px;
+  flex: 0 0 48px;
+  flex-direction: row;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  border: none;
+  border-radius: 0.72rem;
+  background: #c094ef;
+  box-shadow: 0 0.36rem 0 #300d37;
+  color: #2d1644;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.BadgeCelebrationModal-share:active:not(:disabled) {
+  transform: translateY(0.24rem);
+  box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+}
+.BadgeCelebrationModal-share:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.BadgeCelebrationModal-share-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 420px) {
+  .BadgeCelebrationModal-badge-art {
+    transform: scale(0.94);
+    transform-origin: top center;
+  }
+}

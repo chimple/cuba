@@ -1,6 +1,6 @@
 {
   "database": "db_issue10",
-  "version": 15,
+  "version": 16,
   "encrypted": false,
   "mode": "full",
   "tables": [
@@ -481891,6 +481891,34 @@
       ]
     },
     {
+      "name": "user_badge_progress",
+      "schema": [
+        { "column": "id", "value": "TEXT PRIMARY KEY" },
+        { "column": "user_id", "value": "TEXT NOT NULL UNIQUE" },
+        {
+          "column": "lessons_played_count",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "latest_badge_milestone",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "has_unseen_badge",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        { "column": "is_deleted", "value": "INTEGER DEFAULT 0" }
+      ]
+    },
+    {
       "name": "user_bonus",
       "schema": [
         { "column": "id", "value": "TEXT PRIMARY KEY" },
@@ -482110,6 +482138,7 @@
         ["school_course", "2024-01-01 01:01:01"],
         ["school_user", "2024-01-01 01:01:01"],
         ["user_badge", "2024-01-01 01:01:01"],
+        ["user_badge_progress", "2024-01-01 01:01:01"],
         ["user_bonus", "2024-01-01 01:01:01"],
         ["user_course", "2024-01-01 01:01:01"],
         ["user_sticker", "2024-01-01 01:01:01"],
