@@ -7,24 +7,7 @@ import {
 } from './badgeConstants';
 import baseSvg from '../../assets/images/badges/Badge Base.svg?raw';
 import borderSvg from '../../assets/images/badges/Surrounding border v2.svg?raw';
-import avocadoSvg from '../../assets/images/badges/centericons/Avocado.svg?raw';
-import balloonSvg from '../../assets/images/badges/centericons/Balloon.svg?raw';
-import baseballSvg from '../../assets/images/badges/centericons/Baseball.svg?raw';
-import catSvg from '../../assets/images/badges/centericons/Cat.svg?raw';
-import farmSvg from '../../assets/images/badges/centericons/Farm.svg?raw';
-import mountainsSvg from '../../assets/images/badges/centericons/Mountains.svg?raw';
-import pinwheelSvg from '../../assets/images/badges/centericons/Pinwheel.svg?raw';
-import shootingStarSvg from '../../assets/images/badges/centericons/ShootingStar.svg?raw';
-import spinnerBallSvg from '../../assets/images/badges/centericons/SpinnerBall.svg?raw';
-import tractorSvg from '../../assets/images/badges/centericons/Tractor.svg?raw';
-import vanSvg from '../../assets/images/badges/centericons/Van.svg?raw';
-import volleyballSvg from '../../assets/images/badges/centericons/Volleyball.svg?raw';
-import decoration1500Svg from '../../assets/images/badges/middledecorations/md 1500 2.svg?raw';
-import decoration1550Svg from '../../assets/images/badges/middledecorations/md 1550 1.svg?raw';
-import decoration1600Svg from '../../assets/images/badges/middledecorations/md 1600 1.svg?raw';
-import decoration1700Svg from '../../assets/images/badges/middledecorations/md 1700 3.svg?raw';
-import decoration1750Svg from '../../assets/images/badges/middledecorations/md 1750 1.svg?raw';
-import decoration1800Svg from '../../assets/images/badges/middledecorations/md 1800 1.svg?raw';
+import { centerIconSvgs, decorationSvgs } from './badgeAssets';
 
 type BadgeColor = string;
 
@@ -41,30 +24,6 @@ export interface GeneratedBadge {
 const applyColor = (svg: string, color: BadgeColor): string =>
   svg.replace(/fill="(?!none)[^"]+"/gi, `fill="${color}"`);
 
-const decorationSvgs = [
-  decoration1500Svg,
-  decoration1550Svg,
-  decoration1600Svg,
-  decoration1700Svg,
-  decoration1750Svg,
-  decoration1800Svg,
-];
-
-const centerIconSvgs = [
-  avocadoSvg,
-  balloonSvg,
-  baseballSvg,
-  catSvg,
-  farmSvg,
-  mountainsSvg,
-  pinwheelSvg,
-  shootingStarSvg,
-  spinnerBallSvg,
-  tractorSvg,
-  vanSvg,
-  volleyballSvg,
-] as const;
-
 const getRandomIndex = (length: number): number =>
   Math.floor(Math.random() * length);
 
@@ -80,7 +39,7 @@ const getIconSvgs = (): readonly [string, string, string] => {
     ];
   }
 
-  return [shuffledIcons[0], shuffledIcons[1], shuffledIcons[2]];
+  return [shuffledIcons[0], shuffledIcons[1], shuffledIcons[2]] as const;
 };
 
 const createBadge = (
@@ -115,27 +74,21 @@ const createBadge = (
     textColor: BADGE_TEXT_COLOR,
   };
 };
-const generatedBadgeCache = new Map<number, GeneratedBadge>();
-
 export const badgeNumbers = BADGE_NUMBERS;
 
 export const getGeneratedBadge = (
   badgeNumber: number,
 ): GeneratedBadge | undefined => {
-  const cachedBadge = generatedBadgeCache.get(badgeNumber);
-
-  if (cachedBadge) {
-    return cachedBadge;
-  }
-
-  const badgeRule = BADGE_RULES.get(badgeNumber);
+  // Keep the badge visible for test or legacy progress values that are not
+  // one of the configured 50-lesson milestones; the displayed number remains
+  // the actual milestone while the first palette supplies the artwork.
+  const badgeRule =
+    BADGE_RULES.get(badgeNumber) ?? BADGE_RULES.get(BADGE_NUMBERS[0]);
 
   if (!badgeRule) {
     return undefined;
   }
 
   const generatedBadge = createBadge(badgeRule, badgeNumber);
-  generatedBadgeCache.set(badgeNumber, generatedBadge);
-
   return generatedBadge;
 };

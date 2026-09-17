@@ -36,7 +36,9 @@ export class UtilFileStorage extends UtilSchoolContext {
     title: string,
     url?: string,
     imageFile?: File[],
+    options?: { rethrowOnError?: boolean },
   ) {
+    // Badge sharing opts into rejection so analytics can distinguish success from dismissal.
     if (Capacitor.isNativePlatform()) {
       await this.port
         .shareContentWithAndroidShare({
@@ -46,7 +48,10 @@ export class UtilFileStorage extends UtilSchoolContext {
           imageFile: imageFile, // Pass the File object for Android
         })
         .then(() => {})
-        .catch((error) => logger.error('Error sharing content:', error));
+        .catch((error) => {
+          logger.error('Error sharing content:', error);
+          if (options?.rethrowOnError) throw error;
+        });
     } else {
       // Web sharing
       const shareData: ShareData = {
@@ -59,7 +64,10 @@ export class UtilFileStorage extends UtilSchoolContext {
       await navigator
         .share(shareData)
         .then(() => {})
-        .catch((error) => logger.error('Error sharing content:', error));
+        .catch((error) => {
+          logger.error('Error sharing content:', error);
+          if (options?.rethrowOnError) throw error;
+        });
     }
   }
 

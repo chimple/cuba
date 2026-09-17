@@ -111,6 +111,7 @@ export enum TABLES {
   SchoolUser = 'school_user',
   SchoolMetrics = 'school_metrics',
   UserBadge = 'user_badge',
+  UserBadgeProgress = 'user_badge_progress',
   UserBonus = 'user_bonus',
   UserCourse = 'user_course',
   UserSticker = 'user_sticker',
