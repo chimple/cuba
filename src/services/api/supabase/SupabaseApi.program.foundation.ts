@@ -9,7 +9,10 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiCampaignReports } from './SupabaseApi.campaign.reports';
-import { getTeachersForSchoolsAndGradesImpl } from './SupabaseApi.program.foundation.helpers';
+import {
+  getClassUsersForClassIdsImpl,
+  getTeachersForSchoolsAndGradesImpl,
+} from './SupabaseApi.program.foundation.helpers';
 
 export interface SupabaseApiProgramFoundation {
   [key: string]: any;
@@ -191,12 +194,12 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
       classIdToSchoolId[cls.id] = cls.school_id;
     }
 
-    const { data: classUsers, error: classUserError } = await this.supabase
-      .from(TABLES.ClassUser)
-      .select('user: user_id (*), class_id')
-      .in('class_id', classIds.length ? classIds : [''])
-      .eq('is_deleted', false)
-      .eq('role', RoleType.TEACHER);
+    const { data: classUsers, error: classUserError } =
+      await getClassUsersForClassIdsImpl(
+        this.supabase,
+        classIds,
+        RoleType.TEACHER,
+      );
 
     if (classUserError || !classUsers) {
       logger.error('Error fetching class users:', classUserError);
@@ -210,7 +213,7 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
 
     for (const entry of classUsers) {
       const schoolId = classIdToSchoolId[entry.class_id];
-      const user = entry.user as unknown as TableTypes<'user'>;
+      const user = Array.isArray(entry.user) ? entry.user[0] : entry.user;
       if (!schoolId || !user) continue;
 
       const existing = schoolMap.get(schoolId) || [];
@@ -265,12 +268,12 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
       classIdToSchoolId[cls.id] = cls.school_id;
     }
 
-    const { data: classUsers, error: classUserError } = await this.supabase
-      .from(TABLES.ClassUser)
-      .select('user: user_id (*), class_id')
-      .in('class_id', classIds.length ? classIds : [''])
-      .eq('is_deleted', false)
-      .eq('role', RoleType.STUDENT);
+    const { data: classUsers, error: classUserError } =
+      await getClassUsersForClassIdsImpl(
+        this.supabase,
+        classIds,
+        RoleType.STUDENT,
+      );
 
     if (classUserError || !classUsers) {
       logger.error('Error fetching class users:', classUserError);
@@ -284,7 +287,7 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
 
     for (const entry of classUsers) {
       const schoolId = classIdToSchoolId[entry.class_id];
-      const user = entry.user as unknown as TableTypes<'user'>;
+      const user = Array.isArray(entry.user) ? entry.user[0] : entry.user;
       if (!schoolId || !user) continue;
 
       const existing = schoolMap.get(schoolId) || [];
@@ -342,12 +345,12 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
       classIdToSchoolId[cls.id] = cls.school_id;
     }
 
-    const { data: classUsers, error: classUserError } = await this.supabase
-      .from(TABLES.ClassUser)
-      .select('user: user_id (*), class_id')
-      .in('class_id', classIds.length ? classIds : [''])
-      .eq('is_deleted', false)
-      .eq('role', RoleType.STUDENT);
+    const { data: classUsers, error: classUserError } =
+      await getClassUsersForClassIdsImpl(
+        this.supabase,
+        classIds,
+        RoleType.STUDENT,
+      );
 
     if (classUserError || !classUsers) {
       logger.error('Error fetching grade-scoped class users:', classUserError);
@@ -361,7 +364,7 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
 
     for (const entry of classUsers) {
       const schoolId = classIdToSchoolId[entry.class_id];
-      const user = entry.user as unknown as TableTypes<'user'>;
+      const user = Array.isArray(entry.user) ? entry.user[0] : entry.user;
       if (!schoolId || !user) continue;
 
       const existing = schoolMap.get(schoolId) || [];
