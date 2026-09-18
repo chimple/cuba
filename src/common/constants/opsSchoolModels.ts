@@ -14,6 +14,7 @@ export enum STATUS {
   REJECTED = 'rejected',
   MIGRATED = 'migrated',
   FLAGGED = 'flagged',
+  MERGED = 'merged',
 }
 
 // Labels for WhatsApp group status chips in Ops Console tables.

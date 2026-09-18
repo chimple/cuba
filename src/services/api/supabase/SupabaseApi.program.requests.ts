@@ -1,5 +1,5 @@
 import { Constants } from '../../database';
-import { EnumType, TABLES } from '../../../common/constants';
+import { EnumType, STATUS } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiProgramActivityStats } from './SupabaseApi.program.activityStats';
 
@@ -70,8 +70,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       const requestTypes = [...Constants.public.Enums.ops_request_type];
       const isRequestedStatus =
         requestStatus === Constants.public.Enums.ops_request_status[0];
-
-      const schoolResponse = await this.supabase
+      const schoolQuery = this.supabase
         .from('ops_requests')
         .select(
           `
@@ -84,9 +83,15 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
           )
         `,
         )
-        .eq('is_deleted', false)
-        .eq('request_status', requestStatus)
-        .not('school_id', 'is', null);
+        .eq('is_deleted', false);
+      const schoolResponse =
+        requestStatus === Constants.public.Enums.ops_request_status[2]
+          ? await schoolQuery
+              .in('request_status', [requestStatus, STATUS.MERGED])
+              .not('school_id', 'is', null)
+          : await schoolQuery
+              .eq('request_status', requestStatus)
+              .not('school_id', 'is', null);
 
       if (schoolResponse.error) {
         logger.error('Failed to fetch schools:', schoolResponse.error.message);

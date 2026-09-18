@@ -25,6 +25,7 @@ interface SearchAndFilterProps {
   filterIconSrc?: string;
   searchPlaceholder?: string;
   debounceMs?: number;
+  beforeFilter?: React.ReactNode;
 }
 
 const DEBOUNCE_MS = 800;
@@ -41,6 +42,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   filterIconSrc,
   searchPlaceholder,
   debounceMs = DEBOUNCE_MS,
+  beforeFilter,
 }) => {
   const { t } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 900px)');
@@ -159,6 +161,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           }}
         />
       )}
+
+      {beforeFilter}
 
       {showFilter &&
         (isMobile ? (
