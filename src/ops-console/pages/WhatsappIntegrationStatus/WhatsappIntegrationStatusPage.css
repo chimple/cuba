@@ -28,6 +28,65 @@
   color: #000000 !important;
 }
 
+.whatsapp-integration-status-provider-table {
+  margin: 0 20px 20px;
+  overflow: hidden;
+  border: 1px solid #e1e5eb;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.whatsapp-integration-status-provider-table .data-tablebody-container {
+  height: auto;
+  max-height: none;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.whatsapp-integration-status-provider-table .MuiTable-root {
+  width: 100%;
+  min-width: 100%;
+  margin: 0;
+  border: 0;
+  table-layout: fixed;
+}
+
+.whatsapp-integration-status-provider-table .data-tablebody-head-cell,
+.whatsapp-integration-status-provider-table .data-tablebody-cell {
+  width: 33.3333% !important;
+  min-width: 0;
+  max-width: none;
+}
+
+.whatsapp-integration-status-provider-table .data-tablebody-head-cell {
+  writing-mode: horizontal-tb;
+  transform: none;
+}
+
+.whatsapp-integration-status-provider-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.whatsapp-integration-status-provider-badge.is-checking,
+.whatsapp-integration-status-provider-badge.is-unknown {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.whatsapp-integration-status-provider-badge.is-connected {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.whatsapp-integration-status-provider-badge.is-issues {
+  color: #92400e;
+  background: #fef3c7;
+}
+
 .whatsapp-integration-status-header-controls {
   display: flex;
   width: 100%;
@@ -57,22 +116,69 @@
   background: #ffffff;
 }
 
-.whatsapp-integration-status-badge {
+.whatsapp-integration-status-chip {
   display: inline-flex;
-  min-width: 42px;
+  max-width: 100%;
   justify-content: center;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.whatsapp-integration-status-badge.is-connected {
+.whatsapp-integration-status-chip.is-connected {
   color: #166534;
   background: #dcfce7;
 }
 
-.whatsapp-integration-status-badge.is-not-connected {
+.whatsapp-integration-status-chip.is-not-connected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.whatsapp-integration-status-filter-button {
+  padding: 2px !important;
+  color: #6b7280 !important;
+}
+
+.whatsapp-integration-status-filter-button.is-active {
+  color: #1a71f6 !important;
+}
+
+.whatsapp-integration-status-filter-menu {
+  margin-top: 8px;
+  min-width: 156px;
+  max-width: 188px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(18, 22, 25, 0.12);
+}
+
+.whatsapp-integration-status-filter-menu-item {
+  min-height: 48px !important;
+  padding: 10px 14px !important;
+}
+
+.whatsapp-integration-status-filter-menu-item.Mui-selected {
+  background-color: rgba(26, 113, 246, 0.08) !important;
+}
+
+.whatsapp-integration-status-filter-menu-item.Mui-selected:hover {
+  background-color: rgba(26, 113, 246, 0.12) !important;
+}
+
+.whatsapp-integration-status-filter-chip.is-selected {
+  outline: 2px solid #1a71f6;
+  outline-offset: 1px;
+}
+
+.whatsapp-integration-status-filter-chip.is-connected {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.whatsapp-integration-status-filter-chip.is-not-connected {
   color: #991b1b;
   background: #fee2e2;
 }
