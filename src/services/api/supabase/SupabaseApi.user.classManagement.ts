@@ -213,6 +213,45 @@ export class SupabaseApiUserClassManagement extends SupabaseApiUserSchoolRoles {
       logger.error('Error inserting class:', error);
       throw error;
     }
+
+    if (gradeId) {
+      const { data: schoolCourses, error: schoolCoursesError } =
+        await this.supabase
+          .from('school_course')
+          .select('course_id')
+          .eq('school_id', schoolId)
+          .eq('is_deleted', false);
+      if (schoolCoursesError) throw schoolCoursesError;
+
+      const courseIds = (schoolCourses ?? [])
+        .map((row) => row.course_id)
+        .filter((id): id is string => Boolean(id));
+      if (courseIds.length) {
+        const { data: matchingCourses, error: coursesError } =
+          await this.supabase
+            .from('course')
+            .select('id')
+            .in('id', courseIds)
+            .eq('grade_id', gradeId)
+            .eq('is_deleted', false);
+        if (coursesError) throw coursesError;
+
+        const classCourseRows = (matchingCourses ?? []).map((course) => ({
+          id: uuidv4(),
+          class_id: classId,
+          course_id: course.id,
+          created_at: timestamp,
+          updated_at: timestamp,
+          is_deleted: false,
+        }));
+        if (classCourseRows.length) {
+          const { error: classCoursesError } = await this.supabase
+            .from('class_course')
+            .insert(classCourseRows);
+          if (classCoursesError) throw classCoursesError;
+        }
+      }
+    }
     return newClass;
   }
   async deleteClass(classId: string) {
