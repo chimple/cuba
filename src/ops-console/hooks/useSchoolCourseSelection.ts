@@ -22,6 +22,7 @@ export const useSchoolCourseSelection = ({
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [selectedGradeId, setSelectedGradeId] = useState('');
   const [isCoursesLoading, setCoursesLoading] = useState(true);
+  const [courseLoadError, setCourseLoadError] = useState(false);
   const [initialSelectedCourseIds, setInitialSelectedCourseIds] = useState<
     string[] | null
   >(null);
@@ -31,6 +32,7 @@ export const useSchoolCourseSelection = ({
 
     async function loadCourses() {
       setCoursesLoading(true);
+      setCourseLoadError(false);
       try {
         const [allCourses, allGrades] = await Promise.all([
           api.getAllCourses(),
@@ -79,6 +81,7 @@ export const useSchoolCourseSelection = ({
       } catch (error) {
         logger.error('Error loading school courses:', error);
         if (!cancelled) {
+          setCourseLoadError(true);
           setCourses([]);
           setGrades([]);
         }
@@ -101,6 +104,7 @@ export const useSchoolCourseSelection = ({
   }, [editData, initialSelectedCourseIds, isCoursesLoading, selectedCourseIds]);
 
   return {
+    courseLoadError,
     courses,
     grades,
     initialSelectedCourseIds,

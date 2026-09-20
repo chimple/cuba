@@ -131,6 +131,33 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
         activeLinksByCourse.set(link.course_id, link.id);
       }
     }
+
+    // Complete all reads before changing school or class mappings.
+    const { data: classesData, error: classesError } = await this.supabase
+      .from('class')
+      .select('*')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+    if (classesError) throw classesError;
+
+    const classes = classesData ?? [];
+    const classIds = classes.map(
+      (classRow: TableTypes<'class'>) => classRow.id,
+    );
+    const { data: classLinks, error: classLinksError } = classIds.length
+      ? await this.supabase
+          .from('class_course')
+          .select('id, class_id, course_id, is_deleted')
+          .in('class_id', classIds)
+      : { data: [], error: null };
+    if (classLinksError) throw classLinksError;
+
+    const classCourseLinks = classLinks ?? [];
+    const selectedCourses = await this.getCourses(courseIds);
+    const coursesById = new Map(
+      selectedCourses.map((course) => [course.id, course]),
+    );
+
     const schoolLinksToDelete = links.filter(
       (link) =>
         !link.is_deleted &&
@@ -148,19 +175,6 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
       if (error) throw error;
     }
 
-    const classes = await this.getClassesBySchoolId(schoolId);
-    const classIds = classes.map(
-      (classRow: TableTypes<'class'>) => classRow.id,
-    );
-    const { data: classLinks, error: classLinksError } = classIds.length
-      ? await this.supabase
-          .from('class_course')
-          .select('id, class_id, course_id, is_deleted')
-          .in('class_id', classIds)
-      : { data: [], error: null };
-    if (classLinksError) throw classLinksError;
-
-    const classCourseLinks = classLinks ?? [];
     const classLinksToDelete = classCourseLinks.filter(
       (link) => !link.is_deleted && removedCourseIds.includes(link.course_id),
     );
@@ -175,10 +189,6 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
       if (error) throw error;
     }
 
-    const selectedCourses = await this.getCourses(courseIds);
-    const coursesById = new Map(
-      selectedCourses.map((course) => [course.id, course]),
-    );
     const schoolRowsToInsert = [];
     const schoolRowsToReactivate: string[] = [];
     const classRowsToInsert = [];

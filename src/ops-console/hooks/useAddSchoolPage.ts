@@ -120,6 +120,7 @@ export const useAddSchoolPage = () => {
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
   const {
+    courseLoadError,
     courses,
     grades,
     initialSelectedCourseIds,
@@ -294,7 +295,9 @@ export const useAddSchoolPage = () => {
         contacts[1].fields[1].value?.length === 10) &&
       !errorMessage;
 
-    return editData ? !isFormValid || !hasChanges() : !isFormValid;
+    return editData
+      ? !isFormValid || courseLoadError || !hasChanges()
+      : !isFormValid;
   };
 
   const handleUdiseChange = async (value: string) => {
