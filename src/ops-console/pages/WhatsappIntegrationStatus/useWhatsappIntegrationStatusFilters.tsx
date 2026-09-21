@@ -24,7 +24,7 @@ export const useWhatsappIntegrationStatusFilters = (
 
   const handleOpen = useCallback(
     (
-      event: MouseEvent<HTMLButtonElement>,
+      event: MouseEvent<HTMLElement>,
       nextColumn: WhatsappStatusFilterColumn,
     ) => {
       setAnchorEl(event.currentTarget);
@@ -75,14 +75,19 @@ export const useWhatsappIntegrationStatusFilters = (
 
       return (
         <IconButton
+          component="button"
           size="small"
-          aria-label={t(
-            `Filter ${filterColumn === 'periskope_status' ? 'Periskope' : 'Maytapi'}`,
+          aria-label={String(
+            t(
+              `Filter ${filterColumn === 'periskope_status' ? 'Periskope' : 'Maytapi'}`,
+            ),
           )}
           className={`whatsapp-integration-status-filter-button${
             selected ? ' is-active' : ''
           }`}
-          onClick={(event) => handleOpen(event, filterColumn)}
+          onClick={(event: MouseEvent<HTMLButtonElement>) =>
+            handleOpen(event, filterColumn)
+          }
         >
           <FilterListIcon fontSize="small" />
         </IconButton>
