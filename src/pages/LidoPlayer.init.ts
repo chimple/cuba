@@ -55,27 +55,78 @@ export async function initializeLidoPlayer(ctx: any) {
     return;
   }
   // Check for the lesson ZIP packaged by build-open-apk.ts before using the network.
-  const packagedZipUrl = `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(
-    lessonId,
+  const hasPackagedZipForLesson = async (id: string) => {
+    try {
+      return (
+        await fetch(
+          `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(id)}.zip`,
+          { method: 'HEAD' },
+        )
+      ).ok;
+    } catch {
+      return false;
+    }
+  };
+
+  let playableLessonId = lessonId;
+  let packagedZipUrl = `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(
+    playableLessonId,
   )}.zip`;
   let hasPackagedZip = false;
+  let downloadedLessonPath: string | null = null;
+  const reportedOnline =
+    typeof navigator === 'undefined' ? 'unknown' : navigator.onLine;
   if (Capacitor.isNativePlatform()) {
-    try {
-      // A HEAD request avoids downloading the packaged ZIP just to detect it.
-      hasPackagedZip = (await fetch(packagedZipUrl, { method: 'HEAD' })).ok;
-    } catch {
+    // A HEAD request avoids downloading the packaged ZIP just to detect it.
+    hasPackagedZip = await hasPackagedZipForLesson(playableLessonId);
+    downloadedLessonPath = await Util.getLessonPath({
+      lessonId: playableLessonId,
+    });
+  }
+
+  // Keep latest-first behavior: only fall back after the latest asset is
+  // unavailable and the normal online download has failed or is unavailable.
+  let dow = false;
+  if (reportedOnline !== false) {
+    dow = await Util.downloadZipBundle(
+      [lessonToDownload],
+      undefined,
+      REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+      true,
+    );
+    if (dow) {
+      // The remote download is stored outside the APK. Never select the
+      // bundled ZIP after a successful online download.
       hasPackagedZip = false;
+      downloadedLessonPath = await Util.getLessonPath({
+        lessonId: playableLessonId,
+      });
     }
   }
 
-  // Packaged ZIPs need no downloader; missing ZIPs retain the remote flow.
-  const dow = hasPackagedZip
-    ? true
-    : await Util.downloadZipBundle(
-        [lessonToDownload],
-        undefined,
-        REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
-      );
+  if (!dow && downloadedLessonPath) {
+    dow = true;
+  }
+
+  if (!dow && hasPackagedZip) {
+    dow = true;
+  }
+
+  if (!dow && Capacitor.isNativePlatform()) {
+    const previousLessonId = lessonToDownload.previous_lido_lesson_id;
+    const previousPackagedZipFound = previousLessonId
+      ? await hasPackagedZipForLesson(previousLessonId)
+      : false;
+    if (previousLessonId && previousPackagedZipFound) {
+      playableLessonId = previousLessonId;
+      packagedZipUrl = `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(
+        playableLessonId,
+      )}.zip`;
+      hasPackagedZip = true;
+      dow = true;
+    }
+  }
+
   if (!dow) {
     presentToast();
     push();
@@ -91,7 +142,9 @@ export async function initializeLidoPlayer(ctx: any) {
       setZipUrl(packagedZipUrl);
     } else {
       // Remote downloads still produce an extracted external-storage path.
-      const path = await Util.getLessonPath({ lessonId: lessonId });
+      const path =
+        downloadedLessonPath ??
+        (await Util.getLessonPath({ lessonId: playableLessonId }));
       if (!path) {
         presentToast();
         push();
@@ -116,10 +169,6 @@ export async function initializeLidoPlayer(ctx: any) {
           path: audioPath,
         });
       } catch (firstError) {
-        logger.warn(
-          '[LidoPlayer] Common audio missing, preparing before playback',
-          firstError,
-        );
         await Util.ensureLidoCommonAudioForStudent(student);
         // small delay to handle async extract race (very common on Android)
         await new Promise((r) => setTimeout(r, 150));
@@ -145,10 +194,6 @@ export async function initializeLidoPlayer(ctx: any) {
       urlSearchParams.get('zipUrl') ?? state?.zipUrl ?? null;
 
     if (explicitZipUrl) {
-      logger.warn('Resolved Lido ZIP URL from override', {
-        lessonId,
-        zipUrl: explicitZipUrl,
-      });
       setZipUrl(explicitZipUrl);
       setIsLoading(false);
       setIsReady(true);
@@ -161,22 +206,12 @@ export async function initializeLidoPlayer(ctx: any) {
     );
     const resolvedZipUrl = await resolveLessonZipUrl(bundleZipUrls, lessonId);
     if (!resolvedZipUrl) {
-      logger.error('[LidoPlayer] No working ZIP URL found for lesson', {
-        lessonId,
-        featureKey: BUNDLE_ZIP_URLS,
-        bundleZipUrls,
-      });
+      logger.error('[LidoPlayer] No working ZIP URL found for lesson');
       presentToast();
       push();
       return;
     }
 
-    logger.warn('Resolved Lido ZIP URL', {
-      lessonId,
-      featureKey: BUNDLE_ZIP_URLS,
-      bundleZipUrls,
-      zipUrl: resolvedZipUrl,
-    });
     setZipUrl(resolvedZipUrl);
   }
   setIsLoading(false);

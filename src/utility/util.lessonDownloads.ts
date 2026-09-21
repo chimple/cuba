@@ -279,6 +279,13 @@ export class UtilLessonDownloads {
         return false;
       }
     };
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
+    }
+
+    // Prefer an extracted/downloaded copy over the APK-bundled ZIP. The
+    // downloaded copy may contain newer content for the same lesson ID.
     if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
       const path = `/assets/lessonBundles/${lessonId}/index.xml`;
       if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
@@ -288,12 +295,7 @@ export class UtilLessonDownloads {
       return `/assets/lessonBundles/${lessonId}/`;
     }
 
-    const androidBase = await this.getAndroidBundlePath();
-    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
-      return `${androidBase}${lessonId}/`;
-    }
-
-    logger.error('Lesson bundle not found :', lessonId);
+    logger.error('Lesson bundle not found');
     return null;
   }
 
@@ -309,9 +311,15 @@ export class UtilLessonDownloads {
     lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+    forceRemoteDownload = false,
   ): Promise<boolean> {
     return this.enqueueLessonBundleDownload(() =>
-      this.runDownloadZipBundle(lessons, chapterId, bundleZipUrlsKey),
+      this.runDownloadZipBundle(
+        lessons,
+        chapterId,
+        bundleZipUrlsKey,
+        forceRemoteDownload,
+      ),
     );
   }
 

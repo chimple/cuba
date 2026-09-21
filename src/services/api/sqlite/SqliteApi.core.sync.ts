@@ -15,10 +15,11 @@ import { Util } from '../../../utility/util';
 import type { SqlStatement } from '../../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../../workers/backgroundWorkerClient';
 import { ServiceConfig } from '../../ServiceConfig';
-import { Capacitor } from '@capacitor/core';
+import { hasLocalLessonAsset, preserveLessonAssetIds } from './lessonAssetSync';
 
 export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
   [key: string]: any;
+
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;
@@ -50,9 +51,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
-    logger.info('?? ~ pullChanges ~ isInitialFetch:', isInitialFetch);
-
-    // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
     const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
@@ -66,7 +64,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
             [tableName, fullSyncDate],
           );
-          logger.info(`Forcing full sync for table: ${tableName}`);
         }
       }
       this._tablesNeedingFullSync.clear();
@@ -109,31 +106,24 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             attempt += 1;
             continue;
           }
-          logger.warn('? All retries failed. Truncating local tables...');
           if (!this._db) return;
           const query = `PRAGMA foreign_keys=OFF;`;
-          const result = await this._db?.query(query);
-          logger.info(result);
+          await this._db.query(query);
           for (const table of orderedTableNames) {
             const tableDel = `DELETE FROM "${table}";`;
-            const res = await this._db.query(tableDel);
-            logger.info(res);
+            await this._db.query(tableDel);
           }
           const vaccum = `VACUUM;`;
-          const resv = await this._db.query(vaccum);
-          logger.info(resv);
+          await this._db.query(vaccum);
           const querys = `PRAGMA foreign_keys=ON;`;
-          const results = await this._db?.query(querys);
-          logger.info(results);
+          await this._db.query(querys);
           const userWantsRetry = await this.showToastWithRetry(
             'Sync failed. Retry now?',
           );
           if (userWantsRetry) {
-            logger.warn('?? Final retry triggered by user.');
             attempt = 1;
             continue;
           }
-          logger.warn('? User canceled final retry.');
           return;
         }
       }
@@ -153,17 +143,59 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     const tablesForWorker: Record<string, any[]> = {};
     const tableColumnsByName: Record<string, string[]> = {};
     const tablesWritten = new Set<string>();
+    const lessonAssetCandidates = new Map<
+      string,
+      { lido?: string; cocos?: string }
+    >();
     const tableColumnEntries = await Promise.all(
-      orderedTableNames.map(
-        async (tableName) =>
-          [tableName, await this.getTableColumns(tableName)] as const,
-      ),
+      orderedTableNames.map(async (tableName) => {
+        try {
+          const columns = await this.getTableColumns(tableName);
+          return [tableName, columns] as const;
+        } catch (error) {
+          logger.error(
+            `[LessonSync] Failed to read table columns table=${tableName}`,
+            error,
+          );
+          throw error;
+        }
+      }),
     );
     for (const [tableName, existingColumns] of tableColumnEntries) {
-      const tableData = data.get(tableName) ?? [];
+      let tableData = data.get(tableName) ?? [];
+      if (tableName === TABLES.Lesson) {
+        try {
+          tableData = await preserveLessonAssetIds(
+            this._db,
+            tableData,
+            lessonAssetCandidates,
+          );
+        } catch (error) {
+          logger.error(
+            '[LessonSync] Failed to prepare lesson asset IDs',
+            error,
+          );
+          throw error;
+        }
+        data.set(tableName, tableData);
+      }
       if (tableData.length === 0) continue;
-      if (!existingColumns || existingColumns.length === 0) continue;
-      tablesForWorker[tableName] = tableData;
+      if (!existingColumns || existingColumns.length === 0) {
+        throw new Error(`No SQLite columns found for table ${tableName}`);
+      }
+      tablesForWorker[tableName] =
+        tableName === TABLES.Lesson
+          ? tableData.map((row) => {
+              const {
+                lido_lesson_id: _lidoLessonId,
+                cocos_lesson_id: _cocosLessonId,
+                previous_lido_lesson_id: _previousLidoLessonId,
+                previous_cocos_lesson_id: _previousCocosLessonId,
+                ...lessonMetadata
+              } = row;
+              return lessonMetadata;
+            })
+          : tableData;
       tableColumnsByName[tableName] = existingColumns;
       tablesWritten.add(tableName);
     }
@@ -221,8 +253,68 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       }
     };
 
+    const lessonAssetAvailability = new Map<
+      string,
+      { lido: boolean; cocos: boolean }
+    >();
+    await Promise.all(
+      Array.from(lessonAssetCandidates.entries()).map(
+        async ([lessonId, candidate]) => {
+          const [lido, cocos] = await Promise.all([
+            candidate.lido ? hasLocalLessonAsset(candidate.lido) : false,
+            candidate.cocos ? hasLocalLessonAsset(candidate.cocos) : false,
+          ]);
+          lessonAssetAvailability.set(lessonId, { lido, cocos });
+        },
+      ),
+    );
+    const lessonAssetIdStatements: SqlStatement[] = [];
+    for (const lesson of data.get(TABLES.Lesson) ?? []) {
+      if (!lesson?.id) continue;
+      const candidate = lessonAssetCandidates.get(lesson.id) ?? {};
+      const availability = lessonAssetAvailability.get(lesson.id) ?? {
+        lido: false,
+        cocos: false,
+      };
+      if (availability.lido && candidate.lido) {
+        lesson.previous_lido_lesson_id = candidate.lido;
+      }
+      if (availability.cocos && candidate.cocos) {
+        lesson.previous_cocos_lesson_id = candidate.cocos;
+      }
+      lessonAssetIdStatements.push({
+        statement: `
+          UPDATE lesson
+             SET previous_lido_lesson_id = CASE
+                   WHEN ? = 1 AND ? IS NOT NULL THEN ?
+                   ELSE previous_lido_lesson_id
+                 END,
+                 previous_cocos_lesson_id = CASE
+                   WHEN ? = 1 AND ? IS NOT NULL THEN ?
+                   ELSE previous_cocos_lesson_id
+                 END,
+                 lido_lesson_id = ?,
+                 cocos_lesson_id = ?
+           WHERE id = ?`,
+        values: [
+          availability.lido ? 1 : 0,
+          candidate.lido ?? null,
+          candidate.lido ?? null,
+          availability.cocos ? 1 : 0,
+          candidate.cocos ?? null,
+          candidate.cocos ?? null,
+          lesson.lido_lesson_id ?? null,
+          lesson.cocos_lesson_id ?? null,
+          lesson.id,
+        ],
+      });
+    }
+
     try {
       await beginSyncWriteTransaction();
+      if (lessonAssetIdStatements.length > 0) {
+        await writeSyncBatch(lessonAssetIdStatements);
+      }
       try {
         await runBackgroundWorkerStreamingSync(
           {
@@ -237,16 +329,8 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             await writeSyncBatch(batch);
           },
         );
-      } catch (workerError) {
-        logger.warn(
-          'Background worker sync batch generation failed:',
-          workerError,
-        );
+      } catch {
         await rollbackSyncWriteTransaction();
-        if (Capacitor.isNativePlatform()) {
-          throw workerError;
-        }
-        logger.warn('Falling back to main-thread sync batch generation on web');
         await beginSyncWriteTransaction();
 
         for (const tableName of Object.keys(tablesForWorker)) {
@@ -342,6 +426,54 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
 
       await writeSyncBatch(pullSyncStatements);
       await commitSyncWriteTransaction();
+
+      const syncedLessons = data.get(TABLES.Lesson) ?? [];
+      if (syncedLessons.length > 0 && this._db) {
+        const syncedLessonIds = syncedLessons
+          .map((lesson) => lesson?.id)
+          .filter((id): id is string => Boolean(id));
+        if (syncedLessonIds.length > 0) {
+          const placeholders = syncedLessonIds.map(() => '?').join(', ');
+          const verification = await this._db.query(
+            `SELECT id, lido_lesson_id, cocos_lesson_id,
+                    previous_lido_lesson_id, previous_cocos_lesson_id
+               FROM lesson
+              WHERE id IN (${placeholders})`,
+            syncedLessonIds,
+          );
+          for (const row of verification.values ?? []) {
+            const incoming = syncedLessons.find(
+              (lesson) => lesson?.id === row.id,
+            );
+            const hasAssetIdMismatch =
+              incoming &&
+              (incoming.lido_lesson_id !== row.lido_lesson_id ||
+                incoming.cocos_lesson_id !== row.cocos_lesson_id ||
+                (incoming.previous_lido_lesson_id ?? null) !==
+                  (row.previous_lido_lesson_id ?? null) ||
+                (incoming.previous_cocos_lesson_id ?? null) !==
+                  (row.previous_cocos_lesson_id ?? null));
+
+            if (hasAssetIdMismatch) {
+              await this.executeQuery(
+                `UPDATE lesson
+                    SET lido_lesson_id = ?,
+                        cocos_lesson_id = ?,
+                        previous_lido_lesson_id = ?,
+                        previous_cocos_lesson_id = ?
+                  WHERE id = ?`,
+                [
+                  incoming.lido_lesson_id ?? null,
+                  incoming.cocos_lesson_id ?? null,
+                  incoming.previous_lido_lesson_id ?? null,
+                  incoming.previous_cocos_lesson_id ?? null,
+                  row.id,
+                ],
+              );
+            }
+          }
+        }
+      }
     } catch (error) {
       await rollbackSyncWriteTransaction();
       throw error;
@@ -377,9 +509,8 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
 
           try {
             localSchool = JSON.parse(localSchoolRaw);
-          } catch (e) {
+          } catch {
             localStorage.removeItem(SCHOOL);
-            logger.warn('invalid local school data removed');
             return;
           }
 
@@ -395,7 +526,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
           if (deletedSchoolUser) {
             localStorage.removeItem(SCHOOL);
             localStorage.removeItem(CLASS);
-            logger.info('local school removed because school_user is_deleted');
           }
         }
         // Selection updates need one follow-up refresh, but refresh syncs must

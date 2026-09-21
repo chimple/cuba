@@ -396,9 +396,30 @@ export const useLidoPlayerController = () => {
     });
   };
 
-  const init = () =>
-    initializeLidoPlayer({
-      lessonDetail,
+  const init = async () => {
+    let resolvedLessonDetail = lessonDetail;
+    if (api.isSyncInProgress()) {
+      const syncWaitStartedAt = Date.now();
+      while (api.isSyncInProgress() && Date.now() - syncWaitStartedAt < 15000) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+    if (lessonDetail?.id) {
+      try {
+        const syncedLesson = await api.getLesson(lessonDetail.id);
+        if (syncedLesson) {
+          resolvedLessonDetail = syncedLesson;
+        }
+      } catch (error) {
+        logger.error(
+          '[LidoPlayer] Failed to refresh lesson before launch',
+          error,
+        );
+      }
+    }
+
+    await initializeLidoPlayer({
+      lessonDetail: resolvedLessonDetail,
       presentToast,
       push,
       resolveLessonZipUrl,
@@ -414,6 +435,7 @@ export const useLidoPlayerController = () => {
       setZipUrl,
       state,
     });
+  };
 
   return {
     basePath,
