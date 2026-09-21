@@ -165,7 +165,7 @@ export function useSchoolListOfflineCache({
 
     const fallbackTimer = window.setTimeout(() => {
       setCanUseCachedSchoolsFallback(true);
-    }, 1000);
+    }, 10000);
 
     return () => window.clearTimeout(fallbackTimer);
   }, [cacheFallbackKey, cacheOfflineEnabled, isSchoolListLoading]);
