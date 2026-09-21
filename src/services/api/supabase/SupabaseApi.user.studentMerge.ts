@@ -266,7 +266,7 @@ export class SupabaseApiUserStudentMerge extends SupabaseApiUserStudentLists {
         await this.supabase
           .from('ops_requests')
           .update({
-            request_status: STATUS.APPROVED,
+            request_status: STATUS.MERGED,
             updated_at: now,
             responded_by: resolvedRespondedBy,
           })
@@ -314,7 +314,7 @@ export class SupabaseApiUserStudentMerge extends SupabaseApiUserStudentLists {
         const { error: approveKeptProfileRequestError } = await this.supabase
           .from('ops_requests')
           .update({
-            request_status: STATUS.APPROVED,
+            request_status: STATUS.MERGED,
             responded_by: resolvedRespondedBy,
             updated_at: now,
           })
