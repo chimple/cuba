@@ -5,6 +5,8 @@ import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import { useSchoolCourseSelection } from './useSchoolCourseSelection';
+import { useSchoolFormChanges } from './useSchoolFormChanges';
 
 const DEFAULT_COUNTRY = 'INDIA';
 const UDISE_LENGTH = 11;
@@ -117,6 +119,17 @@ export const useAddSchoolPage = () => {
   const location = useLocation();
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
+  const {
+    courseLoadError,
+    courses,
+    grades,
+    initialSelectedCourseIds,
+    isCoursesLoading,
+    selectedCourseIds,
+    selectedGradeId,
+    setSelectedGradeId,
+    toggleCourse,
+  } = useSchoolCourseSelection({ api, editData });
   const latestUdiseValue = useRef('');
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState('');
@@ -135,9 +148,20 @@ export const useAddSchoolPage = () => {
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [initialData, setInitialData] = useState<any>(null);
   const [address, setAddress] = useState(initialAddress);
   const [contacts, setContacts] = useState(buildInitialContacts);
+  const { hasChanges } = useSchoolFormChanges({
+    editData,
+    program,
+    fieldCoordinator,
+    contacts,
+    schoolName,
+    udise,
+    schoolModel,
+    address,
+    selectedCourseIds,
+    initialSelectedCourseIds,
+  });
   const schoolModelOptions = useMemo(
     () => getSchoolModelOptionsForProgram(program?.model),
     [program?.model],
@@ -212,32 +236,6 @@ export const useAddSchoolPage = () => {
   }, [editData, api]);
 
   useEffect(() => {
-    if (!editData || !program || fieldCoordinator === null || initialData) {
-      return;
-    }
-
-    const school = editData.schoolData;
-    setInitialData({
-      schoolName: school?.name || '',
-      udise: school?.udise || '',
-      schoolModel: school?.model || '',
-      address: {
-        state: school?.group1 || '',
-        district: school?.group2 || '',
-        block: school?.group3 || '',
-        cluster: school?.group4 || '',
-        address: school?.address || '',
-        link: school?.location_link || '',
-      },
-      programId: editData.programData?.id || null,
-      fieldCoordinatorId: fieldCoordinator?.id || null,
-      contacts: contacts.map((contact) =>
-        contact.fields.map((field) => field.value || ''),
-      ),
-    });
-  }, [editData, program, fieldCoordinator, initialData, contacts]);
-
-  useEffect(() => {
     if (!program || !schoolModel) {
       return;
     }
@@ -246,24 +244,6 @@ export const useAddSchoolPage = () => {
       setSchoolModel('');
     }
   }, [program, schoolModel, schoolModelOptions]);
-
-  const hasChanges = () => {
-    if (!initialData) return false;
-    return (
-      JSON.stringify(initialData) !==
-      JSON.stringify({
-        schoolName,
-        udise,
-        schoolModel,
-        address,
-        programId: program?.id,
-        fieldCoordinatorId: fieldCoordinator?.id,
-        contacts: contacts.map((contact) =>
-          contact.fields.map((field) => field.value || ''),
-        ),
-      })
-    );
-  };
 
   const handleAddressChange = (name: string, value: string) => {
     setAddress((prev) => {
@@ -315,7 +295,9 @@ export const useAddSchoolPage = () => {
         contacts[1].fields[1].value?.length === 10) &&
       !errorMessage;
 
-    return editData ? !isFormValid || !hasChanges() : !isFormValid;
+    return editData
+      ? !isFormValid || courseLoadError || !hasChanges()
+      : !isFormValid;
   };
 
   const handleUdiseChange = async (value: string) => {
@@ -481,6 +463,10 @@ export const useAddSchoolPage = () => {
           address.link,
           keyContacts,
         );
+        await api.updateSchoolCourseSelection(
+          editData.schoolData.id,
+          selectedCourseIds,
+        );
         if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
           await api.createAtSchoolUser(
             editData.schoolData.id,
@@ -520,6 +506,7 @@ export const useAddSchoolPage = () => {
           address.link,
           keyContacts,
         );
+        await api.updateSchoolCourseSelection(school.id, selectedCourseIds);
         if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
           await api.createAtSchoolUser(
             school.id,
@@ -548,6 +535,7 @@ export const useAddSchoolPage = () => {
   return {
     address,
     blocks,
+    courses,
     contacts,
     districts,
     editData,
@@ -560,6 +548,7 @@ export const useAddSchoolPage = () => {
     handleUdiseChange,
     history,
     isBlocksLoading,
+    isCoursesLoading,
     isDistrictsLoading,
     isSaveDisabled,
     isSaving,
@@ -571,11 +560,16 @@ export const useAddSchoolPage = () => {
     schoolModel,
     schoolModelOptions,
     schoolName,
+    grades,
+    selectedCourseIds,
+    selectedGradeId,
     setFieldCoordinator,
     setProgram,
     setSchoolModel,
     setSchoolName,
     states,
+    setSelectedGradeId,
+    toggleCourse,
     udise,
   };
 };
