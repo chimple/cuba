@@ -6,15 +6,18 @@ import {
   readQuestionsCache,
   writeQuestionsCache,
 } from '../../../services/offline/offlineCache';
+import { readFcSchoolOfflineCache } from '../../../services/offline/fcSchoolOfflineCache';
 import type { FcQuestion } from './fcInteractOptions';
 
 type FcInteractPopupParams = {
+  schoolId: string;
   status?: EnumType<'fc_support_level'>;
   initialUserType: EnumType<'fc_engagement_target'>;
   spokeWith: EnumType<'fc_engagement_target'>;
 };
 
 export const useFcInteractPopup = ({
+  schoolId,
   status,
   initialUserType,
   spokeWith,
@@ -34,21 +37,36 @@ export const useFcInteractPopup = ({
 
       try {
         const target = spokeWith ?? initialUserType;
-        const cachedQuestions = await readQuestionsCache<{
-          id: string;
-          question_text: string;
-        }>(status ?? null, target);
+        const isBrowserOffline =
+          typeof navigator !== 'undefined' && navigator.onLine === false;
+        const cachedQuestions = isBrowserOffline
+          ? await readQuestionsCache<{
+              id: string;
+              question_text: string;
+            }>(status ?? null, target)
+          : null;
         let questions = cachedQuestions ?? [];
 
-        if (!cachedQuestions) {
-          questions = (await api.getFilteredFcQuestions(
-            status ?? null,
-            target,
-          )) as {
-            id: string;
-            question_text: string;
-          }[];
-          await writeQuestionsCache(status ?? null, target, questions ?? []);
+        if (!cachedQuestions && isBrowserOffline) {
+          const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+          questions =
+            cachedSchool?.questionsByKey?.[`${target}:${status ?? 'none'}`] ??
+            [];
+        }
+
+        if (!cachedQuestions && questions.length === 0) {
+          if (isBrowserOffline) {
+            questions = [];
+          } else {
+            questions = (await api.getFilteredFcQuestions(
+              status ?? null,
+              target,
+            )) as {
+              id: string;
+              question_text: string;
+            }[];
+            await writeQuestionsCache(status ?? null, target, questions ?? []);
+          }
         }
 
         const formattedQuestions =
@@ -71,7 +89,7 @@ export const useFcInteractPopup = ({
     return () => {
       mounted = false;
     };
-  }, [api, initialUserType, spokeWith, status]);
+  }, [api, initialUserType, schoolId, spokeWith, status]);
 
   return {
     isQuestionsLoading,

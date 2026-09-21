@@ -30,6 +30,9 @@ export interface DisplayPrincipal {
 
 export const SCHOOL_PRINCIPALS_ROWS_PER_PAGE = 20;
 
+const isOffline = () =>
+  typeof navigator !== 'undefined' && navigator.onLine === false;
+
 export const useSchoolPrincipals = ({
   data,
   schoolId,
@@ -97,6 +100,13 @@ export const useSchoolPrincipals = ({
   );
 
   useEffect(() => {
+    if (isOffline()) {
+      setPrincipals(data.principals || []);
+      setTotalCount(data.totalPrincipalCount ?? data.principals?.length ?? 0);
+      setIsLoading(false);
+      return;
+    }
+
     const isInitial = page === 1;
     if (isInitial) {
       setPrincipals(data.principals || []);
@@ -110,7 +120,7 @@ export const useSchoolPrincipals = ({
     let cancelled = false;
 
     const preloadPrincipalQuestions = async () => {
-      if (cancelled) return;
+      if (cancelled || isOffline()) return;
 
       try {
         await ensureQuestionsCached({

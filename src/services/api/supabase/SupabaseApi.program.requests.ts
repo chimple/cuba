@@ -1,5 +1,6 @@
 import { Constants } from '../../database';
 import { EnumType, STATUS } from '../../../common/constants';
+import { TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiProgramActivityStats } from './SupabaseApi.program.activityStats';
 
@@ -149,12 +150,22 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
     if (!this.supabase) {
       return { data: [], total: 0 };
     }
+    const supabase = this.supabase;
+    const normalizedClassId =
+      typeof classId === 'string' && classId.trim() !== ''
+        ? classId.trim()
+        : undefined;
+    const normalizedClassIds =
+      !normalizedClassId && classIds
+        ? classIds
+            .map((classIdItem) => String(classIdItem).trim())
+            .filter((classIdItem) => classIdItem.length > 0)
+        : undefined;
+
     // Empty program class scopes should return an empty search result.
-    if (!classId && classIds && classIds.length === 0) {
+    if (!normalizedClassId && classIds && normalizedClassIds?.length === 0) {
       return { data: [], total: 0 };
     }
-
-    const supabase = this.supabase;
 
     return new Promise((resolve) => {
       if (this.searchStudentsTimer) {
@@ -169,14 +180,22 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
             .eq('school_id', schoolId)
             .eq('is_deleted', false);
 
-          if (classId) {
-            classQuery = classQuery.eq('id', classId);
-          } else if (classIds && classIds.length > 0) {
+          if (normalizedClassId) {
+            classQuery = classQuery.eq('id', normalizedClassId);
+          } else if (normalizedClassIds && normalizedClassIds.length > 0) {
             // Applies program class scope while preserving the class-detail override.
-            classQuery = classQuery.in('id', classIds);
+            classQuery = classQuery.in('id', normalizedClassIds);
           }
 
-          const { data: classData } = await classQuery;
+          const { data: classData, error: classError } = await classQuery;
+          if (classError) {
+            logger.error(
+              'Error fetching classes for school student search:',
+              classError,
+            );
+            resolve({ data: [], total: 0 });
+            return;
+          }
 
           const schoolClassIds = (classData ?? []).map(
             (classRow) => classRow.id,
@@ -196,12 +215,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
               `
               class_id,
               user:user_id!inner (
-                id,
-                name,
-                email,
-                phone,
-                gender,
-                student_id
+                *
               )
             `,
             )
@@ -220,6 +234,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
               `
                 user:user_id!inner (
                   id,
+                  name,
                   phone,
                   email,
                   is_wa_contact
@@ -241,17 +256,12 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
 
           type StudentSearchRow = {
             class_id: string;
-            user: {
-              id: string;
-              name?: string | null;
-              email?: string | null;
-              phone?: string | null;
-              gender?: string | null;
-              student_id?: string | null;
-            };
+            user: TableTypes<'user'>;
           };
           let parentLinkedStudents: StudentSearchRow[] = [];
           type ParentSearchContact = {
+            id?: string | null;
+            name?: string | null;
             phone?: string | null;
             email?: string | null;
             is_wa_contact?: string | boolean | null;
@@ -294,6 +304,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
                 `
                 student_id,
                 parent:parent_id (
+                  id,
+                  name,
                   phone,
                   email,
                   is_wa_contact
@@ -305,6 +317,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
             const parentLinks = (parentLinksRaw ?? []) as Array<{
               student_id?: string | null;
               parent?: {
+                id?: string | null;
+                name?: string | null;
                 phone?: string | null;
                 email?: string | null;
                 is_wa_contact?: string | boolean | null;
@@ -317,6 +331,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
 
             parentLinks.forEach((link) => {
               addParentContact(link.student_id, {
+                id: link.parent?.id ?? null,
+                name: link.parent?.name ?? null,
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
                 is_wa_contact: link.parent?.is_wa_contact ?? null,
@@ -330,12 +346,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
                   `
                   class_id,
                   user:user_id!inner (
-                    id,
-                    name,
-                    email,
-                    phone,
-                    gender,
-                    student_id
+                    *
                   )
                 `,
                 )
@@ -377,6 +388,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
                 `
         student_id,
         parent:parent_id (
+          id,
+          name,
           phone,
           email,
           is_wa_contact
@@ -388,6 +401,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
             const allParentLinks = (allParentLinksRaw ?? []) as Array<{
               student_id?: string | null;
               parent?: {
+                id?: string | null;
+                name?: string | null;
                 phone?: string | null;
                 email?: string | null;
                 is_wa_contact?: string | boolean | null;
@@ -396,6 +411,8 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
 
             allParentLinks.forEach((link) => {
               addParentContact(link.student_id, {
+                id: link.parent?.id ?? null,
+                name: link.parent?.name ?? null,
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
                 is_wa_contact: link.parent?.is_wa_contact ?? null,
@@ -422,15 +439,14 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
             const email = row.user.email || parentContact.email || '';
             return {
               user: {
-                id: row.user.id,
-                name: row.user.name,
-                student_id: row.user.student_id,
-                gender: row.user.gender,
+                ...row.user,
                 phone,
                 email,
               },
 
               parent: {
+                id: parentContact.id ?? null,
+                name: parentContact.name ?? null,
                 phone: parentContact.phone ?? null,
                 email: parentContact.email ?? null,
                 is_wa_contact: parentContact.is_wa_contact ?? null,
