@@ -107,6 +107,8 @@ type UseSchoolListOfflineCacheOptions = {
   isExternalUser: boolean;
   schools: SchoolListSourceRow[];
   selectedDateRange: DateRangeValue;
+  isSchoolListLoading: boolean;
+  cacheFallbackKey: string;
   setPage: Dispatch<SetStateAction<number>>;
 };
 
@@ -116,6 +118,8 @@ export function useSchoolListOfflineCache({
   isExternalUser,
   schools,
   selectedDateRange,
+  isSchoolListLoading,
+  cacheFallbackKey,
   setPage,
 }: UseSchoolListOfflineCacheOptions) {
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<string[]>([]);
@@ -131,19 +135,40 @@ export function useSchoolListOfflineCache({
   const [isBrowserOffline, setIsBrowserOffline] = useState(
     () => typeof navigator !== 'undefined' && navigator.onLine === false,
   );
+  const [canUseCachedSchoolsFallback, setCanUseCachedSchoolsFallback] =
+    useState(false);
+  const isClearingCacheSelection =
+    isOfflineCacheSelectionMode && offlineCacheSelectionAction === 'clear';
+  const shouldLoadOfflineCachedSchools =
+    cacheOfflineEnabled &&
+    (isBrowserOffline || isClearingCacheSelection || isSchoolListLoading);
   const showCachedSchoolsOnly =
     cacheOfflineEnabled &&
     (isBrowserOffline ||
-      (isOfflineCacheSelectionMode && offlineCacheSelectionAction === 'clear'));
+      isClearingCacheSelection ||
+      (isSchoolListLoading &&
+        canUseCachedSchoolsFallback &&
+        offlineCachedSchools.length > 0));
 
   const refreshOfflineCachedSchools = useCallback(async () => {
-    if (!showCachedSchoolsOnly) {
+    if (!shouldLoadOfflineCachedSchools) {
       setOfflineCachedSchools([]);
       return;
     }
     const cachedSchools = await readAllFcSchoolOfflineCaches();
     setOfflineCachedSchools(cachedSchools.map(mapOfflineCacheToSchoolListRow));
-  }, [showCachedSchoolsOnly]);
+  }, [shouldLoadOfflineCachedSchools]);
+
+  useEffect(() => {
+    setCanUseCachedSchoolsFallback(false);
+    if (!cacheOfflineEnabled || !isSchoolListLoading) return;
+
+    const fallbackTimer = window.setTimeout(() => {
+      setCanUseCachedSchoolsFallback(true);
+    }, 1000);
+
+    return () => window.clearTimeout(fallbackTimer);
+  }, [cacheFallbackKey, cacheOfflineEnabled, isSchoolListLoading]);
 
   useEffect(() => {
     void cleanupExpiredFcSchoolOfflineCaches();

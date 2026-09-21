@@ -158,6 +158,33 @@ export function useSchoolListPage() {
     percentageFilters,
     schoolPerformanceFilter,
   });
+  const schoolListCacheFallbackKey = useMemo(
+    () =>
+      JSON.stringify({
+        filters,
+        selectedTab,
+        page,
+        pageSize,
+        orderBy,
+        orderDir,
+        searchTerm: debouncedSearchTerm,
+        selectedDateRange,
+        percentageFilters,
+        schoolPerformanceFilter,
+      }),
+    [
+      filters,
+      selectedTab,
+      page,
+      pageSize,
+      orderBy,
+      orderDir,
+      debouncedSearchTerm,
+      selectedDateRange,
+      percentageFilters,
+      schoolPerformanceFilter,
+    ],
+  );
   const {
     clearOfflineCacheLabel,
     handleCacheSelectedSchools,
@@ -180,6 +207,8 @@ export function useSchoolListPage() {
     isExternalUser,
     schools,
     selectedDateRange,
+    isSchoolListLoading: isDataLoading,
+    cacheFallbackKey: schoolListCacheFallbackKey,
     setPage,
   });
   const visibleSchools = useMemo(

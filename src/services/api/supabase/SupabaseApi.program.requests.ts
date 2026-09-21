@@ -1,6 +1,5 @@
 import { Constants } from '../../database';
 import { EnumType, STATUS } from '../../../common/constants';
-import { TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiProgramActivityStats } from './SupabaseApi.program.activityStats';
 
@@ -215,7 +214,12 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
               `
               class_id,
               user:user_id!inner (
-                *
+                id,
+                name,
+                email,
+                phone,
+                gender,
+                student_id
               )
             `,
             )
@@ -256,7 +260,14 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
 
           type StudentSearchRow = {
             class_id: string;
-            user: TableTypes<'user'>;
+            user: {
+              id: string;
+              name?: string | null;
+              email?: string | null;
+              phone?: string | null;
+              gender?: string | null;
+              student_id?: string | null;
+            };
           };
           let parentLinkedStudents: StudentSearchRow[] = [];
           type ParentSearchContact = {
@@ -346,7 +357,12 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
                   `
                   class_id,
                   user:user_id!inner (
-                    *
+                    id,
+                    name,
+                    email,
+                    phone,
+                    gender,
+                    student_id
                   )
                 `,
                 )

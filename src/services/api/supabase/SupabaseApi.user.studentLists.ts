@@ -110,7 +110,29 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
       .select(
         `
       class_id,
-      user:user!class_user_user_id_fkey!inner (*)
+      user:user!class_user_user_id_fkey!inner (
+        age,
+        avatar,
+        created_at,
+        curriculum_id,
+        fcm_token,
+        firebase_id,
+        grade_id,
+        image,
+        is_deleted,
+        is_firebase,
+        is_ops,
+        language_id,
+        is_tc_accepted,
+        student_id,
+        reward,
+        updated_at,
+        id,
+        name,
+        phone,
+        gender,
+        email
+      )
     `,
         { count: 'exact' },
       )
