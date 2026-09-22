@@ -4,7 +4,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
-import { resolveAcademicYearForClass } from '../academicYearHelper';
+import { resolveAcademicYearForClassAndSchool } from '../academicYearHelper';
 import { JoinClassInviteLookupResult } from '../ServiceApi';
 import { SupabaseApiUserSchoolRoles } from './SupabaseApi.user.schoolRoles';
 
@@ -197,7 +197,20 @@ export class SupabaseApiUserClassManagement extends SupabaseApiUserSchoolRoles {
       logger.error('Error fetching school academic year:', schoolError);
       throw schoolError;
     }
-    const academicYear = resolveAcademicYearForClass(school?.academic_year);
+    const { classAcademicYear, schoolAcademicYear } =
+      resolveAcademicYearForClassAndSchool(school?.academic_year);
+
+    if (schoolAcademicYear !== null) {
+      const { error: schoolUpdateError } = await this.supabase
+        .from('school')
+        .update({ academic_year: schoolAcademicYear, updated_at: timestamp })
+        .eq('id', schoolId)
+        .eq('is_deleted', false);
+      if (schoolUpdateError) {
+        logger.error('Error updating school academic year:', schoolUpdateError);
+        throw schoolUpdateError;
+      }
+    }
 
     const newClass: TableTypes<'class'> = {
       id: classId,
@@ -209,7 +222,7 @@ export class SupabaseApiUserClassManagement extends SupabaseApiUserSchoolRoles {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
-      academic_year: academicYear,
+      academic_year: classAcademicYear,
       firebase_id: null,
       is_firebase: null,
       is_ops: null,

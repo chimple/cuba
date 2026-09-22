@@ -58,3 +58,31 @@ export const resolveAcademicYearForClass = (
     return yearStart > latestStart ? year : latest;
   });
 };
+
+export const resolveAcademicYearForClassAndSchool = (
+  schoolAcademicYear: unknown,
+  now = new Date(),
+): { classAcademicYear: string; schoolAcademicYear: string | null } => {
+  const currentAcademicYear = getRuntimeCurrentAcademicYear(now);
+  const years = parseAcademicYears(schoolAcademicYear);
+  const latestAcademicYear = years.reduce<string | null>((latest, year) => {
+    if (!latest) return year;
+    return Number(year.slice(0, 4)) > Number(latest.slice(0, 4))
+      ? year
+      : latest;
+  }, null);
+
+  if (latestAcademicYear === currentAcademicYear) {
+    return {
+      classAcademicYear: currentAcademicYear,
+      schoolAcademicYear: null,
+    };
+  }
+
+  const mergedYears = Array.from(new Set([...years, currentAcademicYear]));
+
+  return {
+    classAcademicYear: currentAcademicYear,
+    schoolAcademicYear: JSON.stringify(mergedYears),
+  };
+};

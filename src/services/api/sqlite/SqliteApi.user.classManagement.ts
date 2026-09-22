@@ -8,7 +8,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
-import { resolveAcademicYearForClass } from '../academicYearHelper';
+import { resolveAcademicYearForClassAndSchool } from '../academicYearHelper';
 import { JoinClassInviteLookupResult } from '../ServiceApi';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiUserSchoolRoles } from './SqliteApi.user.schoolRoles';
@@ -146,9 +146,22 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
       `SELECT academic_year FROM ${TABLES.School} WHERE id = ? AND is_deleted = 0 LIMIT 1;`,
       [schoolId],
     );
-    const academicYear = resolveAcademicYearForClass(
-      schoolResult?.values?.[0]?.academic_year,
-    );
+    const { classAcademicYear, schoolAcademicYear } =
+      resolveAcademicYearForClassAndSchool(
+        schoolResult?.values?.[0]?.academic_year,
+      );
+    if (schoolAcademicYear !== null) {
+      const schoolUpdatedAt = new Date().toISOString();
+      await this.executeQuery(
+        `UPDATE ${TABLES.School} SET academic_year = ?, updated_at = ? WHERE id = ? AND is_deleted = 0;`,
+        [schoolAcademicYear, schoolUpdatedAt, schoolId],
+      );
+      await this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
+        id: schoolId,
+        academic_year: schoolAcademicYear,
+        updated_at: schoolUpdatedAt,
+      });
+    }
     const newClass: TableTypes<'class'> = {
       id: classId,
       name: className,
@@ -160,7 +173,7 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
       updated_at: new Date().toISOString(),
 
       is_deleted: false,
-      academic_year: academicYear,
+      academic_year: classAcademicYear,
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
