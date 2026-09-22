@@ -1,14 +1,26 @@
 import React from 'react';
-import { Box, IconButton, Tab, Tabs, Typography } from '@mui/material';
+import {
+  Box,
+  Divider,
+  IconButton,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Tab,
+  Tabs,
+  Typography,
+} from '@mui/material';
 import { REQUEST_TABS } from '../../common/constants';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody from '../components/DataTableBody';
+import SchoolListExportButton from '../components/SchoolListExportButton';
 import { t } from 'i18next';
 import SearchAndFilter from '../components/SearchAndFilter';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
 import { BsFillBellFill } from 'react-icons/bs';
 import './RequestList.css';
+import { DATE_RANGE_OPTIONS } from './SchoolList.helpers';
 import {
   filterConfigsForRequests,
   INITIAL_FILTERS,
@@ -16,17 +28,22 @@ import {
 import { useRequestListPage } from './useRequestListPage';
 
 const RequestList: React.FC = () => {
+  const [exportAnchorEl, setExportAnchorEl] =
+    React.useState<null | HTMLElement>(null);
   const {
     columns,
     filterOptionsForSlider,
     filters,
     handleCancelFilters,
     handleDeleteFilter,
+    handleExportRequests,
     handleOpenFilters,
     handleRowClick,
     handleSort,
     handleTabChange,
     isFilterOpen,
+    isExportDisabled,
+    isExporting,
     isLoading,
     orderBy,
     orderDir,
@@ -44,6 +61,8 @@ const RequestList: React.FC = () => {
     tabOptions,
     tempFilters,
   } = useRequestListPage();
+  const isExportMenuOpen = Boolean(exportAnchorEl);
+  const exportMenuId = 'request-list-export-menu';
 
   return (
     <div className="request-list-ion-page">
@@ -79,15 +98,75 @@ const RequestList: React.FC = () => {
             </div>
 
             <div className="request-list-button-and-search-filter">
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={(e) => {
-                  setSearchTerm(e.target.value);
-                }}
-                filters={filters}
-                onFilterClick={handleOpenFilters}
-                onClearFilters={handleCancelFilters}
-              />
+              <div className="request-list-search-control">
+                <SearchAndFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
+                  filters={filters}
+                  onFilterClick={handleOpenFilters}
+                  onClearFilters={handleCancelFilters}
+                  beforeFilter={
+                    <div className="request-list-export-control">
+                      <SchoolListExportButton
+                        id="request-list-export-button"
+                        disabled={isExportDisabled}
+                        isExporting={isExporting}
+                        isMenuOpen={isExportMenuOpen}
+                        menuId={exportMenuId}
+                        onClick={(event) => {
+                          setExportAnchorEl(event.currentTarget);
+                        }}
+                      />
+                      <Menu
+                        id={exportMenuId}
+                        anchorEl={exportAnchorEl}
+                        open={isExportMenuOpen}
+                        onClose={() => setExportAnchorEl(null)}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'left',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'left',
+                        }}
+                        PaperProps={{
+                          className: 'request-list-export-menu',
+                        }}
+                        slotProps={{ list: { disablePadding: true } }}
+                      >
+                        {DATE_RANGE_OPTIONS.flatMap((option, index) => [
+                          <MenuItem
+                            key={option.value}
+                            className="request-list-export-menu-item"
+                            onClick={() => {
+                              setExportAnchorEl(null);
+                              void handleExportRequests(option.value);
+                            }}
+                          >
+                            <ListItemText
+                              primary={option.label}
+                              primaryTypographyProps={{
+                                className: 'request-list-export-menu-label',
+                              }}
+                            />
+                          </MenuItem>,
+                          ...(index < DATE_RANGE_OPTIONS.length - 1
+                            ? [
+                                <Divider
+                                  key={`${option.value}-divider`}
+                                  className="request-list-export-menu-divider"
+                                />,
+                              ]
+                            : []),
+                        ])}
+                      </Menu>
+                    </div>
+                  }
+                />
+              </div>
             </div>
           </div>
 

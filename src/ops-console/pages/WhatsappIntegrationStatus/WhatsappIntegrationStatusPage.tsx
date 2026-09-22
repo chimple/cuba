@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  IconButton,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, CircularProgress, IconButton } from '@mui/material';
 import { BsFillBellFill } from 'react-icons/bs';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,19 +12,18 @@ import DataTableBody from '../../components/DataTableBody';
 import DataTablePagination from '../../components/DataTablePagination';
 import SearchAndFilter from '../../components/SearchAndFilter';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import SchoolListExportButton from '../../components/SchoolListExportButton';
 import type { WhatsappIntegrationStatusRow } from '../../../services/api/serviceapi/ServiceApi.whatsapp';
+import WhatsappProviderStatusTable from './WhatsappProviderStatusTable';
+import WhatsappIntegrationStatusAppliedFilters from './WhatsappIntegrationStatusAppliedFilters';
+import WhatsappIntegrationStatusFilterMenu from './WhatsappIntegrationStatusFilterMenu';
+import WhatsappIntegrationStatusChip from './WhatsappIntegrationStatusChip';
+import { useWhatsappIntegrationStatusExport } from './useWhatsappIntegrationStatusExport';
+import { useWhatsappIntegrationStatusFilters } from './useWhatsappIntegrationStatusFilters';
+import { useWhatsappProviderStatus } from './useWhatsappProviderStatus';
 import './WhatsappIntegrationStatusPage.css';
 
-const PAGE_SIZE = 10;
-const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
-  <span
-    className={`whatsapp-integration-status-badge${
-      connected ? ' is-connected' : ' is-not-connected'
-    }`}
-  >
-    {connected ? 'Yes' : 'No'}
-  </span>
-);
+const PAGE_SIZE = 20;
 const WhatsappIntegrationStatusPage: React.FC = () => {
   const { t } = useTranslation();
   const { roles } = useAppSelector(
@@ -39,16 +32,18 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
   const [rows, setRows] = useState<WhatsappIntegrationStatusRow[]>([]);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(0);
-  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const statusFilters = useWhatsappIntegrationStatusFilters(() => setPage(1));
   const hasModuleAccess = (roles ?? []).some(
     (role) =>
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR ||
       role === RoleType.PROGRAM_MANAGER,
   );
+  const { loading: providerLoading, statuses: providerStatuses } =
+    useWhatsappProviderStatus(hasModuleAccess);
   useEffect(() => {
     if (!hasModuleAccess) {
       setLoading(false);
@@ -60,22 +55,22 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     const loadStatus = async () => {
       setLoading(true);
       setError(null);
+      const api = ServiceConfig.getI().apiHandler;
       try {
-        const response =
-          await ServiceConfig.getI().apiHandler.getWhatsappIntegrationStatus({
-            page,
-            page_size: PAGE_SIZE,
-            search,
-          });
+        const response = await api.getWhatsappIntegrationStatus({
+          page,
+          page_size: PAGE_SIZE,
+          search,
+          periskope_status: statusFilters.periskopeStatus ?? undefined,
+          maytapi_status: statusFilters.maytapiStatus ?? undefined,
+        });
         if (cancelled) return;
         setRows(response.data);
         setPageCount(response.pagination.total_pages);
-        setTotal(response.pagination.total);
       } catch (loadError) {
         if (cancelled) return;
         setRows([]);
         setPageCount(0);
-        setTotal(0);
         setError(
           loadError instanceof Error
             ? loadError.message
@@ -90,7 +85,21 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [hasModuleAccess, page, search, t]);
+  }, [
+    hasModuleAccess,
+    page,
+    search,
+    statusFilters.maytapiStatus,
+    statusFilters.periskopeStatus,
+    t,
+  ]);
+
+  const { isExporting, handleExport } = useWhatsappIntegrationStatusExport(
+    rows,
+    search,
+    statusFilters.periskopeStatus,
+    statusFilters.maytapiStatus,
+  );
 
   if (!hasModuleAccess) {
     return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}`} />;
@@ -108,6 +117,11 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
           </IconButton>
         </div>
 
+        <WhatsappProviderStatusTable
+          loading={providerLoading}
+          statuses={providerStatuses}
+        />
+
         <Box className="whatsapp-integration-status-header-controls">
           <Box className="whatsapp-integration-status-controls">
             <SearchAndFilter
@@ -118,9 +132,22 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
               }}
               isFilter={false}
               searchPlaceholder={String(t('Search'))}
+              beforeFilter={
+                <SchoolListExportButton
+                  disabled={loading || isExporting || rows.length === 0}
+                  isExporting={isExporting}
+                  onClick={() => void handleExport()}
+                />
+              }
             />
           </Box>
         </Box>
+
+        <WhatsappIntegrationStatusAppliedFilters
+          maytapiStatus={statusFilters.maytapiStatus}
+          onDeleteFilter={statusFilters.handleDeleteFilter}
+          periskopeStatus={statusFilters.periskopeStatus}
+        />
 
         {error && <Alert severity="error">{error}</Alert>}
 
@@ -137,40 +164,51 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
             </Box>
           )}
 
-          {!loading && rows.length > 0 && (
+          {!loading && (
             <DataTableBody
               columns={[
                 {
                   key: 'school_name',
                   label: t('School Name'),
                   sortable: false,
-                  width: '35%',
+                  width: '20%',
+                },
+                {
+                  key: 'class_name',
+                  label: t('Class'),
+                  sortable: false,
+                  width: '20%',
+                  render: (row) => row.class_name || '--',
                 },
                 {
                   key: 'group_id',
                   label: t('Group ID'),
                   sortable: false,
-                  width: '35%',
-                  render: (row) => row.group_id || t('Not linked'),
+                  width: '20%',
+                  render: (row) => row.group_id || '--',
                 },
                 {
-                  key: 'periskope_connected',
+                  key: 'periskope_status',
                   label: t('Periskope'),
                   sortable: false,
-                  align: 'center',
-                  width: '15%',
+                  align: 'left',
+                  width: '20%',
                   render: (row) => (
-                    <StatusBadge connected={row.periskope_connected} />
+                    <WhatsappIntegrationStatusChip
+                      status={row.periskope_status}
+                    />
                   ),
                 },
                 {
-                  key: 'maytapi_connected',
+                  key: 'maytapi_status',
                   label: t('Maytapi'),
                   sortable: false,
-                  align: 'center',
-                  width: '15%',
+                  align: 'left',
+                  width: '20%',
                   render: (row) => (
-                    <StatusBadge connected={row.maytapi_connected} />
+                    <WhatsappIntegrationStatusChip
+                      status={row.maytapi_status}
+                    />
                   ),
                 },
               ]}
@@ -179,11 +217,16 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
               order="asc"
               onSort={() => undefined}
               disableRowNavigation
-              getRowId={(row) => `${row.school_id}-${row.group_id ?? 'none'}`}
+              getRowId={(row) =>
+                `${row.school_id}-${row.class_name ?? 'none'}-${
+                  row.group_id ?? 'none'
+                }`
+              }
               tableMinWidth={760}
               tableWidth="100%"
               headerNoEllipsis
               headerAlign="left"
+              renderHeaderActions={statusFilters.renderHeaderActions}
             />
           )}
 
@@ -194,11 +237,19 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
           )}
         </div>
 
+        <WhatsappIntegrationStatusFilterMenu
+          anchorEl={statusFilters.anchorEl}
+          selectedStatus={
+            statusFilters.column === 'periskope_status'
+              ? statusFilters.periskopeStatus
+              : statusFilters.maytapiStatus
+          }
+          onClose={statusFilters.handleClose}
+          onSelect={statusFilters.handleSelect}
+        />
+
         {!loading && rows.length > 0 && (
           <Box className="whatsapp-integration-status-footer">
-            <Typography variant="body2">
-              {t('{{count}} records', { count: total })}
-            </Typography>
             <DataTablePagination
               page={page}
               pageCount={pageCount}
