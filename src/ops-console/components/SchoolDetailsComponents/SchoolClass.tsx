@@ -1,11 +1,4 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import {
-  Button as MuiButton,
-  Box,
-  Typography,
-  useMediaQuery,
-} from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
 import './SchoolClass.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import ClassDetailsPage from './ClassDetailsPage';
@@ -13,11 +6,9 @@ import { t } from 'i18next';
 import ClassForm from '../ClassForm';
 import FormCard from './FormCard';
 import { RoleType } from '../../../interface/modelInterfaces';
-import type { TableTypes } from '../../../common/constants';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import SchoolListDateRangeDropdown from '../SchoolListDateRangeDropdown';
 import {
   DEFAULT_DATE_RANGE,
   type DateRangeValue,
@@ -30,6 +21,8 @@ import {
   getProgramAllowedGrades,
 } from './ClassDetailsPageUtils';
 import SchoolClassTable from './SchoolClassTable';
+import SchoolClassHeader from './SchoolClassHeader';
+import { useSelectedClassDetails } from './useSelectedClassDetails';
 import { useSchoolClassAddStudent } from './useSchoolClassAddStudent';
 import { useSchoolClassMetrics } from './useSchoolClassMetrics';
 import type { ClassRow, SchoolDetailsData } from './SchoolClass.types';
@@ -55,7 +48,6 @@ const SchoolClasses: React.FC<Props> = ({
   onGenerateCode,
   refreshClasses,
 }) => {
-  const isSmall = useMediaQuery('(max-width: 768px)');
   const api = ServiceConfig.getI().apiHandler;
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -68,9 +60,6 @@ const SchoolClasses: React.FC<Props> = ({
   const [groupIdOverrides, setGroupIdOverrides] = useState<
     Record<string, string>
   >({});
-  const [classDetailsById, setClassDetailsById] = useState<
-    Record<string, ClassRow>
-  >({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeValue>(DEFAULT_DATE_RANGE);
@@ -80,7 +69,6 @@ const SchoolClasses: React.FC<Props> = ({
     allDataRef.current = data;
   }, [data]);
 
-  const getAll = (): SchoolDetailsData => allDataRef.current;
   const allowedGrades = useMemo(
     () => getProgramAllowedGrades(data.programData),
     [data.programData],
@@ -148,94 +136,14 @@ const SchoolClasses: React.FC<Props> = ({
         : null,
     [selectedClassId, effectiveClasses],
   );
+  const classDetailsById = useSelectedClassDetails(
+    api,
+    selectedClassId,
+    selectedRow,
+  );
   const selectedClassRow = selectedClassId
     ? (classDetailsById[selectedClassId] ?? selectedRow)
     : selectedRow;
-
-  useEffect(() => {
-    if (!selectedClassId || !selectedRow || classDetailsById[selectedClassId]) {
-      return;
-    }
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const links = (await api.getCoursesByClassId(selectedClassId)) ?? [];
-        const detailArrays = await Promise.all(
-          links.map((link: { course_id: string }) =>
-            api.getCourse(link.course_id),
-          ),
-        );
-        const courses: TableTypes<'course'>[] = detailArrays
-          .flatMap(
-            (
-              courseRows:
-                | TableTypes<'course'>
-                | TableTypes<'course'>[]
-                | undefined,
-            ) => (Array.isArray(courseRows) ? courseRows : [courseRows]),
-          )
-          .filter((course): course is TableTypes<'course'> =>
-            Boolean(course?.id),
-          );
-        const curriculumIds = [
-          ...new Set(
-            courses
-              .map((course) => course.curriculum_id)
-              .filter(
-                (courseId: unknown): courseId is string =>
-                  typeof courseId === 'string' && courseId.length > 0,
-              ),
-          ),
-        ];
-        const curriculums: TableTypes<'curriculum'>[] = curriculumIds.length
-          ? await api.getCurriculumsByIds(curriculumIds)
-          : [];
-        const subjectsNames = [
-          ...new Set(
-            courses
-              .map((course) =>
-                typeof course?.name === 'string' ? course.name.trim() : '',
-              )
-              .filter((subjectName: string) => subjectName.length > 0),
-          ),
-        ].join(', ');
-        const curriculumNames = [
-          ...new Set(
-            curriculums
-              .map((curriculum) => curriculum.name?.trim() ?? '')
-              .filter((name: string) => name.length > 0),
-          ),
-        ].join(', ');
-
-        if (!cancelled) {
-          setClassDetailsById((prev) => ({
-            ...prev,
-            [selectedClassId]: {
-              ...selectedRow,
-              course_links: links,
-              courses,
-              curriculum: curriculums,
-              subjects: courses,
-              subjectsNames,
-              curriculumNames,
-            },
-          }));
-        }
-      } catch {
-        if (!cancelled) {
-          setClassDetailsById((prev) => ({
-            ...prev,
-            [selectedClassId]: selectedRow,
-          }));
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [api, classDetailsById, selectedClassId, selectedRow]);
 
   const handleGroupLinked = (classId: string, groupId: string) => {
     const classIdValue = String(classId ?? '').trim();
@@ -293,38 +201,16 @@ const SchoolClasses: React.FC<Props> = ({
     />
   ) : (
     <div className="schoolclass-pageContainer">
-      <Box className="schoolclass-headerActionsRow">
-        <Box className="schoolclass-titleArea">
-          <Typography variant="h5" className="schoolclass-titleHeading">
-            {t('Classes')}
-          </Typography>
-          <Typography variant="body2" className="schoolclass-totalText">
-            {t('Total: ')}
-            {totalCount}
-            {t(' classes')}
-          </Typography>
-        </Box>
-
-        <Box className="schoolclass-actionsGroup">
-          {!isExternalUser && (
-            <MuiButton
-              variant="outlined"
-              onClick={() => {
-                setMode('create');
-                setShowForm(true);
-              }}
-              className="schoolclass-newStudentButton-outlined"
-            >
-              <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
-              {!isSmall && t('New Class')}
-            </MuiButton>
-          )}
-          <SchoolListDateRangeDropdown
-            value={selectedDateRange}
-            onChange={setSelectedDateRange}
-          />
-        </Box>
-      </Box>
+      <SchoolClassHeader
+        isExternalUser={isExternalUser}
+        onCreateClass={() => {
+          setMode('create');
+          setShowForm(true);
+        }}
+        selectedDateRange={selectedDateRange}
+        setSelectedDateRange={setSelectedDateRange}
+        totalCount={totalCount}
+      />
 
       {showForm && (
         <ClassForm

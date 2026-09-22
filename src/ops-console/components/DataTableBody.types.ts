@@ -21,6 +21,7 @@ export interface DataTableBodyProps<T extends object> {
   onRowClick?: (id: string | number, row: T) => void;
   loading?: boolean;
   selectableRows?: boolean;
+  showSelectAllRows?: boolean;
   selectedRowIds?: Array<string | number>;
   onToggleRowSelection?: (id: string | number, row: T) => void;
   onToggleSelectAll?: (checked: boolean, visibleRows: T[]) => void;

@@ -156,7 +156,9 @@ public class LessonBundlePlugin extends Plugin {
 
     private DownloadResult downloadZipThroughRespectCache(String zipUrl, File destination)
             throws IOException, NoSuchAlgorithmException {
-        Request request = new Request.Builder().url(zipUrl).build();
+        Request request = new Request.Builder()
+                .url(zipUrl)
+                .build();
         try (Response response = RespectHttpClient.getOkHttpClient().newCall(request).execute()) {
             if (!response.isSuccessful() || response.body() == null) {
                 throw new IOException("Unexpected response " + response.code() + " for " + zipUrl);

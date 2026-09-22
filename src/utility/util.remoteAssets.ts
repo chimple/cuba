@@ -27,6 +27,7 @@ type LessonBundleDownloadOptions = {
   lessonId: string;
   zipUrls: string[];
   dbVersion: number;
+  cacheBust?: string;
 };
 
 type LessonBundleDownloadResult = {
@@ -148,36 +149,21 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
           void StorageManager.checkStorageLimit();
         }, 0);
       }
-      const downloadStartedAt = Date.now();
-      logger.info('Starting download for lessons:', {
-        count: lessons.length,
-        chapterId: chapterId ?? null,
-      });
       for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
           lessonsChunk.map(async (lesson) => {
             const lessonId = this.getLessonBundleId(lesson);
             if (!lessonId) {
-              logger.error(
-                '[LessonDownloader] Missing bundle lesson id for lesson:',
-                lesson.id,
-              );
+              logger.error('[LessonDownloader] Missing bundle lesson id');
               return false;
             }
 
-            const lessonStartedAt = Date.now();
             try {
               let lessonDownloadSuccess = true;
               const androidPath = await this.getAndroidBundlePath();
-              logger.info('full lesson object for download:', lesson);
-              logger.info('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
               let dbVersion = Number(lesson.version ?? 1);
-              logger.info(
-                `[Version] Using lesson version for ${lessonId}:`,
-                lesson.version,
-              );
 
               let localVersion = 0;
 
@@ -190,10 +176,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
 
                 localVersion = await this.getLocalLessonVersion(lessonId);
 
-                logger.info(
-                  `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
-                );
-
                 if (localVersion >= dbVersion) {
                   // ✅ UP-TO-DATE → SKIP
                   this.setGameUrl(androidPath);
@@ -203,10 +185,8 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                   );
                   return true;
                 }
-
-                logger.info(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.info(`[Version] ${lessonId} not found → downloading`);
+                // Continue with packaged or remote bundle resolution.
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
@@ -256,17 +236,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                     )
                   : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
 
-              logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
-                lessonId,
-                bundleZipUrlsKey,
-                cachedBundleZipUrls,
-                fallbackBundleZipUrls,
-                cachedGeneralBundleZipUrls,
-                fallbackGeneralBundleZipUrls,
-                resolvedBundleZipUrls: bundleZipUrls,
-                usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
-              });
-
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
@@ -274,9 +243,8 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
 
               const lessonBundlePlugin = getLessonBundlePlugin();
               if (!lessonBundlePlugin) {
-                logger.warn(
+                logger.error(
                   '[LessonDownloader] LessonBundle plugin unavailable',
-                  { lessonId },
                 );
                 return false;
               }
@@ -289,19 +257,8 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                 });
 
               if (!nativeBundleResult?.byteLength) {
-                logger.warn('[LessonDownloader] Native bundle returned empty', {
-                  lessonId,
-                  dbVersion,
-                });
                 return false;
               }
-              logger.info('[LessonDownloader] Native bundle finished', {
-                lessonId,
-                dbVersion,
-                byteLength: nativeBundleResult.byteLength,
-                durationMs: Date.now() - lessonStartedAt,
-              });
-
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
@@ -324,14 +281,25 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
               );
               return lessonDownloadSuccess;
             } catch (err) {
+              const errorDetails =
+                err instanceof Error
+                  ? {
+                      name: err.name,
+                      message: err.message,
+                      stack: err.stack,
+                      cause: err.cause,
+                    }
+                  : {
+                      value: String(err),
+                    };
+              const errorSummary =
+                err instanceof Error
+                  ? `${err.name}: ${err.message}`
+                  : String(err);
               logger.error(
-                `[LessonDownloader] Error processing lesson ${lessonId}:`,
-                err,
+                `[LessonDownloader] Error processing lesson: ${errorSummary}`,
+                errorDetails,
               );
-              logger.warn('[LessonDownloader] Download failed metrics', {
-                lessonId,
-                durationMs: Date.now() - lessonStartedAt,
-              });
               return false;
             }
           }),
@@ -358,11 +326,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
       }
 
-      logger.info('[LessonDownloader] Chapter download complete', {
-        chapterId: chapterId ?? null,
-        lessonCount: lessons.length,
-        durationMs: Date.now() - downloadStartedAt,
-      });
       return true;
     } catch {
       return false;
@@ -422,7 +385,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
       return true;
     } catch (error) {
       logger.error('[***] Failed to extract lesson ZIP', {
-        lessonId,
         error,
       });
       return false;

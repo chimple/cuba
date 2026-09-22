@@ -4,6 +4,8 @@ import {
   WHATSAPP_GROUP_STATUS_KEYS,
 } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import { readFcSchoolOfflineCache } from '../../../services/offline/fcSchoolOfflineCache';
+import type { OpsStudentPerformanceBandRow } from '../../../services/api/serviceapi/ServiceApi.types';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import type { ClassRow, SchoolData } from './SchoolClass';
 import type {
@@ -237,22 +239,47 @@ export const useSchoolStudentsStatus = ({
       }
       setIsPerformanceLoading(true);
       const performanceMap = new Map<string, string>();
-      try {
-        const mvRows = await api.getOpsStudentPerformanceBands({
-          classIds,
-          studentIds,
-        });
-        mvRows.forEach((row: any) => {
+      const applyRows = (
+        rows: OpsStudentPerformanceBandRow[] | undefined | null,
+      ) => {
+        rows?.forEach((row) => {
           const rowStudentId = String(row?.student_id ?? '').trim();
           const rowClassId = String(row?.class_id ?? '').trim();
           const rawBand = (row?.performance ??
             null) as StudentPerformanceBand | null;
           if (!rowStudentId || !rowClassId) return;
+          if (
+            !studentIds.includes(rowStudentId) ||
+            !classIds.includes(rowClassId)
+          ) {
+            return;
+          }
           performanceMap.set(
             `${rowClassId}:${rowStudentId}`,
             mapBandToOpsLabel(rawBand),
           );
         });
+      };
+
+      try {
+        const schoolId = String(data?.schoolData?.id ?? '').trim();
+        if (
+          schoolId &&
+          typeof navigator !== 'undefined' &&
+          navigator.onLine === false
+        ) {
+          const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+          applyRows(cachedSchool?.studentPerformanceBands);
+          setStudentPerformanceMap(performanceMap);
+          return;
+        }
+
+        const mvRows = await api.getOpsStudentPerformanceBands({
+          classIds,
+          studentIds,
+        });
+        performanceMap.clear();
+        applyRows(mvRows);
         setStudentPerformanceMap(performanceMap);
       } catch (error) {
         logger.error('Error fetching student performance data:', error);
