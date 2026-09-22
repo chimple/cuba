@@ -28,7 +28,6 @@ import java.util.zip.ZipInputStream;
 
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.CacheControl;
 
 @CapacitorPlugin(name = "LessonBundle")
 public class LessonBundlePlugin extends Plugin {
@@ -42,7 +41,6 @@ public class LessonBundlePlugin extends Plugin {
         String lessonId = call.getString("lessonId");
         JSArray zipUrls = call.getArray("zipUrls");
         Integer dbVersion = call.getInt("dbVersion");
-        String cacheBust = call.getString("cacheBust");
 
         if (lessonId == null || lessonId.trim().isEmpty()) {
             call.reject("lessonId is required");
@@ -60,8 +58,7 @@ public class LessonBundlePlugin extends Plugin {
             try {
                 File rootDir = getExternalRootDirectory(getContext());
                 zipFile = File.createTempFile(lessonId, ".zip", rootDir);
-                DownloadResult downloadResult = downloadFirstAvailableZip(
-                        zipUrls, lessonId, zipFile, cacheBust);
+                DownloadResult downloadResult = downloadFirstAvailableZip(zipUrls, lessonId, zipFile);
 
                 File extractDir = new File(rootDir, lessonId + "_temp");
                 deleteRecursively(extractDir);
@@ -92,8 +89,7 @@ public class LessonBundlePlugin extends Plugin {
     private DownloadResult downloadFirstAvailableZip(
             JSArray baseUrls,
             String lessonId,
-            File destination,
-            String cacheBust
+            File destination
     ) throws Exception {
         Exception lastException = null;
 
@@ -105,10 +101,6 @@ public class LessonBundlePlugin extends Plugin {
                 }
 
                 String zipUrl = baseUrl + lessonId + ".zip";
-                if (cacheBust != null && !cacheBust.trim().isEmpty()) {
-                    zipUrl += (zipUrl.contains("?") ? "&" : "?")
-                            + "open_apk_cache_bust=" + cacheBust;
-                }
                 try {
                     return downloadZip(zipUrl, destination);
                 } catch (Exception exception) {
@@ -133,8 +125,6 @@ public class LessonBundlePlugin extends Plugin {
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
         connection.setRequestMethod("GET");
-        connection.setUseCaches(false);
-        connection.setRequestProperty("Cache-Control", "no-cache, no-store");
 
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
@@ -168,8 +158,6 @@ public class LessonBundlePlugin extends Plugin {
             throws IOException, NoSuchAlgorithmException {
         Request request = new Request.Builder()
                 .url(zipUrl)
-                .cacheControl(CacheControl.FORCE_NETWORK)
-                .header("Cache-Control", "no-cache, no-store")
                 .build();
         try (Response response = RespectHttpClient.getOkHttpClient().newCall(request).execute()) {
             if (!response.isSuccessful() || response.body() == null) {

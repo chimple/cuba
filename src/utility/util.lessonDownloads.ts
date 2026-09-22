@@ -311,15 +311,9 @@ export class UtilLessonDownloads {
     lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-    forceRemoteDownload = false,
   ): Promise<boolean> {
     return this.enqueueLessonBundleDownload(() =>
-      this.runDownloadZipBundle(
-        lessons,
-        chapterId,
-        bundleZipUrlsKey,
-        forceRemoteDownload,
-      ),
+      this.runDownloadZipBundle(lessons, chapterId, bundleZipUrlsKey),
     );
   }
 

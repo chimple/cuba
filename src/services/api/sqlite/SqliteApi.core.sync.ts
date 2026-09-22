@@ -51,6 +51,9 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
+    logger.info('?? ~ pullChanges ~ isInitialFetch:', isInitialFetch);
+
+    // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
     const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
@@ -64,6 +67,7 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
             [tableName, fullSyncDate],
           );
+          logger.info(`Forcing full sync for table: ${tableName}`);
         }
       }
       this._tablesNeedingFullSync.clear();
@@ -106,24 +110,31 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             attempt += 1;
             continue;
           }
+          logger.warn('? All retries failed. Truncating local tables...');
           if (!this._db) return;
           const query = `PRAGMA foreign_keys=OFF;`;
-          await this._db.query(query);
+          const result = await this._db.query(query);
+          logger.info(result);
           for (const table of orderedTableNames) {
             const tableDel = `DELETE FROM "${table}";`;
-            await this._db.query(tableDel);
+            const res = await this._db.query(tableDel);
+            logger.info(res);
           }
           const vaccum = `VACUUM;`;
-          await this._db.query(vaccum);
+          const resv = await this._db.query(vaccum);
+          logger.info(resv);
           const querys = `PRAGMA foreign_keys=ON;`;
-          await this._db.query(querys);
+          const results = await this._db.query(querys);
+          logger.info(results);
           const userWantsRetry = await this.showToastWithRetry(
             'Sync failed. Retry now?',
           );
           if (userWantsRetry) {
+            logger.warn('?? Final retry triggered by user.');
             attempt = 1;
             continue;
           }
+          logger.warn('? User canceled final retry.');
           return;
         }
       }
@@ -332,32 +343,26 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       } catch {
         await rollbackSyncWriteTransaction();
         await beginSyncWriteTransaction();
-
         for (const tableName of Object.keys(tablesForWorker)) {
           const existingColumns = tableColumnsByName[tableName] ?? [];
           const tableData = tablesForWorker[tableName] ?? [];
           if (!existingColumns.length || !tableData.length) continue;
-          const isUserTable = tableName === TABLES.User;
-          const batchSize = isUserTable
-            ? SAFE_USER_BATCH_SIZE
-            : DEFAULT_DB_BATCH_SIZE;
+          const batchSize =
+            tableName === TABLES.User
+              ? SAFE_USER_BATCH_SIZE
+              : DEFAULT_DB_BATCH_SIZE;
           let batchQueries: SqlStatement[] = [];
           let currentFieldNames: string[] | null = null;
           let currentRows: unknown[][] = [];
-
           const flushBatchRows = async () => {
-            if (!currentFieldNames || currentRows.length === 0) {
-              return;
-            }
-            const placeholdersPerRow = `(${currentFieldNames
-              .map(() => '?')
-              .join(', ')})`;
+            if (!currentFieldNames || currentRows.length === 0) return;
+            const placeholdersPerRow = `(${currentFieldNames.map(() => '?').join(', ')})`;
             const valuesPlaceholders = currentRows
               .map(() => placeholdersPerRow)
               .join(', ');
             const updateSetClause = currentFieldNames
-              .filter((f) => f !== 'id')
-              .map((f) => `${f} = excluded.${f}`)
+              .filter((field) => field !== 'id')
+              .map((field) => `${field} = excluded.${field}`)
               .join(', ');
             const statement = updateSetClause
               ? `
@@ -371,26 +376,21 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO NOTHING;
             `;
-            batchQueries.push({
-              statement,
-              values: currentRows.flat(),
-            });
+            batchQueries.push({ statement, values: currentRows.flat() });
             currentFieldNames = null;
             currentRows = [];
-
             if (batchQueries.length >= batchSize) {
               await writeSyncBatch(batchQueries);
               batchQueries = [];
             }
           };
-
           for (const row of tableData) {
             const fieldNames = existingColumns.filter((columnName) =>
               Object.prototype.hasOwnProperty.call(row, columnName),
             );
             if (fieldNames.length === 0) continue;
-            const fieldValues = fieldNames.map((f) =>
-              this.normalizeSqliteValue(row[f]),
+            const fieldValues = fieldNames.map((field) =>
+              this.normalizeSqliteValue(row[field]),
             );
             const maxRowsPerStatement = Math.max(
               Math.floor(900 / fieldNames.length),
@@ -398,7 +398,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             );
             const fieldSignature = fieldNames.join('|');
             const currentSignature = currentFieldNames?.join('|');
-
             if (
               currentFieldNames &&
               (currentSignature !== fieldSignature ||
@@ -406,21 +405,13 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             ) {
               await flushBatchRows();
             }
-
-            if (!currentFieldNames) {
-              currentFieldNames = fieldNames;
-            }
-
+            if (!currentFieldNames) currentFieldNames = fieldNames;
             currentRows.push(fieldValues);
-
-            if (currentRows.length >= maxRowsPerStatement) {
+            if (currentRows.length >= maxRowsPerStatement)
               await flushBatchRows();
-            }
           }
           await flushBatchRows();
-          if (batchQueries.length > 0) {
-            await writeSyncBatch(batchQueries);
-          }
+          if (batchQueries.length > 0) await writeSyncBatch(batchQueries);
         }
       }
 

@@ -92,7 +92,6 @@ export async function initializeLidoPlayer(ctx: any) {
       [lessonToDownload],
       undefined,
       REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
-      true,
     );
     if (dow) {
       // The remote download is stored outside the APK. Never select the

@@ -135,7 +135,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
     lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-    forceRemoteDownload = false,
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -170,9 +169,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
 
               // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
               try {
-                if (forceRemoteDownload) {
-                  throw new Error('FORCE_REMOTE_DOWNLOAD');
-                }
                 await Filesystem.readFile({
                   path: lessonId + '/config.json',
                   directory: Directory.External,
@@ -189,13 +185,8 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                   );
                   return true;
                 }
-              } catch (error) {
-                if (
-                  error instanceof Error &&
-                  error.message === 'FORCE_REMOTE_DOWNLOAD'
-                ) {
-                  // Skip local extracted/package checks and continue to R2.
-                }
+              } catch {
+                // Continue with packaged or remote bundle resolution.
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
@@ -205,9 +196,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                 LOCAL_LESSON_BUNDLES_PATH + `${lessonId}.zip`;
 
               try {
-                if (forceRemoteDownload) {
-                  throw new Error('FORCE_REMOTE_DOWNLOAD');
-                }
                 const response = await fetch(localBundlePath, {
                   method: 'HEAD',
                 });
@@ -215,17 +203,10 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                   this.setGameUrl(LOCAL_BUNDLES_PATH);
                   return true;
                 }
-              } catch (error) {
-                if (
-                  !(
-                    error instanceof Error &&
-                    error.message === 'FORCE_REMOTE_DOWNLOAD'
-                  )
-                ) {
-                  logger.error(
-                    `[LessonDownloader] Local bundle not found, downloading...`,
-                  );
-                }
+              } catch {
+                logger.error(
+                  `[LessonDownloader] Local bundle not found, downloading...`,
+                );
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
@@ -273,9 +254,6 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
                   lessonId,
                   zipUrls: bundleZipUrls,
                   dbVersion,
-                  cacheBust: forceRemoteDownload
-                    ? String(Date.now())
-                    : undefined,
                 });
 
               if (!nativeBundleResult?.byteLength) {
