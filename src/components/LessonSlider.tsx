@@ -57,13 +57,22 @@ const LessonSlider: React.FC<{
   width = '45.5vh';
   height = '35vh';
   const lessonSwiperRef = useRef<any>(null);
+  const hasUserMovedRef = useRef(false);
   const checkSplideInstance = () => {
-    if (startIndex) lessonSwiperRef?.current.go(startIndex);
+    if (startIndex && !hasUserMovedRef.current) {
+      lessonSwiperRef?.current.go(startIndex);
+    }
+  };
+
+  const rememberSelectedIndex = (index: number) => {
+    hasUserMovedRef.current = true;
+    onMoved?.({ index } as SplideInstance);
   };
 
   const handleMoved = (splide: SplideInstance) => {
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
+    rememberSelectedIndex(newIndex);
 
     if (newIndex >= lessonData.length - 1) {
       const nextIndex = loadedLessons.length;
@@ -146,6 +155,7 @@ const LessonSlider: React.FC<{
                 onDownloadOrDelete={onDownloadOrDelete}
                 chapter={lessonChapterMap?.[m.id] ?? chapter}
                 lessonCourseMap={lessonCourseMap}
+                onSelected={() => rememberSelectedIndex(i)}
               />
             </SplideSlide>
           );
@@ -189,6 +199,7 @@ const LessonSlider: React.FC<{
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}
                 chapter={lessonChapterMap?.[m.id]}
+                onSelected={() => rememberSelectedIndex(i)}
               />
             </SplideSlide>
           );

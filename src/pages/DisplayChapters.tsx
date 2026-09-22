@@ -19,7 +19,7 @@ const DisplayChapters = () => {
     currentCourse,
     currentGrade,
     getCourseBasedName,
-    getLastPlayedLessonIndex,
+    getLessonSliderStartIndex,
     isLoading,
     lessonResultMap,
     lessons,
@@ -27,6 +27,7 @@ const DisplayChapters = () => {
     onBackButton,
     onChapterChange,
     onGradeChanges,
+    onLessonSliderMoved,
     stage,
     t,
   } = viewProps;
@@ -93,10 +94,11 @@ const DisplayChapters = () => {
             isHome={true}
             course={currentCourse!}
             lessonsScoreMap={lessonResultMap || {}}
-            startIndex={getLastPlayedLessonIndex()}
+            startIndex={getLessonSliderStartIndex()}
             showSubjectName={false}
             showChapterName={false}
             chapter={currentChapter}
+            onMoved={onLessonSliderMoved}
           />
         </div>
       )}

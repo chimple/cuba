@@ -146,6 +146,27 @@ describe('LessonSlider', () => {
     expect(mockGo).not.toHaveBeenCalled();
   });
 
+  it('does not reset to the start index after the user moves the slider', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={2}
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+
+    await user.click(screen.getByTestId('move-middle'));
+    await user.click(screen.getAllByTestId('slide-load')[0]);
+
+    expect(mockGo).not.toHaveBeenCalled();
+  });
+
   it('calls onEndReached when moved to last slide', async () => {
     const user = userEvent.setup();
     const onEndReached = jest.fn();
