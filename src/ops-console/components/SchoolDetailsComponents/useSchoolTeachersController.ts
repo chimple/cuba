@@ -162,7 +162,11 @@ export const useSchoolTeachersController = ({
     let cancelled = false;
 
     const preloadTeacherQuestions = async () => {
-      if (cancelled) return;
+      if (
+        cancelled ||
+        (typeof navigator !== 'undefined' && navigator.onLine === false)
+      )
+        return;
 
       try {
         await ensureQuestionsCached({

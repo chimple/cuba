@@ -3,6 +3,10 @@ import logger from '../../../utility/logger';
 import type { ClassMetricsForClassListingRow } from '../../../services/api/ServiceApi';
 import type { DateRangeValue } from '../../pages/SchoolList.helpers';
 import type { ClassRow } from './SchoolClass.types';
+import {
+  readFcClassMetricsCache,
+  writeFcClassMetricsCache,
+} from '../../../services/offline/fcSchoolOfflineCache';
 
 type UseSchoolClassMetricsParams = {
   api: any;
@@ -31,6 +35,22 @@ export function useSchoolClassMetrics({
   const [codes, setCodes] = useState<Record<string, string | null>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
 
+  const applyMetricRows = (metricRows: ClassMetricsForClassListingRow[]) => {
+    const nextMetrics: Record<string, ClassMetricsForClassListingRow> = {};
+    const nextCodes: Record<string, string | null> = {};
+    for (const row of metricRows ?? []) {
+      if (!row?.class_id) continue;
+      nextMetrics[row.class_id] = row;
+      if (row.class_code !== null && row.class_code !== undefined) {
+        nextCodes[row.class_id] = String(row.class_code);
+      }
+    }
+    setClassMetrics(nextMetrics);
+    if (Object.keys(nextCodes).length > 0) {
+      setCodes((prev) => ({ ...nextCodes, ...prev }));
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -38,24 +58,28 @@ export function useSchoolClassMetrics({
       setHasLoadedClassMetrics(false);
       setClassMetricsLoading(true);
       try {
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          const cachedMetricRows = await readFcClassMetricsCache(
+            schoolId,
+            selectedDateRange,
+          );
+          if (!cancelled) applyMetricRows(cachedMetricRows ?? []);
+          return;
+        }
+
         const metricRows = await api.getClassMetricsForClassListing({
           schoolId,
           date_range: selectedDateRange,
         });
         if (cancelled) return;
 
-        const nextMetrics: Record<string, ClassMetricsForClassListingRow> = {};
-        const nextCodes: Record<string, string | null> = {};
-        for (const row of metricRows ?? []) {
-          if (!row?.class_id) continue;
-          nextMetrics[row.class_id] = row;
-          if (row.class_code !== null && row.class_code !== undefined) {
-            nextCodes[row.class_id] = String(row.class_code);
-          }
-        }
-        setClassMetrics(nextMetrics);
-        if (Object.keys(nextCodes).length > 0) {
-          setCodes((prev) => ({ ...nextCodes, ...prev }));
+        applyMetricRows(metricRows ?? []);
+        if (metricRows) {
+          await writeFcClassMetricsCache(
+            schoolId,
+            selectedDateRange,
+            metricRows,
+          );
         }
       } catch (error) {
         logger.error('Failed to fetch class listing metrics:', error);
@@ -92,6 +116,11 @@ export function useSchoolClassMetrics({
           seeded[c.id] = String(metricCode);
         }
       }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        if (!cancelled) setCodes((prev) => ({ ...seeded, ...prev }));
+        return;
+      }
+
       const missingIds = safeClasses
         .map((c) => c.id)
         .filter((id) => !(id in seeded));

@@ -1,9 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-} from '@mui/material';
+import { Box, CircularProgress, IconButton } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
@@ -11,9 +7,7 @@ import DataTableBody from '../components/DataTableBody';
 import { t } from 'i18next';
 import FileUpload from '../components/FileUpload';
 import { BsFillBellFill } from 'react-icons/bs';
-import {
-  type PercentageFilterKey,
-} from './SchoolList.helpers';
+import { type PercentageFilterKey } from './SchoolList.helpers';
 import SchoolListFilterMenus from './SchoolListFilterMenus';
 import SchoolListHeaderControls from './SchoolListHeaderControls';
 import { useSchoolListPage } from './useSchoolListPage';
@@ -31,6 +25,9 @@ const SchoolList: React.FC = () => {
     handleSelectSchoolPerformanceFilter,
     handleSort,
     isLoading,
+    cacheOfflineEnabled,
+    isOfflineCacheSelectionMode,
+    handleToggleSchoolSelection,
     orderBy,
     orderDir,
     page: currentPage,
@@ -40,6 +37,7 @@ const SchoolList: React.FC = () => {
     renderedSchools,
     schoolPerformanceFilter,
     schoolPerformanceFilterAnchorEl,
+    selectedSchoolIds,
     setPage,
     showUploadPage,
   } = page;
@@ -90,6 +88,16 @@ const SchoolList: React.FC = () => {
     ],
   );
 
+  const isSchoolRowSelectable = useCallback(
+    (row: (typeof renderedSchools)[number]) => {
+      if (selectedSchoolIds.length < 10) return true;
+
+      const rowId = String(row.sch_id ?? row.school_id ?? row.id ?? '');
+      return selectedSchoolIds.includes(rowId);
+    },
+    [selectedSchoolIds],
+  );
+
   if (showUploadPage) {
     return (
       <div>
@@ -112,7 +120,6 @@ const SchoolList: React.FC = () => {
         </div>
 
         <SchoolListHeaderControls {...page} />
-
         <div
           className={`school-list-table-container ${
             !isLoading && renderedSchools.length === 0
@@ -141,6 +148,14 @@ const SchoolList: React.FC = () => {
               onSort={handleSort}
               renderHeaderActions={renderHeaderActions}
               loading={isLoading}
+              selectableRows={
+                cacheOfflineEnabled && isOfflineCacheSelectionMode
+              }
+              selectedRowIds={selectedSchoolIds}
+              onToggleRowSelection={handleToggleSchoolSelection}
+              isRowSelectable={isSchoolRowSelectable}
+              showSelectAllRows={false}
+              getRowId={(row) => row.sch_id ?? row.school_id ?? row.id}
               tableMinWidth={2500}
               tableWidth="max-content"
               headerClampLines={2}
@@ -155,9 +170,13 @@ const SchoolList: React.FC = () => {
         <SchoolListFilterMenus
           activePercentageBand={activePercentageBand}
           handleClosePercentageFilter={handleClosePercentageFilter}
-          handleCloseSchoolPerformanceFilter={handleCloseSchoolPerformanceFilter}
+          handleCloseSchoolPerformanceFilter={
+            handleCloseSchoolPerformanceFilter
+          }
           handleSelectPercentageFilter={handleSelectPercentageFilter}
-          handleSelectSchoolPerformanceFilter={handleSelectSchoolPerformanceFilter}
+          handleSelectSchoolPerformanceFilter={
+            handleSelectSchoolPerformanceFilter
+          }
           percentageFilterAnchorEl={percentageFilterAnchorEl}
           schoolPerformanceFilter={schoolPerformanceFilter}
           schoolPerformanceFilterAnchorEl={schoolPerformanceFilterAnchorEl}

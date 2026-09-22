@@ -98,3 +98,36 @@ export const getCachedImageSrc = async (url: string): Promise<string> => {
   inflightDownloads.set(url, trackedRequest);
   return trackedRequest;
 };
+const localSvgCacheKey = (url: string) =>
+  `cached_local_svg:${encodeURIComponent(url)}`;
+
+export const cacheLocalSvgAsset = async (url: string): Promise<void> => {
+  if (typeof localStorage === 'undefined') return;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Unable to cache SVG asset: ${response.status}`);
+    }
+    const svg = await response.text();
+    localStorage.setItem(
+      localSvgCacheKey(url),
+      `data:image/svg+xml,${encodeURIComponent(svg)}`,
+    );
+  } catch (error) {
+    logger.warn('[imageCache] Failed to cache local SVG asset', {
+      url,
+      error,
+    });
+  }
+};
+
+export const getCachedLocalSvgSrc = (url: string): string => {
+  if (typeof localStorage === 'undefined') return url;
+
+  try {
+    return localStorage.getItem(localSvgCacheKey(url)) ?? url;
+  } catch {
+    return url;
+  }
+};
