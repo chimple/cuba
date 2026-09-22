@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { toPng } from 'html-to-image';
 import Confetti from 'react-confetti';
 import { t } from 'i18next';
@@ -40,6 +41,38 @@ type BadgeCelebrationModalProps = {
   languageCode?: string;
   onClose: () => void;
 };
+
+type SharedBadgeArtworkProps = {
+  milestone: number;
+  heading: string;
+  completedText: string;
+  badge?: ReactNode;
+};
+
+export const SharedBadgeArtwork = forwardRef<
+  HTMLDivElement,
+  SharedBadgeArtworkProps
+>(({ milestone, heading, completedText, badge }, ref) => (
+  <div ref={ref} className="BadgeCelebrationModal-share-card">
+    <div className="BadgeCelebrationModal-badge-art">
+      <InlineSvg ariaHidden svg={sharedBadgeSvg} />
+      <h2>{heading}</h2>
+      <div className="BadgeCelebrationModal-generated-badge">
+        {badge ?? <Badge number={milestone} />}
+      </div>
+      <div className="BadgeCelebrationModal-badge-copy">
+        <p>{completedText}</p>
+        <p>
+          {t('Keep learning and exploring!', {
+            defaultValue: 'Keep learning and exploring!',
+          })}
+        </p>
+      </div>
+    </div>
+  </div>
+));
+
+SharedBadgeArtwork.displayName = 'SharedBadgeArtwork';
 
 const dataUrlToFile = (dataUrl: string, milestone: number): File => {
   const [header, encoded] = dataUrl.split(',');
@@ -218,23 +251,12 @@ const BadgeCelebrationModal = ({
           }}
           aria-label={String(t('Close', { defaultValue: 'Close' }))}
         />
-        <div ref={captureRef} className="BadgeCelebrationModal-share-card">
-          <div className="BadgeCelebrationModal-badge-art">
-            <InlineSvg ariaHidden svg={sharedBadgeSvg} />
-            <h2>{heading}</h2>
-            <div className="BadgeCelebrationModal-generated-badge">
-              <Badge number={badgeMilestone} />
-            </div>
-            <div className="BadgeCelebrationModal-badge-copy">
-              <p>{completedText}</p>
-              <p>
-                {t('Keep learning and exploring!', {
-                  defaultValue: 'Keep learning and exploring!',
-                })}
-              </p>
-            </div>
-          </div>
-        </div>
+        <SharedBadgeArtwork
+          ref={captureRef}
+          milestone={badgeMilestone}
+          heading={heading}
+          completedText={completedText}
+        />
         <button
           type="button"
           className="BadgeCelebrationModal-share"
