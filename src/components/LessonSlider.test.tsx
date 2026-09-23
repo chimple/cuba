@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import fs from 'fs';
 import path from 'path';
 import LessonSlider from './LessonSlider';
@@ -9,6 +8,20 @@ import { ServiceConfig } from '../services/ServiceConfig';
 const mockGetCurrentStudent = jest.fn();
 const mockGo = jest.fn();
 const mockLessonSplidePropsSpy = jest.fn();
+const mockSlideOnLoadSpy = jest.fn();
+
+type MockSplideSlideProps = {
+  children: React.ReactNode;
+  onLoad?: () => void;
+};
+
+const getLatestSplideProps = () =>
+  mockLessonSplidePropsSpy.mock.calls[
+    mockLessonSplidePropsSpy.mock.calls.length - 1
+  ][0];
+
+const getLatestSlideOnLoad = () =>
+  mockSlideOnLoadSpy.mock.calls[mockSlideOnLoadSpy.mock.calls.length - 1][0];
 
 jest.mock('../utility/util', () => ({
   Util: {
@@ -38,40 +51,13 @@ jest.mock('@splidejs/react-splide', () => {
       ) => {
         mockLessonSplidePropsSpy({ onMoved, options });
         React.useImperativeHandle(ref, () => ({ go: mockGo }));
-        const childCount = React.Children.count(children);
-        return (
-          <div data-testid="splide-root">
-            <button
-              type="button"
-              data-testid="move-middle"
-              onClick={() => onMoved?.({ index: 1 })}
-            >
-              move-middle
-            </button>
-            <button
-              type="button"
-              data-testid="move-last"
-              onClick={() => onMoved?.({ index: childCount - 1 })}
-            >
-              move-last
-            </button>
-            {children}
-          </div>
-        );
+        return <div data-testid="splide-root">{children}</div>;
       },
     ),
-    SplideSlide: ({ children, onLoad }: any) => (
-      <div data-testid="splide-slide">
-        <button
-          type="button"
-          data-testid="slide-load"
-          onClick={() => onLoad?.()}
-        >
-          slide-load
-        </button>
-        {children}
-      </div>
-    ),
+    SplideSlide: ({ children, onLoad }: MockSplideSlideProps) => {
+      mockSlideOnLoadSpy(onLoad);
+      return <div data-testid="splide-slide">{children}</div>;
+    },
   };
 });
 
@@ -100,8 +86,6 @@ describe('LessonSlider', () => {
   });
 
   it('slides to start index when slide loads', async () => {
-    const user = userEvent.setup();
-
     render(
       <LessonSlider
         lessonData={lessons}
@@ -120,15 +104,14 @@ describe('LessonSlider', () => {
       );
     });
 
-    const loadButtons = screen.getAllByTestId('slide-load');
-    await user.click(loadButtons[0]);
+    await act(async () => {
+      getLatestSlideOnLoad()?.();
+    });
 
     expect(mockGo).toHaveBeenCalledWith(2);
   });
 
   it('does not call go when start index is zero', async () => {
-    const user = userEvent.setup();
-
     render(
       <LessonSlider
         lessonData={lessons}
@@ -141,15 +124,14 @@ describe('LessonSlider', () => {
       />,
     );
 
-    const loadButtons = screen.getAllByTestId('slide-load');
-    await user.click(loadButtons[0]);
+    await act(async () => {
+      getLatestSlideOnLoad()?.();
+    });
 
     expect(mockGo).not.toHaveBeenCalled();
   });
 
   it('does not reset to the start index after the user moves the slider', async () => {
-    const user = userEvent.setup();
-
     render(
       <LessonSlider
         lessonData={lessons}
@@ -162,15 +144,15 @@ describe('LessonSlider', () => {
       />,
     );
 
-    await user.click(screen.getByTestId('move-middle'));
-    await user.click(screen.getAllByTestId('slide-load')[0]);
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: 1 });
+      getLatestSlideOnLoad()?.();
+    });
 
     expect(mockGo).not.toHaveBeenCalled();
   });
 
   it('saves the current slide index for the chapter', async () => {
-    const user = userEvent.setup();
-
     render(
       <LessonSlider
         lessonData={lessons}
@@ -184,7 +166,9 @@ describe('LessonSlider', () => {
       />,
     );
 
-    await user.click(screen.getByTestId('move-middle'));
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: 1 });
+    });
 
     expect(
       sessionStorage.getItem('cuba:lesson-slider-position:chapter-1'),
@@ -192,7 +176,6 @@ describe('LessonSlider', () => {
   });
 
   it('restores the saved slide index on remount', async () => {
-    const user = userEvent.setup();
     const first = render(
       <LessonSlider
         lessonData={lessons}
@@ -205,7 +188,9 @@ describe('LessonSlider', () => {
         showChapterName={false}
       />,
     );
-    await user.click(screen.getByTestId('move-middle'));
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: 1 });
+    });
     first.unmount();
 
     render(
@@ -221,13 +206,13 @@ describe('LessonSlider', () => {
       />,
     );
 
-    await user.click(screen.getAllByTestId('slide-load')[0]);
+    await act(async () => {
+      getLatestSlideOnLoad()?.();
+    });
     expect(mockGo).toHaveBeenCalledWith(1);
   });
 
   it('keeps slide positions separate for different chapters', async () => {
-    const user = userEvent.setup();
-
     const first = render(
       <LessonSlider
         lessonData={lessons}
@@ -240,7 +225,9 @@ describe('LessonSlider', () => {
         showChapterName={false}
       />,
     );
-    await user.click(screen.getByTestId('move-middle'));
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: 1 });
+    });
     first.unmount();
 
     render(
@@ -270,7 +257,6 @@ describe('LessonSlider', () => {
   });
 
   it('calls onEndReached when moved to last slide', async () => {
-    const user = userEvent.setup();
     const onEndReached = jest.fn();
 
     render(
@@ -286,13 +272,14 @@ describe('LessonSlider', () => {
       />,
     );
 
-    await user.click(screen.getByTestId('move-last'));
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: lessons.length - 1 });
+    });
 
     expect(onEndReached).toHaveBeenCalledTimes(1);
   });
 
   it('does not call onEndReached when moved before last slide', async () => {
-    const user = userEvent.setup();
     const onEndReached = jest.fn();
 
     render(
@@ -308,7 +295,9 @@ describe('LessonSlider', () => {
       />,
     );
 
-    await user.click(screen.getByTestId('move-middle'));
+    await act(async () => {
+      getLatestSplideProps().onMoved?.({ index: 1 });
+    });
 
     expect(onEndReached).not.toHaveBeenCalled();
   });
