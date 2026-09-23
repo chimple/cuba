@@ -22,6 +22,16 @@ export class SqliteApiProgramDiscovery extends SqliteApiProgramRequestReview {
     return await this._serverApi.getFieldCoordinatorsByProgram(programId);
   }
 
+  async updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean> {
+    return await this._serverApi.updateProgramFieldCoordinators(
+      programId,
+      userIds,
+    );
+  }
+
   async getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
     return await this._serverApi.getProgramsByRole();
   }

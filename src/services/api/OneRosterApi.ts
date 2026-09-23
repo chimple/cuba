@@ -909,6 +909,12 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ data: TableTypes<'user'>[] }> {
     throw new Error('Method not implemented.');
   }
+  updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
   getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
     throw new Error('Method not implemented.');
   }
