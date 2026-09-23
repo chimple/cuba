@@ -87,7 +87,7 @@ export class SupabaseApiProgramDiscovery extends SupabaseApiProgramRequestReview
   async getFieldCoordinatorsByProgram(
     programId: string,
   ): Promise<{ data: TableTypes<'user'>[] }> {
-    if (!this.supabase) return { data: [] };
+    if (!this.supabase) throw new Error('Supabase client not initialized');
     if (!programId) return { data: [] };
 
     const { data: programUsers, error: linkError } = await this.supabase
@@ -97,10 +97,11 @@ export class SupabaseApiProgramDiscovery extends SupabaseApiProgramRequestReview
       .eq('role', RoleType.FIELD_COORDINATOR)
       .eq('is_deleted', false);
 
-    if (linkError || !programUsers?.length) {
+    if (linkError) {
       logger.error('Error fetching program_user:', linkError);
-      return { data: [] };
+      throw linkError;
     }
+    if (!programUsers?.length) return { data: [] };
     const userIds = programUsers
       .map((pu) => pu.user)
       .filter((id): id is string => !!id);
@@ -113,9 +114,157 @@ export class SupabaseApiProgramDiscovery extends SupabaseApiProgramRequestReview
 
     if (userError) {
       logger.error('Error fetching users:', userError);
-      return { data: [] };
+      throw userError;
     }
     return { data: users || [] };
+  }
+
+  async updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean> {
+    if (!this.supabase || !programId) return false;
+
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) return false;
+
+    const roles: string[] = store.getState().auth.roles ?? [];
+    const isElevated = roles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+    const isProgramManager = roles.includes(RoleType.PROGRAM_MANAGER);
+    if (!isElevated && !isProgramManager) return false;
+
+    if (!isElevated) {
+      const { data: managerMapping, error: managerError } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .select('id')
+        .eq('program_id', programId)
+        .eq('user', currentUser.id)
+        .eq('role', RoleType.PROGRAM_MANAGER)
+        .eq('is_deleted', false)
+        .limit(1)
+        .maybeSingle();
+
+      if (managerError || !managerMapping) return false;
+    }
+
+    const selectedUserIds = Array.from(new Set(userIds.filter(Boolean)));
+    const updatedAt = new Date().toISOString();
+    if (selectedUserIds.length > 0) {
+      const { data: specialUsers, error: specialUsersError } =
+        await this.supabase
+          .from(TABLES.SpecialUsers)
+          .select('user_id')
+          .in('user_id', selectedUserIds)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false);
+
+      const validUserIds = new Set(
+        (specialUsers ?? [])
+          .map((specialUser) => specialUser.user_id)
+          .filter((userId): userId is string => !!userId),
+      );
+      if (specialUsersError || validUserIds.size !== selectedUserIds.length) {
+        return false;
+      }
+    }
+
+    const { data: existingRows, error: existingRowsError } = await this.supabase
+      .from(TABLES.ProgramUser)
+      .select('id, user, is_deleted')
+      .eq('program_id', programId)
+      .eq('role', RoleType.FIELD_COORDINATOR);
+
+    if (existingRowsError) return false;
+
+    const selectedSet = new Set(selectedUserIds);
+    const retainedRowIds = new Set<string>();
+    const rowsToInsert: Array<{
+      program_id: string;
+      user: string;
+      role: RoleType.FIELD_COORDINATOR;
+      is_deleted: false;
+      is_ops: null;
+      updated_at: string;
+    }> = [];
+    const activeRows = (existingRows ?? []).filter((row) => !row.is_deleted);
+
+    selectedUserIds.forEach((userId) => {
+      const retainedRow = activeRows.find((row) => row.user === userId);
+
+      if (retainedRow) {
+        retainedRowIds.add(retainedRow.id);
+      } else {
+        rowsToInsert.push({
+          program_id: programId,
+          user: userId,
+          role: RoleType.FIELD_COORDINATOR,
+          is_deleted: false,
+          is_ops: null,
+          updated_at: updatedAt,
+        });
+      }
+    });
+
+    const rowsToRemove = activeRows
+      .filter(
+        (row) =>
+          !row.user ||
+          !selectedSet.has(row.user) ||
+          !retainedRowIds.has(row.id),
+      )
+      .map((row) => row.id);
+    const removedUserIds = Array.from(
+      new Set(
+        activeRows
+          .map((row) => row.user)
+          .filter(
+            (userId): userId is string => !!userId && !selectedSet.has(userId),
+          ),
+      ),
+    );
+    if (removedUserIds.length > 0) {
+      const { data: schools, error: schoolsError } = await this.supabase
+        .from(TABLES.School)
+        .select('id')
+        .eq('program_id', programId)
+        .eq('is_deleted', false);
+      if (schoolsError) return false;
+
+      const schoolIds = (schools ?? []).map((school) => school.id);
+      if (schoolIds.length > 0) {
+        // Keep program links active until school cleanup succeeds so a retry
+        // can still identify the coordinators being removed.
+        const { error } = await this.supabase
+          .from(TABLES.SchoolUser)
+          .update({ is_deleted: true, updated_at: updatedAt })
+          .in('user_id', removedUserIds)
+          .in('school_id', schoolIds)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false);
+        if (error) return false;
+      }
+    }
+
+    if (rowsToRemove.length > 0) {
+      const { error } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .in('id', rowsToRemove);
+      if (error) return false;
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .insert(rowsToInsert);
+      if (error) return false;
+    }
+
+    return true;
   }
 
   async updateSchoolStatus(
