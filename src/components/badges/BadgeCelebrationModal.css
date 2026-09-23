@@ -167,7 +167,7 @@
 
 .BadgeCelebrationModal-generated-badge {
   position: absolute;
-  top: 50%;
+  top: calc(50% - 15px);
   left: 50%;
   z-index: 1;
   width: 164px;
@@ -178,6 +178,7 @@
 
 .BadgeCelebrationModal-generated-badge [class^='badges-item-'] {
   margin: 0;
+  filter: drop-shadow(5px 1px 0 #565656);
 }
 
 .BadgeCelebrationModal-generated-badge .badges-number {
@@ -185,14 +186,15 @@
   font-family: Baloo, 'Baloo 2', sans-serif !important;
   font-size: clamp(17.015px, 5vw, 24px) !important;
   font-style: normal;
-  font-weight: 400 !important;
+  font-weight: 800 !important;
   line-height: normal !important;
+  bottom: 15px;
 }
 
 .BadgeCelebrationModal-badge-copy {
   position: absolute;
   right: 0;
-  bottom: 60px;
+  bottom: 68px;
   left: 0;
   max-width: calc(100% - 2rem);
   margin: 0 auto;
