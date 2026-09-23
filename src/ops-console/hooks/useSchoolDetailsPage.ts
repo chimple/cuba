@@ -215,7 +215,7 @@ export const useSchoolDetailsPage = (id: string) => {
   }, [data.schoolData]);
 
   useEffect(() => {
-    if (isExternalUser || isOffline()) return;
+    if (isExternalUser) return;
     const fetchVisitStatus = async () => {
       const api = ServiceConfig.getI().apiHandler;
       const lastVisit = await api.getLastSchoolVisit(id);
