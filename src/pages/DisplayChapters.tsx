@@ -98,6 +98,7 @@ const DisplayChapters = () => {
             showSubjectName={false}
             showChapterName={false}
             chapter={currentChapter}
+            chapterId={currentChapter?.id}
             onMoved={onLessonSliderMoved}
           />
         </div>

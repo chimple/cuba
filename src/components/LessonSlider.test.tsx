@@ -90,6 +90,7 @@ describe('LessonSlider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     mockGetCurrentStudent.mockReturnValue(student);
     mockApiHandler.getFavouriteLessons.mockResolvedValue([{ id: 'lesson-2' }]);
 
@@ -165,6 +166,107 @@ describe('LessonSlider', () => {
     await user.click(screen.getAllByTestId('slide-load')[0]);
 
     expect(mockGo).not.toHaveBeenCalled();
+  });
+
+  it('saves the current slide index for the chapter', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={0}
+        chapterId="chapter-1"
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+
+    await user.click(screen.getByTestId('move-middle'));
+
+    expect(
+      sessionStorage.getItem('cuba:lesson-slider-position:chapter-1'),
+    ).toBe('1');
+  });
+
+  it('restores the saved slide index on remount', async () => {
+    const user = userEvent.setup();
+    const first = render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={0}
+        chapterId="chapter-1"
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+    await user.click(screen.getByTestId('move-middle'));
+    first.unmount();
+
+    render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={2}
+        chapterId="chapter-1"
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+
+    await user.click(screen.getAllByTestId('slide-load')[0]);
+    expect(mockGo).toHaveBeenCalledWith(1);
+  });
+
+  it('keeps slide positions separate for different chapters', async () => {
+    const user = userEvent.setup();
+
+    const first = render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={0}
+        chapterId="chapter-1"
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+    await user.click(screen.getByTestId('move-middle'));
+    first.unmount();
+
+    render(
+      <LessonSlider
+        lessonData={lessons}
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={2}
+        chapterId="chapter-2"
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+
+    const props =
+      mockLessonSplidePropsSpy.mock.calls[
+        mockLessonSplidePropsSpy.mock.calls.length - 1
+      ][0];
+    expect(
+      sessionStorage.getItem('cuba:lesson-slider-position:chapter-1'),
+    ).toBe('1');
+    expect(
+      sessionStorage.getItem('cuba:lesson-slider-position:chapter-2'),
+    ).toBeNull();
+    expect(props.options.start).toBeUndefined();
   });
 
   it('calls onEndReached when moved to last slide', async () => {
