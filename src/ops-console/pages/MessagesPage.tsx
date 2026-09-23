@@ -18,8 +18,8 @@ import { PushNotificationDraft } from './pushNotificationCompose/PushNotificatio
 import MessagesPageView from './MessagesPageView';
 import {
   getOpsErrorMessage,
-  presentOpsFailureToast,
-  presentOpsSuccessToast,
+  showOpsFailureToast,
+  showOpsSuccessToast,
 } from '../OpsUtility/OpsToastUtil';
 import './MessagesPage.css';
 import './PushNotificationComposeForm.css';
@@ -215,7 +215,7 @@ const MessagesPage: React.FC = () => {
       if (!notificationId || !notificationId.trim()) {
         throw new Error(PUSH_NOTIFICATION_FAILURE_FALLBACK);
       }
-      await presentOpsSuccessToast(
+      await showOpsSuccessToast(
         presentToast,
         t('Notification sent successfully.'),
       );
@@ -228,7 +228,7 @@ const MessagesPage: React.FC = () => {
       );
       if (message !== RECURRENT_DAYS_ERROR) {
         setSendError(message);
-        await presentOpsFailureToast(presentToast, message);
+        await showOpsFailureToast(presentToast, message);
       }
     } finally {
       setSending(false);

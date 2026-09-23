@@ -27,8 +27,9 @@ import {
   toApiError,
 } from './ParentWhatsappInvitationPageHelpers';
 import {
-  presentOpsFailureToast,
-  presentOpsSuccessToast,
+  showOpsFailureToast,
+  showOpsSuccessToast,
+  showOpsWarningToast,
 } from '../../OpsUtility/OpsToastUtil';
 const MIN_WHATSAPP_PHONE_LIMIT = 1;
 const DEFAULT_WHATSAPP_PHONE_LIMIT = 1000;
@@ -283,12 +284,12 @@ export const useParentWhatsappInvitationPageLogic =
         setSmsResult(result);
         const firstFailureMessage = result.failedBatches[0]?.error?.message;
         if (result.failedBatches.length === 0) {
-          await presentOpsSuccessToast(
+          await showOpsSuccessToast(
             presentToast,
             t('WhatsApp group invitations sent successfully.'),
           );
         } else {
-          await presentOpsFailureToast(
+          await showOpsFailureToast(
             presentToast,
             firstFailureMessage?.trim() ||
               t('Failed to send WhatsApp group invitations. Please try again.'),
@@ -311,7 +312,7 @@ export const useParentWhatsappInvitationPageLogic =
         });
       } catch (error) {
         const apiError = toApiError(error, t('Failed to send MSG91 invites.'));
-        await presentOpsFailureToast(
+        await showOpsFailureToast(
           presentToast,
           apiError.message?.trim() ||
             t('Failed to send WhatsApp group invitations. Please try again.'),
@@ -476,16 +477,29 @@ export const useParentWhatsappInvitationPageLogic =
           successCount,
           failed: failures,
         });
-        if (failures.length === 0 && parsedPhones.invalid.length === 0) {
-          await presentOpsSuccessToast(
-            presentToast,
-            t('WhatsApp group invitations sent successfully.'),
-          );
-        } else {
-          await presentOpsFailureToast(
+        if (failures.length > 0 && successCount === 0) {
+          await showOpsFailureToast(
             presentToast,
             failures[0]?.error.message?.trim() ||
               t('Failed to send WhatsApp group invitations. Please try again.'),
+          );
+        } else if (failures.length > 0) {
+          await showOpsWarningToast(
+            presentToast,
+            t(
+              '{{successCount}} invitation(s) sent successfully. {{failureCount}} invitation(s) failed.',
+              { successCount, failureCount: failures.length },
+            ),
+          );
+        } else if (parsedPhones.invalid.length > 0) {
+          await showOpsWarningToast(
+            presentToast,
+            t('Invitations sent successfully, invalid numbers were skipped.'),
+          );
+        } else {
+          await showOpsSuccessToast(
+            presentToast,
+            t('WhatsApp group invitations sent successfully.'),
           );
         }
         setManualFeedback({
@@ -514,7 +528,7 @@ export const useParentWhatsappInvitationPageLogic =
           error,
           t('WhatsApp media upload failed before sending started.'),
         );
-        await presentOpsFailureToast(
+        await showOpsFailureToast(
           presentToast,
           apiError.message?.trim() ||
             t('Failed to send WhatsApp group invitations. Please try again.'),

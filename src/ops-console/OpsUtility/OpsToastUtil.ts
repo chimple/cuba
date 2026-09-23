@@ -2,10 +2,10 @@ export type OpsToastPresenter = (options: {
   message: string;
   duration: number;
   position: 'bottom';
-  color: 'success' | 'danger';
+  color: 'success' | 'warning' | 'danger';
 }) => Promise<void>;
 
-export const presentOpsSuccessToast = async (
+export const showOpsSuccessToast = async (
   presentToast: OpsToastPresenter,
   message: string,
 ): Promise<void> => {
@@ -17,7 +17,7 @@ export const presentOpsSuccessToast = async (
   });
 };
 
-export const presentOpsFailureToast = async (
+export const showOpsFailureToast = async (
   presentToast: OpsToastPresenter,
   message: string,
 ): Promise<void> => {
@@ -26,6 +26,18 @@ export const presentOpsFailureToast = async (
     duration: 3000,
     position: 'bottom',
     color: 'danger',
+  });
+};
+
+export const showOpsWarningToast = async (
+  presentToast: OpsToastPresenter,
+  message: string,
+): Promise<void> => {
+  await presentToast({
+    message,
+    duration: 3000,
+    position: 'bottom',
+    color: 'warning',
   });
 };
 
