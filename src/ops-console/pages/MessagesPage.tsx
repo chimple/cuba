@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useIonToast } from '@ionic/react';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useTranslation } from 'react-i18next';
 import logger from '../../utility/logger';
@@ -15,6 +16,11 @@ import {
 } from './messagesPage/MessagesPage.helpers';
 import { PushNotificationDraft } from './pushNotificationCompose/PushNotificationComposeComponents';
 import MessagesPageView from './MessagesPageView';
+import {
+  getOpsErrorMessage,
+  showOpsFailureToast,
+  showOpsSuccessToast,
+} from '../OpsUtility/OpsToastUtil';
 import './MessagesPage.css';
 import './PushNotificationComposeForm.css';
 import './PushNotificationComposePreview.css';
@@ -28,9 +34,12 @@ const emptyDraft: PushNotificationDraft = {
 };
 
 const RECURRENT_DAYS_ERROR = 'Please choose one or more delivery days.';
+const PUSH_NOTIFICATION_FAILURE_FALLBACK =
+  'Failed to send notification. Please try again.';
 
 const MessagesPage: React.FC = () => {
   const { t } = useTranslation();
+  const [presentToast] = useIonToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<
     'Select Audience' | 'Compose Notification' | 'Review & Send'
@@ -201,12 +210,26 @@ const MessagesPage: React.FC = () => {
             ServiceConfig.getI().apiHandler,
           ),
       });
-      await ServiceConfig.getI().apiHandler.sendCampaignNotification(payload);
+      const notificationId =
+        await ServiceConfig.getI().apiHandler.sendCampaignNotification(payload);
+      if (!notificationId || !notificationId.trim()) {
+        throw new Error(PUSH_NOTIFICATION_FAILURE_FALLBACK);
+      }
+      await showOpsSuccessToast(
+        presentToast,
+        t('Notification sent successfully.'),
+      );
       setSendSuccess(true);
     } catch (error) {
       logger.error('Failed to send campaign notification:', error);
-      const message = error instanceof Error ? error.message : String(error);
-      if (message !== RECURRENT_DAYS_ERROR) setSendError(message);
+      const message = getOpsErrorMessage(
+        error,
+        PUSH_NOTIFICATION_FAILURE_FALLBACK,
+      );
+      if (message !== RECURRENT_DAYS_ERROR) {
+        setSendError(message);
+        await showOpsFailureToast(presentToast, message);
+      }
     } finally {
       setSending(false);
     }
