@@ -45,28 +45,22 @@ export const useFcInteractPopup = ({
               question_text: string;
             }>(status ?? null, target)
           : null;
-        let questions = cachedQuestions ?? [];
+        const cachedSchool = isBrowserOffline
+          ? await readFcSchoolOfflineCache(schoolId)
+          : null;
+        const schoolQuestions =
+          cachedSchool?.questionsByKey?.[`${target}:${status ?? 'none'}`];
+        let questions = schoolQuestions ?? cachedQuestions ?? [];
 
-        if (!cachedQuestions && isBrowserOffline) {
-          const cachedSchool = await readFcSchoolOfflineCache(schoolId);
-          questions =
-            cachedSchool?.questionsByKey?.[`${target}:${status ?? 'none'}`] ??
-            [];
-        }
-
-        if (!cachedQuestions && questions.length === 0) {
-          if (isBrowserOffline) {
-            questions = [];
-          } else {
-            questions = (await api.getFilteredFcQuestions(
-              status ?? null,
-              target,
-            )) as {
-              id: string;
-              question_text: string;
-            }[];
-            await writeQuestionsCache(status ?? null, target, questions ?? []);
-          }
+        if (!schoolQuestions && !cachedQuestions && !isBrowserOffline) {
+          questions = (await api.getFilteredFcQuestions(
+            status ?? null,
+            target,
+          )) as {
+            id: string;
+            question_text: string;
+          }[];
+          await writeQuestionsCache(status ?? null, target, questions ?? []);
         }
 
         const formattedQuestions =
