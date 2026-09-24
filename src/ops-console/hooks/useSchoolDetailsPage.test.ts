@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { Preferences } from '@capacitor/preferences';
+import { SchoolVisitStatus, SchoolVisitType } from '../../common/constants';
 import { SchoolTabs } from '../../interface/modelInterfaces';
 import { useSchoolDetailsPage } from './useSchoolDetailsPage';
 
@@ -49,6 +50,13 @@ const mockApiHandler = {
   getCurriculumsByIds: jest.fn(),
 };
 
+const setBrowserOnline = (online: boolean): void => {
+  Object.defineProperty(navigator, 'onLine', {
+    configurable: true,
+    value: online,
+  });
+};
+
 jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
@@ -60,6 +68,7 @@ jest.mock('../../services/ServiceConfig', () => ({
 describe('useSchoolDetailsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setBrowserOnline(true);
 
     (Preferences.keys as jest.Mock).mockResolvedValue({ keys: [] });
     (Preferences.get as jest.Mock).mockResolvedValue({ value: null });
@@ -116,6 +125,10 @@ describe('useSchoolDetailsPage', () => {
     ]);
   });
 
+  afterEach(() => {
+    setBrowserOnline(true);
+  });
+
   it('loads only overview data on initial render', async () => {
     renderHook(() => useSchoolDetailsPage('school-1'));
 
@@ -130,6 +143,21 @@ describe('useSchoolDetailsPage', () => {
     expect(mockApiHandler.getCoursesByClassId).not.toHaveBeenCalled();
     expect(mockApiHandler.getCourse).not.toHaveBeenCalled();
     expect(mockApiHandler.getCurriculumsByIds).not.toHaveBeenCalled();
+  });
+
+  it('restores an open visit while the browser is offline', async () => {
+    setBrowserOnline(false);
+    mockApiHandler.getLastSchoolVisit.mockResolvedValue({
+      check_out_at: null,
+      type: SchoolVisitType.Regular,
+    });
+
+    const { result } = renderHook(() => useSchoolDetailsPage('school-1'));
+
+    await waitFor(() =>
+      expect(result.current.checkInStatus).toBe(SchoolVisitStatus.CheckedIn),
+    );
+    expect(mockApiHandler.getLastSchoolVisit).toHaveBeenCalledWith('school-1');
   });
 
   it('loads only class rows once when a class-dependent tab is requested', async () => {
