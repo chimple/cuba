@@ -19,8 +19,8 @@
   position: relative;
   z-index: 1;
   display: flex;
-  width: 332px;
-  height: 354px;
+  width: 350px;
+  height: 390px;
   max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 1rem);
   box-sizing: border-box;
@@ -119,20 +119,20 @@
 .BadgeCelebrationModal-share-card {
   display: flex;
   width: 100%;
-  height: 280px;
-  flex: 0 0 280px;
+  height: 320px;
+  flex: 0 0 320px;
   align-items: center;
   justify-content: center;
 }
 
 .BadgeCelebrationModal-badge-art {
   position: relative;
-  width: 330px;
+  width: 350px;
   max-width: 100%;
-  height: 280px;
+  height: 320px;
   margin: 0 auto;
   overflow: hidden;
-  transform: translateY(2px);
+  transform: translateY(-2px);
 }
 
 .BadgeCelebrationModal-badge-art > span {
@@ -151,7 +151,7 @@
 
 .BadgeCelebrationModal-badge-art h2 {
   position: absolute;
-  top: 60px;
+  top: 70px;
   right: 0;
   left: 0;
   z-index: 2;
@@ -172,7 +172,7 @@
   z-index: 1;
   width: 164px;
   height: 151px;
-  transform: translate(-50%, -50%) scale(0.48);
+  transform: translate(-50%, -50%) scale(0.68);
   transform-origin: center;
 }
 
@@ -215,11 +215,11 @@
 .BadgeCelebrationModal-share {
   display: flex;
   width: max-content;
-  min-width: 90.545px;
+  min-width: 100px;
   max-width: calc(100% - 1rem);
-  height: 48px;
-  min-height: 48px;
-  margin-top: 8px;
+  height: 56px;
+  min-height: 56px;
+  margin-top: -1px;
   margin-right: auto;
   margin-left: auto;
   padding: 2.188px clamp(0.75rem, 4vw, 22.636px) 2.992px;
@@ -234,13 +234,12 @@
   background: #c094ef;
   box-shadow: 0 0.36rem 0 #300d37;
   color: #2d1644;
-  font-size: 17.455px;
+  font-size: 19px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
 }
-
 .BadgeCelebrationModal-share:active:not(:disabled) {
   transform: translateY(0.24rem);
   box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
@@ -260,5 +259,64 @@
   .BadgeCelebrationModal-badge-art {
     transform: scale(0.94);
     transform-origin: top center;
+  }
+}
+
+@media (max-height: 500px) {
+  .BadgeCelebrationModal-modal {
+    height: calc(100vh - 1rem);
+  }
+
+  .BadgeCelebrationModal-share-card {
+    height: calc(100% - 64px);
+    flex: 0 0 calc(100% - 64px);
+  }
+
+  .BadgeCelebrationModal-badge-art {
+    height: 100%;
+  }
+
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.68);
+  }
+
+  .BadgeCelebrationModal-share {
+    height: 52px;
+    min-height: 52px;
+    margin-top: 4px;
+  }
+}
+
+@media (max-height: 380px) {
+  .BadgeCelebrationModal-badge-art h2 {
+    top: 61px;
+  }
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.48);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1280px) and (min-height: 600px) {
+  .BadgeCelebrationModal-modal {
+    width: 380px;
+    height: 420px;
+  }
+
+  .BadgeCelebrationModal-share-card {
+    height: 350px;
+    flex: 0 0 350px;
+  }
+
+  .BadgeCelebrationModal-badge-art {
+    width: 380px;
+    height: 350px;
+  }
+
+  .BadgeCelebrationModal-badge-art h2 {
+    top: 76px;
+  }
+
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.48);
   }
 }

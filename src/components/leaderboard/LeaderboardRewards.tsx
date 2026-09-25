@@ -10,8 +10,11 @@ import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { REWARDS_TABS } from '../../common/constants/rewardsPathway';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { clearBadgeProgress } from '../../redux/slices/badgeProgress/badgeProgressSlice';
 
-type RewardsTab = 'lesson_completion_badges' | 'competitions';
+type RewardsTab = (typeof REWARDS_TABS)[keyof typeof REWARDS_TABS];
 
 const EMPTY_BADGE_PROGRESS = {
   lessons_played_count: 0,
@@ -20,10 +23,17 @@ const EMPTY_BADGE_PROGRESS = {
 };
 
 const LeaderboardRewards: FC = () => {
+  // Lesson completion is the default tab and the badge navigation target.
   const [activeTab, setActiveTab] = useState<RewardsTab>(
-    'lesson_completion_badges',
+    REWARDS_TABS.LESSON_COMPLETION,
   );
   const student = Util.getCurrentStudent();
+  const dispatch = useAppDispatch();
+  const hasUnseenBadge = useAppSelector(
+    (state) =>
+      state.badgeProgress?.studentId === student?.id &&
+      state.badgeProgress?.hasUnseenBadge === true,
+  );
   const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
 
   useEffect(() => {
@@ -62,11 +72,33 @@ const LeaderboardRewards: FC = () => {
     };
   }, [student?.id]);
 
+  useEffect(() => {
+    if (!student?.id || activeTab !== REWARDS_TABS.LESSON_COMPLETION) return;
+    const clearUnseenBadge = async () => {
+      if (!hasUnseenBadge) return;
+      try {
+        await ServiceConfig.getI().apiHandler.markUserBadgeSeen(student.id);
+        const clearedProgress = { ...progress, has_unseen_badge: false };
+        setProgress(clearedProgress);
+        dispatch(clearBadgeProgress(student.id));
+        void logBadgeEvent(EVENTS.UNSEEN_BADGE_CLEARED, student.id, progress, {
+          cleared_milestone: progress.latest_badge_milestone,
+        });
+      } catch (error) {
+        logger.error('Failed to clear unseen badge:', error);
+      }
+    };
+    void clearUnseenBadge();
+  }, [activeTab, dispatch, hasUnseenBadge, progress, student?.id]);
+
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);
     if (student?.id) {
       void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
-        target_tab: tab === 'competitions' ? 'stickers' : tab,
+        target_tab:
+          tab === REWARDS_TABS.COMPETITIONS
+            ? 'stickers'
+            : 'lesson_completion_badges',
       });
     }
   };
@@ -81,9 +113,11 @@ const LeaderboardRewards: FC = () => {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'lesson_completion_badges'}
-          className={activeTab === 'lesson_completion_badges' ? 'active' : ''}
-          onClick={() => selectTab('lesson_completion_badges')}
+          aria-selected={activeTab === REWARDS_TABS.LESSON_COMPLETION}
+          className={
+            activeTab === REWARDS_TABS.LESSON_COMPLETION ? 'active' : ''
+          }
+          onClick={() => selectTab(REWARDS_TABS.LESSON_COMPLETION)}
         >
           <img src="/assets/icons/Lesson Completion Icon.svg" alt="" />
           {t('Lesson Completion')}
@@ -91,15 +125,15 @@ const LeaderboardRewards: FC = () => {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'competitions'}
-          className={activeTab === 'competitions' ? 'active' : ''}
-          onClick={() => selectTab('competitions')}
+          aria-selected={activeTab === REWARDS_TABS.COMPETITIONS}
+          className={activeTab === REWARDS_TABS.COMPETITIONS ? 'active' : ''}
+          onClick={() => selectTab(REWARDS_TABS.COMPETITIONS)}
         >
           <img src="/assets/icons/competition icon.svg" alt="" />
           {t('Competitions')}
         </button>
       </div>
-      {activeTab === 'lesson_completion_badges' ? (
+      {activeTab === REWARDS_TABS.LESSON_COMPLETION ? (
         <LessonCompletionRewards studentId={student?.id} progress={progress} />
       ) : (
         <div className="competition-rewards-content">
