@@ -345,6 +345,8 @@ export enum EVENTS {
   REWARD_BADGE_SHARE_CLICKED = 'reward_badge_share_clicked',
   REWARD_BADGE_SHARE_SUCCESS = 'reward_badge_share_success',
   REWARD_BADGE_SHARE_FAILED = 'reward_badge_share_failed',
+  UNSEEN_BADGE_INDICATOR_CLICKED = 'unseen_badge_indicator_clicked',
+  UNSEEN_BADGE_CLEARED = 'unseen_badge_cleared',
   TC_POPUP_VIEWED = 'tc_popup_viewed',
   TC_AGREED = 'tc_agreed',
   SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
