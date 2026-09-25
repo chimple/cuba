@@ -237,5 +237,18 @@
       "CREATE TABLE IF NOT EXISTS user_achievements (user_id TEXT, program_id TEXT, school_id TEXT, class_id TEXT, coins INTEGER NOT NULL DEFAULT 1000, streak INTEGER NOT NULL DEFAULT 0, last_rewarded_week DATE, last_penalty_week DATE, is_deleted BOOLEAN DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), id TEXT PRIMARY KEY);",
       "ALTER TABLE result ADD COLUMN source TEXT;"
     ]
+  },
+  "16": {
+    "toVersion": 16,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS user_badge_progress ( id TEXT PRIMARY KEY, user_id TEXT NOT NULL UNIQUE, lessons_played_count INTEGER NOT NULL DEFAULT 0, latest_badge_milestone INTEGER NOT NULL DEFAULT 0, has_unseen_badge INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, FOREIGN KEY (user_id) REFERENCES 'user' (id));"
+    ]
+  },
+  "17": {
+    "toVersion": 17,
+    "statements": [
+      "ALTER TABLE lesson ADD COLUMN previous_lido_lesson_id TEXT;",
+      "ALTER TABLE lesson ADD COLUMN previous_cocos_lesson_id TEXT;"
+    ]
   }
 }

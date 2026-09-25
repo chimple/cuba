@@ -1,6 +1,17 @@
 import { TableTypes, LeaderboardRewards } from '../../../common/constants';
 
 export interface ServiceApiRewards {
+  // userId is the child profile whose local/remote badge progress is read.
+  getUserBadgeProgress(
+    userId: string,
+  ): Promise<TableTypes<'user_badge_progress'> | undefined>;
+
+  // userId identifies the child; the result carries the saved progress and new milestone.
+  recordBadgeLessonCompletion(userId: string): Promise<{
+    progress: TableTypes<'user_badge_progress'>;
+    milestoneReached: number | null;
+  }>;
+
   getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]>;
 
   getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]>;

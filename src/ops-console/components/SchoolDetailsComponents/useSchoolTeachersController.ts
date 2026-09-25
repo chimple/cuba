@@ -104,14 +104,12 @@ export const useSchoolTeachersController = ({
     programScopedClasses,
   });
 
-  const {
-    isPerformanceLoading,
-    teachersWithPerformance,
-    teachersWithWhatsappStatus,
-  } = useSchoolTeachersPerformance({
-    getWhatsappGroupStatus,
-    sortedTeachers,
-  });
+  const { isPerformanceLoading, teachersWithWhatsappStatus } =
+    useSchoolTeachersPerformance({
+      getWhatsappGroupStatus,
+      schoolId,
+      sortedTeachers,
+    });
 
   const actions = useSchoolTeacherActions({
     api,
@@ -139,7 +137,6 @@ export const useSchoolTeachersController = ({
     setOpenPopup: actions.setOpenPopup,
     setTeacherStatus: actions.setTeacherStatus,
     setcurrentTeachers: actions.setcurrentTeachers,
-    teachersWithPerformance,
   });
 
   const pageCount = useMemo(() => {
@@ -162,12 +159,20 @@ export const useSchoolTeachersController = ({
     let cancelled = false;
 
     const preloadTeacherQuestions = async () => {
-      if (cancelled) return;
+      if (
+        cancelled ||
+        (typeof navigator !== 'undefined' && navigator.onLine === false)
+      )
+        return;
 
       try {
         await ensureQuestionsCached({
           api,
           statuses: [
+            PerformanceLevel.NEED_HELP,
+            PerformanceLevel.STILL_LEARNING,
+            PerformanceLevel.DOING_GOOD,
+            PerformanceLevel.NOT_TRACKED,
             PerformanceLevel.NOT_ASSIGNING,
             PerformanceLevel.ONE_TO_TWO_ASSIGNED,
             PerformanceLevel.THREE_TO_FOUR_ASSIGNED,

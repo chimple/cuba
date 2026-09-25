@@ -2,6 +2,18 @@ import { ApiHandlerLiveQuiz } from './ApiHandler.liveQuiz';
 import { TableTypes, LeaderboardRewards } from '../../../common/constants';
 
 export class ApiHandlerRewards extends ApiHandlerLiveQuiz {
+  getUserBadgeProgress(
+    userId: string,
+  ): Promise<TableTypes<'user_badge_progress'> | undefined> {
+    // Forward the child profile id without adding storage-specific behavior here.
+    return this.s.getUserBadgeProgress(userId);
+  }
+
+  recordBadgeLessonCompletion(userId: string) {
+    // Keep the API handler thin so storage-specific progress logic stays in the service.
+    return this.s.recordBadgeLessonCompletion(userId);
+  }
+
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     return this.s.getBadgesByIds(ids);
   }

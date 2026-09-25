@@ -1,4 +1,5 @@
 import { SupabaseApiSticker } from './SupabaseApi.sticker';
+import { checkWhatsappProviderStatus } from './SupabaseApi.whatsapp.providerStatus';
 import { TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
@@ -18,19 +19,16 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
     if (!this.supabase) {
       throw new Error('Supabase client is not initialized.');
     }
-
     const { data, error } = await this.supabase.functions.invoke(
       'get-whatsapp-integration-status',
       { body: params },
     );
-
     if (error) throw error;
     if (!data?.success) {
       throw new Error(
         data?.error || 'Failed to fetch WhatsApp integration status.',
       );
     }
-
     return {
       data: data.data ?? [],
       pagination: data.pagination ?? {
@@ -41,6 +39,8 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       },
     };
   }
+
+  getWhatsappProviderStatus = checkWhatsappProviderStatus;
 
   // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{

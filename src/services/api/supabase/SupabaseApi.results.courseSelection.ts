@@ -103,66 +103,171 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
     if (!this.supabase) return;
 
     const now = new Date().toISOString();
+    const courseIds = Array.from(new Set(selectedCourseIds.filter(Boolean)));
+    const { data: schoolLinks, error: schoolLinksError } = await this.supabase
+      .from('school_course')
+      .select('id, course_id, is_deleted')
+      .eq('school_id', schoolId);
+    if (schoolLinksError) throw schoolLinksError;
 
-    await Promise.all(
-      selectedCourseIds.map(async (courseId) => {
-        if (!this.supabase) return;
-        const { data: existingEntry, error } = await this.supabase
-          .from('school_course')
-          .select('id, course_id, is_deleted')
-          .eq('school_id', schoolId)
-          .eq('course_id', courseId)
-          .eq('is_deleted', false)
-          .maybeSingle();
+    const links = schoolLinks ?? [];
+    const activeCourseIds = new Set(
+      links
+        .filter((link) => !link.is_deleted)
+        .map((link) => link.course_id)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const removedCourseIds = [...activeCourseIds].filter(
+      (courseId) => !courseIds.includes(courseId),
+    );
 
-        if (error) {
-          logger.error('Error fetching school_course:', error);
-          throw error;
-        }
+    const activeLinksByCourse = new Map<string, string>();
+    const duplicateLinkIds: string[] = [];
+    for (const link of links) {
+      if (link.is_deleted || !link.course_id) continue;
+      if (activeLinksByCourse.has(link.course_id)) {
+        duplicateLinkIds.push(link.id);
+      } else {
+        activeLinksByCourse.set(link.course_id, link.id);
+      }
+    }
 
-        if (!existingEntry) {
-          // Insert new course assignment
-          const newEntry = {
+    // Complete all reads before changing school or class mappings.
+    const { data: classesData, error: classesError } = await this.supabase
+      .from('class')
+      .select('*')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+    if (classesError) throw classesError;
+
+    const classes = classesData ?? [];
+    const classIds = classes.map(
+      (classRow: TableTypes<'class'>) => classRow.id,
+    );
+    const { data: classLinks, error: classLinksError } = classIds.length
+      ? await this.supabase
+          .from('class_course')
+          .select('id, class_id, course_id, is_deleted')
+          .in('class_id', classIds)
+      : { data: [], error: null };
+    if (classLinksError) throw classLinksError;
+
+    const classCourseLinks = classLinks ?? [];
+    const selectedCourses = await this.getCourses(courseIds);
+    const coursesById = new Map(
+      selectedCourses.map((course) => [course.id, course]),
+    );
+
+    const schoolLinksToDelete = links.filter(
+      (link) =>
+        !link.is_deleted &&
+        (!courseIds.includes(link.course_id) ||
+          duplicateLinkIds.includes(link.id)),
+    );
+    if (schoolLinksToDelete.length) {
+      const { error } = await this.supabase
+        .from('school_course')
+        .update({ is_deleted: true, updated_at: now })
+        .in(
+          'id',
+          schoolLinksToDelete.map((link) => link.id),
+        );
+      if (error) throw error;
+    }
+
+    const classLinksToDelete = classCourseLinks.filter(
+      (link) => !link.is_deleted && removedCourseIds.includes(link.course_id),
+    );
+    if (classLinksToDelete.length) {
+      const { error } = await this.supabase
+        .from('class_course')
+        .update({ is_deleted: true, updated_at: now })
+        .in(
+          'id',
+          classLinksToDelete.map((link) => link.id),
+        );
+      if (error) throw error;
+    }
+
+    const schoolRowsToInsert = [];
+    const schoolRowsToReactivate: string[] = [];
+    const classRowsToInsert = [];
+    const classRowsToReactivate: string[] = [];
+
+    for (const courseId of courseIds) {
+      const schoolLink =
+        links.find((link) => link.course_id === courseId && !link.is_deleted) ??
+        links.find((link) => link.course_id === courseId);
+      if (schoolLink?.is_deleted) {
+        schoolRowsToReactivate.push(schoolLink.id);
+      } else if (!schoolLink) {
+        schoolRowsToInsert.push({
+          id: uuidv4(),
+          school_id: schoolId,
+          course_id: courseId,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+        });
+      }
+
+      const course = coursesById.get(courseId);
+      if (!course?.grade_id) continue;
+      for (const classRow of classes.filter(
+        (row: TableTypes<'class'>) => row.grade_id === course.grade_id,
+      )) {
+        const classLink =
+          classCourseLinks.find(
+            (link) =>
+              link.class_id === classRow.id &&
+              link.course_id === courseId &&
+              !link.is_deleted,
+          ) ??
+          classCourseLinks.find(
+            (link) =>
+              link.class_id === classRow.id && link.course_id === courseId,
+          );
+        if (classLink?.is_deleted) {
+          classRowsToReactivate.push(classLink.id);
+        } else if (!classLink) {
+          classRowsToInsert.push({
             id: uuidv4(),
-            school_id: schoolId,
+            class_id: classRow.id,
             course_id: courseId,
             created_at: now,
             updated_at: now,
             is_deleted: false,
-          };
-          const { error: insertError } = await this.supabase
-            .from('school_course')
-            .insert(newEntry);
-
-          if (insertError) {
-            logger.error('Error inserting school_course:', insertError);
-            throw insertError;
-          }
-        } else if (existingEntry.is_deleted) {
-          // Reactivate the deleted entry
-          const { error: updateError } = await this.supabase
-            .from('school_course')
-            .update({ is_deleted: false, updated_at: now })
-            .eq('id', existingEntry.id);
-
-          if (updateError) {
-            logger.error('Error updating school_course:', updateError);
-            throw updateError;
-          }
-        } else {
-          // Update timestamp of existing active entry
-          const { error: timestampError } = await this.supabase
-            .from('school_course')
-            .update({ updated_at: now })
-            .eq('id', existingEntry.id);
-
-          if (timestampError) {
-            logger.error('Error updating updated_at:', timestampError);
-            throw timestampError;
-          }
+          });
         }
-      }),
-    );
+      }
+    }
+
+    if (schoolRowsToReactivate.length) {
+      const { error } = await this.supabase
+        .from('school_course')
+        .update({ is_deleted: false, updated_at: now })
+        .in('id', schoolRowsToReactivate);
+      if (error) throw error;
+    }
+    if (schoolRowsToInsert.length) {
+      const { error } = await this.supabase
+        .from('school_course')
+        .insert(schoolRowsToInsert);
+      if (error) throw error;
+    }
+    if (classRowsToReactivate.length) {
+      const { error } = await this.supabase
+        .from('class_course')
+        .update({ is_deleted: false, updated_at: now })
+        .in('id', classRowsToReactivate);
+      if (error) throw error;
+    }
+    if (classRowsToInsert.length) {
+      const { error } = await this.supabase
+        .from('class_course')
+        .insert(classRowsToInsert);
+      if (error) throw error;
+    }
   }
 
   async getSubject(id: string): Promise<TableTypes<'subject'> | undefined> {

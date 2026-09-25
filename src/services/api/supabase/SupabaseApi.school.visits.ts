@@ -59,7 +59,6 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     schoolId: string,
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     try {
-      if (!this.supabase) return null;
       const user = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!user) return null;
 
@@ -67,6 +66,8 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
       if (queuedSnapshot) {
         return queuedSnapshot;
       }
+
+      if (!this.supabase) return null;
 
       const { data, error } = await this.supabase
         .from(TABLES.FcSchoolVisit)

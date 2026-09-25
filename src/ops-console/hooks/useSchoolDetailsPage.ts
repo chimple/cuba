@@ -16,10 +16,9 @@ import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
 import {
-  clearOtherSchoolHeaderCache,
-  readSchoolHeaderCache,
-  writeSchoolHeaderCache,
-} from '../../services/offline/offlineCache';
+  readFcSchoolOfflineCache,
+  writeFcSchoolClassesCache,
+} from '../../services/offline/fcSchoolOfflineCache';
 
 export type SchoolStats = {
   active_student_percentage: number;
@@ -103,6 +102,9 @@ const emptyInteractionStats: FCSchoolStats = {
   students_interacted: 0,
   teachers_interacted: 0,
 };
+
+const isOffline = () =>
+  typeof navigator !== 'undefined' && navigator.onLine === false;
 
 export const useSchoolDetailsPage = (id: string) => {
   const [data, setData] = useState<{
@@ -308,12 +310,49 @@ export const useSchoolDetailsPage = (id: string) => {
     const api = ServiceConfig.getI().apiHandler;
 
     try {
-      const cachedSchool =
-        await readSchoolHeaderCache<Record<string, unknown>>(id);
-      if (cachedSchool) {
-        setData((prev) => ({ ...prev, schoolData: cachedSchool }));
+      if (isOffline()) {
+        const cachedOfflineSchool = await readFcSchoolOfflineCache(id);
+        const cachedSchool = cachedOfflineSchool?.overview?.schoolData;
+        const cachedStudents = cachedOfflineSchool?.studentsByClassId
+          ? Object.values(cachedOfflineSchool.studentsByClassId).flat()
+          : undefined;
+
+        setData((prev) => ({
+          ...prev,
+          programData: undefined,
+          programManagers: [],
+          schoolStats: undefined,
+          interactionStats: undefined,
+          coordinators: [],
+          totalCoordinatorCount: 0,
+          ...(cachedSchool ? { schoolData: cachedSchool } : {}),
+          ...(cachedOfflineSchool?.classes
+            ? {
+                classData: cachedOfflineSchool.classes as ClassWithDetails[],
+                totalClassCount: cachedOfflineSchool.classes.length,
+              }
+            : {}),
+          ...(cachedStudents
+            ? {
+                students: cachedStudents,
+                totalStudentCount: cachedStudents.length,
+              }
+            : {}),
+          ...(cachedOfflineSchool?.teachers
+            ? {
+                teachers: cachedOfflineSchool.teachers,
+                totalTeacherCount: cachedOfflineSchool.teachers.length,
+              }
+            : {}),
+          ...(cachedOfflineSchool?.principals
+            ? {
+                principals: cachedOfflineSchool.principals,
+                totalPrincipalCount: cachedOfflineSchool.principals.length,
+              }
+            : {}),
+        }));
+        return;
       }
-      await clearOtherSchoolHeaderCache(id);
 
       const [
         schoolSettled,
@@ -332,10 +371,7 @@ export const useSchoolDetailsPage = (id: string) => {
       ]);
 
       const school = resolveSettled('getSchoolById', schoolSettled, undefined);
-      if (school) {
-        await writeSchoolHeaderCache(id, school);
-      }
-      const schoolData = school ?? cachedSchool ?? undefined;
+      const schoolData = school ?? undefined;
       const program = resolveSettled(
         'getProgramForSchool',
         programSettled,
@@ -377,8 +413,7 @@ export const useSchoolDetailsPage = (id: string) => {
         ? interactionStat[0]
         : interactionStat;
 
-      setData((prev) => ({
-        ...prev,
+      const overviewCache = {
         schoolData,
         programData: program,
         programManagers,
@@ -403,6 +438,11 @@ export const useSchoolDetailsPage = (id: string) => {
           students_interacted: stats?.students_interacted ?? 0,
           teachers_interacted: stats?.teachers_interacted ?? 0,
         },
+      };
+
+      setData((prev) => ({
+        ...prev,
+        ...overviewCache,
       }));
     } finally {
       setLoading(false);
@@ -418,6 +458,18 @@ export const useSchoolDetailsPage = (id: string) => {
       const api = ServiceConfig.getI().apiHandler;
 
       try {
+        if (isOffline()) {
+          const cachedOfflineSchool = await readFcSchoolOfflineCache(id);
+          loadedTabsRef.current.add(SchoolTabs.Classes);
+          setData((prev) => ({
+            ...prev,
+            classData: (cachedOfflineSchool?.classes ??
+              []) as ClassWithDetails[],
+            totalClassCount: cachedOfflineSchool?.classes?.length ?? 0,
+          }));
+          return;
+        }
+
         const classResponse = await api.getClassesBySchoolId(id);
         const classData = Array.isArray(classResponse) ? classResponse : [];
 
@@ -427,6 +479,7 @@ export const useSchoolDetailsPage = (id: string) => {
           classData,
           totalClassCount: classData.length,
         }));
+        await writeFcSchoolClassesCache(id, classData);
       } catch (error) {
         logger.error(
           'SchoolDetailsPage fetch failed: getClassesBySchoolId',

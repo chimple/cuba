@@ -1,85 +1,113 @@
 import { FC, useEffect, useState } from 'react';
-import { LEADERBOARD_REWARD_LIST } from '../../common/constants';
-import { Tab, Tabs } from '@mui/material';
+import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
+import './LeaderboardRewards.css';
+import LessonCompletionRewards from './LessonCompletionRewards';
 import LeaderboardBadges from './LeaderboardBadges';
 import LeaderboardBonus from './LeaderboardBonus';
-import './LeaderboardRewards.css';
 import LeaderboardSticker from './LeaderboardSticker';
-import {
-  getAppSearchParams,
-  replaceAppUrl,
-} from '../../utility/routerLocation';
+import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
+
+type RewardsTab = 'lesson_completion_badges' | 'competitions';
+
+const EMPTY_BADGE_PROGRESS = {
+  lessons_played_count: 0,
+  latest_badge_milestone: 0,
+  has_unseen_badge: false,
+};
 
 const LeaderboardRewards: FC = () => {
-  const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
-  const handleChange = (
-    event: React.SyntheticEvent,
-    newValue: LEADERBOARD_REWARD_LIST,
-  ) => {
-    setTabIndex(newValue);
-  };
-  useEffect(() => {
-    const urlParams = getAppSearchParams();
-    const rewardsTab = urlParams.get('rewards');
-    let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
-    if (rewardsTab) {
-      if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
-        currentTab = LEADERBOARD_REWARD_LIST.BONUS;
-      } else if (rewardsTab === LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()) {
-        currentTab = LEADERBOARD_REWARD_LIST.STICKER;
-      }
-    }
-    setTabIndex(currentTab);
-  }, []);
+  const [activeTab, setActiveTab] = useState<RewardsTab>(
+    'lesson_completion_badges',
+  );
+  const student = Util.getCurrentStudent();
+  const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
 
   useEffect(() => {
-    // Update URL when tabIndex changes
-    if (tabIndex) {
-      const nextParams = getAppSearchParams();
-      nextParams.set('rewards', tabIndex.toLowerCase());
-      replaceAppUrl({ search: `?${nextParams.toString()}` });
+    if (!student?.id) return;
+    let mounted = true;
+    void ServiceConfig.getI()
+      .apiHandler.getUserBadgeProgress(student.id)
+      .then((result) => {
+        if (!mounted) return;
+        const nextProgress = result
+          ? {
+              lessons_played_count: result.lessons_played_count,
+              latest_badge_milestone: result.latest_badge_milestone,
+              has_unseen_badge: Boolean(result.has_unseen_badge),
+            }
+          : EMPTY_BADGE_PROGRESS;
+        setProgress(nextProgress);
+        void logBadgeEvent(
+          EVENTS.REWARDS_PAGE_VIEWED,
+          student.id,
+          nextProgress,
+        );
+      })
+      .catch((error) => {
+        if (!mounted) return;
+        logger.error('Failed to load badge progress:', error);
+        setProgress(EMPTY_BADGE_PROGRESS);
+        void logBadgeEvent(
+          EVENTS.REWARDS_PAGE_VIEWED,
+          student.id,
+          EMPTY_BADGE_PROGRESS,
+        );
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [student?.id]);
+
+  const selectTab = (tab: RewardsTab) => {
+    setActiveTab(tab);
+    if (student?.id) {
+      void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
+        target_tab: tab === 'competitions' ? 'stickers' : tab,
+      });
     }
-  }, [tabIndex]);
+  };
 
   return (
     <div className="leaderboard-rewards-container">
-      <Tabs
-        value={tabIndex}
-        onChange={handleChange}
-        textColor="secondary"
-        indicatorColor="secondary"
-        aria-label="secondary tabs example"
-        scrollButtons="auto"
-        centered
-        sx={{
-          '& .MuiTabs-indicator': {
-            backgroundColor: '#000000 !important',
-            bottom: '15% !important',
-          },
-          '& .MuiTab-root': { color: '#000000 !important' },
-          '& .Mui-selected': { color: '#000000 !important' },
-        }}
+      <div
+        className="rewards-tab-switcher"
+        role="tablist"
+        aria-label="Reward types"
       >
-        <Tab
-          id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.STICKER}
-          label={t(LEADERBOARD_REWARD_LIST.STICKER)}
-        />
-        <Tab
-          id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.BADGES}
-          label={t(LEADERBOARD_REWARD_LIST.BADGES)}
-        />
-        <Tab
-          id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.BONUS}
-          label={t(LEADERBOARD_REWARD_LIST.BONUS)}
-        />
-      </Tabs>
-      {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && <LeaderboardBadges />}
-      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <LeaderboardBonus />}
-      {tabIndex === LEADERBOARD_REWARD_LIST.STICKER && <LeaderboardSticker />}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'lesson_completion_badges'}
+          className={activeTab === 'lesson_completion_badges' ? 'active' : ''}
+          onClick={() => selectTab('lesson_completion_badges')}
+        >
+          <img src="/assets/icons/Lesson Completion Icon.svg" alt="" />
+          {t('Lesson Completion')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'competitions'}
+          className={activeTab === 'competitions' ? 'active' : ''}
+          onClick={() => selectTab('competitions')}
+        >
+          <img src="/assets/icons/competition icon.svg" alt="" />
+          {t('Competitions')}
+        </button>
+      </div>
+      {activeTab === 'lesson_completion_badges' ? (
+        <LessonCompletionRewards studentId={student?.id} progress={progress} />
+      ) : (
+        <div className="competition-rewards-content">
+          <LeaderboardSticker />
+          <LeaderboardBadges />
+          <LeaderboardBonus />
+        </div>
+      )}
     </div>
   );
 };

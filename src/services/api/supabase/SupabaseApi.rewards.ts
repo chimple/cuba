@@ -1,11 +1,57 @@
 import { SupabaseApiProgramSchoolStats } from './SupabaseApi.program.schoolStats';
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import { v4 as uuidv4 } from 'uuid';
+import { nextBadgeProgress } from '../../../common/Badges/badgeProgress';
 
 export interface SupabaseApiRewards {
   [key: string]: any;
 }
 export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
+  async getUserBadgeProgress(
+    userId: string,
+  ): Promise<TableTypes<'user_badge_progress'> | undefined> {
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    if (error) {
+      return undefined;
+    }
+    return data ?? undefined;
+  }
+
+  async recordBadgeLessonCompletion(userId: string): Promise<{
+    progress: TableTypes<'user_badge_progress'>;
+    milestoneReached: number | null;
+  }> {
+    const existing = await this.getUserBadgeProgress(userId);
+    const { progress: nextProgress, milestoneReached } =
+      nextBadgeProgress(existing);
+    const count = nextProgress.lessons_played_count;
+    const progress = {
+      id: existing?.id ?? uuidv4(),
+      user_id: userId,
+      lessons_played_count: count,
+      latest_badge_milestone: nextProgress.latest_badge_milestone,
+      has_unseen_badge: false,
+      created_at: existing?.created_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    } as TableTypes<'user_badge_progress'>;
+    if (!this.supabase) return { progress, milestoneReached };
+    // Upsert by user_id because badge progress has one row per student.
+    const { error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .upsert(progress, { onConflict: 'user_id' });
+    if (error) {
+    }
+    return { progress, milestoneReached };
+  }
+
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     if (!this.supabase || ids.length === 0) return [];
 

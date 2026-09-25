@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCachedLocalSvgSrc } from '../../../utility/imageCache';
 import { Box, IconButton, Typography } from '@mui/material';
 import { BorderColor as BorderColorIcon, MoreHoriz } from '@mui/icons-material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -23,7 +24,6 @@ type UseSchoolTeachersColumnsProps = {
     status: import('../../../common/constants').EnumType<'fc_support_level'>,
   ) => void;
   setcurrentTeachers: (teacher: TeacherInfo) => void;
-  teachersWithPerformance: DisplayTeacher[];
 };
 
 export const useSchoolTeachersColumns = ({
@@ -35,7 +35,6 @@ export const useSchoolTeachersColumns = ({
   setOpenPopup,
   setTeacherStatus,
   setcurrentTeachers,
-  teachersWithPerformance,
 }: UseSchoolTeachersColumnsProps): Column<DisplayTeacher>[] => [
   {
     key: 'name',
@@ -64,23 +63,17 @@ export const useSchoolTeachersColumns = ({
             <Box className="schoolTeachers-interactCell">
               <IconButton
                 size="small"
-                onClick={async () => {
+                onClick={() => {
+                  const currentTeacher =
+                    getTeacherInfo(row.id, row.classId) ?? row.interactPayload;
+
+                  setcurrentTeachers(currentTeacher);
+                  setTeacherStatus(row.performance);
                   setOpenPopup(true);
-                  const currentTeacher = getTeacherInfo(row.id, row.classId);
-                  if (currentTeacher) {
-                    setcurrentTeachers(currentTeacher);
-                  }
-                  const performance =
-                    teachersWithPerformance.find(
-                      (teacher) =>
-                        teacher.id === row.id &&
-                        teacher.classId === row.classId,
-                    )?.performance ?? null;
-                  if (performance) setTeacherStatus(performance);
                 }}
               >
                 <img
-                  src="/assets/icons/Interact.svg"
+                  src={getCachedLocalSvgSrc('/assets/icons/Interact.svg')}
                   alt="Interact"
                   className="schoolTeachers-interactIcon"
                 />

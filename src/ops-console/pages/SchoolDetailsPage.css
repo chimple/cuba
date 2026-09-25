@@ -62,6 +62,15 @@
   margin-bottom: 15px;
 }
 
+.schooldetailspage .school-detail-mobile-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin: 15px 0 0;
+  flex-shrink: 0;
+  justify-content: space-between;
+}
+
 /* Check-In Menu Styles according to design */
 .schooldetailspage.check-in-menu-paper {
   border-radius: 12px !important;
@@ -121,4 +130,17 @@
 
 .schooldetailspage .check-in-icon-rotated {
   transform: rotate(180deg) !important;
+}
+
+@media (max-width: 600px) {
+  .schooldetailspage .school-detail-role-tabs-wrapper {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .schooldetailspage .school-detail-tab-content {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
 }
