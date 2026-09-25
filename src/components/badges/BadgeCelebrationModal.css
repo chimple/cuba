@@ -188,7 +188,7 @@
   font-style: normal;
   font-weight: 800 !important;
   line-height: normal !important;
-  bottom: 15px;
+  bottom: 18px;
 }
 
 .BadgeCelebrationModal-badge-copy {
@@ -214,16 +214,17 @@
 
 .BadgeCelebrationModal-share {
   display: flex;
-  width: 90.545px;
+  width: max-content;
   min-width: 90.545px;
+  max-width: calc(100% - 1rem);
   height: 48px;
   min-height: 48px;
   margin-top: 8px;
   margin-right: auto;
   margin-left: auto;
-  padding: 2.188px 22.636px 2.992px 22.909px;
-  flex: 0 0 48px;
-  flex-direction: row;
+  padding: 2.188px clamp(0.75rem, 4vw, 22.636px) 2.992px;
+  flex: 0 1 auto;
+  flex-direction: column;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
@@ -233,9 +234,10 @@
   background: #c094ef;
   box-shadow: 0 0.36rem 0 #300d37;
   color: #2d1644;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 17.455px;
+  font-weight: 600;
   line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -249,8 +251,8 @@
 }
 
 .BadgeCelebrationModal-share-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: clamp(15.7px, 4vw, 18.421px);
+  height: clamp(18.421px, 4.7vw, 21.6px);
   flex: 0 0 auto;
 }
 
