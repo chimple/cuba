@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { Chip, Menu, MenuItem } from '@mui/material';
 import type { WhatsappIntegrationStatus } from '../../../services/api/serviceapi/ServiceApi.whatsapp';
+import { getWhatsappIntegrationStatusLabel } from './whatsappIntegrationStatusLabels';
 
 const STATUS_OPTIONS: WhatsappIntegrationStatus[] = [
   'Yes',
@@ -35,7 +36,7 @@ const WhatsappIntegrationStatusFilterMenu: FC<
         onClick={() => onSelect(status)}
       >
         <Chip
-          label={status}
+          label={getWhatsappIntegrationStatusLabel(status)}
           size="small"
           className={`whatsapp-integration-status-filter-chip${
             status === 'Yes' ? ' is-connected' : ' is-not-connected'

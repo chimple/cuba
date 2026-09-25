@@ -24,6 +24,75 @@
   font-weight: 600;
 }
 
+.whatsapp-integration-status-title-group {
+  display: flex;
+  align-items: center;
+}
+
+.whatsapp-integration-status-header-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.whatsapp-integration-status-info-button {
+  margin-left: 4px !important;
+  color: #6b7280 !important;
+}
+
+.whatsapp-integration-status-info-tooltip {
+  display: flex;
+  width: 100%;
+  max-height: calc(100vh - 32px);
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.whatsapp-integration-status-info-tooltip-surface {
+  width: min(420px, calc(100vw - 32px)) !important;
+  max-width: 420px !important;
+  padding: 16px !important;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  border: 1px solid #d1d5db;
+  border-radius: 8px !important;
+  color: #121619 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(18, 22, 25, 0.18) !important;
+  opacity: 1 !important;
+}
+
+.whatsapp-integration-status-info-tooltip-surface .MuiTooltip-arrow {
+  color: #ffffff !important;
+}
+
+.whatsapp-integration-status-info-tooltip-title {
+  color: #121619 !important;
+  font-weight: 700 !important;
+}
+
+.whatsapp-integration-status-info-tooltip-surface .MuiTypography-root {
+  color: #121619;
+}
+
+.whatsapp-integration-status-info-tooltip > .MuiTypography-body2 {
+  margin: 0;
+}
+
+.whatsapp-integration-status-info-tooltip > .MuiTypography-body2 strong {
+  color: #121619;
+  font-weight: 700;
+}
+
+.whatsapp-integration-status-yes-label {
+  position: relative;
+  left: -6px;
+}
+
 .whatsapp-integration-status-bell-icon {
   color: #000000 !important;
 }
