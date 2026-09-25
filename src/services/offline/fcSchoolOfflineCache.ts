@@ -7,12 +7,17 @@ import type {
   TeacherInfo,
 } from '../../common/constants';
 import type { SchoolNote } from '../../interface/modelInterfaces';
+import {
+  fetchFcQuestionsForOffline,
+  type FcOfflineQuestion,
+} from './fcSchoolQuestionCache';
 import { cacheLocalSvgAsset } from '../../utility/imageCache';
 import type {
   ClassMetricsForClassListingRow,
   OpsStudentPerformanceBandRow,
   ServiceApi,
 } from '../api/ServiceApi';
+import logger from '../../utility/logger';
 
 const CACHE_INDEX_KEY = 'fc_school_offline_cache_index';
 const CACHE_DIR = 'fc-school-cache';
@@ -28,30 +33,6 @@ type PagedResponse<T> = {
 
 type CacheStatus = 'cached' | 'downloading' | 'failed';
 
-type QuestionStatus =
-  | 'need_help'
-  | 'still_learning'
-  | 'doing_good'
-  | 'not_tracked'
-  | 'not_assigning'
-  | 'once_to_two'
-  | 'three_to_four'
-  | 'four_plus'
-  | null;
-
-type QuestionTarget =
-  | 'class'
-  | 'school'
-  | 'principal'
-  | 'teacher'
-  | 'parent'
-  | 'student';
-
-type CachedQuestion = {
-  id: string;
-  question_text: string;
-};
-
 export type FcSchoolOfflineOverview = {
   schoolData?: Record<string, unknown>;
 };
@@ -66,7 +47,8 @@ export type FcSchoolOfflineCacheEntry = {
   teachers?: TeacherInfo[];
   principals?: PrincipalInfo[];
   notes?: SchoolNote[];
-  questionsByKey?: Record<string, CachedQuestion[]>;
+  questionsByKey?: Record<string, FcOfflineQuestion[]>;
+  teacherAssignmentCounts?: Record<string, number | null>;
   studentPerformanceBands?: OpsStudentPerformanceBandRow[];
   classMetricsByDateRange?: Record<string, ClassMetricsForClassListingRow[]>;
 };
@@ -87,9 +69,6 @@ const cacheDir = (schoolId: string) =>
   `${CACHE_DIR}/${sanitizePathSegment(schoolId)}`;
 
 const cachePath = (schoolId: string) => `${cacheDir(schoolId)}/${BUNDLE_FILE}`;
-
-const questionKey = (target: QuestionTarget, status: QuestionStatus) =>
-  `${target}:${status ?? 'none'}`;
 
 const isExpired = (entry: Pick<FcSchoolOfflineCacheEntry, 'expiresAt'>) =>
   new Date(entry.expiresAt).getTime() <= Date.now();
@@ -313,39 +292,24 @@ const fetchStudentsByClass = async (
   );
 };
 
-const fetchFcQuestions = async (api: ServiceApi) => {
-  const targets: QuestionTarget[] = [
-    'school',
-    'class',
-    'student',
-    'parent',
-    'teacher',
-    'principal',
-  ];
-  const statuses: QuestionStatus[] = [
-    null,
-    'need_help',
-    'still_learning',
-    'doing_good',
-    'not_tracked',
-    'not_assigning',
-    'once_to_two',
-    'three_to_four',
-    'four_plus',
-  ];
-  const questionEntries = await Promise.all(
-    targets.flatMap((target) =>
-      statuses.map(async (status) => {
-        const questions = (await api.getFilteredFcQuestions(
-          status,
-          target,
-        )) as CachedQuestion[];
-        return [questionKey(target, status), questions ?? []] as const;
-      }),
-    ),
-  );
+const fetchTeacherAssignmentCounts = async (
+  api: ServiceApi,
+  teachers: TeacherInfo[],
+): Promise<Record<string, number | null>> => {
+  const pairs = teachers.flatMap((teacher) => {
+    const teacherId = teacher.user?.id;
+    const classId = teacher.classWithidname?.id;
+    return teacherId && classId ? [{ teacherId, classId }] : [];
+  });
 
-  return Object.fromEntries(questionEntries);
+  if (pairs.length === 0) return {};
+
+  try {
+    return await api.getRecentAssignmentCountsByTeachers(pairs);
+  } catch (error) {
+    logger.error('Failed to cache teacher assignment counts', { error });
+    return {};
+  }
 };
 
 export const removeFcSchoolOfflineCache = async (schoolId: string) => {
@@ -427,6 +391,10 @@ export const writeFcSchoolOfflineCache = async (
     questionsByKey: {
       ...(current?.questionsByKey ?? {}),
       ...(patch.questionsByKey ?? {}),
+    },
+    teacherAssignmentCounts: {
+      ...(current?.teacherAssignmentCounts ?? {}),
+      ...(patch.teacherAssignmentCounts ?? {}),
     },
     classMetricsByDateRange: {
       ...(current?.classMetricsByDateRange ?? {}),
@@ -532,9 +500,13 @@ export const cacheFcSchoolForOffline = async ({
         readAllPages<TeacherInfo>((page, limit) =>
           api.getTeacherInfoBySchoolId(schoolId, page, limit),
         ),
-        fetchFcQuestions(api),
+        fetchFcQuestionsForOffline(api),
         readAllNotes(api, schoolId),
       ]);
+    const teacherAssignmentCounts = await fetchTeacherAssignmentCounts(
+      api,
+      teachersResponse.data,
+    );
 
     const allStudents = Object.values(studentsByClassId).flat();
     const studentIds = Array.from(
@@ -582,6 +554,7 @@ export const cacheFcSchoolForOffline = async ({
       principals: principals.data ?? [],
       notes: notesResponse.data,
       questionsByKey,
+      teacherAssignmentCounts,
       studentPerformanceBands,
       classMetricsByDateRange: {
         [dateRange]: classMetrics,
