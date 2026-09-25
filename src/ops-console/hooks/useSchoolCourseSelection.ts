@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { t } from 'i18next';
+import { getClassesLosingAllCourses } from '../../utility/schoolCourseRemoval';
 import type { TableTypes } from '../../common/constants';
 import type { ServiceApi } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
@@ -17,12 +19,21 @@ export const useSchoolCourseSelection = ({
   api,
   editData,
 }: UseSchoolCourseSelectionProps) => {
+  const schoolId = editData?.schoolData?.id;
   const [courses, setCourses] = useState<SchoolCourseOption[]>([]);
   const [grades, setGrades] = useState<TableTypes<'grade'>[]>([]);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [selectedGradeId, setSelectedGradeId] = useState('');
   const [isCoursesLoading, setCoursesLoading] = useState(true);
   const [courseLoadError, setCourseLoadError] = useState(false);
+  const [courseRemovalError, setCourseRemovalError] = useState('');
+  const [courseRemovalWarning, setCourseRemovalWarning] = useState('');
+  const selectedCourseIdsRef = useRef<string[]>([]);
+  const removalContext = useRef<{
+    classes: TableTypes<'class'>[];
+    links: TableTypes<'class_course'>[];
+    assignedCourseIds: string[];
+  }>({ classes: [], links: [], assignedCourseIds: [] });
   const [initialSelectedCourseIds, setInitialSelectedCourseIds] = useState<
     string[] | null
   >(null);
@@ -33,19 +44,35 @@ export const useSchoolCourseSelection = ({
     async function loadCourses() {
       setCoursesLoading(true);
       setCourseLoadError(false);
+      setInitialSelectedCourseIds(null);
       try {
-        const [allCourses, allGrades] = await Promise.all([
-          api.getAllCourses(),
-          api.getAllGrades(),
-        ]);
+        const [allCourses, allGrades, schoolCourses, schoolClasses] =
+          await Promise.all([
+            api.getAllCourses(),
+            api.getAllGrades(),
+            schoolId ? api.getCoursesBySchoolId(schoolId) : Promise.resolve([]),
+            schoolId ? api.getClassesBySchoolId(schoolId) : Promise.resolve([]),
+          ]);
+        if (cancelled) return;
+        const availableCourses = allCourses.filter(
+          (course) => !course.is_deleted,
+        );
+        const availableCourseIds = new Set(
+          availableCourses.map((course) => course.id),
+        );
         const curriculumIds = Array.from(
           new Set(
-            allCourses
+            availableCourses
               .map((course) => course.curriculum_id)
               .filter((id): id is string => Boolean(id)),
           ),
         );
-        const curriculums = await api.getCurriculumsByIds(curriculumIds);
+        const classes = schoolClasses.filter((row) => !row.is_deleted);
+        const [curriculums, linksByClass] = await Promise.all([
+          api.getCurriculumsByIds(curriculumIds),
+          Promise.all(classes.map((row) => api.getCoursesByClassId(row.id))),
+        ]);
+        const links = linksByClass.flat();
         const curriculumNames = new Map(
           curriculums.map((curriculum) => [
             curriculum.id,
@@ -55,20 +82,21 @@ export const useSchoolCourseSelection = ({
         const gradeNames = new Map(
           allGrades.map((grade) => [grade.id, grade.name ?? '']),
         );
-        let selectedIds: string[] = [];
-
-        if (editData?.schoolData?.id) {
-          const schoolCourses = await api.getCoursesBySchoolId(
-            editData.schoolData.id,
-          );
-          selectedIds = schoolCourses
-            .map((row) => row.course_id)
-            .filter((id): id is string => Boolean(id));
-        }
+        const assignedCourseIds = [
+          ...new Set(
+            schoolCourses
+              .filter((row) => !row.is_deleted)
+              .map((row) => row.course_id)
+              .filter((id): id is string => Boolean(id)),
+          ),
+        ];
+        const selectedIds = assignedCourseIds.filter((id) =>
+          availableCourseIds.has(id),
+        );
 
         if (!cancelled) {
           setCourses(
-            (allCourses ?? []).map((course) => ({
+            availableCourses.map((course) => ({
               ...course,
               grade_name: gradeNames.get(course.grade_id ?? '') ?? '',
               curriculum_name:
@@ -76,7 +104,14 @@ export const useSchoolCourseSelection = ({
             })),
           );
           setGrades(allGrades ?? []);
-          setSelectedCourseIds(selectedIds);
+          selectedCourseIdsRef.current = selectedIds;
+          setInitialSelectedCourseIds(
+            schoolId ? [...selectedIds].sort() : null,
+          );
+          removalContext.current = { classes, links, assignedCourseIds };
+          setSelectedCourseIds(selectedCourseIdsRef.current);
+          setCourseRemovalWarning('');
+          setCourseRemovalError('');
         }
       } catch (error) {
         logger.error('Error loading school courses:', error);
@@ -94,17 +129,13 @@ export const useSchoolCourseSelection = ({
     return () => {
       cancelled = true;
     };
-  }, [api, editData]);
-
-  useEffect(() => {
-    if (!editData || isCoursesLoading || initialSelectedCourseIds !== null) {
-      return;
-    }
-    setInitialSelectedCourseIds([...selectedCourseIds].sort());
-  }, [editData, initialSelectedCourseIds, isCoursesLoading, selectedCourseIds]);
+  }, [api, schoolId]);
 
   return {
     courseLoadError,
+    courseRemovalError,
+    courseRemovalWarning,
+    setCourseRemovalError,
     courses,
     grades,
     initialSelectedCourseIds,
@@ -112,11 +143,39 @@ export const useSchoolCourseSelection = ({
     selectedCourseIds,
     selectedGradeId,
     setSelectedGradeId,
-    toggleCourse: (courseId: string) =>
-      setSelectedCourseIds((previous) =>
-        previous.includes(courseId)
-          ? previous.filter((id) => id !== courseId)
-          : [...previous, courseId],
-      ),
+    toggleCourse: (courseId: string) => {
+      if (isCoursesLoading || courseLoadError) return;
+      const previous = selectedCourseIdsRef.current;
+      const removing = previous.includes(courseId);
+      const next = removing
+        ? previous.filter((id) => id !== courseId)
+        : [...previous, courseId];
+      if (removing) {
+        const { classes, links, assignedCourseIds } = removalContext.current;
+        const selectedIds = new Set(next);
+        const blockedClasses = getClassesLosingAllCourses(
+          classes,
+          links,
+          assignedCourseIds.filter((id) => !selectedIds.has(id)),
+        );
+        if (blockedClasses.length) {
+          setCourseRemovalWarning(
+            t(
+              'Cannot remove this course because it would leave these classes without any courses: {{classes}}.',
+              {
+                classes: blockedClasses
+                  .map((row) => row.name || row.id)
+                  .join(', '),
+              },
+            ) ?? '',
+          );
+          return;
+        }
+      }
+      setCourseRemovalWarning('');
+      setCourseRemovalError('');
+      selectedCourseIdsRef.current = next;
+      setSelectedCourseIds(next);
+    },
   };
 };
