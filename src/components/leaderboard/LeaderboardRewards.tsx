@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
 import './LeaderboardRewards.css';
@@ -35,6 +35,7 @@ const LeaderboardRewards: FC = () => {
       state.badgeProgress?.hasUnseenBadge === true,
   );
   const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
+  const clearingBadgeStudentIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!student?.id) return;
@@ -75,7 +76,11 @@ const LeaderboardRewards: FC = () => {
   useEffect(() => {
     if (!student?.id || activeTab !== REWARDS_TABS.LESSON_COMPLETION) return;
     const clearUnseenBadge = async () => {
-      if (!hasUnseenBadge) return;
+      if (!hasUnseenBadge || clearingBadgeStudentIdRef.current === student.id) {
+        return;
+      }
+      // Prevent progress refreshes from issuing duplicate clear requests.
+      clearingBadgeStudentIdRef.current = student.id;
       try {
         await ServiceConfig.getI().apiHandler.markUserBadgeSeen(student.id);
         const clearedProgress = { ...progress, has_unseen_badge: false };
@@ -85,6 +90,7 @@ const LeaderboardRewards: FC = () => {
           cleared_milestone: progress.latest_badge_milestone,
         });
       } catch (error) {
+        clearingBadgeStudentIdRef.current = null;
         logger.error('Failed to clear unseen badge:', error);
       }
     };
