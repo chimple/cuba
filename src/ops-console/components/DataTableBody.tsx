@@ -22,6 +22,7 @@ function DataTableBodyInner<T extends object>(
     onRowClick,
     loading,
     selectableRows = false,
+    showSelectAllRows = true,
     selectedRowIds = [],
     onToggleRowSelection,
     onToggleSelectAll,
@@ -143,6 +144,7 @@ function DataTableBodyInner<T extends object>(
           orderBy={orderBy}
           renderHeaderActions={renderHeaderActions}
           selectableRows={selectableRows}
+          showSelectAllRows={showSelectAllRows}
           someRowsSelected={someRowsSelected}
         />
         {loading ? (

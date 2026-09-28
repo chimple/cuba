@@ -12,9 +12,15 @@ export function getGradeOptions<T extends { grade?: string | number }>(
 
 export function filterBySearchAndFilters<
   T extends {
-    user: { name?: string; email?: string; student_id?: string };
+    user: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      student_id?: string;
+    };
     grade?: string | number;
     classSection?: string;
+    class?: string;
   },
 >(
   items: T[],
@@ -46,8 +52,16 @@ export function filterBySearchAndFilters<
       if (type === 'student') {
         return (
           (item.user.name && item.user.name.toLowerCase().includes(term)) ||
+          (item.user.email && item.user.email.toLowerCase().includes(term)) ||
+          (item.user.phone && item.user.phone.toLowerCase().includes(term)) ||
           (item.user.student_id &&
-            item.user.student_id.toLowerCase().includes(term))
+            item.user.student_id.toLowerCase().includes(term)) ||
+          String(item.grade ?? '')
+            .toLowerCase()
+            .includes(term) ||
+          (item.classSection &&
+            item.classSection.toLowerCase().includes(term)) ||
+          (item.class && item.class.toLowerCase().includes(term))
         );
       } else {
         return (

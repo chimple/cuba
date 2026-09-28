@@ -1,17 +1,6 @@
 import React from 'react';
-import {
-  Button,
-  Divider,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Tab,
-  Tabs,
-} from '@mui/material';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { Button, Tab, Tabs } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { t } from 'i18next';
 import { PROGRAM_TAB } from '../../common/constants';
 import type { Column } from '../components/DataTableBody';
@@ -27,6 +16,9 @@ import {
   type SchoolPerformanceFilterValue,
 } from './SchoolList.helpers';
 import SchoolListAppliedFilters from './SchoolListAppliedFilters';
+import SchoolListHeaderActions, {
+  type OfflineCacheSelectionAction,
+} from './SchoolListHeaderActions';
 
 type SchoolListHeaderControlsProps = {
   actionsAnchorEl: HTMLElement | null;
@@ -37,12 +29,26 @@ type SchoolListHeaderControlsProps = {
   handleCloseActionsMenu: () => void;
   handleExportSchools: () => void;
   handleOpenActionsMenu: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleCacheSelectedSchools: () => void;
+  handleClearSelectedSchoolCaches: () => void;
+  handleStartOfflineCacheSelection: (
+    action: OfflineCacheSelectionAction,
+  ) => void;
+  handleCancelOfflineCacheSelection: () => void;
   handleOpenAddSchoolPage: () => void;
   handleOpenFilters: () => void;
   handleOpenMigratePage: () => void;
   handleOpenUploadPage: () => void;
   handleSelectDateRange: (nextRange: DateRangeValue) => void;
   haveAccess: boolean;
+  cacheOfflineEnabled: boolean;
+  selectedSchoolIds: string[];
+  isCachingSchools: boolean;
+  isClearingSchoolCaches: boolean;
+  isOfflineCacheSelectionMode: boolean;
+  offlineCacheSelectionAction: OfflineCacheSelectionAction | null;
+  saveOfflineCacheLabel: string;
+  clearOfflineCacheLabel: string;
   isActionsButtonCloseShine: boolean;
   isActionsMenuOpen: boolean;
   isExportDisabled: boolean;
@@ -78,12 +84,24 @@ export default function SchoolListHeaderControls({
   handleCloseActionsMenu,
   handleExportSchools,
   handleOpenActionsMenu,
+  handleCacheSelectedSchools,
+  handleClearSelectedSchoolCaches,
+  handleStartOfflineCacheSelection,
+  handleCancelOfflineCacheSelection,
   handleOpenAddSchoolPage,
   handleOpenFilters,
   handleOpenMigratePage,
   handleOpenUploadPage,
   handleSelectDateRange,
   haveAccess,
+  cacheOfflineEnabled,
+  selectedSchoolIds,
+  isCachingSchools,
+  isClearingSchoolCaches,
+  isOfflineCacheSelectionMode,
+  offlineCacheSelectionAction,
+  saveOfflineCacheLabel,
+  clearOfflineCacheLabel,
   isActionsButtonCloseShine,
   isActionsMenuOpen,
   isExportDisabled,
@@ -107,52 +125,14 @@ export default function SchoolListHeaderControls({
   tabOptions,
   tempFilters,
 }: SchoolListHeaderControlsProps) {
-  const actionItems = !isExternalUser
-    ? [
-        ...(haveAccess
-          ? [
-              {
-                key: 'migrate',
-                label: t('Migrate'),
-                icon: (
-                  <img
-                    id="school-list-actions-migrate-icon"
-                    src="assets/icons/migrateArrow.svg"
-                    alt=""
-                    className="school-list-actions-menu-icon-image"
-                  />
-                ),
-                onClick: handleOpenMigratePage,
-              },
-            ]
-          : []),
-        {
-          key: 'upload',
-          label: t('Upload'),
-          icon: <FileUploadOutlined className="school-list-upload-icon" />,
-          onClick: handleOpenUploadPage,
-        },
-        ...(haveAccess
-          ? [
-              {
-                key: 'add-school',
-                label: t('Add School'),
-                icon: <Add className="school-list-upload-icon" />,
-                onClick: handleOpenAddSchoolPage,
-              },
-            ]
-          : []),
-      ]
-    : [];
-
   return (
     <div className="school-list-header-and-search-filter">
       <div className="school-list-search-filter">
         <div className="school-list-tab-wrapper">
           <Tabs
             value={selectedTab}
-            onChange={(e, val) => {
-              setSelectedTab(val);
+            onChange={(event, value) => {
+              setSelectedTab(value);
               setPage(1);
             }}
             indicatorColor="primary"
@@ -170,13 +150,18 @@ export default function SchoolListHeaderControls({
             ))}
           </Tabs>
         </div>
-
-        <div className="school-list-button-and-search-filter">
+        <div
+          className={`school-list-button-and-search-filter${
+            isOfflineCacheSelectionMode
+              ? ' school-list-cache-selection-active'
+              : ''
+          }`}
+        >
           <div className="school-list-search-control">
             <SearchAndFilter
               searchTerm={searchTerm}
-              onSearchChange={(e) => {
-                setSearchTerm(e.target.value);
+              onSearchChange={(event) => {
+                setSearchTerm(event.target.value);
                 setPage(1);
               }}
               filters={filters}
@@ -191,75 +176,32 @@ export default function SchoolListHeaderControls({
               onClick={handleExportSchools}
             />
           </div>
-          <div className="school-list-actions-group">
-            {!isExternalUser && (
-              <Button
-                variant="outlined"
-                id="school-list-actions-button"
-                className={`school-list-actions-button${
-                  isActionsButtonCloseShine
-                    ? ' school-list-actions-button-close-shine'
-                    : ''
-                }`}
-                onClick={handleOpenActionsMenu}
-                aria-controls={
-                  isActionsMenuOpen ? 'school-list-actions-menu' : undefined
-                }
-                aria-expanded={isActionsMenuOpen ? 'true' : undefined}
-                aria-haspopup="menu"
-                endIcon={
-                  <ArrowDropDownIcon
-                    className={`school-list-actions-chevron ${
-                      isActionsMenuOpen
-                        ? 'school-list-actions-chevron-open'
-                        : ''
-                    }`}
-                  />
-                }
-              >
-                {t('Actions')}
-              </Button>
-            )}
-            <Menu
-              id="school-list-actions-menu"
-              anchorEl={actionsAnchorEl}
-              open={isActionsMenuOpen}
-              onClose={handleCloseActionsMenu}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              MenuListProps={{ disablePadding: true }}
-              PaperProps={{ className: 'school-list-actions-menu' }}
-            >
-              {actionItems.flatMap((item, index) => [
-                <MenuItem
-                  key={item.key}
-                  className="school-list-actions-menu-item"
-                  onClick={() => {
-                    handleCloseActionsMenu();
-                    item.onClick();
-                  }}
-                >
-                  <ListItemIcon className="school-list-actions-menu-item-icon">
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      className: 'school-list-actions-menu-item-label',
-                    }}
-                  />
-                </MenuItem>,
-                ...(index < actionItems.length - 1
-                  ? [
-                      <Divider
-                        key={`${item.key}-divider`}
-                        className="school-list-actions-menu-divider"
-                      />,
-                    ]
-                  : []),
-              ])}
-            </Menu>
-          </div>
+          <SchoolListHeaderActions
+            actionsAnchorEl={actionsAnchorEl}
+            cacheOfflineEnabled={cacheOfflineEnabled}
+            clearOfflineCacheLabel={clearOfflineCacheLabel}
+            handleCacheSelectedSchools={handleCacheSelectedSchools}
+            handleCancelOfflineCacheSelection={
+              handleCancelOfflineCacheSelection
+            }
+            handleClearSelectedSchoolCaches={handleClearSelectedSchoolCaches}
+            handleCloseActionsMenu={handleCloseActionsMenu}
+            handleOpenActionsMenu={handleOpenActionsMenu}
+            handleOpenAddSchoolPage={handleOpenAddSchoolPage}
+            handleOpenMigratePage={handleOpenMigratePage}
+            handleOpenUploadPage={handleOpenUploadPage}
+            handleStartOfflineCacheSelection={handleStartOfflineCacheSelection}
+            haveAccess={haveAccess}
+            isActionsButtonCloseShine={isActionsButtonCloseShine}
+            isActionsMenuOpen={isActionsMenuOpen}
+            isCachingSchools={isCachingSchools}
+            isClearingSchoolCaches={isClearingSchoolCaches}
+            isExternalUser={isExternalUser}
+            isOfflineCacheSelectionMode={isOfflineCacheSelectionMode}
+            offlineCacheSelectionAction={offlineCacheSelectionAction}
+            saveOfflineCacheLabel={saveOfflineCacheLabel}
+            selectedSchoolIds={selectedSchoolIds}
+          />
           <div className="school-list-date-range-control">
             <SchoolListDateRangeDropdown
               value={selectedDateRange}
@@ -277,7 +219,6 @@ export default function SchoolListHeaderControls({
           </div>
         </div>
       </div>
-
       <SchoolListAppliedFilters
         columns={columns}
         filterOptions={filterOptions}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCachedLocalSvgSrc } from '../../../utility/imageCache';
 import { Box, IconButton, Typography } from '@mui/material';
 import { MoreHoriz } from '@mui/icons-material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -42,7 +43,7 @@ export const buildSchoolPrincipalColumns = ({
                 }}
               >
                 <img
-                  src="/assets/icons/Interact.svg"
+                  src={getCachedLocalSvgSrc('/assets/icons/Interact.svg')}
                   alt="Interact"
                   className="school-principals-interactIcon"
                 />

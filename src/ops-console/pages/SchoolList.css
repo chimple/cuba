@@ -99,6 +99,65 @@
   flex-shrink: 0;
 }
 
+.school-list-cache-save-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.school-list-cache-save-button.MuiButton-root {
+  border-radius: 20px !important;
+  box-shadow: 0px 2px 6px rgba(26, 113, 246, 0.18) !important;
+  height: 36px !important;
+  padding: 6px 16px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  min-width: 92px !important;
+  background: #1a71f6 !important;
+}
+
+.school-list-cache-save-button.MuiButton-root.Mui-disabled {
+  background: rgba(26, 113, 246, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.school-list-cache-save-icon {
+  color: #ffffff;
+}
+
+.school-list-cache-save-spinner.MuiCircularProgress-root {
+  color: #ffffff !important;
+}
+
+.school-list-cache-clear-button.MuiButton-root {
+  min-width: 104px !important;
+  height: 36px !important;
+  border-radius: 20px !important;
+  text-transform: none !important;
+  color: #b42318 !important;
+  border-color: #f9b4ab !important;
+  font-weight: 600 !important;
+}
+
+.school-list-cache-clear-button.MuiButton-root.Mui-disabled {
+  color: rgba(180, 35, 24, 0.45) !important;
+  border-color: rgba(249, 180, 171, 0.55) !important;
+}
+
+.school-list-cache-clear-spinner.MuiCircularProgress-root {
+  color: #b42318 !important;
+}
+
+.school-list-cache-cancel-button.MuiButton-root {
+  min-width: 70px !important;
+  height: 36px !important;
+  border-radius: 20px !important;
+  text-transform: none !important;
+  color: #4b5563 !important;
+  font-weight: 600 !important;
+}
+
 .school-list-actions-group {
   display: flex;
   align-items: center;
@@ -393,13 +452,61 @@
   }
 
   .school-list-date-range-control,
-  .school-list-export-control {
+  .school-list-export-control,
+  .school-list-cache-save-control {
     min-width: 0;
     width: 100%;
   }
 
+  .school-list-cache-save-control {
+    justify-content: center;
+  }
+
+  .school-list-cache-selection-active .school-list-cache-save-control {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  .school-list-cache-selection-active .school-list-actions-group {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .school-list-cache-selection-active .school-list-export-control {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .school-list-cache-selection-active .school-list-date-range-control {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .school-list-cache-selection-active .school-list-filter-control {
+    grid-column: 3;
+    grid-row: 3;
+  }
+
+  .school-list-cache-selection-active
+    .school-list-cache-save-button.MuiButton-root,
+  .school-list-cache-selection-active
+    .school-list-cache-clear-button.MuiButton-root {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0 !important;
+  }
+
+  .school-list-cache-selection-active
+    .school-list-cache-cancel-button.MuiButton-root {
+    flex: 0 0 auto;
+    min-width: 64px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
   .school-list-date-range-button.MuiButton-root,
   .school-list-export-button.MuiButton-root,
+  .school-list-cache-save-button.MuiButton-root,
   .school-list-actions-group .school-list-actions-button.MuiButton-root {
     min-width: 0 !important;
     width: 100%;
@@ -422,6 +529,8 @@
   .school-list-date-range-button.MuiButton-root .MuiButton-startIcon,
   .school-list-export-button.MuiButton-root .MuiButton-endIcon,
   .school-list-export-button.MuiButton-root .MuiButton-startIcon,
+  .school-list-cache-save-button.MuiButton-root .MuiButton-endIcon,
+  .school-list-cache-save-button.MuiButton-root .MuiButton-startIcon,
   .school-list-actions-group
     .school-list-actions-button.MuiButton-root
     .MuiButton-endIcon,

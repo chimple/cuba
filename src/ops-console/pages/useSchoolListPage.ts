@@ -24,6 +24,7 @@ import {
 } from './SchoolList.helpers';
 import { useDebouncedValue, useSchoolListData } from './SchoolList.fetcher';
 import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
+import { useSchoolListOfflineCache } from './useSchoolListOfflineCache';
 import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
@@ -101,6 +102,15 @@ export function useSchoolListPage() {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const offlineCacheRoles = [
+    RoleType.FIELD_COORDINATOR,
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+  ];
+  const cacheOfflineEnabled = userRoles.some((role) =>
+    offlineCacheRoles.includes(role as RoleType),
+  );
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 800);
   const isSearchPending = searchTerm !== debouncedSearchTerm;
   const rolesWithAccess = [
@@ -148,11 +158,72 @@ export function useSchoolListPage() {
     percentageFilters,
     schoolPerformanceFilter,
   });
-  const renderedSchools = useMemo(
-    () => mapSchoolRowsToRenderRows(schools),
-    [schools],
+  const schoolListCacheFallbackKey = useMemo(
+    () =>
+      JSON.stringify({
+        filters,
+        selectedTab,
+        page,
+        pageSize,
+        orderBy,
+        orderDir,
+        searchTerm: debouncedSearchTerm,
+        selectedDateRange,
+        percentageFilters,
+        schoolPerformanceFilter,
+      }),
+    [
+      filters,
+      selectedTab,
+      page,
+      pageSize,
+      orderBy,
+      orderDir,
+      debouncedSearchTerm,
+      selectedDateRange,
+      percentageFilters,
+      schoolPerformanceFilter,
+    ],
   );
-  const isLoading = isDataLoading;
+  const {
+    clearOfflineCacheLabel,
+    handleCacheSelectedSchools,
+    handleCancelOfflineCacheSelection,
+    handleClearSelectedSchoolCaches,
+    handleStartOfflineCacheSelection,
+    handleToggleSchoolSelection,
+    isCachingSchools,
+    isClearingSchoolCaches,
+    isOfflineCacheSelectionMode,
+    offlineCachedSchools,
+    offlineCacheSelectionAction,
+    refreshOfflineCachedSchools,
+    saveOfflineCacheLabel,
+    selectedSchoolIds,
+    showCachedSchoolsOnly,
+  } = useSchoolListOfflineCache({
+    api,
+    cacheOfflineEnabled,
+    isExternalUser,
+    schools,
+    selectedDateRange,
+    isSchoolListLoading: isDataLoading,
+    cacheFallbackKey: schoolListCacheFallbackKey,
+    setPage,
+  });
+  const visibleSchools = useMemo(
+    () => (showCachedSchoolsOnly ? offlineCachedSchools : schools),
+    [offlineCachedSchools, schools, showCachedSchoolsOnly],
+  );
+  const renderedSchools = useMemo(
+    () => mapSchoolRowsToRenderRows(visibleSchools),
+    [visibleSchools],
+  );
+  const isLoading =
+    isFilterLoading || (!showCachedSchoolsOnly && isDataLoading);
+  const displayTotal = showCachedSchoolsOnly
+    ? offlineCachedSchools.length
+    : total;
   const { isExporting, isExportDisabled, handleExportSchools } =
     useSchoolListExport({
       api,
@@ -164,7 +235,7 @@ export function useSchoolListPage() {
       selectedDateRange,
       percentageFilters,
       schoolPerformanceFilter,
-      total,
+      total: displayTotal,
       isLoading,
       isSearchPending,
     });
@@ -342,8 +413,8 @@ export function useSchoolListPage() {
     setPage(1);
   }, []);
   const pageCount = useMemo(
-    () => Math.ceil(total / pageSize),
-    [pageSize, total],
+    () => Math.ceil(displayTotal / pageSize),
+    [displayTotal, pageSize],
   );
   const activePercentageBand = activePercentageFilterKey
     ? percentageFilters[activePercentageFilterKey]
@@ -366,6 +437,10 @@ export function useSchoolListPage() {
     handleOpenAddSchoolPage,
     handleOpenFilters,
     handleOpenMigratePage,
+    handleCacheSelectedSchools,
+    handleClearSelectedSchoolCaches,
+    handleStartOfflineCacheSelection,
+    handleCancelOfflineCacheSelection,
     handleOpenPercentageFilter,
     handleOpenSchoolPerformanceFilter,
     handleOpenUploadPage,
@@ -373,14 +448,22 @@ export function useSchoolListPage() {
     handleSelectPercentageFilter,
     handleSelectSchoolPerformanceFilter,
     handleSort,
+    handleToggleSchoolSelection,
     haveAccess,
     isActionsButtonCloseShine,
     isActionsMenuOpen,
+    isCachingSchools,
+    isClearingSchoolCaches,
+    isOfflineCacheSelectionMode,
+    offlineCacheSelectionAction,
+    saveOfflineCacheLabel,
+    clearOfflineCacheLabel,
     isExportDisabled,
     isExporting,
     isExternalUser,
     isFilterLoading,
     isFilterOpen,
+    cacheOfflineEnabled,
     isLoading,
     orderBy,
     orderDir,
@@ -392,7 +475,9 @@ export function useSchoolListPage() {
     schoolPerformanceFilter,
     schoolPerformanceFilterAnchorEl,
     searchTerm,
+    refreshOfflineCachedSchools,
     selectedDateRange,
+    selectedSchoolIds,
     selectedTab,
     setFilters,
     setIsFilterOpen,

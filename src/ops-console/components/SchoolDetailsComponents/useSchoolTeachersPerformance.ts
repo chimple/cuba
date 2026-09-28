@@ -126,7 +126,9 @@ export const useSchoolTeachersPerformance = ({
       const activeApi = ServiceConfig.getI().apiHandler;
       const pairs = Array.from(pairByKey.values());
 
-      if (pairs.length > 0) {
+      const isOffline =
+        typeof navigator !== 'undefined' && navigator.onLine === false;
+      if (pairs.length > 0 && !isOffline) {
         try {
           Object.assign(
             countsByPair,

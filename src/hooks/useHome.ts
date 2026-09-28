@@ -72,10 +72,7 @@ export const useHome = () => {
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
-  const location = useLocation<{
-    fromLido?: boolean;
-    fromSwitchProfileReturn?: boolean;
-  }>();
+  const location = useLocation<Record<string, boolean | undefined>>();
   const urlParams = new URLSearchParams(location.search);
   const isReturnFromSwitchProfileReturn =
     location.state?.fromSwitchProfileReturn === true;
@@ -98,6 +95,7 @@ export const useHome = () => {
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const hasSkippedSwitchProfileReturnTabSyncRef = useRef(false);
   const [currentHeader, setCurrentHeader] = useState(() => {
+    if (location.state?.isHomework === true) return HOMEHEADERLIST.ASSIGNMENT;
     if (isReturnFromLidoOrSwitchProfile) {
       return HOMEHEADERLIST.HOME;
     }

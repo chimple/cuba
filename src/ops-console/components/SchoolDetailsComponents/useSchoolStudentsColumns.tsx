@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { getCachedLocalSvgSrc } from '../../../utility/imageCache';
 import { Box, Chip, IconButton, Typography } from '@mui/material';
 import {
   BorderColor as BorderColorIcon,
@@ -205,7 +206,7 @@ export const useSchoolStudentsColumns = ({
                     onClick={() => handleInteractClick(s)}
                   >
                     <img
-                      src="/assets/icons/Interact.svg"
+                      src={getCachedLocalSvgSrc('/assets/icons/Interact.svg')}
                       alt="Interact"
                       style={{ width: 30, height: 30 }}
                     />

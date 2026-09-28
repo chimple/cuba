@@ -46,13 +46,37 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
 
     const offset = (page - 1) * limit;
 
+    const normalizedClassId =
+      typeof classId === 'string' && classId.trim() !== ''
+        ? classId.trim()
+        : undefined;
+    const normalizedClassIds =
+      !normalizedClassId && classIds
+        ? classIds
+            .map((classIdItem) => String(classIdItem).trim())
+            .filter((classIdItem) => classIdItem.length > 0)
+        : undefined;
+
+    if (!normalizedClassId && classIds && normalizedClassIds?.length === 0) {
+      return { data: [], total: 0 };
+    }
+
     // Query classes first and filter class_user by class_id list.
     // This avoids expensive class_user -> class join scans that can timeout.
-    const { data: schoolClasses, error: classFetchError } = await this.supabase // fetch classes for the school
+    let schoolClassQuery = this.supabase // fetch classes for the school
       .from(TABLES.Class)
       .select('id, name')
       .eq('school_id', schoolId)
       .eq('is_deleted', false);
+
+    if (normalizedClassId) {
+      schoolClassQuery = schoolClassQuery.eq('id', normalizedClassId);
+    } else if (normalizedClassIds && normalizedClassIds.length > 0) {
+      schoolClassQuery = schoolClassQuery.in('id', normalizedClassIds);
+    }
+
+    const { data: schoolClasses, error: classFetchError } =
+      await schoolClassQuery;
 
     if (classFetchError) {
       logger.error(
@@ -65,14 +89,12 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
     const classMap = new Map<string, string>(
       (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]), // store clsId and clsName in a map of that particular school
     );
-    const allowedClassIds = classId
-      ? classMap.has(classId)
-        ? [classId]
+    const allowedClassIds = normalizedClassId
+      ? classMap.has(normalizedClassId)
+        ? [normalizedClassId]
         : []
-      : classIds && classIds.length > 0
-        ? classIds
-            .map((classIdItem) => String(classIdItem).trim())
-            .filter((classIdItem) => classMap.has(classIdItem))
+      : normalizedClassIds && normalizedClassIds.length > 0
+        ? normalizedClassIds.filter((classIdItem) => classMap.has(classIdItem))
         : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
 
     if (allowedClassIds.length === 0) {
@@ -105,7 +127,6 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
         student_id,
         reward,
         updated_at,
-        learning_path,
         id,
         name,
         phone,
