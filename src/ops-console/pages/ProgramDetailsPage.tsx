@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Grid,
@@ -10,12 +10,17 @@ import { useHistory } from 'react-router-dom';
 import './ProgramDetailsPage.css';
 import Breadcrumb from '../components/Breadcrumb';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 import { t } from 'i18next';
 import { PROGRAM_TAB_LABELS } from '../../common/constants';
 import { BsFillBellFill } from 'react-icons/bs';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import EditProgramFieldCoordinatorsDialog from '../components/EditProgramFieldCoordinatorsDialog';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
 import {
   ProgramContactsColumn,
+  ProgramContact,
   ProgramData,
   ProgramInfoColumn,
   ProgramStatisticsColumn,
@@ -54,7 +59,20 @@ const formatProgramDate = (value: string) => {
 const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const roles = useAppSelector((state) => state.auth.roles) ?? [];
+  const canEditFieldCoordinators = roles.some((role) =>
+    [
+      RoleType.PROGRAM_MANAGER,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.SUPER_ADMIN,
+    ].includes(role as RoleType),
+  );
 
+  const [isEditFieldCoordinatorsOpen, setIsEditFieldCoordinatorsOpen] =
+    useState(false);
+  const [fieldCoordinators, setFieldCoordinators] = useState<ProgramContact[]>(
+    [],
+  );
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ProgramStats>({
@@ -67,6 +85,23 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   });
   const [renderDetails, setRenderDetails] = useState(false);
 
+  const loadFieldCoordinators = useCallback(async () => {
+    const response = await api.getFieldCoordinatorsByProgram(id);
+    setFieldCoordinators(
+      response.data.map((coordinator) => ({
+        id: coordinator.id,
+        name:
+          coordinator.name ||
+          coordinator.email ||
+          coordinator.phone ||
+          coordinator.id,
+        role: t('Field Coordinator'),
+        phone: coordinator.phone || '',
+        email: coordinator.email || '',
+      })),
+    );
+  }, [api, id]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -78,6 +113,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
         return;
       }
       const result = await api.program_activity_stats(id);
+      await loadFieldCoordinators();
       const countStats = Array.isArray(result) ? result[0] : result;
 
       setStats({
@@ -100,8 +136,12 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
       setLoading(false);
     };
 
-    fetchData();
-  }, [id]);
+    fetchData().catch((error) => {
+      logger.error('Error loading program details:', error);
+      setData(null);
+      setLoading(false);
+    });
+  }, [api, id, loadFieldCoordinators]);
 
   if (renderDetails) {
     return <ProgramConnectedSchoolPage id={id} />;
@@ -156,10 +196,24 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
         <Grid container spacing={2}>
           <ProgramInfoColumn data={data} />
-          <ProgramContactsColumn data={data} />
+          <ProgramContactsColumn
+            data={data}
+            fieldCoordinators={fieldCoordinators}
+            canEditFieldCoordinators={canEditFieldCoordinators}
+            onEditFieldCoordinators={() => setIsEditFieldCoordinatorsOpen(true)}
+          />
           <ProgramStatisticsColumn history={history} id={id} stats={stats} />
         </Grid>
       </Box>
+
+      {canEditFieldCoordinators && (
+        <EditProgramFieldCoordinatorsDialog
+          open={isEditFieldCoordinatorsOpen}
+          programId={id}
+          onClose={() => setIsEditFieldCoordinatorsOpen(false)}
+          onSaved={loadFieldCoordinators}
+        />
+      )}
     </div>
   );
 };

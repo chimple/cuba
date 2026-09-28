@@ -5,6 +5,7 @@ import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import { SchoolCourseRemovalError } from '../../utility/schoolCourseRemoval';
 import { useSchoolCourseSelection } from './useSchoolCourseSelection';
 import { useSchoolFormChanges } from './useSchoolFormChanges';
 
@@ -121,6 +122,9 @@ export const useAddSchoolPage = () => {
   const api = ServiceConfig.getI().apiHandler;
   const {
     courseLoadError,
+    courseRemovalError,
+    courseRemovalWarning,
+    setCourseRemovalError,
     courses,
     grades,
     initialSelectedCourseIds,
@@ -293,11 +297,13 @@ export const useAddSchoolPage = () => {
       contacts[0].fields[1].value?.length === 10 &&
       (contacts[1].fields[1].value?.length === 0 ||
         contacts[1].fields[1].value?.length === 10) &&
+      selectedCourseIds.length > 0 &&
+      !isCoursesLoading &&
+      !courseLoadError &&
+      !courseRemovalError &&
       !errorMessage;
 
-    return editData
-      ? !isFormValid || courseLoadError || !hasChanges()
-      : !isFormValid;
+    return editData ? !isFormValid || !hasChanges() : !isFormValid;
   };
 
   const handleUdiseChange = async (value: string) => {
@@ -427,6 +433,10 @@ export const useAddSchoolPage = () => {
   }, [api, editData, program]);
 
   async function handleApprove() {
+    if (isCoursesLoading || courseLoadError || selectedCourseIds.length === 0) {
+      return;
+    }
+
     if (udise.length !== UDISE_LENGTH) {
       setErrorMessage(INVALID_UDISE_MESSAGE);
       return;
@@ -445,6 +455,10 @@ export const useAddSchoolPage = () => {
     try {
       setIsSaving(true);
       if (editData) {
+        await api.updateSchoolCourseSelection(
+          editData.schoolData.id,
+          selectedCourseIds,
+        );
         await api.updateSchoolProfile(
           editData.schoolData,
           schoolName,
@@ -462,10 +476,6 @@ export const useAddSchoolPage = () => {
           schoolModel,
           address.link,
           keyContacts,
-        );
-        await api.updateSchoolCourseSelection(
-          editData.schoolData.id,
-          selectedCourseIds,
         );
         if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
           await api.createAtSchoolUser(
@@ -526,6 +536,14 @@ export const useAddSchoolPage = () => {
       }
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
+      if (err instanceof SchoolCourseRemovalError) {
+        setCourseRemovalError(
+          t(
+            'Cannot remove these courses because the following classes would have no courses: {{classes}}. Add another course to these classes first.',
+            { classes: err.classNames.join(', ') },
+          ) ?? '',
+        );
+      }
       logger.error('Save error:', err);
     } finally {
       setIsSaving(false);
@@ -536,6 +554,7 @@ export const useAddSchoolPage = () => {
     address,
     blocks,
     courses,
+    courseRemovalError: courseRemovalWarning || courseRemovalError,
     contacts,
     districts,
     editData,

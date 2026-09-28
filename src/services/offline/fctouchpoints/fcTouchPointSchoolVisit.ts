@@ -131,7 +131,7 @@ export async function recordSchoolVisit(
 
     const openVisit = await getLatestOpenVisit(this, schoolId, user.id);
     let backendSnapshot = localSnapshot;
-    if (openVisit) {
+    if (openVisit && (!localSnapshot || openVisit.id === localSnapshot.id)) {
       backendSnapshot = {
         id: openVisit.id,
         school_id: schoolId,
@@ -161,9 +161,10 @@ export async function recordSchoolVisit(
     }
 
     const nextNumberOfParents =
-      backendSnapshot?.type === SchoolVisitType.Community
+      (backendSnapshot?.type ?? queueEntry.payload.visitType) ===
+      SchoolVisitType.Community
         ? numberOfParents == null
-          ? backendSnapshot.number_of_parents
+          ? (backendSnapshot?.number_of_parents ?? null)
           : numberOfParents
         : null;
 
@@ -183,31 +184,6 @@ export async function recordSchoolVisit(
       .eq('id', visitId)
       .select()
       .single();
-
-    if ((getPostgrestErrorCode(error) ?? '') === 'PGRST116') {
-      const freshOpenVisit = await getLatestOpenVisit(this, schoolId, user.id);
-      if (freshOpenVisit?.id && freshOpenVisit.id !== visitId) {
-        ({ data, error } = await this.supabase
-          .from('fc_school_visit')
-          .update({
-            check_out_at: now,
-            check_out_lat: lat,
-            check_out_lng: lng,
-            number_of_parents:
-              (freshOpenVisit.type ?? null) === SchoolVisitType.Community
-                ? (numberOfParents ?? freshOpenVisit.number_of_parents ?? null)
-                : null,
-            updated_at: now,
-            distance_from_school:
-              distanceFromSchool == null
-                ? (freshOpenVisit.distance_from_school ?? null)
-                : String(distanceFromSchool),
-          })
-          .eq('id', freshOpenVisit.id)
-          .select()
-          .single());
-      }
-    }
 
     if (error) {
       logger.error('SupabaseApi: Update Error:', error);

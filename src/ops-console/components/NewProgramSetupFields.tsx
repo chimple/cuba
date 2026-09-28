@@ -2,6 +2,7 @@ import {
   Autocomplete,
   Box,
   Checkbox,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -22,16 +23,23 @@ import { useNewProgramForm } from './useNewProgramForm';
 
 type NewProgramForm = ReturnType<typeof useNewProgramForm>;
 
-export default function NewProgramSetupFields({ form }: { form: NewProgramForm }) {
+export default function NewProgramSetupFields({
+  form,
+}: {
+  form: NewProgramForm;
+}) {
   const {
     errors,
+    fieldCoordinatorPicker,
     handleBlur,
     handleModelToggle,
     models,
     programManagers,
     programType,
+    selectedFieldCoordinators,
     selectedManagers,
     setProgramType,
+    setSelectedFieldCoordinators,
     setSelectedManagers,
     touchedFields,
   } = form;
@@ -141,13 +149,74 @@ export default function NewProgramSetupFields({ form }: { form: NewProgramForm }
                 !!errors['programManager'] && touchedFields['programManager']
               }
               helperText={
-                touchedFields['programManager']
-                  ? errors['programManager']
+                touchedFields['programManager'] ? errors['programManager'] : ''
+              }
+              InputProps={{
+                ...params.InputProps,
+                sx: { borderRadius: '12px' },
+              }}
+            />
+          )}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, sm: 4, md: 4 }} mb={3}>
+        <Typography
+          variant="subtitle1"
+          color="text.primary"
+          fontWeight="bold"
+          mb={1}
+        >
+          {t('Field Coordinators')}
+        </Typography>
+        <Autocomplete
+          multiple
+          disableCloseOnSelect
+          options={fieldCoordinatorPicker.options}
+          loading={fieldCoordinatorPicker.loading}
+          inputValue={fieldCoordinatorPicker.search}
+          onInputChange={(_, value, reason) => {
+            if (reason === 'input' || reason === 'clear')
+              fieldCoordinatorPicker.setSearch(value);
+          }}
+          filterOptions={(options) => options}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          getOptionKey={(option) => option.id}
+          ListboxProps={{ onScroll: fieldCoordinatorPicker.onScroll }}
+          getOptionLabel={(option) => option.name}
+          value={fieldCoordinatorPicker.options.filter((fc) =>
+            selectedFieldCoordinators.includes(fc.id),
+          )}
+          onChange={(_, values) =>
+            setSelectedFieldCoordinators(values.map((fc) => fc.id))
+          }
+          renderOption={(props, option, { selected }) => (
+            <li {...props}>
+              <Checkbox checked={selected} sx={{ mr: 1 }} />
+              {option.name}
+            </li>
+          )}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={t('Select Field Coordinators')}
+              error={fieldCoordinatorPicker.error}
+              helperText={
+                fieldCoordinatorPicker.error
+                  ? t('Unable to load Field Coordinators')
                   : ''
               }
               InputProps={{
                 ...params.InputProps,
                 sx: { borderRadius: '12px' },
+                endAdornment: (
+                  <>
+                    {fieldCoordinatorPicker.loading && (
+                      <CircularProgress size={18} />
+                    )}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
               }}
             />
           )}

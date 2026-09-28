@@ -7,6 +7,10 @@ import {
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import logger from '../../../utility/logger';
 import {
+  readFcSchoolOfflineCache,
+  writeFcSchoolOfflineCache,
+} from '../../../services/offline/fcSchoolOfflineCache';
+import {
   getClassDisplayLabel,
   getExactClassName,
 } from './ClassDetailsPageUtils';
@@ -20,6 +24,7 @@ type UseSchoolTeachersPerformanceProps = {
   getWhatsappGroupStatus: (
     teacher: TeacherInfo,
   ) => TeacherWhatsappGroupStatusKey;
+  schoolId: string;
   sortedTeachers: TeacherInfo[];
 };
 
@@ -71,6 +76,7 @@ const toDisplayTeacher = (
 
 export const useSchoolTeachersPerformance = ({
   getWhatsappGroupStatus,
+  schoolId,
   sortedTeachers,
 }: UseSchoolTeachersPerformanceProps) => {
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
@@ -128,7 +134,13 @@ export const useSchoolTeachersPerformance = ({
 
       const isOffline =
         typeof navigator !== 'undefined' && navigator.onLine === false;
-      if (pairs.length > 0 && !isOffline) {
+      if (isOffline) {
+        const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+        Object.assign(
+          countsByPair,
+          cachedSchool?.teacherAssignmentCounts ?? {},
+        );
+      } else if (pairs.length > 0) {
         try {
           Object.assign(
             countsByPair,
@@ -136,6 +148,21 @@ export const useSchoolTeachersPerformance = ({
           );
         } catch (error) {
           logger.error('Failed to load teacher performance counts:', {
+            error,
+          });
+        }
+      }
+
+      if (!isOffline && Object.keys(countsByPair).length > 0) {
+        try {
+          const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+          if (cachedSchool) {
+            await writeFcSchoolOfflineCache(schoolId, {
+              teacherAssignmentCounts: countsByPair,
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to update cached teacher performance', {
             error,
           });
         }
@@ -172,7 +199,7 @@ export const useSchoolTeachersPerformance = ({
     return () => {
       cancelled = true;
     };
-  }, [sortedTeachers]);
+  }, [schoolId, sortedTeachers]);
 
   const teachersWithWhatsappStatus = useMemo(
     () =>

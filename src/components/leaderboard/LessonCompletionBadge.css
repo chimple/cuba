@@ -1,0 +1,77 @@
+.lesson-completion-badge {
+  position: relative;
+  width: 164px;
+  height: 151px;
+}
+
+.lesson-completion-badge--locked {
+  filter: grayscale(100%) opacity(0.5);
+}
+
+.lesson-completion-badge span,
+.lesson-completion-badge svg {
+  display: block;
+}
+
+.lesson-completion-badge-base,
+.lesson-completion-badge-border,
+.lesson-completion-badge-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.lesson-completion-badge-border {
+  z-index: 2;
+  width: 164px;
+  height: 151px;
+}
+
+.lesson-completion-badge-base {
+  z-index: 1;
+  width: 164px;
+  height: 132px;
+}
+
+.lesson-completion-badge-decoration {
+  z-index: 3;
+  width: 164px;
+  height: 112px;
+}
+
+.lesson-completion-badge-decoration--top-3 {
+  top: 3px;
+}
+
+.lesson-completion-badge-icons {
+  position: absolute;
+  z-index: 4;
+  top: 43px;
+  left: 14px;
+  display: flex;
+  gap: 2px;
+}
+
+.lesson-completion-badge-icon,
+.lesson-completion-badge-icon svg {
+  width: 44px;
+  height: 44px;
+}
+
+.lesson-completion-badge-number {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  z-index: 5;
+  color: #005757;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: normal;
+  text-align: center;
+}
+
+.lesson-completion-badge--shared .lesson-completion-badge-number {
+  bottom: 13px;
+}

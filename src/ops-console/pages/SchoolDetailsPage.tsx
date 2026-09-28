@@ -81,6 +81,78 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   }
 
   const schoolName = data.schoolData?.name;
+  const checkInActions = isExternalUser ? null : (
+    <>
+      {activeTab === SchoolTabs.Overview && (
+        <Button
+          variant="outlined"
+          onClick={() => setShowAddModal(true)}
+          className="btn-add-notes"
+        >
+          + {t('Add Notes')}
+        </Button>
+      )}
+      {checkInStatus === SchoolVisitStatus.CheckedOut ? (
+        <>
+          <Button
+            variant="contained"
+            onClick={handleOpenCheckInMenu}
+            endIcon={
+              <ArrowDropDownIcon
+                className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
+              />
+            }
+            className="btn-check-in"
+          >
+            {t('Check In')}
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleCloseMenu}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            classes={{
+              paper: 'schooldetailspage check-in-menu-paper',
+            }}
+          >
+            {(
+              Object.entries(SchoolVisitTypeLabels) as [
+                SchoolVisitType,
+                string,
+              ][]
+            ).map(([visitType, label], index, items) => (
+              <React.Fragment key={visitType}>
+                <MenuItem
+                  onClick={() => handleSelectVisitType(visitType)}
+                  className="check-in-menu-item"
+                >
+                  {t(label)}
+                </MenuItem>
+                {index < items.length - 1 && (
+                  <Divider className="check-in-menu-divider" />
+                )}
+              </React.Fragment>
+            ))}
+          </Menu>
+        </>
+      ) : (
+        <Button
+          variant="contained"
+          onClick={handleOpenCheckInModal}
+          className="btn-check-out"
+        >
+          {t('Check Out')}
+        </Button>
+      )}
+    </>
+  );
 
   return (
     <div className="schooldetailspage school-detail-container">
@@ -122,80 +194,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                 label: schoolName ?? '',
               },
             ]}
-            endActions={
-              isExternalUser ? null : (
-                <>
-                  {activeTab === SchoolTabs.Overview && (
-                    <Button
-                      variant="outlined"
-                      onClick={() => setShowAddModal(true)}
-                      className="btn-add-notes"
-                    >
-                      + {t('Add Notes')}
-                    </Button>
-                  )}
-                  {checkInStatus === SchoolVisitStatus.CheckedOut ? (
-                    <>
-                      <Button
-                        variant="contained"
-                        onClick={handleOpenCheckInMenu}
-                        endIcon={
-                          <ArrowDropDownIcon
-                            className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
-                          />
-                        }
-                        className="btn-check-in"
-                      >
-                        {t('Check In')}
-                      </Button>
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={openMenu}
-                        onClose={handleCloseMenu}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                        classes={{
-                          paper: 'schooldetailspage check-in-menu-paper',
-                        }}
-                      >
-                        {(
-                          Object.entries(SchoolVisitTypeLabels) as [
-                            SchoolVisitType,
-                            string,
-                          ][]
-                        ).map(([visitType, label], index, items) => (
-                          <React.Fragment key={visitType}>
-                            <MenuItem
-                              onClick={() => handleSelectVisitType(visitType)}
-                              className="check-in-menu-item"
-                            >
-                              {t(label)}
-                            </MenuItem>
-                            {index < items.length - 1 && (
-                              <Divider className="check-in-menu-divider" />
-                            )}
-                          </React.Fragment>
-                        ))}
-                      </Menu>
-                    </>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      onClick={handleOpenCheckInModal}
-                      className="btn-check-out"
-                    >
-                      {t('Check Out')}
-                    </Button>
-                  )}
-                </>
-              )
-            }
+            endActions={checkInActions}
           />
         </div>
       )}
@@ -224,6 +223,13 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           goToClassesTab={goToClassesTab}
           onTabChange={(tab) => setActiveTab(tab)}
           onLoadTabData={loadSchoolDetailsTabData}
+          mobileActions={
+            isMobile && schoolName && !isExternalUser ? (
+              <div className="school-detail-mobile-actions">
+                {checkInActions}
+              </div>
+            ) : null
+          }
         />
       </div>
       <div className="school-detail-columns-gap" />

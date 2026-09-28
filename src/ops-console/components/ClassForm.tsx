@@ -252,6 +252,11 @@ const ClassForm: React.FC<{
           placeholder={placeholder}
           selectedCourse={selectedCourse}
         />
+        {mode === 'edit' && !loading && selectedCourse.length === 0 && (
+          <div className="class-form-error" role="alert">
+            {t('Please select at least one course.')}
+          </div>
+        )}
 
         <ClassFormFooterFields
           errorMessage={errorMessage}

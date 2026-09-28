@@ -33,6 +33,7 @@ const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
     lesson,
     lessonCardColor,
     onDownloadOrDelete,
+    onSelected,
     online,
     parsePath,
     presentToast,
@@ -74,6 +75,7 @@ const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
           height: 'auto',
         }}
         onClick={async () => {
+          onSelected?.();
           if (isUnlocked) {
             const resolvedCourse =
               course ?? currentCourse ?? (await getCurrentCourse());

@@ -28,9 +28,11 @@ export const useFcInteractPopup = ({
 
   useEffect(() => {
     let mounted = true;
+    let loadId = 0;
 
     const load = async () => {
-      if (mounted) {
+      const currentLoadId = ++loadId;
+      if (mounted && currentLoadId === loadId) {
         setIsQuestionsLoading(true);
         setLocalQuestions([]);
       }
@@ -39,33 +41,34 @@ export const useFcInteractPopup = ({
         const target = spokeWith ?? initialUserType;
         const isBrowserOffline =
           typeof navigator !== 'undefined' && navigator.onLine === false;
-        const cachedQuestions = isBrowserOffline
-          ? await readQuestionsCache<{
-              id: string;
-              question_text: string;
-            }>(status ?? null, target)
-          : null;
-        let questions = cachedQuestions ?? [];
+        const [cachedQuestions, cachedSchool] = await Promise.all([
+          readQuestionsCache<{
+            id: string;
+            question_text: string;
+          }>(status ?? null, target),
+          readFcSchoolOfflineCache(schoolId),
+        ]);
+        const schoolQuestions =
+          cachedSchool?.questionsByKey?.[`${target}:${status ?? 'none'}`] ?? [];
+        const cachedQuestionList =
+          schoolQuestions.length >= (cachedQuestions?.length ?? 0)
+            ? schoolQuestions
+            : (cachedQuestions ?? []);
+        let questions = cachedQuestionList;
 
-        if (!cachedQuestions && isBrowserOffline) {
-          const cachedSchool = await readFcSchoolOfflineCache(schoolId);
-          questions =
-            cachedSchool?.questionsByKey?.[`${target}:${status ?? 'none'}`] ??
-            [];
-        }
-
-        if (!cachedQuestions && questions.length === 0) {
-          if (isBrowserOffline) {
-            questions = [];
-          } else {
-            questions = (await api.getFilteredFcQuestions(
-              status ?? null,
-              target,
-            )) as {
-              id: string;
-              question_text: string;
-            }[];
-            await writeQuestionsCache(status ?? null, target, questions ?? []);
+        if (!isBrowserOffline) {
+          try {
+            const fetchedQuestions =
+              ((await api.getFilteredFcQuestions(status ?? null, target)) as {
+                id: string;
+                question_text: string;
+              }[]) ?? [];
+            if (fetchedQuestions.length > 0 || questions.length === 0) {
+              questions = fetchedQuestions;
+              await writeQuestionsCache(status ?? null, target, questions);
+            }
+          } catch (error) {
+            logger.error('Question fetch error', error);
           }
         }
 
@@ -75,19 +78,27 @@ export const useFcInteractPopup = ({
             question: q.question_text,
           })) ?? [];
 
-        if (mounted) {
+        if (mounted && currentLoadId === loadId) {
           setLocalQuestions(formattedQuestions);
         }
       } catch (err) {
         logger.error('Question fetch error', err);
       } finally {
-        if (mounted) setIsQuestionsLoading(false);
+        if (mounted && currentLoadId === loadId) {
+          setIsQuestionsLoading(false);
+        }
       }
     };
 
-    load();
+    const retryWhenOnline = () => {
+      void load();
+    };
+
+    void load();
+    window.addEventListener('online', retryWhenOnline);
     return () => {
       mounted = false;
+      window.removeEventListener('online', retryWhenOnline);
     };
   }, [api, initialUserType, schoolId, spokeWith, status]);
 

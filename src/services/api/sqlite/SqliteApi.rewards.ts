@@ -8,9 +8,31 @@ export interface SqliteApiRewards {
   [key: string]: any;
 }
 export class SqliteApiRewards extends SqliteApiOpsLearningPath {
+  /** Marks the selected child's local badge progress as viewed and queues the update. */
+  async markUserBadgeSeen(userId: string): Promise<void> {
+    await this.ensureInitialized();
+    const progress = await this.getUserBadgeProgress(userId);
+    if (!progress) return;
+    const updated = {
+      ...progress,
+      has_unseen_badge: false,
+      updated_at: new Date().toISOString(),
+    };
+    await this.executeQuery(
+      `UPDATE ${TABLES.UserBadgeProgress} SET has_unseen_badge = 0, updated_at = ? WHERE user_id = ? AND is_deleted = 0`,
+      [updated.updated_at, userId],
+    );
+    await this.updatePushChanges(
+      TABLES.UserBadgeProgress,
+      MUTATE_TYPES.UPDATE,
+      updated,
+    );
+  }
+
   async getUserBadgeProgress(
     userId: string,
   ): Promise<TableTypes<'user_badge_progress'> | undefined> {
+    // Read the active local progress row for the child profile.
     await this.ensureInitialized();
     try {
       const result = await this._db?.query(
@@ -30,6 +52,7 @@ export class SqliteApiRewards extends SqliteApiOpsLearningPath {
     progress: TableTypes<'user_badge_progress'>;
     milestoneReached: number | null;
   }> {
+    // Persist the calculated progress locally before background synchronization.
     await this.ensureInitialized();
     const existing = await this.getUserBadgeProgress(userId);
     // Persist locally first; the shared sync queue uploads this snapshot when available.
@@ -42,7 +65,8 @@ export class SqliteApiRewards extends SqliteApiOpsLearningPath {
       user_id: userId,
       lessons_played_count: count,
       latest_badge_milestone: nextProgress.latest_badge_milestone,
-      has_unseen_badge: false,
+      has_unseen_badge:
+        milestoneReached !== null || Boolean(existing?.has_unseen_badge),
       created_at: existing?.created_at ?? now,
       updated_at: now,
       is_deleted: false,
@@ -55,7 +79,7 @@ export class SqliteApiRewards extends SqliteApiOpsLearningPath {
         progress.user_id,
         progress.lessons_played_count,
         progress.latest_badge_milestone,
-        0,
+        progress.has_unseen_badge ? 1 : 0,
         progress.created_at,
         progress.updated_at,
         0,

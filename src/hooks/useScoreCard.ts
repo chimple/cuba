@@ -22,6 +22,8 @@ import { PENDING_BADGE_MILESTONE_KEY } from '../common/Badges/badgeProgress';
 import { logBadgeEvent } from '../common/Badges/badgeAnalytics';
 import type { BadgeAnalyticsProgress } from '../common/Badges/badgeAnalytics';
 import logger from '../utility/logger';
+import { store } from '../redux/store';
+import { setBadgeProgress } from '../redux/slices/badgeProgress/badgeProgressSlice';
 
 const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
 const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
@@ -354,6 +356,13 @@ export const useScoreCard = ({
       badgeCompletionKeyRef.current = completionKey;
       try {
         const result = await api.recordBadgeLessonCompletion(studentId);
+        // Redux updates the menu indicator immediately after the badge is awarded.
+        store.dispatch(
+          setBadgeProgress({
+            studentId,
+            hasUnseenBadge: Boolean(result.progress.has_unseen_badge),
+          }),
+        );
         if (result.milestoneReached !== null) {
           // Carry the exact local progress snapshot to Home for popup analytics and display.
           const badgeProgress = result.progress as BadgeAnalyticsProgress;

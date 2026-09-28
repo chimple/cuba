@@ -200,6 +200,11 @@ export interface ServiceApiOpsUsers {
     programId: string,
   ): Promise<{ data: TableTypes<'user'>[] }>;
 
+  updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean>;
+
   getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }>;
 
   updateSchoolStatus(

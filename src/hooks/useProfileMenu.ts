@@ -26,10 +26,14 @@ import {
   setCachedGrowthBookFeatureValue,
 } from '../growthbook/Growthbook';
 import { schoolUtil } from '../utility/schoolUtil';
-import { useAppSelector } from '../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { setBadgeProgress } from '../redux/slices/badgeProgress/badgeProgressSlice';
 import { RootState } from '../redux/store';
 import logger from '../utility/logger';
 import { parsePath } from 'history';
+import { REWARDS_TABS } from '../common/constants/rewardsPathway';
+import { logBadgeEvent } from '../common/Badges/badgeAnalytics';
+import type { BadgeAnalyticsProgress } from '../common/Badges/badgeAnalytics';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -43,6 +47,9 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
   const [hasUnseenStickers, setHasUnseenStickers] = useState<boolean>(false);
+  const [badgeProgress, setBadgeProgressForAnalytics] =
+    useState<BadgeAnalyticsProgress | null>(null);
+  const dispatch = useAppDispatch();
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
   const liveIsStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
@@ -51,6 +58,11 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
   );
   const growthbookFeatureValues = useAppSelector(
     (state: RootState) => state.growthbook.featureValues,
+  );
+  const hasUnseenBadge = useAppSelector(
+    (state: RootState) =>
+      state.badgeProgress?.studentId === student?.id &&
+      state.badgeProgress?.hasUnseenBadge === true,
   );
   const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const isStickerBookEnabled = isOffline
@@ -97,7 +109,9 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
         handleStudentChange,
       );
     };
-  }, []);
+    // Load the initial profile once; student changes are handled by the event listener.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
   const loadProfileData = async () => {
     try {
       const currentStudent = Util.getCurrentStudent();
@@ -107,6 +121,29 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       setSchoolName(schoolName);
 
       if (currentStudent?.id) {
+        try {
+          const badgeProgress = await api.getUserBadgeProgress(
+            currentStudent.id,
+          );
+          setBadgeProgressForAnalytics(
+            badgeProgress
+              ? {
+                  lessons_played_count: badgeProgress.lessons_played_count,
+                  latest_badge_milestone: badgeProgress.latest_badge_milestone,
+                  has_unseen_badge: Boolean(badgeProgress.has_unseen_badge),
+                }
+              : null,
+          );
+          dispatch(
+            setBadgeProgress({
+              studentId: currentStudent.id,
+              hasUnseenBadge: Boolean(badgeProgress?.has_unseen_badge),
+            }),
+          );
+        } catch (error) {
+          // Preserve the Redux badge state and continue loading Sticker Book data.
+          logger.error('Failed to load badge progress:', error);
+        }
         const userStickers = await api.getUserStickerBook(currentStudent.id);
         const hasUnseen = userStickers.some((s) => !s.is_seen);
         setHasUnseenStickers(hasUnseen);
@@ -115,6 +152,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       logger.error('Failed to load profile data:', error);
     }
   };
+
   const onEdit = () => {
     history.replace({
       ...parsePath(PAGES.EDIT_STUDENT),
@@ -159,9 +197,20 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onReward = () => {
     let avatarObj = AvatarObj.getInstance();
+    if (hasUnseenBadge && student?.id && badgeProgress) {
+      void logBadgeEvent(
+        EVENTS.UNSEEN_BADGE_INDICATOR_CLICKED,
+        student.id,
+        badgeProgress,
+        { routed_to_tab: REWARDS_TABS.LESSON_COMPLETION },
+      );
+    }
+    const rewardsTab = hasUnseenBadge
+      ? REWARDS_TABS.LESSON_COMPLETION
+      : avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase();
     history.push(
       PAGES.LEADERBOARD +
-        `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`,
+        `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${rewardsTab}`,
     );
   };
 
@@ -220,6 +269,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       icon: '/assets/icons/TreasureChest.svg',
       label: 'Rewards',
       onClick: onReward,
+      hasUnseenBadge,
     },
     {
       icon: '/assets/icons/Pencil.svg',
@@ -255,7 +305,8 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
     );
   const visibleMenuItems = Util.isRespectMode
     ? menuItems.filter(
-        (item) => item.label === 'Parents Section' || item.label === 'Switch Profile',
+        (item) =>
+          item.label === 'Parents Section' || item.label === 'Switch Profile',
       )
     : menuItems;
   const hasDetails = !!(className || schoolName);
@@ -275,6 +326,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
     setIsClosing,
     setShowDialogBox,
     shouldShowStickerBookNotification,
+    hasUnseenBadge,
     showDialogBox,
     student,
     t,

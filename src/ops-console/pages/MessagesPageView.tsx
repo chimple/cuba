@@ -118,10 +118,16 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
   onValidityChange,
 }) => {
   const { t } = useTranslation();
+  const isRecipientCountLoading =
+    activeTab === 'Select Audience' &&
+    isAudienceValid &&
+    (audience.loadingRoleCount || audience.displayRecipientCount === null);
   const isStepDisabled = (
     step: (typeof MESSAGES_TABS)[number],
     index: number,
-  ) => (index > 0 && !isAudienceValid) || (index > 1 && !isComposeValid);
+  ) =>
+    (index > 0 && (!isAudienceValid || isRecipientCountLoading)) ||
+    (index > 1 && !isComposeValid);
 
   return (
     <main
@@ -261,8 +267,10 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
               variant="contained"
               className="messages-page__next-button"
               onClick={onNext}
+              loading={isRecipientCountLoading}
               disabled={
-                (activeTab === 'Select Audience' && !isAudienceValid) ||
+                (activeTab === 'Select Audience' &&
+                  (!isAudienceValid || isRecipientCountLoading)) ||
                 (activeTab === 'Compose Notification' && !isComposeValid)
               }
             >

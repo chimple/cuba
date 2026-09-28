@@ -37,9 +37,13 @@ export const useMessagesRecipientCount = ({
     const fetchRoleBasedCount = async () => {
       if (!programId || summarySchoolIds.length === 0) {
         setRoleBasedRecipientCount(null);
+        setLoadingRoleCount(false);
         return;
       }
 
+      // The previous audience's count is no longer valid once any target
+      // filter changes. Clear it before loading the newly selected group.
+      setRoleBasedRecipientCount(null);
       setLoadingRoleCount(true);
       try {
         if (userType === 'student') {

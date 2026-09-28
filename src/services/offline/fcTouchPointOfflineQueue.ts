@@ -219,9 +219,14 @@ export const queueFcSchoolVisit = async (params: {
   const occurredAt = params.occurredAt ?? new Date().toISOString();
   const id = params.clientActionId ?? uuidv4();
   const entries = await getPendingFcTouchPointQueue();
-  const snapshot = replayVisitSnapshot(entries, params.userId, params.schoolId);
   const phase =
     params.action === SchoolVisitAction.CheckIn ? 'check_in' : 'check_out';
+  // Preserve the open visit id so an offline checkout cannot target another visit.
+  const snapshot =
+    replayVisitSnapshot(entries, params.userId, params.schoolId) ??
+    (phase === 'check_out'
+      ? await getSavedOpenVisitSnapshot(params.userId, params.schoolId)
+      : null);
   const visitId =
     phase === 'check_in' ? id : (snapshot?.id ?? params.clientActionId ?? null);
 
@@ -241,7 +246,8 @@ export const queueFcSchoolVisit = async (params: {
       action: params.action,
       lat: params.lat,
       lng: params.lng,
-      visitType: params.visitType,
+      visitType:
+        params.visitType ?? (snapshot?.type as SchoolVisitType | undefined),
       distanceFromSchool: params.distanceFromSchool,
       numberOfParents: params.numberOfParents,
     },

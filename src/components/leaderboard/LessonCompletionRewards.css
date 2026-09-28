@@ -1,0 +1,114 @@
+.lesson-completion-rewards-root {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px clamp(16px, 8vw, 88px) 28px;
+}
+
+.lesson-completion-rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 207px));
+  gap: 12px;
+  justify-content: center;
+}
+
+.lesson-completion-rewards-card {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 207px;
+  height: 222px;
+  box-sizing: border-box;
+  padding: 7px 21px 64.003px 22px;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: 0 5px 3px rgba(24, 42, 79, 0.3);
+}
+
+.lesson-completion-rewards-badge-art {
+  height: 154px;
+}
+
+.lesson-completion-rewards-card:not(.lesson-completion-rewards-card--locked)
+  .lesson-completion-rewards-badge-art {
+  filter: drop-shadow(5px 1px 0 #565656);
+}
+
+.lesson-completion-rewards-share-button {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  display: grid;
+  width: 82px;
+  height: 48px;
+  padding: 0;
+  place-items: center;
+  border: 2px solid #f34d08;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+.lesson-completion-rewards-share-button img {
+  width: 32px;
+  height: 32px;
+}
+
+.lesson-completion-rewards-share-artwork {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
+  animation: lesson-completion-rewards-slide-down 750ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lesson-completion-rewards-share-artwork
+  .BadgeCelebrationModal-generated-badge {
+  top: calc(50% - 15px);
+}
+
+/* Match the earned-card shadow on the badge inside the shared artwork. */
+.lesson-completion-rewards-share-artwork
+  .lesson-completion-badge:not(.lesson-completion-badge--locked) {
+  filter: drop-shadow(5px 1px 0 #565656);
+}
+
+.lesson-completion-rewards-share-artwork .BadgeCelebrationModal-badge-copy {
+  bottom: 68px;
+}
+
+@keyframes lesson-completion-rewards-slide-down {
+  from {
+    transform: translateY(-100vh);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .lesson-completion-rewards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 207px));
+  }
+
+  .lesson-completion-rewards-root {
+    padding-inline: 12px;
+  }
+}

@@ -14,6 +14,7 @@ const LessonSlider: React.FC<{
   isHome: boolean;
   lessonsScoreMap: { [lessonDocId: string]: TableTypes<'result'> };
   startIndex: number;
+  chapterId?: string;
   showSubjectName: boolean;
   showChapterName: boolean;
   onEndReached?: () => void;
@@ -33,6 +34,7 @@ const LessonSlider: React.FC<{
   isHome,
   lessonsScoreMap,
   startIndex,
+  chapterId,
   showSubjectName = false,
   showChapterName = false,
   onEndReached,
@@ -57,13 +59,44 @@ const LessonSlider: React.FC<{
   width = '45.5vh';
   height = '35vh';
   const lessonSwiperRef = useRef<any>(null);
+  const hasUserMovedRef = useRef(false);
+  const hasRestoredPositionRef = useRef(false);
+  const storageKey = chapterId
+    ? `cuba:lesson-slider-position:${chapterId}`
+    : undefined;
+  const getSavedIndex = () => {
+    if (!storageKey) return undefined;
+    const savedIndex = sessionStorage.getItem(storageKey);
+    if (savedIndex === null) return undefined;
+    const parsedIndex = Number(savedIndex);
+    return Number.isInteger(parsedIndex) && parsedIndex >= 0
+      ? parsedIndex
+      : undefined;
+  };
+
   const checkSplideInstance = () => {
-    if (startIndex) lessonSwiperRef?.current.go(startIndex);
+    if (hasRestoredPositionRef.current || hasUserMovedRef.current) return;
+    hasRestoredPositionRef.current = true;
+
+    const savedIndex = getSavedIndex();
+    const indexToRestore = savedIndex ?? startIndex;
+    if (savedIndex !== undefined || indexToRestore) {
+      lessonSwiperRef?.current.go(indexToRestore);
+    }
+  };
+
+  const rememberSelectedIndex = (index: number) => {
+    hasUserMovedRef.current = true;
+    onMoved?.({ index } as SplideInstance);
   };
 
   const handleMoved = (splide: SplideInstance) => {
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
+    rememberSelectedIndex(newIndex);
+    if (storageKey) {
+      sessionStorage.setItem(storageKey, String(newIndex));
+    }
 
     if (newIndex >= lessonData.length - 1) {
       const nextIndex = loadedLessons.length;
@@ -146,6 +179,7 @@ const LessonSlider: React.FC<{
                 onDownloadOrDelete={onDownloadOrDelete}
                 chapter={lessonChapterMap?.[m.id] ?? chapter}
                 lessonCourseMap={lessonCourseMap}
+                onSelected={() => rememberSelectedIndex(i)}
               />
             </SplideSlide>
           );
@@ -189,6 +223,7 @@ const LessonSlider: React.FC<{
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}
                 chapter={lessonChapterMap?.[m.id]}
+                onSelected={() => rememberSelectedIndex(i)}
               />
             </SplideSlide>
           );
