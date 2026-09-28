@@ -41,7 +41,6 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
   }
 
   getWhatsappProviderStatus = checkWhatsappProviderStatus;
-
   // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
@@ -62,7 +61,6 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       logger.error('Error in parent WhatsApp school lookup by UDISE:', error);
       throw error;
     }
-
     return data
       ? {
           id: data.id,
@@ -582,6 +580,7 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       .from(TABLES.Class)
       .update({
         group_id: groupId,
+        whatsapp_invite_link: inviteLink,
         updated_at: new Date().toISOString(),
       })
       .eq('id', classId);
