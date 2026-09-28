@@ -9,6 +9,7 @@ const WhatsappIntegrationStatusInfo: FC = () => {
   return (
     <Tooltip
       arrow
+      describeChild
       placement="bottom-end"
       slotProps={{
         popper: {
