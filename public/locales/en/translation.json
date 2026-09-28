@@ -1946,5 +1946,18 @@
   "The recurring notification will stop after the selected date.": "The recurring notification will stop after the selected date.",
   "Create Recurring Notification": "Create Recurring Notification",
   "Zebra": "Zebra",
-  "Zoo Manners": "Zoo Manners"
+  "Zoo Manners": "Zoo Manners",
+  "WhatsApp Integration Status": "WhatsApp Integration Status",
+  "WhatsApp status information": "WhatsApp status information",
+  "WhatsApp integration status information": "WhatsApp integration status information",
+  "School not WhatsApp enabled": "School not WhatsApp enabled",
+  "WhatsApp is not enabled for this school.": "WhatsApp is not enabled for this school.",
+  "Class not linked": "Class not linked",
+  "WhatsApp is enabled for the school, but no class is linked to Ops Console. The Ops user can paste the WhatsApp group link to connect the class.": "WhatsApp is enabled for the school, but no class is linked to Ops Console. The Ops user can paste the WhatsApp group link to connect the class.",
+  "Yes": "Yes",
+  "Yes – Class linked": "Yes – Class linked",
+  "The class is linked and connected to Periskope or Maytapi.": "The class is linked and connected to Periskope or Maytapi.",
+  "No": "No",
+  "No – Number/Bot not in group": "No – Number/Bot not in group",
+  "The class is linked, but the Periskope or Maytapi number/bot is not connected to the WhatsApp group.": "The class is linked, but the Periskope or Maytapi number/bot is not connected to the WhatsApp group."
 }
