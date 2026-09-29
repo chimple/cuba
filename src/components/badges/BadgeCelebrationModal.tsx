@@ -1,18 +1,17 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import Confetti from 'react-confetti';
 import { t } from 'i18next';
 import AudioButton from '../common/AudioButton';
-import InlineSvg from '../InlineSvg';
-import Badge from '../../common/Badges/Badge';
 import { EVENTS } from '../../common/constants';
 import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import type { BadgeAnalyticsProgress } from '../../common/Badges/badgeAnalytics';
 import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
-import sharedBadgeSvg from '../../assets/images/badges/Shared Badge.svg?raw';
+import SharedBadgeArtwork from './SharedBadgeArtwork';
 import './BadgeCelebrationModal.css';
+
+export { default as SharedBadgeArtwork } from './SharedBadgeArtwork';
 
 const POPUP_SOUND = '/assets/audios/common/generic_popup_sound_effect.mp3';
 const CHEER_SOUND = '/assets/audios/common/crowd_cheer.mp3';
@@ -41,38 +40,6 @@ type BadgeCelebrationModalProps = {
   languageCode?: string;
   onClose: () => void;
 };
-
-type SharedBadgeArtworkProps = {
-  milestone: number;
-  heading: string;
-  completedText: string;
-  badge?: ReactNode;
-};
-
-export const SharedBadgeArtwork = forwardRef<
-  HTMLDivElement,
-  SharedBadgeArtworkProps
->(({ milestone, heading, completedText, badge }, ref) => (
-  <div ref={ref} className="BadgeCelebrationModal-share-card">
-    <div className="BadgeCelebrationModal-badge-art">
-      <InlineSvg ariaHidden svg={sharedBadgeSvg} />
-      <h2>{heading}</h2>
-      <div className="BadgeCelebrationModal-generated-badge">
-        {badge ?? <Badge number={milestone} />}
-      </div>
-      <div className="BadgeCelebrationModal-badge-copy">
-        <p>{completedText}</p>
-        <p>
-          {t('Keep learning and exploring!', {
-            defaultValue: 'Keep learning and exploring!',
-          })}
-        </p>
-      </div>
-    </div>
-  </div>
-));
-
-SharedBadgeArtwork.displayName = 'SharedBadgeArtwork';
 
 const dataUrlToFile = (dataUrl: string, milestone: number): File => {
   const [header, encoded] = dataUrl.split(',');

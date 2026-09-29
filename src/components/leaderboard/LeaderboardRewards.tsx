@@ -130,7 +130,7 @@ const LeaderboardRewards: FC = () => {
           onClick={() => selectTab(REWARDS_TABS.LESSON_COMPLETION)}
         >
           <img src="/assets/icons/Lesson Completion Icon.svg" alt="" />
-          {t('Lesson Completion')}
+          {t('Achievements')}
         </button>
         <button
           type="button"
