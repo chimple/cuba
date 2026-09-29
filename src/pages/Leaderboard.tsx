@@ -1,12 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import './Leaderboard.css';
 import { IonPage } from '@ionic/react';
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import { t } from 'i18next';
-import {
-  LEADERBOARDHEADERLIST,
-  PAGES,
-} from '../common/constants';
+import { LEADERBOARDHEADERLIST, PAGES } from '../common/constants';
 import { Util } from '../utility/util';
 import LeaderboardRewards from '../components/leaderboard/LeaderboardRewards';
 import SkeltonLoading from '../components/SkeltonLoading';
@@ -113,17 +110,19 @@ const Leaderboard: React.FC = () => {
                 <DebugMode />
               </Box>
             )}
-            <div
-              id="leaderboard-switch-user-button"
-              onClick={leaderboard.switchProfile}
-            >
-              <img
-                id="leaderboard-switch-user-button-img"
-                alt={'/assets/icons/UserSwitchIcon.svg'}
-                src={'/assets/icons/UserSwitchIcon.svg'}
-              />
-              <p className="leaderboard-switch-text">{t('Switch Profile')}</p>
-            </div>
+            {leaderboard.tabIndex !== LEADERBOARDHEADERLIST.REWARDS && (
+              <div
+                id="leaderboard-switch-user-button"
+                onClick={leaderboard.switchProfile}
+              >
+                <img
+                  id="leaderboard-switch-user-button-img"
+                  alt={'/assets/icons/UserSwitchIcon.svg'}
+                  src={'/assets/icons/UserSwitchIcon.svg'}
+                />
+                <p className="leaderboard-switch-text">{t('Switch Profile')}</p>
+              </div>
+            )}
           </div>
           <Box sx={{}}>
             {leaderboard.tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (

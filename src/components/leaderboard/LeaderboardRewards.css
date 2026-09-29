@@ -1,43 +1,56 @@
 .leaderboard-rewards-container {
   display: flex;
   flex-direction: column;
-  height: 75vh;
+  height: calc(100vh - 48px - var(--margin));
+  height: calc(100dvh - 35px - var(--margin));
   overflow: hidden;
 }
 
 .rewards-tab-switcher {
   display: flex;
   align-self: center;
-  border-radius: 10px;
+  margin-top: 16px;
+  max-width: calc(100% - 32px);
+  border-radius: 8.571px;
   background: #fff;
   overflow: hidden;
 }
 
 .rewards-tab-switcher button {
   display: flex;
-  min-height: 48px;
+  min-width: 0;
+  height: clamp(44px, 6vw, 49.72px);
   padding: 0 16px;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-radius: 8.571px;
+  border-bottom: 3.429px solid transparent;
   background: #fff;
   color: #182a4f;
-  font-family: 'Baloo 2', sans-serif;
-  font-size: clamp(14px, 2vw, 18px);
+  font-size: clamp(14px, 2vw, 18.857px);
+  white-space: nowrap;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .rewards-tab-switcher button.active {
-  border-bottom-color: #182a4f;
-  box-shadow: 0 2px 0 #182a4f;
+  border-radius: 8.571px 0 0 8.571px;
+  border-right: 2.714px solid #182a4f;
+  border-bottom: 3.8px solid #182a4f;
+  background: #fffdee;
   color: #182a4f;
-  font-family: 'Baloo 2', sans-serif;
-  font-size: 18.857px;
+  font-size: clamp(14px, 2vw, 18.857px);
   font-style: normal;
   font-weight: 500;
   line-height: normal;
+}
+
+.rewards-tab-switcher button:last-child.active {
+  border-right: 0;
+  border-left: 1.714px solid #182a4f;
+  border-radius: 0 8.571px 8.571px 0;
 }
 
 .rewards-tab-switcher img {
@@ -49,7 +62,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px clamp(16px, 8vw, 88px) 28px;
+  padding: 12px clamp(16px, 8vw, 88px) 24px;
 }
 
 @media (max-width: 700px) {
