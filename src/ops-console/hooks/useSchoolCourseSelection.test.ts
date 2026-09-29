@@ -170,7 +170,7 @@ it('ignores deleted classes and requires a course in every active affected class
   act(() => result.current.toggleCourse('a'));
   expect(result.current.selectedCourseIds).toEqual(['a', 'b']);
   expect(result.current.courseRemovalWarning).toBe(
-    'Cannot remove this course because it would leave these classes without any courses: 2B.',
+    'Cannot remove this course. These classes have no other courses: 2B.',
   );
   expect(mockApi.getCoursesByClassId).not.toHaveBeenCalledWith('deleted-class');
 });

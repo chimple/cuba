@@ -161,7 +161,7 @@ export const useSchoolCourseSelection = ({
         if (blockedClasses.length) {
           setCourseRemovalWarning(
             t(
-              'Cannot remove this course because it would leave these classes without any courses: {{classes}}.',
+              'Cannot remove this course. These classes have no other courses: {{classes}}.',
               {
                 classes: blockedClasses
                   .map((row) => row.name || row.id)

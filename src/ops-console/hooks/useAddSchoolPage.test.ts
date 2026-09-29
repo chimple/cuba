@@ -219,7 +219,7 @@ describe('immediate protection of courses required by classes', () => {
     act(() => result.current.toggleCourse('course-1'));
     expect(result.current.selectedCourseIds).toEqual(['course-1', 'course-2']);
     expect(result.current.courseRemovalError).toBe(
-      'Cannot remove this course because it would leave these classes without any courses: 1A.',
+      'Cannot remove this course. These classes have no other courses: 1A.',
     );
     expect(mockApi.updateSchoolCourseSelection).not.toHaveBeenCalled();
 
