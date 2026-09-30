@@ -53,6 +53,7 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
       const { data: metricsData, error: metricsError } =
         await this.supabase.rpc('get_campaign_dashboard_metrics', {
           p_campaign_ids: campaignIds,
+          p_metric_window: 'campaign_days',
         });
 
       if (metricsError) {
