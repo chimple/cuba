@@ -9,7 +9,7 @@
 .rewards-tab-switcher {
   display: flex;
   align-self: center;
-  margin-top: 16px;
+  margin-top: -5px;
   max-width: calc(100% - 32px);
   border-radius: 8.571px;
   background: #fff;
@@ -62,7 +62,12 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px clamp(16px, 8vw, 88px) 24px;
+  padding: 4px clamp(16px, 8vw, 88px) 24px;
+}
+
+.lesson-completion-rewards-loading {
+  flex: 1;
+  min-height: 0;
 }
 
 @media (max-width: 700px) {
