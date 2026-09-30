@@ -35,10 +35,17 @@ const LeaderboardRewards: FC = () => {
       state.badgeProgress?.hasUnseenBadge === true,
   );
   const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
+  const [isProgressLoading, setIsProgressLoading] = useState(
+    Boolean(student?.id),
+  );
   const clearingBadgeStudentIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
-    if (!student?.id) return;
+    if (!student?.id) {
+      setIsProgressLoading(false);
+      return;
+    }
+    setIsProgressLoading(true);
     let mounted = true;
     void ServiceConfig.getI()
       .apiHandler.getUserBadgeProgress(student.id)
@@ -67,6 +74,9 @@ const LeaderboardRewards: FC = () => {
           student.id,
           EMPTY_BADGE_PROGRESS,
         );
+      })
+      .finally(() => {
+        if (mounted) setIsProgressLoading(false);
       });
     return () => {
       mounted = false;
@@ -74,7 +84,13 @@ const LeaderboardRewards: FC = () => {
   }, [student?.id]);
 
   useEffect(() => {
-    if (!student?.id || activeTab !== REWARDS_TABS.LESSON_COMPLETION) return;
+    if (
+      !student?.id ||
+      isProgressLoading ||
+      activeTab !== REWARDS_TABS.LESSON_COMPLETION
+    ) {
+      return;
+    }
     const clearUnseenBadge = async () => {
       if (
         !hasUnseenBadge ||
@@ -86,8 +102,10 @@ const LeaderboardRewards: FC = () => {
       clearingBadgeStudentIdsRef.current.add(student.id);
       try {
         await ServiceConfig.getI().apiHandler.markUserBadgeSeen(student.id);
-        const clearedProgress = { ...progress, has_unseen_badge: false };
-        setProgress(clearedProgress);
+        setProgress((currentProgress) => ({
+          ...currentProgress,
+          has_unseen_badge: false,
+        }));
         dispatch(clearBadgeProgress(student.id));
         void logBadgeEvent(EVENTS.UNSEEN_BADGE_CLEARED, student.id, progress, {
           cleared_milestone: progress.latest_badge_milestone,
@@ -99,7 +117,14 @@ const LeaderboardRewards: FC = () => {
       }
     };
     void clearUnseenBadge();
-  }, [activeTab, dispatch, hasUnseenBadge, progress, student?.id]);
+  }, [
+    activeTab,
+    dispatch,
+    hasUnseenBadge,
+    isProgressLoading,
+    progress,
+    student?.id,
+  ]);
 
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);
@@ -143,7 +168,13 @@ const LeaderboardRewards: FC = () => {
           {t('Competitions')}
         </button>
       </div>
-      {activeTab === REWARDS_TABS.LESSON_COMPLETION ? (
+      {activeTab === REWARDS_TABS.LESSON_COMPLETION && isProgressLoading ? (
+        <div
+          className="lesson-completion-rewards-loading"
+          data-testid="lesson-rewards-loading"
+          aria-busy="true"
+        />
+      ) : activeTab === REWARDS_TABS.LESSON_COMPLETION ? (
         <LessonCompletionRewards studentId={student?.id} progress={progress} />
       ) : (
         <div className="competition-rewards-content">

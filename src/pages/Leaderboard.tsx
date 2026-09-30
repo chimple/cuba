@@ -22,6 +22,9 @@ const Leaderboard: React.FC = () => {
       {!leaderboard.isLoading ? (
         <Box>
           <div
+            className={
+              leaderboard.isRewardPage ? 'rewards-page-header' : undefined
+            }
             id={
               leaderboard.tabIndex === 'debugMode'
                 ? 'leaderboard-debug-mode'
@@ -39,7 +42,7 @@ const Leaderboard: React.FC = () => {
                 />
               </div>
             )}
-            <Box>
+            <Box className="leaderboard-header-title">
               <AppBar id="LeaderBoard-AppBar" position="static">
                 <Box
                   sx={{
