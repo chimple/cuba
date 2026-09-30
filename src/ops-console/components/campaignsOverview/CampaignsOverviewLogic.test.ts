@@ -241,7 +241,7 @@ describe('CampaignsOverviewLogic', () => {
       performanceData: {
         'Participating Schools': 98,
         'Total Students': 608,
-        'Avg Weekly Engagement Time': '282m',
+        'Avg Campaign Engagement Time': '282m',
         'Campaign Completion': '100%',
         'Active Participants': 1,
       },
