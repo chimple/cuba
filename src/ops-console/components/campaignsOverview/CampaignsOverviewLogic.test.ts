@@ -157,7 +157,7 @@ describe('CampaignsOverviewLogic', () => {
         label: 'Active Students',
         value: 'No',
         hasInfo: true,
-        info: 'Displays the total number of unique active students during the last 7 days.',
+        info: 'Displays the total number of unique active students during the campaign period.',
       },
     ]);
   });
