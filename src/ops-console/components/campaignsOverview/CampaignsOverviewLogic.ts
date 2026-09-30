@@ -158,9 +158,9 @@ const DEFAULT_PERFORMANCE_TOOLTIP_BY_LABEL: Record<string, string> = {
   'Campaign Completion':
     'Displays the percentage of the campaign duration completed.',
   'Active Students':
-    'Displays the total number of unique active students during the last 7 days.',
+    'Displays the total number of unique active students during the campaign period.',
   'Active Participants':
-    'Displays the total number of unique active students during the last 7 days.',
+    'Displays the total number of unique active students during the campaign period.',
 };
 
 const STATUS_TONE_BY_VALUE: Record<string, CampaignsOverviewStatusTone> = {
