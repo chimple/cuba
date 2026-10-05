@@ -4,25 +4,55 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #fff; /* Change background color if needed */
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* Optional: add shadow for better visibility */ /* Ensure equal spacing */
+  height: calc(var(--footer-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-inline: 12px;
+  box-sizing: border-box;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 20px);
+  background-color: #fff;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.homepage-bottom-nav-action {
-  color: #000; /* Default icon and label color */
+.homepage-bottom-nav .MuiBottomNavigationAction-root {
+  min-width: 0;
+  width: clamp(78px, 20vw, 112px);
+  max-width: 112px;
+  flex: 0 1 clamp(78px, 20vw, 112px);
+  height: 100%;
+  min-height: 0;
+  justify-content: center;
+  overflow: visible;
+  padding: 4px 8px 8px;
+  color: #000;
 }
 
-.homepage-bottom-nav-action.Mui-selected {
-  color: inherit; /* Maintain the same color for selected action */
+.homepage-bottom-nav .MuiBottomNavigationAction-label {
+  display: none;
 }
 
-/* Highlight only the icon and label when selected */
-.homepage-bottom-nav-action.Mui-selected .MuiSvgIcon-root {
-  color: #7c5db0;
+.footer-action-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  position: relative;
+  top: clamp(1px, 0.35vh, 3px);
 }
 
-.homepage-bottom-nav-action.Mui-selected .MuiBottomNavigationAction-label {
+.footer-action-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
   color: #666666;
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  line-height: 1.25;
+  min-height: 1.25em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Style for the middle icon to be larger */
@@ -31,6 +61,7 @@
 }
 
 .main-container {
+  --footer-nav-height: clamp(76px, 10vh, 96px);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -40,9 +71,10 @@
 }
 
 .container-footer {
-  height: 10vh;
-  flex: 0 0 10vh;
-  color: #7c5db0;
+  height: calc(var(--footer-nav-height) + env(safe-area-inset-bottom, 0px));
+  flex: 0 0 calc(var(--footer-nav-height) + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background-color: #fff;
   align-items: center;
   justify-content: center;
   color: black;
@@ -61,11 +93,19 @@
 
 .footerIcons {
   width: clamp(30px, 3vw, 40px);
+  height: clamp(30px, 3vw, 40px);
+  object-fit: contain;
   margin-bottom: 4px;
 }
 .assignSelectedIcon {
   width: clamp(40px, 3.5vw, 50px);
 }
-.homepage-bottom-nav .MuiBottomNavigationAction-label {
-  color: #707070;
+@media (max-width: 360px) {
+  .homepage-bottom-nav .MuiBottomNavigationAction-root {
+    padding-inline: 4px;
+  }
+
+  .homepage-bottom-nav .MuiBottomNavigationAction-label {
+    font-size: 0.75rem;
+  }
 }
