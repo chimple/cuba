@@ -16,6 +16,7 @@ export { default as SharedBadgeArtwork } from './SharedBadgeArtwork';
 const POPUP_SOUND = '/assets/audios/common/generic_popup_sound_effect.mp3';
 const CHEER_SOUND = '/assets/audios/common/crowd_cheer.mp3';
 const VOICEOVER_DELAY_MS = 2600;
+const MODAL_ANIMATION_DURATION_MS = 2200;
 
 const BADGE_VOICEOVERS: Record<string, string> = {
   en: '/assets/audios/badgeCollected/Badge collected English.mp3',
@@ -66,6 +67,7 @@ const BadgeCelebrationModal = ({
 }: BadgeCelebrationModalProps) => {
   const captureRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const voiceoverUrl =
     milestone === null ? null : getVoiceoverUrl(languageCode, milestone);
@@ -144,6 +146,14 @@ const BadgeCelebrationModal = ({
     }
   };
 
+  const closeModal = () => {
+    if (isClosing) return;
+    // Keep the modal mounted until its reverse animation finishes.
+    logPopupButtonClick('close_cross');
+    setIsClosing(true);
+    window.setTimeout(onClose, MODAL_ANIMATION_DURATION_MS);
+  };
+
   const shareBadge = async () => {
     if (!captureRef.current || milestone === null || isSharing) return;
     logPopupButtonClick('share_button');
@@ -187,14 +197,23 @@ const BadgeCelebrationModal = ({
   if (milestone === null) return null;
 
   return (
-    <div className="BadgeCelebrationModal-overlay" role="presentation">
-      <Confetti
-        className="BadgeCelebrationModal-confetti"
-        numberOfPieces={180}
-        recycle={false}
-      />
+    <div
+      className={`BadgeCelebrationModal-overlay${
+        isClosing ? ' BadgeCelebrationModal-overlay--closing' : ''
+      }`}
+      role="presentation"
+    >
+      {!isClosing && (
+        <Confetti
+          className="BadgeCelebrationModal-confetti"
+          numberOfPieces={180}
+          recycle={false}
+        />
+      )}
       <div
-        className="BadgeCelebrationModal-modal BadgeCelebrationModal-shell"
+        className={`BadgeCelebrationModal-modal BadgeCelebrationModal-shell${
+          isClosing ? ' BadgeCelebrationModal-modal--closing' : ''
+        }`}
         role="dialog"
         aria-modal="true"
       >
@@ -212,10 +231,7 @@ const BadgeCelebrationModal = ({
         <button
           type="button"
           className="BadgeCelebrationModal-close"
-          onClick={() => {
-            logPopupButtonClick('close_cross');
-            onClose();
-          }}
+          onClick={closeModal}
           aria-label={String(t('Close', { defaultValue: 'Close' }))}
         />
         <SharedBadgeArtwork
