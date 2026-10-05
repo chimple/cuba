@@ -82,12 +82,13 @@
   width: 350px;
   max-width: none;
   height: 320px;
-  scale: 1.35;
+  scale: 1.25;
 }
 
 .lesson-completion-rewards-share-artwork
   .BadgeCelebrationModal-generated-badge {
   top: calc(50% - 15px);
+  transform: translate(-50%, -50%) scale(0.64);
 }
 
 /* Match the earned-card shadow on the badge inside the shared artwork. */
@@ -114,11 +115,11 @@
 
 @media (max-width: 460px), (max-height: 420px) {
   .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
-    width: min(385px, calc(100vw - 24px));
+    width: min(350px, calc(100vw - 32px));
   }
 
   .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-badge-art {
-    scale: 1.1;
+    scale: 1;
   }
 }
 

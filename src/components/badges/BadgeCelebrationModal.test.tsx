@@ -129,6 +129,7 @@ describe('BadgeCelebrationModal', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    jest.advanceTimersByTime(2200);
     expect(onClose).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('button', { name: /share/i }));
