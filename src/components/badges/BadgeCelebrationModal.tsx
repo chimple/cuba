@@ -13,9 +13,9 @@ import './BadgeCelebrationModal.css';
 
 export { default as SharedBadgeArtwork } from './SharedBadgeArtwork';
 
-const POPUP_SOUND = '/assets/audios/common/generic_popup_sound_effect.mp3';
+const POPUP_SOUND = '/assets/audios/common/generic_sound_effect.mp3';
 const CHEER_SOUND = '/assets/audios/common/crowd_cheer.mp3';
-const VOICEOVER_DELAY_MS = 2600;
+const VOICEOVER_DELAY_MS = 4000;
 const MODAL_ANIMATION_DURATION_MS = 2200;
 
 const BADGE_VOICEOVERS: Record<string, string> = {
@@ -66,6 +66,8 @@ const BadgeCelebrationModal = ({
   onClose,
 }: BadgeCelebrationModalProps) => {
   const captureRef = useRef<HTMLDivElement>(null);
+  const popupAudioRef = useRef<HTMLAudioElement | null>(null);
+  const cheerAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -120,11 +122,13 @@ const BadgeCelebrationModal = ({
 
     const popupAudio = new Audio(POPUP_SOUND);
     const cheerAudio = new Audio(CHEER_SOUND);
+    popupAudioRef.current = popupAudio;
+    cheerAudioRef.current = cheerAudio;
     void popupAudio.play().catch(() => undefined);
 
     const cheerTimer = window.setTimeout(() => {
       void cheerAudio.play().catch(() => undefined);
-    }, 220);
+    }, 2000);
     const voiceTimer = window.setTimeout(() => {
       void AudioUtil.playAudioOrTts({ audioUrl: voiceoverUrl });
     }, VOICEOVER_DELAY_MS);
@@ -134,6 +138,8 @@ const BadgeCelebrationModal = ({
       window.clearTimeout(voiceTimer);
       popupAudio.pause();
       cheerAudio.pause();
+      popupAudioRef.current = null;
+      cheerAudioRef.current = null;
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
   }, [milestone, voiceoverUrl]);
@@ -150,6 +156,9 @@ const BadgeCelebrationModal = ({
     if (isClosing) return;
     // Keep the modal mounted until its reverse animation finishes.
     logPopupButtonClick('close_cross');
+    popupAudioRef.current?.pause();
+    cheerAudioRef.current?.pause();
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
     setIsClosing(true);
     window.setTimeout(onClose, MODAL_ANIMATION_DURATION_MS);
   };
@@ -206,7 +215,9 @@ const BadgeCelebrationModal = ({
       {!isClosing && (
         <Confetti
           className="BadgeCelebrationModal-confetti"
-          numberOfPieces={180}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          numberOfPieces={300}
           recycle={false}
         />
       )}
@@ -252,9 +263,7 @@ const BadgeCelebrationModal = ({
             alt=""
             aria-hidden="true"
           />
-          {isSharing
-            ? t('Sharing...', { defaultValue: 'Sharing...' })
-            : t('Share', { defaultValue: 'Share' })}
+          {t('Share', { defaultValue: 'Share' })}
         </button>
       </div>
     </div>
