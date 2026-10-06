@@ -261,6 +261,20 @@ export class SupabaseAuthOtpAuth extends SupabaseAuthSessionRefresh {
       api = ServiceConfig.getI().apiHandler;
       if (isUserExists) {
         createdUser = await api.getUserByDocId(id);
+
+        // Authentication is backed by Supabase, while the normal learner
+        // API may be backed by SQLite. A successful login must not be
+        // rejected just because the local database has not synced this user
+        // record yet. Re-read the authoritative record from Supabase before
+        // treating initialization as a missing-user failure.
+        if (!createdUser) {
+          createdUser = await SupabaseApi.getInstance().getUserByDocId(id);
+          if (createdUser) {
+            logger.info(
+              'Resolved user record from Supabase after local lookup.',
+            );
+          }
+        }
       }
       if (!createdUser) {
         logger.error(
