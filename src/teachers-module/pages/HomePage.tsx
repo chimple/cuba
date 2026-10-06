@@ -88,21 +88,24 @@ const HomePage = () => {
           onChange={handleChange}
           className="homepage-bottom-nav"
           showLabels
-          style={{ height: '10vh' }}
         >
           <BottomNavigationAction
             value={0}
             label={t('Home')}
+            showLabel
             icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 0
-                    ? 'assets/icons/homeSelected.png'
-                    : 'assets/icons/home.png'
-                }
-                alt=""
-              />
+              <span className="footer-action-content">
+                <img
+                  className="footerIcons"
+                  src={
+                    footerTabValue === 0
+                      ? 'assets/icons/homeSelected.png'
+                      : 'assets/icons/home.png'
+                  }
+                  alt=""
+                />
+                <span className="footer-action-label">{t('Home')}</span>
+              </span>
             }
           />
 
@@ -110,16 +113,20 @@ const HomePage = () => {
             <BottomNavigationAction
               value={2}
               label={t('Assign')}
+              showLabel
               icon={
-                <img
-                  className="footerIcons"
-                  src={
-                    footerTabValue === 2
-                      ? 'assets/icons/assignmentSelected.png'
-                      : 'assets/icons/assignmentfooter.png'
-                  }
-                  alt=""
-                />
+                <span className="footer-action-content">
+                  <img
+                    className="footerIcons"
+                    src={
+                      footerTabValue === 2
+                        ? 'assets/icons/assignmentSelected.png'
+                        : 'assets/icons/assignmentfooter.png'
+                    }
+                    alt=""
+                  />
+                  <span className="footer-action-label">{t('Assign')}</span>
+                </span>
               }
               className="middle-action"
             />
@@ -127,31 +134,20 @@ const HomePage = () => {
           <BottomNavigationAction
             value={3}
             label={t('Reports')}
+            showLabel
             icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 3
-                    ? 'assets/icons/reportSelected.png'
-                    : 'assets/icons/report.png'
-                }
-                alt=""
-              />
-            }
-          />
-          <BottomNavigationAction
-            value={4}
-            label="AI"
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 4
-                    ? 'assets/icons/aiSelected.png'
-                    : 'assets/icons/ai.png'
-                }
-                alt=""
-              />
+              <span className="footer-action-content">
+                <img
+                  className="footerIcons"
+                  src={
+                    footerTabValue === 3
+                      ? 'assets/icons/reportSelected.png'
+                      : 'assets/icons/report.png'
+                  }
+                  alt=""
+                />
+                <span className="footer-action-label">{t('Reports')}</span>
+              </span>
             }
           />
         </BottomNavigation>
