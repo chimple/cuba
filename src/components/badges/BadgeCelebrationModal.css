@@ -279,7 +279,7 @@
   box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
 }
 .BadgeCelebrationModal-share:disabled {
-  opacity: 0.7;
+  opacity: 1;
   cursor: default;
 }
 
