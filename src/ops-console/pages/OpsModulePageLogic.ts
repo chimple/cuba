@@ -32,7 +32,12 @@ export const MODULE_CARD_DEFINITIONS: ModuleCardDefinition[] = [
     title: 'Parent WhatsApp Invitation',
     description:
       'Open the parent WhatsApp invitation workflow and continue to the detailed operations page for invites, messaging, and follow-up actions.',
-    allowedRoles: [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR],
+    allowedRoles: [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+      RoleType.FIELD_COORDINATOR,
+    ],
   },
   {
     title: 'WhatsApp Integration Status',
