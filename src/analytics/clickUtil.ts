@@ -30,6 +30,16 @@ const storedStudent: {
 const CLICK_ANALYTICS_THROTTLE_MS = 500;
 const lastTrackedClickAtByButtonId: Partial<Record<TrackableId, number>> = {};
 
+const getClickAnalyticsStudent = async () => {
+  try {
+    return (
+      (await SupabaseAuth.i?.getCurrentUser?.()) ?? Util.getCurrentStudent?.()
+    );
+  } catch {
+    return Util.getCurrentStudent?.();
+  }
+};
+
 const getRewardTrackableId = (target: Element) => {
   const rewardElement = target.closest(REWARD_MODE_SELECTOR);
   const rewardMode = rewardElement?.getAttribute(REWARD_MODE_ATTRIBUTE);
@@ -58,7 +68,7 @@ export const logClickAnalytics = async (
   buttonId: TrackableId,
   actionType = 'click',
 ) => {
-  const student = await SupabaseAuth.i.getCurrentUser();
+  const student = await getClickAnalyticsStudent();
   storedStudent.id = student?.id || storedStudent.id || 'null';
   storedStudent.name = student?.name || storedStudent.name || 'null';
   storedStudent.gender = student?.gender || storedStudent.gender || 'null';
