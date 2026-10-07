@@ -48,6 +48,7 @@ export const MODULE_CARD_DEFINITIONS: ModuleCardDefinition[] = [
       RoleType.SUPER_ADMIN,
       RoleType.OPERATIONAL_DIRECTOR,
       RoleType.PROGRAM_MANAGER,
+      RoleType.FIELD_COORDINATOR,
     ],
   },
 ];
