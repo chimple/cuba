@@ -20,6 +20,7 @@ import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErro
 import { t } from 'i18next';
 import SkeltonLoading from '../components/SkeltonLoading';
 import './AddCourses.css';
+import { TRACKABLE_IDS } from '../analytics/trackable';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -112,6 +113,7 @@ const AddCourses: React.FC = () => {
         <div id="add-courses-next-button">
           <NextButton
             disabled={!selectedCourses?.length}
+            trackableId={TRACKABLE_IDS.CONFIRM_ADD_SUBJECTS}
             onClicked={() => {
               if (!online) {
                 presentToast({

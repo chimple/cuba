@@ -2,6 +2,11 @@ import React from 'react';
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import BackButton from '../common/BackButton';
 import { useHistory } from 'react-router-dom';
+import {
+  TRACKABLE_IDS,
+  getTrackableProps,
+  type TrackableId,
+} from '../../analytics/trackable';
 
 interface TabBarProps {
   tabs: { [key: string]: React.ReactNode }; // Using an object map for tabs
@@ -10,6 +15,13 @@ interface TabBarProps {
   handleBackButton: () => void;
   customStyle?: boolean;
 }
+
+const parentTabTrackableIds: Record<string, TrackableId> = {
+  profile: TRACKABLE_IDS.PARENT_TAB_PROFILE,
+  settings: TRACKABLE_IDS.PARENT_TAB_SETTINGS,
+  help: TRACKABLE_IDS.PARENT_TAB_HELP,
+  faq: TRACKABLE_IDS.PARENT_TAB_FAQ,
+};
 
 const CustomAppBar: React.FC<TabBarProps> = ({
   tabs,
@@ -27,7 +39,10 @@ const CustomAppBar: React.FC<TabBarProps> = ({
     <div>
       <div className="back-button-in-custom-app-bar">
         <span className="hidden-text">Back</span>
-        <BackButton onClicked={handleBackButton} />
+        <BackButton
+          onClicked={handleBackButton}
+          trackableId={TRACKABLE_IDS.PARENT_RETURN_PROFILE_SWITCHER}
+        />
       </div>
       <AppBar
         position="static"
@@ -76,6 +91,9 @@ const CustomAppBar: React.FC<TabBarProps> = ({
                 value={tabId}
                 label={tabName}
                 id="custom-app-bar"
+                {...(parentTabTrackableIds[tabId]
+                  ? getTrackableProps(parentTabTrackableIds[tabId])
+                  : {})}
               />
             ))}
           </Tabs>

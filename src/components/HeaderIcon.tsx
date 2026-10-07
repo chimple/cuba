@@ -6,6 +6,27 @@ import {
 import IconButton from './IconButton';
 import { IonBadge } from '@ionic/react';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { TRACKABLE_IDS, type TrackableId } from '../analytics/trackable';
+
+const getHeaderTrackableId = (
+  headerList: HOMEHEADERLIST,
+  isProfile: boolean,
+): TrackableId | undefined => {
+  if (isProfile) return TRACKABLE_IDS.HOME_PROFILE_MENU;
+
+  switch (headerList) {
+    case HOMEHEADERLIST.HOME:
+      return TRACKABLE_IDS.HOME_TAB;
+    case HOMEHEADERLIST.ASSIGNMENT:
+      return TRACKABLE_IDS.HOME_HOMEWORK_TAB;
+    case HOMEHEADERLIST.SUBJECTS:
+      return TRACKABLE_IDS.HOME_SUBJECTS_TAB;
+    case HOMEHEADERLIST.LIVEQUIZ:
+      return TRACKABLE_IDS.HOME_SPECIALS_TAB;
+    default:
+      return undefined;
+  }
+};
 
 const HeaderIcon: React.FC<{
   headerConfig: any;
@@ -78,6 +99,7 @@ const HeaderIcon: React.FC<{
           }
         }}
         isProfile={isProfile}
+        trackableId={getHeaderTrackableId(headerConfig.headerList, isProfile)}
       />
     </div>
   );

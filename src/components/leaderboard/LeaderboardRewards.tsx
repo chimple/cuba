@@ -13,6 +13,7 @@ import logger from '../../utility/logger';
 import { REWARDS_TABS } from '../../common/constants/rewardsPathway';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { clearBadgeProgress } from '../../redux/slices/badgeProgress/badgeProgressSlice';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 type RewardsTab = (typeof REWARDS_TABS)[keyof typeof REWARDS_TABS];
 
@@ -153,6 +154,7 @@ const LeaderboardRewards: FC = () => {
             activeTab === REWARDS_TABS.LESSON_COMPLETION ? 'active' : ''
           }
           onClick={() => selectTab(REWARDS_TABS.LESSON_COMPLETION)}
+          {...getTrackableProps(TRACKABLE_IDS.REWARDS_TAB_ACHIEVEMENTS)}
         >
           <img src="/assets/icons/Lesson Completion Icon.svg" alt="" />
           {t('Achievements')}
@@ -163,6 +165,7 @@ const LeaderboardRewards: FC = () => {
           aria-selected={activeTab === REWARDS_TABS.COMPETITIONS}
           className={activeTab === REWARDS_TABS.COMPETITIONS ? 'active' : ''}
           onClick={() => selectTab(REWARDS_TABS.COMPETITIONS)}
+          {...getTrackableProps(TRACKABLE_IDS.REWARDS_TAB_COMPETITIONS)}
         >
           <img src="/assets/icons/competition icon.svg" alt="" />
           {t('Competitions')}

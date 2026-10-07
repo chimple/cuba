@@ -1,8 +1,24 @@
 import { Util } from '../utility/util';
-import { EVENTS, PAGES } from '../common/constants';
+import { EVENTS } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { SupabaseAuth } from '../services/auth/SupabaseAuth';
 import { getAppHref, getAppPathname } from '../utility/routerLocation';
+import {
+  TRACKABLE_ID_ATTRIBUTE,
+  TRACKABLE_IDS,
+  type TrackableId,
+  TRACKABLE_PARENT_IGNORE_SELECTOR,
+  TRACKABLE_SELECTOR,
+  isKidsAppClickAnalyticsPath,
+} from './trackable';
+
+const REWARD_MODE_ATTRIBUTE = 'data-reward-mode';
+const REWARD_MODE_SELECTOR = '[' + REWARD_MODE_ATTRIBUTE + ']';
+const PATHWAY_POINTER_SELECTOR = '.PathwayStructure-animated-pointer';
+const REWARD_TRACKABLE_IDS_BY_MODE: Record<string, TrackableId> = {
+  sticker: TRACKABLE_IDS.PATHWAY_STICKER_REWARD,
+  mystery_box: TRACKABLE_IDS.PATHWAY_MYSTERY_REWARD,
+};
 
 const storedStudent: {
   id?: string;
@@ -11,109 +27,111 @@ const storedStudent: {
   type?: string;
 } = {};
 
-const handleClick = async (event: MouseEvent) => {
+const CLICK_ANALYTICS_THROTTLE_MS = 500;
+const lastTrackedClickAtByButtonId: Partial<Record<TrackableId, number>> = {};
+
+const getRewardTrackableId = (target: Element) => {
+  const rewardElement = target.closest(REWARD_MODE_SELECTOR);
+  const rewardMode = rewardElement?.getAttribute(REWARD_MODE_ATTRIBUTE);
+
+  return rewardMode ? REWARD_TRACKABLE_IDS_BY_MODE[rewardMode] : undefined;
+};
+
+const getPathwayLessonElement = (target: Element) => {
+  let element: Element | null = target;
+
+  while (element && element !== document.body) {
+    if (
+      element.tagName.toLowerCase() === 'g' &&
+      element.querySelector(PATHWAY_POINTER_SELECTOR)
+    ) {
+      return element;
+    }
+
+    element = element.parentElement;
+  }
+
+  return undefined;
+};
+
+export const logClickAnalytics = async (
+  buttonId: TrackableId,
+  actionType = 'click',
+) => {
   const student = await SupabaseAuth.i.getCurrentUser();
   storedStudent.id = student?.id || storedStudent.id || 'null';
   storedStudent.name = student?.name || storedStudent.name || 'null';
   storedStudent.gender = student?.gender || storedStudent.gender || 'null';
   storedStudent.type = RoleType.STUDENT || 'null';
 
-  let target = event.target as HTMLElement;
-  const getTextContent = (
-    element: HTMLElement | null,
-  ): string | null | undefined => {
-    if (!element) return undefined;
-    //Handle Checkboxes
-    if (target?.matches('input[type="checkbox"]')) {
-      const checkbox = element as HTMLInputElement;
-      const isChecked = checkbox.checked;
-      // Find associated label
-      let labelText: string | undefined;
-      let parentElement: HTMLElement | null = checkbox.parentElement;
-      while (!labelText && parentElement && parentElement !== document.body) {
-        labelText = parentElement.innerText?.trim();
-        if (labelText) break;
-        parentElement = parentElement.parentElement;
-      }
-      let textContent = `${labelText}_${isChecked}`;
-      return textContent;
-    }
-    //Handle Texts
-    let textContent;
-    if (element) {
-      const textIn =
-        element.innerText?.trim() || element.getAttribute('aria-label')?.trim();
-      textContent = textIn;
-    } else {
-      textContent = target.getAttribute('aria-label')?.trim();
-    }
-    if (!textContent) {
-      let currentElement: HTMLElement | null = element;
-      while (
-        !textContent &&
-        currentElement &&
-        currentElement !== document.body
-      ) {
-        textContent =
-          target.innerText?.replace(/\s+/g, ' ').trim() ||
-          target.getAttribute('aria-label');
-        if (textContent) break;
-        target = target.parentElement as HTMLElement;
-      }
-      if (PAGES.EDIT_STUDENT === getAppPathname()) {
-        textContent = target
-          .getAttribute('src')
-          ?.trim()
-          .split('/')
-          .pop()
-          ?.split('.')[0];
-        return textContent;
-      }
-    }
-    return textContent;
-  };
-  const textContent = getTextContent(target);
-
-  const findRelevantParent = (
-    element: HTMLElement | null,
-  ): { id?: string; className?: string } => {
-    while (element) {
-      if (element.id) return { id: element.id };
-      const frameworkClassPattern =
-        /^(menu-|ion-|css-|Mui|chakra|ant-|tailwind|random-|class-|\d)/i;
-      const filteredClasses = Array.from(element.classList).filter(
-        (cls) => !frameworkClassPattern.test(cls),
-      );
-
-      if (filteredClasses.length > 0)
-        return { className: filteredClasses.join(' ') };
-      element = element.parentElement;
-    }
-    return {};
-  };
-
-  const { id, className } = findRelevantParent(target);
-
   const eventData = {
     user_id: storedStudent.id,
     user_name: storedStudent.name,
     user_gender: storedStudent.gender,
     user_type: storedStudent.type,
-    click_value: textContent,
-    click_identifier: id || className || 'null',
+    button_id: buttonId,
     page_name: getAppPathname().replace('/', ''),
     page_path: getAppPathname(),
     complete_path: getAppHref(),
-    action_type: event.type,
+    action_type: actionType,
   };
 
-  Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
+  Util.logEvent(EVENTS.CLICK_ANALYTICS, eventData);
+};
+
+const handleClick = async (event: MouseEvent) => {
+  if (!isKidsAppClickAnalyticsPath(getAppPathname())) {
+    return;
+  }
+
+  if (!(event.target instanceof Element)) {
+    return;
+  }
+
+  const trackableElement = event.target.closest(TRACKABLE_SELECTOR);
+  const rewardElement = event.target.closest(REWARD_MODE_SELECTOR);
+  const pathwayLessonElement = getPathwayLessonElement(event.target);
+  const analyticsElement =
+    trackableElement ?? rewardElement ?? pathwayLessonElement;
+
+  if (!analyticsElement) {
+    return;
+  }
+
+  const ignoredParentElement = event.target.closest(
+    TRACKABLE_PARENT_IGNORE_SELECTOR,
+  );
+  if (
+    ignoredParentElement &&
+    !ignoredParentElement.contains(analyticsElement)
+  ) {
+    return;
+  }
+
+  const buttonId =
+    (trackableElement?.getAttribute(
+      TRACKABLE_ID_ATTRIBUTE,
+    ) as TrackableId | null) ??
+    getRewardTrackableId(event.target) ??
+    (pathwayLessonElement ? TRACKABLE_IDS.PATHWAY_PLAY_LESSON : undefined);
+  if (!buttonId) {
+    return;
+  }
+
+  const now = Date.now();
+  const lastTrackedClickAt = lastTrackedClickAtByButtonId[buttonId] ?? 0;
+  if (now - lastTrackedClickAt < CLICK_ANALYTICS_THROTTLE_MS) {
+    return;
+  }
+  lastTrackedClickAtByButtonId[buttonId] = now;
+
+  await logClickAnalytics(buttonId, event.type);
 };
 
 export const initializeClickListener = () => {
-  document.addEventListener('click', handleClick);
+  document.addEventListener('click', handleClick, true);
 
   return () => {
-    document.removeEventListener('click', handleClick);
+    document.removeEventListener('click', handleClick, true);
   };
 };
