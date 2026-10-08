@@ -10,6 +10,7 @@ import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
 import SharedBadgeArtwork from './SharedBadgeArtwork';
 import './BadgeCelebrationModal.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 export { default as SharedBadgeArtwork } from './SharedBadgeArtwork';
 
@@ -254,6 +255,7 @@ const BadgeCelebrationModal = ({
         <button
           type="button"
           className="BadgeCelebrationModal-share"
+          {...getTrackableProps(TRACKABLE_IDS.BADGE_CELEBRATION_SHARE)}
           onClick={shareBadge}
           disabled={isSharing}
         >

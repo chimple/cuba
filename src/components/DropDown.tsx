@@ -1,6 +1,7 @@
 import { MenuItem, Select } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import './DropDown.css';
+import { getTrackableProps, type TrackableId } from '../analytics/trackable';
 
 const placeholderTextItem = 'placeholderText';
 const DropDown: React.FC<{
@@ -12,12 +13,16 @@ const DropDown: React.FC<{
   onValueChange: (value: string) => void;
   placeholder: string | undefined;
   width: string;
+  trackableId?: TrackableId;
+  optionTrackableId?: TrackableId;
 }> = ({
   optionList,
   currentValue = placeholderTextItem,
   onValueChange,
   width,
   placeholder,
+  trackableId,
+  optionTrackableId,
 }) => {
   return (
     <Select
@@ -42,6 +47,7 @@ const DropDown: React.FC<{
         onValueChange(evt.target.value);
       }}
       value={currentValue}
+      {...(trackableId ? getTrackableProps(trackableId) : {})}
       MenuProps={{
         sx: { marginTop: '0.8vh' },
         PaperProps: {
@@ -70,6 +76,7 @@ const DropDown: React.FC<{
           sx={{ fontFamily: 'BalooRegular' }}
           key={index}
           value={option.id}
+          {...(optionTrackableId ? getTrackableProps(optionTrackableId) : {})}
         >
           {option.displayName}
         </MenuItem>

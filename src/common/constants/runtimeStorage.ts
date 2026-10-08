@@ -270,6 +270,7 @@ export enum EVENTS {
   USER_PROFILE = 'user_profile',
   GOAL_PROGRESS = 'Goal_Progress',
   CLICKS_ANALYTICS = 'clicks_analytics',
+  CLICK_ANALYTICS = 'click_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
   PATHWAY_CREATED = 'pathway_created',
   PATHWAY_COMPLETED = 'pathway_completed',

@@ -8,6 +8,7 @@ import {
 } from 'react-share';
 import { FaInstagramSquare } from 'react-icons/fa';
 import { TfiWorld } from 'react-icons/tfi';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 const ParentHelpTab = () => (
   <div id="parent-page-help">
@@ -15,7 +16,10 @@ const ParentHelpTab = () => (
     <div id="parent-page-help-title-container">
       <div id="parent-page-help-title-link">
         <div id="parent-page-help-title-e1">
-          <div id="parent-page-help-share-button">
+          <div
+            id="parent-page-help-share-button"
+            {...getTrackableProps(TRACKABLE_IDS.CONTACT_HELP_BY_EMAIL)}
+          >
             <EmailShareButton
               url={'help@sutara.org'}
               subject={'Chimple Kids app- Help Desk'}
@@ -28,6 +32,7 @@ const ParentHelpTab = () => (
           </div>
           <div
             id="parent-page-help-share-button"
+            {...getTrackableProps(TRACKABLE_IDS.OPEN_HELP_WEBSITE)}
             onClick={() => {
               window.open('https://www.chimple.org/', '_system');
             }}
@@ -37,6 +42,7 @@ const ParentHelpTab = () => (
           </div>
           <div
             id="parent-page-help-share-button"
+            {...getTrackableProps(TRACKABLE_IDS.CONTACT_HELP_BY_WHATSAPP)}
             onClick={() => {
               let message = 'Hiii !!!!';
               window.open(
@@ -65,8 +71,12 @@ const ParentHelpTab = () => (
         <div id="parent-page-help-title-e3">
           <div
             id="parent-page-help-share-button-e3"
+            {...getTrackableProps(TRACKABLE_IDS.OPEN_HELP_INSTAGRAM)}
             onClick={() => {
-              window.open(`https://api.instagram.com/chimple_learning/`, '_system');
+              window.open(
+                `https://api.instagram.com/chimple_learning/`,
+                '_system',
+              );
             }}
           >
             {t('Instagram')}
@@ -74,6 +84,7 @@ const ParentHelpTab = () => (
           </div>
           <div
             id="parent-page-help-share-button-e3"
+            {...getTrackableProps(TRACKABLE_IDS.OPEN_HELP_FACEBOOK)}
             onClick={() => {
               window.open(`https://www.facebook.com/chimple`, '_system');
             }}
@@ -83,6 +94,7 @@ const ParentHelpTab = () => (
           </div>
           <div
             id="parent-page-help-share-button-e3"
+            {...getTrackableProps(TRACKABLE_IDS.OPEN_HELP_TWITTER)}
             onClick={() => {
               window.open(`https://twitter.com/chimple_org`, '_system');
             }}

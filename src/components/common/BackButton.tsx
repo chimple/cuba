@@ -3,10 +3,12 @@ import './BackButton.css';
 import { IoIosArrowBack } from 'react-icons/io';
 import { registerBackButtonHandler } from '../../common/backButtonRegistry';
 import { t } from 'i18next';
+import { getTrackableProps, type TrackableId } from '../../analytics/trackable';
 
 const BackButton: React.FC<{
   onClicked: any;
-}> = ({ onClicked }) => {
+  trackableId?: TrackableId;
+}> = ({ onClicked, trackableId }) => {
   const onClickedRef = useRef(onClicked);
 
   useEffect(() => {
@@ -26,6 +28,7 @@ const BackButton: React.FC<{
       id="common-back-button"
       aria-label={String(t('Back'))}
       onClick={onClicked}
+      {...(trackableId ? getTrackableProps(trackableId) : {})}
     ></IoIosArrowBack>
   );
 };
