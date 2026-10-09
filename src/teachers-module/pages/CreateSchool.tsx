@@ -4,9 +4,15 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { t } from 'i18next';
 import Header from '../components/homePage/Header';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { PAGES, RequestTypes, STATUS } from '../../common/constants';
+import {
+  PAGES,
+  RequestTypes,
+  SCHOOL_ALREADY_EXISTS_ERROR,
+  STATUS,
+} from '../../common/constants';
 import SelectField from '../components/SelectField';
 import logger from '../../utility/logger';
+import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 
 interface CreateSchoolLocationState {
   country?: string;
@@ -19,6 +25,7 @@ const CreateSchool: React.FC = () => {
   const history = useHistory();
   const location = useLocation<CreateSchoolLocationState>();
   const api = ServiceConfig.getI().apiHandler;
+  const { presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const prefilledData = location.state || {};
   const isInitialLoad = useRef(true);
@@ -129,6 +136,25 @@ const CreateSchool: React.FC = () => {
   const handleSendRequest = async () => {
     try {
       setSending(true);
+      const existsByUdise =
+        Boolean(udise.trim()) &&
+        (
+          await api.searchSchools({
+            p_search_text: udise,
+            p_page_limit: 1,
+            p_page_offset: 0,
+          })
+        ).schools.some((school) => school.udise?.trim() === udise.trim());
+      if (existsByUdise) {
+        await presentToast({
+          message: SCHOOL_ALREADY_EXISTS_ERROR,
+          color: 'danger',
+          duration: 3000,
+          position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        });
+        return;
+      }
       const school = await api.createSchool(
         schoolName,
         state,

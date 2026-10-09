@@ -1958,6 +1958,7 @@
   "You have selected to remove a subject, would you like to continue?": "You have selected to remove a subject, would you like to continue?",
   "You're about to permanently delete {{name}}'s record. This action cannot be undone.": "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!",
+  "This school already exists. You cannot submit a duplicate school creation request.": "This school already exists. You cannot submit a duplicate school creation request.",
   "Your creation is shared!": "Your creation is shared!",
   "Your data has been successfully checked, and no errors were found.": "Your data has been successfully checked, and no errors were found.",
   "Your Location": "Your Location",
