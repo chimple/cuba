@@ -8,6 +8,7 @@ import {
   TableTypes,
 } from '../../common/constants';
 import DropDown from '../DropDown';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 
 type LeaderboardTableProps = {
   currentClassAndSchool?: {
@@ -22,7 +23,9 @@ type LeaderboardTableProps = {
     classId: string,
   ) => Promise<void>;
   leaderboardData: any[][];
-  setWeeklySelectedValue: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setWeeklySelectedValue: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
   studentMode?: string;
   weeklyList: {
     id: string;
@@ -54,6 +57,8 @@ const LeaderboardTable = ({
           optionList={weeklyList}
           currentValue={weeklySelectedValue || weeklyList[0]?.id}
           width="26vw"
+          trackableId={TRACKABLE_IDS.LEADERBOARD_PERIOD_DROPDOWN}
+          optionTrackableId={TRACKABLE_IDS.LEADERBOARD_PERIOD_OPTION}
           onValueChange={(selectedValue) => {
             const selectedIndex =
               typeof selectedValue === 'number'
@@ -72,17 +77,25 @@ const LeaderboardTable = ({
             }
           }}
         ></DropDown>
-        <div key={currentStudent?.id} className="avatar" id="leaderboard-avatar">
+        <div
+          key={currentStudent?.id}
+          className="avatar"
+          id="leaderboard-avatar"
+        >
           <img
             className="leaderboard-avatar-img"
             src={
               (studentMode === MODES.SCHOOL && currentStudent?.image) ||
-              'assets/avatars/' + (currentStudent?.avatar ?? AVATARS[0]) + '.png'
+              'assets/avatars/' +
+                (currentStudent?.avatar ?? AVATARS[0]) +
+                '.png'
             }
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               const fallback =
-                'assets/avatars/' + (currentStudent?.avatar ?? AVATARS[0]) + '.png';
+                'assets/avatars/' +
+                (currentStudent?.avatar ?? AVATARS[0]) +
+                '.png';
               if (
                 target.src !== window.location.origin + '/' + fallback &&
                 target.src !== fallback
@@ -160,7 +173,8 @@ const LeaderboardTable = ({
                     ? 'rgb(200 200 200)'
                     : Number(currentUserDataContent[0][1]) ===
                           headerRowIndicator ||
-                        currentUserDataContent[0][1] === headerRowIndicator + '+'
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + '+'
                       ? '#FF7925'
                       : '',
                 padding:
@@ -168,7 +182,8 @@ const LeaderboardTable = ({
                     ? '1vh 2vh'
                     : Number(currentUserDataContent[0][1]) ===
                           headerRowIndicator ||
-                        currentUserDataContent[0][1] === headerRowIndicator + '+'
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + '+'
                       ? '0vh 2vh'
                       : '1vh 2vh ',
                 position: 'sticky',

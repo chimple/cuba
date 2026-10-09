@@ -30,3 +30,15 @@
 # Ignore optional Facebook SDK classes referenced by authentication handlers
 # so R8 doesn't fail when the SDK is not included
 -dontwarn com.facebook.**
+
+# --- Release startup keep rules ---
+# These classes are discovered/constructed by AndroidX, Firebase, and ML Kit
+# through reflection. R8 removed their constructors from the minified release
+# APK, causing startup failures such as NoSuchMethodException.
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class com.google.firebase.installations.FirebaseInstallationsKtxRegistrar { <init>(); }
+-keep class com.google.firebase.messaging.FirebaseMessagingKtxRegistrar { <init>(); }
+-keep class com.google.firebase.crashlytics.CrashlyticsRegistrar { <init>(); }
+-keep class com.google.mlkit.common.internal.CommonComponentRegistrar { <init>(); }
+-keep class com.google.mlkit.vision.barcode.internal.BarcodeRegistrar { <init>(); }
+-keep class com.google.mlkit.vision.common.internal.VisionCommonRegistrar { <init>(); }

@@ -5,4 +5,4 @@
   );border-radius:6px;box-shadow:0 2px 6px rgba(0, 0, 0, 0.18),
     inset 0 -1px 0 rgba(255, 255, 255, 0.25);transition:width 25ms ease-out,
     height 25ms ease-out,
-    opacity 80ms ease-out;opacity:0.95;will-change:transform, width, height;contain:layout paint style}
+    opacity 80ms ease-out;opacity:0.95;will-change:transform, width, height;contain:layout paint style}.category-dropped-onCorrect{box-shadow:rgba(129, 193, 39, 1) 0px 8px 8px 0px !important}.category-dropped-onInCorrect{box-shadow:rgba(255, 4, 16, 1) 0px 8px 8px 0px !important}

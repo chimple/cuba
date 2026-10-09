@@ -94,16 +94,21 @@ const HomePage = () => {
             value={0}
             label={t('Home')}
             icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 0
-                    ? 'assets/icons/homeSelected.png'
-                    : 'assets/icons/home.png'
-                }
-                alt=""
-              />
+              footerTabValue === 0 ? (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/homeSelected.png"
+                  alt=""
+                />
+              ) : (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/home.png"
+                  alt=""
+                />
+              )
             }
+            className="bottom-nav-action"
           />
 
           {!isExternalUser && !isTeacherSchoolMode && (
@@ -111,48 +116,42 @@ const HomePage = () => {
               value={2}
               label={t('Assign')}
               icon={
-                <img
-                  className="footerIcons"
-                  src={
-                    footerTabValue === 2
-                      ? 'assets/icons/assignmentSelected.png'
-                      : 'assets/icons/assignmentfooter.png'
-                  }
-                  alt=""
-                />
+                footerTabValue === 2 ? (
+                  <img
+                    className="footerIcons"
+                    src="assets/icons/assignmentSelected.png"
+                    alt=""
+                  />
+                ) : (
+                  <img
+                    className="footerIcons"
+                    src="assets/icons/assignmentfooter.png"
+                    alt=""
+                  />
+                )
               }
-              className="middle-action"
+              className="bottom-nav-action middle-action"
             />
           )}
           <BottomNavigationAction
             value={3}
             label={t('Reports')}
             icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 3
-                    ? 'assets/icons/reportSelected.png'
-                    : 'assets/icons/report.png'
-                }
-                alt=""
-              />
+              footerTabValue === 3 ? (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/reportSelected.png"
+                  alt=""
+                />
+              ) : (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/report.png"
+                  alt=""
+                />
+              )
             }
-          />
-          <BottomNavigationAction
-            value={4}
-            label="AI"
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 4
-                    ? 'assets/icons/aiSelected.png'
-                    : 'assets/icons/ai.png'
-                }
-                alt=""
-              />
-            }
+            className="bottom-nav-action"
           />
         </BottomNavigation>
       </footer>

@@ -15,6 +15,7 @@ import {
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import Loading from '../Loading';
 import DialogBoxButtons from './DialogBoxButtons';
 import './ProfileCard.css';
@@ -155,6 +156,7 @@ const ProfileCard: React.FC<{
             <button
               id="profile-card-image-report"
               type="button"
+              {...getTrackableProps(TRACKABLE_IDS.PARENT_PROFILE_PROGRESS)}
               onClick={async () => {
                 logProfileCardAction('view_progress');
                 await Util.setCurrentStudent(user, undefined, false, false);
@@ -171,6 +173,7 @@ const ProfileCard: React.FC<{
             type="button"
             id="profile-card-new-user-icon"
             aria-label={t('Add a Child') ?? undefined}
+            {...getTrackableProps(TRACKABLE_IDS.PARENT_PROFILE_ADD_CHILD)}
             onClick={() => {
               if (!online) {
                 presentToast({

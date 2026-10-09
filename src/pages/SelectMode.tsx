@@ -25,6 +25,7 @@ import {
 
 import { useSelectModeController } from './useSelectModeController';
 import './SelectMode.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 
 const SelectMode: FC = () => {
   const {
@@ -142,6 +143,9 @@ const SelectMode: FC = () => {
                   className={`okay-btn ${
                     isOkayButtonDisabled ? 'okay-btn-disabled' : ''
                   }`}
+                  {...getTrackableProps(
+                    TRACKABLE_IDS.CONTINUE_TO_CLASS_SELECTION,
+                  )}
                   onClick={async function () {
                     // history.replace(PAGES.SELECT_CLASS);
                     const selectedClass = await displayClasses();

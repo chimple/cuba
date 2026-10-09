@@ -1,18 +1,24 @@
 import './IconButton.css';
 import { Util } from '../utility/util';
 import { AVATARS } from '../common/constants';
+import { getTrackableProps, type TrackableId } from '../analytics/trackable';
 
 const IconButton: React.FC<{
   iconSrc: string;
   name: string;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   isProfile?: boolean;
-}> = ({ iconSrc, name, onClick, isProfile }) => {
+  trackableId?: TrackableId;
+}> = ({ iconSrc, name, onClick, isProfile, trackableId }) => {
   const student = Util.getCurrentStudent();
   const iconButtonClass = `icon-button${isProfile ? ' circular-icon' : ''}`;
 
   return (
-    <div className={iconButtonClass} onClick={onClick}>
+    <div
+      className={iconButtonClass}
+      onClick={onClick}
+      {...(trackableId ? getTrackableProps(trackableId) : {})}
+    >
       <div>
         <img
           className={`${isProfile ? 'iconButton-profile-img' : 'img'}`}

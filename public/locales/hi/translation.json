@@ -1670,7 +1670,10 @@
     "My Learning Mates": "मेरे सीखने के साथी",
     "LET'S TRAVEL!": "चलो सफ़र पर!",
     "MY LEARNING MATES": "मेरे सीखने के साथी",
-    "{{count}} lessons complete!": "{{count}} पाठ पूरे हुए!",
-    "Keep learning and exploring!": "सीखते रहे, खोजते रहे!",
-    "Sharing...": "शेयर किया जा रहा है..।"
+    "{{count}} lessons complete!": "{{count}} पाठ पूरे!",
+    "Keep learning and exploring!": "सीखते रहें, खोजते रहें!",
+    "Sharing...": "शेयर किया जा रहा है..।",
+    "Achievements": "उपलब्धियाँ",
+    "Competitions": "प्रतियोगिताएँ",
+    "Start the Day!": "दिन की शुरुआत करें!"
 }
