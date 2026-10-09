@@ -342,24 +342,6 @@ public class PortPlugin extends Plugin {
                     try {
                         ReferrerDetails details = referrerClient.getInstallReferrer();
                         String installReferrer = details.getInstallReferrer();
-                        Log.d(
-                                INSTALL_REFERRER_TAG,
-                                "value=" + ("987654".equals(installReferrer)
-                                        ? "987654" : "<non-probe>")
-                        );
-                        Log.d(
-                                INSTALL_REFERRER_TAG,
-                                "valuePresent="
-                                        + (installReferrer != null && !installReferrer.isEmpty())
-                        );
-                        Log.d(
-                                INSTALL_REFERRER_TAG,
-                                "click=" + details.getReferrerClickTimestampSeconds()
-                        );
-                        Log.d(
-                                INSTALL_REFERRER_TAG,
-                                "install=" + details.getInstallBeginTimestampSeconds()
-                        );
                         if (installReferrer != null && !installReferrer.isEmpty()) {
                             Log.d(
                                     INSTALL_REFERRER_TAG,
