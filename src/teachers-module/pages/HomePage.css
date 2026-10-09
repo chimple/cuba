@@ -4,24 +4,19 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #fff; /* Change background color if needed */
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* Optional: add shadow for better visibility */ /* Ensure equal spacing */
+  background-color: #fff;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.homepage-bottom-nav-action {
-  color: #000; /* Default icon and label color */
+.bottom-nav-action {
+  color: #000;
 }
 
-.homepage-bottom-nav-action.Mui-selected {
-  color: inherit; /* Maintain the same color for selected action */
+.bottom-nav-action.Mui-selected {
+  color: inherit;
 }
 
-/* Highlight only the icon and label when selected */
-.homepage-bottom-nav-action.Mui-selected .MuiSvgIcon-root {
-  color: #7c5db0;
-}
-
-.homepage-bottom-nav-action.Mui-selected .MuiBottomNavigationAction-label {
+.bottom-nav-action.Mui-selected .MuiBottomNavigationAction-label {
   color: #666666;
 }
 
@@ -34,18 +29,15 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  height: 100dvh;
   margin: 0;
   background-color: #7c5db0;
 }
 
 .container-footer {
   height: 10vh;
-  flex: 0 0 10vh;
   color: #7c5db0;
   align-items: center;
   justify-content: center;
-  color: black;
 }
 
 .home-container-body {
@@ -63,9 +55,7 @@
   width: clamp(30px, 3vw, 40px);
   margin-bottom: 4px;
 }
+
 .assignSelectedIcon {
   width: clamp(40px, 3.5vw, 50px);
-}
-.homepage-bottom-nav .MuiBottomNavigationAction-label {
-  color: #707070;
 }

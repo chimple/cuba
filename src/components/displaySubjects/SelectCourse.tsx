@@ -11,6 +11,7 @@ import {
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -68,6 +69,7 @@ const SelectCourse: FC<{
               }}
               className="subject-button"
               key={course.id}
+              {...getTrackableProps(TRACKABLE_IDS.SUBJECT_CARD)}
             >
               <div id="subject-card-subject-name">
                 <div>
@@ -104,6 +106,7 @@ const SelectCourse: FC<{
             }}
             className="subject-button"
             key={courses[0].id}
+            {...getTrackableProps(TRACKABLE_IDS.ADD_SUBJECTS)}
           >
             <div
               className="course-icon"

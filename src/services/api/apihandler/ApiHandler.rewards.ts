@@ -9,6 +9,11 @@ export class ApiHandlerRewards extends ApiHandlerLiveQuiz {
     return this.s.getUserBadgeProgress(userId);
   }
 
+  markUserBadgeSeen(userId: string): Promise<void> {
+    // Forward the child ID to the active storage implementation.
+    return this.s.markUserBadgeSeen(userId);
+  }
+
   recordBadgeLessonCompletion(userId: string) {
     // Keep the API handler thin so storage-specific progress logic stays in the service.
     return this.s.recordBadgeLessonCompletion(userId);

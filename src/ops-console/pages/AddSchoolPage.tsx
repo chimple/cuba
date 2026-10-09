@@ -75,7 +75,9 @@ const AddSchoolPage: React.FC = () => {
         />
 
         <SchoolCourseSelector
+          mode={controller.editData ? 'edit' : 'create'}
           courses={controller.courses}
+          removalError={controller.courseRemovalError}
           grades={controller.grades}
           loading={controller.isCoursesLoading}
           selectedCourseIds={controller.selectedCourseIds}

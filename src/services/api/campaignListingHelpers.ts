@@ -276,9 +276,9 @@ export const getCampaignListingColumns = (
   {
     key: 'avgWeeklyActiveUsers',
     label: renderMetricHeaderLabel(
-      translate('Avg Weekly Active Users'),
+      translate('Campaign Active Students'),
       translate(
-        'The average number of unique users who were active in the past 7 days.',
+        'The number of unique students active during the campaign period.',
       ),
       'center',
     ),
@@ -290,9 +290,9 @@ export const getCampaignListingColumns = (
   {
     key: 'avgWeeklyEngagementTime',
     label: renderMetricHeaderLabel(
-      translate('Avg Weekly Engagement Time'),
+      translate('Avg Campaign Engagement Time'),
       translate(
-        'The average time users spent actively using the app in the past 7 days.',
+        'The average time active students spent using the app during the campaign period.',
       ),
       'center',
     ),
