@@ -6,6 +6,7 @@ import {
   CURRENT_MODE,
   MODES,
   PAGES,
+  SCHOOL_ALREADY_EXISTS_ERROR,
   SchoolWithRole,
 } from '../../common/constants';
 import Header from '../components/homePage/Header';
@@ -163,6 +164,27 @@ export const useReqEditSchool = () => {
         return;
       }
       const api = ServiceConfig.getI().apiHandler;
+      const existsByUdise =
+        Boolean(schoolData.UDISE_ID.trim()) &&
+        (
+          await api.searchSchools({
+            p_search_text: schoolData.UDISE_ID.trim(),
+            p_page_limit: 1,
+            p_page_offset: 0,
+          })
+        ).schools.some(
+          (school) => school.udise?.trim() === schoolData.UDISE_ID.trim(),
+        );
+      if (existsByUdise) {
+        await presentToast({
+          message: SCHOOL_ALREADY_EXISTS_ERROR,
+          color: 'danger',
+          duration: 3000,
+          position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
+        });
+        return;
+      }
       const res = await api.requestNewSchool(
         schoolData.name.trim(),
         schoolData.state.trim(),
