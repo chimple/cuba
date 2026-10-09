@@ -1,6 +1,6 @@
 {
   "database": "db_issue10",
-  "version": 16,
+  "version": 18,
   "encrypted": false,
   "mode": "full",
   "tables": [
@@ -531533,6 +531533,23 @@
         { "column": "created_at", "value": "TEXT DEFAULT (datetime ('now'))" },
         { "column": "updated_at", "value": "TEXT DEFAULT (datetime ('now'))" },
         { "column": "id", "value": "TEXT PRIMARY KEY" }
+      ]
+    },
+    {
+      "name": "live_quiz_room",
+      "schema": [
+        { "column": "id", "value": "TEXT PRIMARY KEY" },
+        { "column": "assignment_id", "value": "TEXT NOT NULL" },
+        { "column": "class_id", "value": "TEXT NOT NULL" },
+        { "column": "course_id", "value": "TEXT NOT NULL" },
+        { "column": "created_at", "value": "TEXT DEFAULT (datetime ('now'))" },
+        { "column": "is_deleted", "value": "INTEGER DEFAULT 0" },
+        { "column": "lesson_id", "value": "TEXT NOT NULL" },
+        { "column": "participants", "value": "TEXT" },
+        { "column": "results", "value": "TEXT" },
+        { "column": "school_id", "value": "TEXT NOT NULL" },
+        { "column": "starts_at", "value": "TEXT NOT NULL" },
+        { "column": "updated_at", "value": "TEXT DEFAULT (datetime ('now'))" }
       ]
     }
   ]

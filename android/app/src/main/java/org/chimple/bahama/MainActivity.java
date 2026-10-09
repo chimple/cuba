@@ -65,6 +65,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
+        PortPlugin.checkInstallReferrerOnLaunch();
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -133,26 +134,94 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             return;
         }
 
-        Uri data = intent.getData();
-        try {
-            for (String key : data.getQueryParameterNames()) {
-                if (key.equals("activity_id")) {
-                    Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
-                    activity_id = data.getQueryParameter(key);
-                    // RESPECT launches a full-screen Lido activity. Lock here,
-                    // before the web player initializes, to prevent portrait UI.
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                }
-                deepLinkData.put(key, data.getQueryParameter(key));
-            }
-        } catch (Exception e) {
+        if (!setRespectLaunchData(intent.getData())) {
             return;
         }
+
+        Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
+        // RESPECT launches a full-screen Lido activity. Lock here,
+        // before the web player initializes, to prevent portrait UI.
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // The web app independently retries launch preparation until its data is ready.
         // Do not delay this event: a warm Cuba activity otherwise briefly shows the
         // previous student-selection screen before the RESPECT lesson is opened.
         PortPlugin.sendLaunch();
+    }
+
+    static void handleInstallReferrer(String installReferrer) {
+        try {
+            String decodedReferrer = Uri.decode(installReferrer);
+            Log.d(
+                    TAG,
+                    "Handling install referrer: rawLength=" + installReferrer.length()
+                            + ", decodedLength=" + decodedReferrer.length()
+                            + ", isProbe=" + "987654".equals(installReferrer)
+            );
+            Uri referrerData;
+            if (decodedReferrer.startsWith("intent://")
+                    || decodedReferrer.startsWith("https://")
+                    || decodedReferrer.startsWith("http://")) {
+                Log.d(TAG, "Install referrer parser=launchUri");
+                Intent referrerIntent = Intent.parseUri(
+                        decodedReferrer, Intent.URI_INTENT_SCHEME
+                );
+                referrerData = referrerIntent.getData();
+            } else {
+                Log.d(TAG, "Install referrer parser=queryString");
+                // Play referrers are query strings; retain nested encoded values.
+                referrerData = new Uri.Builder()
+                        .scheme("https")
+                        .authority("play-referrer")
+                        .encodedQuery(installReferrer)
+                        .build();
+            }
+            boolean hasActivityId = referrerData != null
+                    && referrerData.getQueryParameter("activity_id") != null;
+            boolean hasChimpleLessonId = referrerData != null
+                    && referrerData.getQueryParameter("chimple_lesson_id") != null;
+            String activityId = hasActivityId
+                    ? referrerData.getQueryParameter("activity_id") : "";
+            String chimpleLessonId = hasChimpleLessonId
+                    ? referrerData.getQueryParameter("chimple_lesson_id") : "";
+            Log.d(
+                    TAG,
+                    "Install referrer parsed: rawLength=" + installReferrer.length()
+                            + ", decodedLength=" + decodedReferrer.length()
+                            + ", hasActivityId=" + hasActivityId
+                            + ", hasChimpleLessonId=" + hasChimpleLessonId
+                            + ", activityId=" + activityId
+                            + ", chimpleLessonId=" + chimpleLessonId
+            );
+            // Play delivers a deferred RESPECT launch as referrer text rather than an intent.
+            if (setRespectLaunchData(referrerData)) {
+                Log.d(TAG, "Install referrer lesson handoff=true");
+                PortPlugin.sendLaunch();
+            } else {
+                Log.d(TAG, "Install referrer lesson handoff=false");
+            }
+        } catch (Exception exception) {
+            Log.w(TAG, "Unable to read the install referrer launch data", exception);
+        }
+    }
+
+    private static boolean setRespectLaunchData(Uri data) {
+        if (data == null) {
+            return false;
+        }
+
+        try {
+            for (String key : data.getQueryParameterNames()) {
+                if (key.equals("activity_id")) {
+                    activity_id = data.getQueryParameter(key);
+                }
+                deepLinkData.put(key, data.getQueryParameter(key));
+            }
+        } catch (Exception e) {
+            return false;
+        }
+
+        return !activity_id.isEmpty();
     }
 
 
