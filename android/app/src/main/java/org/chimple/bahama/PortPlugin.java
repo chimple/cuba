@@ -35,6 +35,9 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.android.installreferrer.api.InstallReferrerClient;
+import com.android.installreferrer.api.InstallReferrerStateListener;
+import com.android.installreferrer.api.ReferrerDetails;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +58,8 @@ public class PortPlugin extends Plugin {
         instance = this; // Assign instance when PortPlugin is created
     }
     private static final String TAG = "Logger001";
+    private static final String INSTALL_REFERRER_TAG = "REFERRER";
+    private static final String RESPECT_PACKAGE = "world.respect.app";
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -101,6 +106,13 @@ public class PortPlugin extends Plugin {
 
     public static PortPlugin getInstance() {
         return instance;
+    }
+
+    public static void checkInstallReferrerOnLaunch() {
+        PortPlugin portPlugin = getInstance();
+        if (portPlugin != null) {
+            portPlugin.getInstallReferrer(null);
+        }
     }
 
     @PluginMethod
@@ -307,6 +319,80 @@ public class PortPlugin extends Plugin {
         result.put("lessonName", lessonName);
         result.put("xapiIpcPackage", xapiIpcPackage);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getInstallReferrer(PluginCall call) {
+        InstallReferrerClient referrerClient =
+                InstallReferrerClient.newBuilder(getContext()).build();
+
+        try {
+            referrerClient.startConnection(new InstallReferrerStateListener() {
+                @Override
+                public void onInstallReferrerSetupFinished(int responseCode) {
+                    Log.d(INSTALL_REFERRER_TAG, "responseCode=" + responseCode);
+                    if (responseCode != InstallReferrerClient.InstallReferrerResponse.OK) {
+                        referrerClient.endConnection();
+                        if (call != null) {
+                            call.reject("Google Play Install Referrer is unavailable");
+                        }
+                        return;
+                    }
+
+                    try {
+                        ReferrerDetails details = referrerClient.getInstallReferrer();
+                        String installReferrer = details.getInstallReferrer();
+                        if (installReferrer != null && !installReferrer.isEmpty()) {
+                            Log.d(
+                                    INSTALL_REFERRER_TAG,
+                                    "Forwarding install referrer to MainActivity"
+                            );
+                            MainActivity.handleInstallReferrer(installReferrer);
+                        } else {
+                            Log.d(
+                                    INSTALL_REFERRER_TAG,
+                                    "Install referrer was empty; skipping MainActivity handoff"
+                            );
+                        }
+                        if (call != null) {
+                            JSObject result = new JSObject();
+                            result.put("installReferrer", installReferrer);
+                            result.put(
+                                    "referrerClickTimestampSeconds",
+                                    details.getReferrerClickTimestampSeconds()
+                            );
+                            result.put(
+                                    "installBeginTimestampSeconds",
+                                    details.getInstallBeginTimestampSeconds()
+                            );
+                            result.put(
+                                    "googlePlayInstantParam",
+                                    details.getGooglePlayInstantParam()
+                            );
+                            call.resolve(result);
+                        }
+                    } catch (Exception exception) {
+                        if (call != null) {
+                            call.reject("Failed to read Google Play Install Referrer", exception);
+                        }
+                    } finally {
+                        referrerClient.endConnection();
+                    }
+                }
+
+                @Override
+                public void onInstallReferrerServiceDisconnected() {
+                    if (call != null) {
+                        call.reject("Google Play Install Referrer service disconnected");
+                    }
+                }
+            });
+        } catch (Exception exception) {
+            referrerClient.endConnection();
+            if (call != null) {
+                call.reject("Failed to connect to Google Play Install Referrer", exception);
+            }
+        }
     }
 
     @PluginMethod
@@ -520,12 +606,19 @@ public class PortPlugin extends Plugin {
 
     @PluginMethod
     public void returnDataToRespect(PluginCall call) {
-        // Clear deeplink state before finishing activity
-        activity_id = "";
-        deepLinkData = new JSONObject();
-
         Activity activity = getActivity();
         if (activity != null) {
+            Intent respectIntent = activity.getPackageManager()
+                    .getLaunchIntentForPackage(RESPECT_PACKAGE);
+            if (respectIntent != null) {
+                respectIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                );
+                activity.startActivity(respectIntent);
+            }
+            // Clear deeplink state only after the RESPECT task is foregrounded.
+            activity_id = "";
+            deepLinkData = new JSONObject();
             activity.finish();
             call.resolve();
         } else {
