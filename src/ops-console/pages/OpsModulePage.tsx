@@ -24,7 +24,8 @@ const OpsModulePage: React.FC = () => {
     (role) =>
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR ||
-      role === RoleType.PROGRAM_MANAGER,
+      role === RoleType.PROGRAM_MANAGER ||
+      role === RoleType.FIELD_COORDINATOR,
   );
   const visibleModules = MODULE_CARD_DEFINITIONS.filter((module) =>
     userRoles.some((role) => module.allowedRoles.includes(role as RoleType)),

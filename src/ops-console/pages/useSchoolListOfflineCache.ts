@@ -326,7 +326,7 @@ export function useSchoolListOfflineCache({
   return {
     clearOfflineCacheLabel: isClearingSchoolCaches
       ? t('Clearing cache...')
-      : t('Clear Cache'),
+      : t('Clear Offline'),
     handleCacheSelectedSchools,
     handleCancelOfflineCacheSelection,
     handleClearSelectedSchoolCaches,
@@ -340,7 +340,7 @@ export function useSchoolListOfflineCache({
     refreshOfflineCachedSchools,
     saveOfflineCacheLabel: isCachingSchools
       ? t('Saving offline data...')
-      : t('Save Cache'),
+      : t('Save Offline'),
     selectedSchoolIds,
     showCachedSchoolsOnly,
   };

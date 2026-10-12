@@ -19,6 +19,8 @@ type SchoolCourseSelectorProps = {
   courses: SchoolCourseOption[];
   grades: TableTypes<'grade'>[];
   loading: boolean;
+  mode: 'create' | 'edit';
+  removalError?: string;
   selectedCourseIds: string[];
   selectedGradeId: string;
   onGradeChange: (gradeId: string) => void;
@@ -29,6 +31,8 @@ export const SchoolCourseSelector = ({
   courses,
   grades,
   loading,
+  mode,
+  removalError,
   selectedCourseIds,
   selectedGradeId,
   onGradeChange,
@@ -37,7 +41,11 @@ export const SchoolCourseSelector = ({
   const [coursesOpen, setCoursesOpen] = useState(false);
   const coursesRef = useRef<HTMLDivElement | null>(null);
   const visibleCourses = selectedGradeId
-    ? courses.filter((course) => course.grade_id === selectedGradeId)
+    ? courses.filter(
+        (course) =>
+          course.grade_id === selectedGradeId ||
+          selectedCourseIds.includes(course.id),
+      )
     : courses;
 
   useEffect(() => {
@@ -85,7 +93,9 @@ export const SchoolCourseSelector = ({
         </Box>
 
         <Box className="add-school-course-field" ref={coursesRef}>
-          <FormLabel>{t('Courses')}</FormLabel>
+          <FormLabel>
+            {t('Courses')} <span className="add-school-requird">*</span>
+          </FormLabel>
           <button
             type="button"
             className="add-school-course-select-trigger"
@@ -93,10 +103,17 @@ export const SchoolCourseSelector = ({
             onClick={() => setCoursesOpen((open) => !open)}
           >
             {selectedCourseIds.length
-              ? t('Courses selected')
+              ? `${selectedCourseIds.length} ${t('Courses selected')}`
               : t('Select Courses')}
             <span>{coursesOpen ? '⌃' : '⌄'}</span>
           </button>
+          {mode === 'edit' &&
+            !loading &&
+            (removalError || selectedCourseIds.length === 0) && (
+              <Typography color="error" variant="body2" role="alert">
+                {removalError || t('Please select at least one course.')}
+              </Typography>
+            )}
           {coursesOpen && (
             <Box className="add-school-course-menu">
               {visibleCourses.map((course) => (

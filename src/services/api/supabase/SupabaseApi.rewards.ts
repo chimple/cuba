@@ -8,9 +8,21 @@ export interface SupabaseApiRewards {
   [key: string]: any;
 }
 export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
+  /** Marks the selected child's badge progress as viewed in Supabase. */
+  async markUserBadgeSeen(userId: string): Promise<void> {
+    if (!this.supabase) return;
+    const { error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .update({ has_unseen_badge: false, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_deleted', false);
+    if (error) throw error;
+  }
+
   async getUserBadgeProgress(
     userId: string,
   ): Promise<TableTypes<'user_badge_progress'> | undefined> {
+    // Read one active progress row for the child profile.
     if (!this.supabase) return undefined;
     const { data, error } = await this.supabase
       .from(TABLES.UserBadgeProgress)
@@ -19,7 +31,8 @@ export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
       .eq('is_deleted', false)
       .maybeSingle();
     if (error) {
-      return undefined;
+      logger.error('Failed to load badge progress:', error);
+      throw error;
     }
     return data ?? undefined;
   }
@@ -28,6 +41,7 @@ export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
     progress: TableTypes<'user_badge_progress'>;
     milestoneReached: number | null;
   }> {
+    // Calculate and persist the next lesson milestone for the child.
     const existing = await this.getUserBadgeProgress(userId);
     const { progress: nextProgress, milestoneReached } =
       nextBadgeProgress(existing);
@@ -37,7 +51,8 @@ export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
       user_id: userId,
       lessons_played_count: count,
       latest_badge_milestone: nextProgress.latest_badge_milestone,
-      has_unseen_badge: false,
+      has_unseen_badge:
+        milestoneReached !== null || Boolean(existing?.has_unseen_badge),
       created_at: existing?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -48,6 +63,8 @@ export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
       .from(TABLES.UserBadgeProgress)
       .upsert(progress, { onConflict: 'user_id' });
     if (error) {
+      logger.error('Failed to save badge progress:', error);
+      throw error;
     }
     return { progress, milestoneReached };
   }

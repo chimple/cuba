@@ -21,6 +21,7 @@ import WhatsappIntegrationStatusChip from './WhatsappIntegrationStatusChip';
 import { useWhatsappIntegrationStatusExport } from './useWhatsappIntegrationStatusExport';
 import { useWhatsappIntegrationStatusFilters } from './useWhatsappIntegrationStatusFilters';
 import { useWhatsappProviderStatus } from './useWhatsappProviderStatus';
+import WhatsappIntegrationStatusInfo from './WhatsappIntegrationStatusInfo';
 import './WhatsappIntegrationStatusPage.css';
 
 const PAGE_SIZE = 20;
@@ -40,7 +41,8 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     (role) =>
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR ||
-      role === RoleType.PROGRAM_MANAGER,
+      role === RoleType.PROGRAM_MANAGER ||
+      role === RoleType.FIELD_COORDINATOR,
   );
   const { loading: providerLoading, statuses: providerStatuses } =
     useWhatsappProviderStatus(hasModuleAccess);
@@ -109,12 +111,17 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     <div className="whatsapp-integration-status-page">
       <div className="whatsapp-integration-status-main-container">
         <div className="whatsapp-integration-status-page-header">
-          <span className="whatsapp-integration-status-page-title">
-            {t('WhatsApp Integration Status')}
-          </span>
-          <IconButton className="whatsapp-integration-status-bell-icon">
-            <BsFillBellFill />
-          </IconButton>
+          <Box className="whatsapp-integration-status-title-group">
+            <span className="whatsapp-integration-status-page-title">
+              {t('WhatsApp Integration Status')}
+            </span>
+          </Box>
+          <Box className="whatsapp-integration-status-header-actions">
+            <WhatsappIntegrationStatusInfo />
+            <IconButton className="whatsapp-integration-status-bell-icon">
+              <BsFillBellFill />
+            </IconButton>
+          </Box>
         </div>
 
         <WhatsappProviderStatusTable

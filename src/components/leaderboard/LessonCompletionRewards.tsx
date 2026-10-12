@@ -7,6 +7,7 @@ import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { EVENTS } from '../../common/constants';
 import { Util } from '../../utility/util';
 import { SharedBadgeArtwork } from '../badges/BadgeCelebrationModal';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import LessonCompletionBadge from './LessonCompletionBadge';
 import './LessonCompletionRewards.css';
 
@@ -143,6 +144,7 @@ const LessonCompletionRewards = ({ studentId, progress }: Props) => {
                   className="lesson-completion-rewards-share-button"
                   aria-label={`Share ${milestone} lesson badge`}
                   onClick={() => openShare(milestone)}
+                  {...getTrackableProps(TRACKABLE_IDS.REWARDS_BADGE_SHARE)}
                 >
                   <img src="/assets/icons/share button icon.svg" alt="" />
                 </button>

@@ -4,7 +4,7 @@ import ProfileMenu from './ProfileMenu';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
-import { useAppSelector } from '../../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { MemoryRouter } from 'react-router-dom';
 import {
   CURRENT_MODE,
@@ -63,6 +63,7 @@ jest.mock('../../growthbook/Growthbook', () => ({
 }));
 
 const mockApi = {
+  getUserBadgeProgress: jest.fn(),
   getUserStickerBook: jest.fn(),
   markStciekercolledasTrue: jest.fn().mockResolvedValue(undefined),
   updateRewardAsSeen: jest.fn(),
@@ -71,6 +72,7 @@ const mockApi = {
 
 const mockStudent = { id: 'student-123', name: 'Test Student' };
 const mockSetCurrentClass = schoolUtil.setCurrentClass as jest.Mock;
+const mockDispatch = jest.fn();
 
 describe('ProfileMenu Notification Logic', () => {
   beforeEach(() => {
@@ -78,6 +80,8 @@ describe('ProfileMenu Notification Logic', () => {
     localStorage.clear();
     mockApi.getUserStickerBook.mockReset();
     mockApi.getUserStickerBook.mockResolvedValue([]);
+    mockApi.getUserBadgeProgress.mockReset();
+    mockApi.getUserBadgeProgress.mockResolvedValue(undefined);
     mockApi.markStciekercolledasTrue.mockReset();
     mockApi.markStciekercolledasTrue.mockResolvedValue(undefined);
     mockApi.updateRewardAsSeen.mockReset();
@@ -93,6 +97,7 @@ describe('ProfileMenu Notification Logic', () => {
         growthbook: { featureValues: {} },
       }),
     );
+    (useAppDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue(mockStudent);
     (Util.fetchCurrentClassAndSchool as jest.Mock).mockResolvedValue({
       className: 'Class 1',

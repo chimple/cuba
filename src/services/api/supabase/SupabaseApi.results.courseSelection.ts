@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { validateSchoolCourseRemoval } from '../../../utility/schoolCourseRemoval';
 import {
   CHIMPLE_MATHS,
   COURSES,
@@ -103,7 +104,8 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
     if (!this.supabase) return;
 
     const now = new Date().toISOString();
-    const courseIds = Array.from(new Set(selectedCourseIds.filter(Boolean)));
+    const selectedIds = new Set(selectedCourseIds.filter(Boolean));
+    const courseIds = [...selectedIds];
     const { data: schoolLinks, error: schoolLinksError } = await this.supabase
       .from('school_course')
       .select('id, course_id, is_deleted')
@@ -118,9 +120,10 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
         .filter((id): id is string => Boolean(id)),
     );
     const removedCourseIds = [...activeCourseIds].filter(
-      (courseId) => !courseIds.includes(courseId),
+      (courseId) => !selectedIds.has(courseId),
     );
 
+    const removedIds = new Set(removedCourseIds);
     const activeLinksByCourse = new Map<string, string>();
     const duplicateLinkIds: string[] = [];
     for (const link of links) {
@@ -153,6 +156,7 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
     if (classLinksError) throw classLinksError;
 
     const classCourseLinks = classLinks ?? [];
+    validateSchoolCourseRemoval(classes, classCourseLinks, removedCourseIds);
     const selectedCourses = await this.getCourses(courseIds);
     const coursesById = new Map(
       selectedCourses.map((course) => [course.id, course]),
@@ -161,7 +165,7 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
     const schoolLinksToDelete = links.filter(
       (link) =>
         !link.is_deleted &&
-        (!courseIds.includes(link.course_id) ||
+        (!selectedIds.has(link.course_id) ||
           duplicateLinkIds.includes(link.id)),
     );
     if (schoolLinksToDelete.length) {
@@ -176,7 +180,7 @@ export class SupabaseApiResultsCourseSelection extends SupabaseApiResultsStudent
     }
 
     const classLinksToDelete = classCourseLinks.filter(
-      (link) => !link.is_deleted && removedCourseIds.includes(link.course_id),
+      (link) => !link.is_deleted && removedIds.has(link.course_id),
     );
     if (classLinksToDelete.length) {
       const { error } = await this.supabase

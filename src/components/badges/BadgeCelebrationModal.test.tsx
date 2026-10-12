@@ -95,7 +95,7 @@ describe('BadgeCelebrationModal', () => {
     expect(Audio).toHaveBeenCalledTimes(2);
     expect(mockedAudioUtil.playAudioOrTts).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(2600);
+    jest.advanceTimersByTime(4000);
 
     expect(mockedAudioUtil.playAudioOrTts).toHaveBeenCalledWith({
       audioUrl: '/assets/audios/badgeCollected/Badge collected English.mp3',
@@ -129,6 +129,7 @@ describe('BadgeCelebrationModal', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    jest.advanceTimersByTime(2200);
     expect(onClose).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('button', { name: /share/i }));
@@ -145,7 +146,7 @@ describe('BadgeCelebrationModal', () => {
       />,
     );
 
-    jest.advanceTimersByTime(2600);
+    jest.advanceTimersByTime(4000);
 
     expect(mockedAudioUtil.playAudioOrTts).toHaveBeenCalledWith({
       audioUrl: '/assets/audios/lastBadgeCollected/Last Badge Kannada.mp3',

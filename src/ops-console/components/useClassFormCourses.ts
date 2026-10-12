@@ -127,12 +127,14 @@ export const useClassFormCourses = ({
           grades.map((grade) => [grade.id, grade.name ?? '']),
         );
         setAllCourses(
-          courseDetails.map((course) => ({
-            ...course,
-            curriculum_name:
-              curriculumMap.get(course.curriculum_id ?? '') || '',
-            grade_name: gradeMap.get(course.grade_id ?? '') || '',
-          })),
+          courseDetails
+            .filter((course) => !course.is_deleted)
+            .map((course) => ({
+              ...course,
+              curriculum_name:
+                curriculumMap.get(course.curriculum_id ?? '') || '',
+              grade_name: gradeMap.get(course.grade_id ?? '') || '',
+            })),
         );
         setErrorMessage('');
       } catch (error) {
@@ -170,13 +172,17 @@ export const useClassFormCourses = ({
     );
   };
 
+  const availableCourseIds = new Set(allCourses.map((course) => course.id));
+
   return {
     allCourses,
     dropdownOpen,
     dropdownRef,
     handleSelectCourse,
     loading,
-    selectedCourse,
+    selectedCourse: [...new Set(selectedCourse)].filter((id) =>
+      availableCourseIds.has(id),
+    ),
     setDropdownOpen,
   };
 };

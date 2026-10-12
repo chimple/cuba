@@ -87,7 +87,7 @@ export async function initializeLidoPlayer(ctx: any) {
   // Keep latest-first behavior: only fall back after the latest asset is
   // unavailable and the normal online download has failed or is unavailable.
   let dow = false;
-  if (reportedOnline !== false) {
+  if (Capacitor.isNativePlatform() && reportedOnline !== false) {
     dow = await Util.downloadZipBundle(
       [lessonToDownload],
       undefined,
@@ -126,7 +126,7 @@ export async function initializeLidoPlayer(ctx: any) {
     }
   }
 
-  if (!dow) {
+  if (Capacitor.isNativePlatform() && !dow) {
     presentToast();
     push();
     return;

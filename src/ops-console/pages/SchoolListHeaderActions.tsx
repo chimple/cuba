@@ -159,7 +159,7 @@ export default function SchoolListHeaderActions({
           ? [
               {
                 key: 'add-cache',
-                label: t('Add Cache'),
+                label: t('Add Offline'),
                 icon: (
                   <FileDownloadOutlined className="school-list-upload-icon" />
                 ),
@@ -168,7 +168,7 @@ export default function SchoolListHeaderActions({
               },
               {
                 key: 'clear-cache',
-                label: t('Clear Cache'),
+                label: t('Clear Offline'),
                 icon: <DeleteOutline className="school-list-upload-icon" />,
                 onClick: () => handleStartOfflineCacheSelection('clear'),
                 disabled: isCachingSchools || isClearingSchoolCaches,

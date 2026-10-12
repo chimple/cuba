@@ -1,12 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import './Leaderboard.css';
 import { IonPage } from '@ionic/react';
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import { t } from 'i18next';
-import {
-  LEADERBOARDHEADERLIST,
-  PAGES,
-} from '../common/constants';
+import { LEADERBOARDHEADERLIST, PAGES } from '../common/constants';
 import { Util } from '../utility/util';
 import LeaderboardRewards from '../components/leaderboard/LeaderboardRewards';
 import SkeltonLoading from '../components/SkeltonLoading';
@@ -15,6 +12,7 @@ import DebugMode from '../teachers-module/components/DebugMode';
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable';
 import { useLeaderboardPage } from '../hooks/useLeaderboardPage';
 import { useHistory } from 'react-router-dom';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 
 const Leaderboard: React.FC = () => {
   const leaderboard = useLeaderboardPage();
@@ -25,6 +23,9 @@ const Leaderboard: React.FC = () => {
       {!leaderboard.isLoading ? (
         <Box>
           <div
+            className={
+              leaderboard.isRewardPage ? 'rewards-page-header' : undefined
+            }
             id={
               leaderboard.tabIndex === 'debugMode'
                 ? 'leaderboard-debug-mode'
@@ -39,10 +40,11 @@ const Leaderboard: React.FC = () => {
                   onClick={() => {
                     Util.setPathToBackButton(PAGES.HOME, history);
                   }}
+                  {...getTrackableProps(TRACKABLE_IDS.REWARDS_BACK_HOME)}
                 />
               </div>
             )}
-            <Box>
+            <Box className="leaderboard-header-title">
               <AppBar id="LeaderBoard-AppBar" position="static">
                 <Box
                   sx={{
@@ -113,17 +115,20 @@ const Leaderboard: React.FC = () => {
                 <DebugMode />
               </Box>
             )}
-            <div
-              id="leaderboard-switch-user-button"
-              onClick={leaderboard.switchProfile}
-            >
-              <img
-                id="leaderboard-switch-user-button-img"
-                alt={'/assets/icons/UserSwitchIcon.svg'}
-                src={'/assets/icons/UserSwitchIcon.svg'}
-              />
-              <p className="leaderboard-switch-text">{t('Switch Profile')}</p>
-            </div>
+            {leaderboard.tabIndex !== LEADERBOARDHEADERLIST.REWARDS && (
+              <div
+                id="leaderboard-switch-user-button"
+                onClick={leaderboard.switchProfile}
+                {...getTrackableProps(TRACKABLE_IDS.LEADERBOARD_SWITCH_PROFILE)}
+              >
+                <img
+                  id="leaderboard-switch-user-button-img"
+                  alt={'/assets/icons/UserSwitchIcon.svg'}
+                  src={'/assets/icons/UserSwitchIcon.svg'}
+                />
+                <p className="leaderboard-switch-text">{t('Switch Profile')}</p>
+              </div>
+            )}
           </div>
           <Box sx={{}}>
             {leaderboard.tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
