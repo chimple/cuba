@@ -231,6 +231,7 @@ const ParentSettingsTab = ({
             setShowSignOutDialog(false);
             await handleSignOut();
           }}
+          yesTrackableId={TRACKABLE_IDS.SETTINGS_SIGN_OUT_CANCEL}
         />
 
         <DialogBoxButtons
@@ -250,6 +251,7 @@ const ParentSettingsTab = ({
             setShowDeleteAccountDialog(false);
             await handleDeleteAccount();
           }}
+          yesTrackableId={TRACKABLE_IDS.SETTINGS_DELETE_ACCOUNT_CANCEL}
         />
       </section>
     </div>

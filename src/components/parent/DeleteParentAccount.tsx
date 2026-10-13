@@ -12,6 +12,7 @@ import { Browser } from '@capacitor/browser';
 import Loading from '../Loading';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 
 const DeleteParentAccount: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -83,6 +84,7 @@ const DeleteParentAccount: React.FC = () => {
           setShowDialogBox(false);
         }}
         onNoButtonClicked={handleDeleteParent}
+        yesTrackableId={TRACKABLE_IDS.SETTINGS_DELETE_ACCOUNT_CANCEL}
       />
       <Loading isLoading={isLoading} />
     </div>
