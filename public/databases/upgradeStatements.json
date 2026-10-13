@@ -75,7 +75,7 @@
     "toVersion": 6,
     "statements": [
       "ALTER TABLE user ADD COLUMN reward TEXT;",
-      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT), type TEXT, max_state_value INTEGER;"
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
   },
   "7": {
@@ -255,6 +255,12 @@
     "toVersion": 18,
     "statements": [
       "CREATE TABLE IF NOT EXISTS live_quiz_room (id TEXT PRIMARY KEY, assignment_id TEXT NOT NULL, class_id TEXT NOT NULL, course_id TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, lesson_id TEXT NOT NULL, participants TEXT, results TEXT, school_id TEXT NOT NULL, starts_at TEXT NOT NULL, updated_at TEXT DEFAULT (datetime('now')));"
+    ]
+  },
+  "19": {
+    "toVersion": 19,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
   }
 }

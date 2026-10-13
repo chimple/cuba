@@ -29,7 +29,7 @@ export class SqliteApiCoreFoundation {
   protected _db: SQLiteDBConnection | undefined;
   protected _sqlite: SQLiteConnection | undefined;
   protected DB_NAME = 'db_issue10';
-  protected DB_VERSION = 18;
+  protected DB_VERSION = 19;
   protected BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
   protected BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   protected BUNDLED_IMPORT_TABLES = new Set<string>([
@@ -298,7 +298,9 @@ export class SqliteApiCoreFoundation {
 
         const data = await fetch('databases/upgradeStatements.json');
 
-        if (!data || !data.ok) return;
+        if (!data || !data.ok) {
+          throw new Error('Unable to load SQLite upgrade statements');
+        }
         const upgradeStatementsMap: Record<
           string,
           { statements?: string[]; tableChanges?: Record<string, string> }
@@ -364,6 +366,8 @@ export class SqliteApiCoreFoundation {
       }
     } catch (error) {
       logger.error('?? ~ SqliteApi ~ init ~ error:', JSON.stringify(error));
+      // Do not record a new database version when a migration fails.
+      throw error;
     }
 
     if (ret && ret.result && isConn) {
