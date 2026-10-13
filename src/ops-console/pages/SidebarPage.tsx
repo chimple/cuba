@@ -102,6 +102,14 @@ const SidebarPage: React.FC = () => {
       RoleType.PROGRAM_MANAGER,
     ].includes(role as RoleType),
   );
+  const canAccessModulePage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+      RoleType.FIELD_COORDINATOR,
+    ].includes(role as RoleType),
+  );
   const canCreateProgram = userRoles.some((role) =>
     [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
       role as RoleType,
@@ -142,6 +150,7 @@ const SidebarPage: React.FC = () => {
     const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
     const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
     const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
+    const opsModulePath = `${path}${PAGES.OPS_MODULE_PAGE}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
       location.pathname.startsWith(schoolDetailsPrefix) ||
@@ -150,6 +159,7 @@ const SidebarPage: React.FC = () => {
           location.pathname === campaignCreatePath ||
           location.pathname.startsWith(campaignDetailsPrefix))) ||
       (canAccessMessagesPage && location.pathname === messagesPath) ||
+      (canAccessModulePage && location.pathname.startsWith(opsModulePath)) ||
       (canAccessCoordinatorPages &&
         (location.pathname === requestListPath ||
           location.pathname.startsWith(requestDetailsPrefix) ||
@@ -165,6 +175,7 @@ const SidebarPage: React.FC = () => {
   }, [
     canAccessCampaignPage,
     canAccessMessagesPage,
+    canAccessModulePage,
     canAccessProgramPage,
     canAccessCoordinatorPages,
     history,

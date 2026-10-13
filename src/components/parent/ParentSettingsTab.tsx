@@ -1,6 +1,11 @@
 ﻿import { RefObject } from 'react';
 import { t } from 'i18next';
 import { TableTypes } from '../../common/constants';
+import {
+  TRACKABLE_IDS,
+  getTrackableProps,
+  type TrackableId,
+} from '../../analytics/trackable';
 import DialogBoxButtons from './DialogBoxButtons';
 
 type ParentSettingsTabProps = {
@@ -79,6 +84,9 @@ const ParentSettingsTab = ({
                   onClick={() =>
                     setIsLanguageMenuOpen((previousState) => !previousState)
                   }
+                  {...getTrackableProps(
+                    TRACKABLE_IDS.SETTINGS_LANGUAGE_SELECTOR,
+                  )}
                 >
                   <span className="parent-settings-language-trigger-label">
                     {selectedLanguage}
@@ -108,6 +116,9 @@ const ParentSettingsTab = ({
                             isSelected ? ' is-selected' : ''
                           }`}
                           onClick={() => handleLanguageSelect(option.id)}
+                          {...getTrackableProps(
+                            TRACKABLE_IDS.SETTINGS_LANGUAGE_OPTION,
+                          )}
                         >
                           {option.displayName}
                         </button>
@@ -123,11 +134,13 @@ const ParentSettingsTab = ({
                 enabled={soundEnabled}
                 label="Sound"
                 onClick={handleSoundToggle}
+                trackableId={TRACKABLE_IDS.SETTINGS_SOUND_TOGGLE}
               />
               <SettingsToggle
                 enabled={musicEnabled}
                 label="Music"
                 onClick={handleMusicToggle}
+                trackableId={TRACKABLE_IDS.SETTINGS_MUSIC_TOGGLE}
               />
             </div>
           </div>
@@ -139,6 +152,7 @@ const ParentSettingsTab = ({
             type="button"
             className="parent-settings-teachers-button"
             onClick={handleTeachersAppClick}
+            {...getTrackableProps(TRACKABLE_IDS.SETTINGS_TEACHERS_APP)}
           >
             <img
               src="/assets/icons/teacherAppIcon.svg"
@@ -158,6 +172,7 @@ const ParentSettingsTab = ({
             type="button"
             className="parent-settings-account-button parent-settings-account-button--terms"
             onClick={handleTermsClick}
+            {...getTrackableProps(TRACKABLE_IDS.SETTINGS_TERMS)}
           >
             <img
               src="/assets/icons/tAndCIcon.svg"
@@ -172,6 +187,7 @@ const ParentSettingsTab = ({
             type="button"
             className="parent-settings-account-button parent-settings-account-button--signout"
             onClick={() => setShowSignOutDialog(true)}
+            {...getTrackableProps(TRACKABLE_IDS.SETTINGS_SIGN_OUT)}
           >
             <img
               src="/assets/icons/signOut.svg"
@@ -186,6 +202,7 @@ const ParentSettingsTab = ({
             type="button"
             className="parent-settings-account-button parent-settings-account-button--delete"
             onClick={() => setShowDeleteAccountDialog(true)}
+            {...getTrackableProps(TRACKABLE_IDS.SETTINGS_DELETE_ACCOUNT)}
           >
             <img
               src="/assets/icons/deleteAccountIcon.svg"
@@ -214,6 +231,7 @@ const ParentSettingsTab = ({
             setShowSignOutDialog(false);
             await handleSignOut();
           }}
+          yesTrackableId={TRACKABLE_IDS.SETTINGS_SIGN_OUT_CANCEL}
         />
 
         <DialogBoxButtons
@@ -233,6 +251,7 @@ const ParentSettingsTab = ({
             setShowDeleteAccountDialog(false);
             await handleDeleteAccount();
           }}
+          yesTrackableId={TRACKABLE_IDS.SETTINGS_DELETE_ACCOUNT_CANCEL}
         />
       </section>
     </div>
@@ -243,10 +262,12 @@ const SettingsToggle = ({
   enabled,
   label,
   onClick,
+  trackableId,
 }: {
   enabled: boolean;
   label: string;
   onClick: () => void;
+  trackableId: TrackableId;
 }) => (
   <div className="parent-settings-toggle-group">
     <p className="parent-settings-toggle-title">{t(label)}</p>
@@ -258,6 +279,7 @@ const SettingsToggle = ({
         onClick={onClick}
         aria-label={String(t(label))}
         aria-pressed={enabled}
+        {...getTrackableProps(trackableId)}
       >
         <span className="parent-settings-switch-thumb" />
       </button>

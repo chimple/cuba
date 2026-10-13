@@ -15,6 +15,8 @@ import {
 import ParentalLock from '../components/parent/ParentalLock';
 import SkeltonLoading from '../components/SkeltonLoading';
 import InlineSvg from '../components/InlineSvg';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
+import { logClickAnalytics } from '../analytics/clickUtil';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
@@ -153,6 +155,7 @@ const DisplayStudents: FC<{}> = () => {
           onClick={() => {
             setShowDialogBox(true);
           }}
+          {...getTrackableProps(TRACKABLE_IDS.PROFILE_SWITCHER_PARENT)}
         >
           {t('Parent')}
           <img id="parent-icon" src={'assets/icons/user.png'} alt="" />
@@ -193,6 +196,9 @@ const DisplayStudents: FC<{}> = () => {
                       // Set the selected profile before logging the selection event
                       // so global analytics context contains this student ID.
                       await Util.setCurrentStudent(student, undefined, true);
+                      await logClickAnalytics(
+                        TRACKABLE_IDS.PROFILE_SWITCHER_PLAY_PROFILE,
+                      );
                       await Util.logEvent(
                         EVENTS.PROFILE_CARD_ACTION_CLICKED,
                         getProfileCardPlayActionParams(student),

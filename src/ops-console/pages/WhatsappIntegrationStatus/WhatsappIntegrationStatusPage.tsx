@@ -41,7 +41,8 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     (role) =>
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR ||
-      role === RoleType.PROGRAM_MANAGER,
+      role === RoleType.PROGRAM_MANAGER ||
+      role === RoleType.FIELD_COORDINATOR,
   );
   const { loading: providerLoading, statuses: providerStatuses } =
     useWhatsappProviderStatus(hasModuleAccess);

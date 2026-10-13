@@ -11,6 +11,7 @@ import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineE
 import Loading from '../Loading';
 import './AddCourse.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 const AddCourse: FC<{
   courses: TableTypes<'course'>[];
@@ -128,6 +129,7 @@ const AddCourse: FC<{
                       handleClick(course.course!);
                     }}
                     className="add-course-subject-button"
+                    {...getTrackableProps(TRACKABLE_IDS.ADDITIONAL_SUBJECT)}
                   >
                     <div className="add-course-card">
                       <div id="add-course-subject-card-subject-name">

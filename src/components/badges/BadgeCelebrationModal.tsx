@@ -10,12 +10,14 @@ import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
 import SharedBadgeArtwork from './SharedBadgeArtwork';
 import './BadgeCelebrationModal.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 export { default as SharedBadgeArtwork } from './SharedBadgeArtwork';
 
-const POPUP_SOUND = '/assets/audios/common/generic_popup_sound_effect.mp3';
+const POPUP_SOUND = '/assets/audios/common/generic_sound_effect.mp3';
 const CHEER_SOUND = '/assets/audios/common/crowd_cheer.mp3';
-const VOICEOVER_DELAY_MS = 2600;
+const VOICEOVER_DELAY_MS = 4000;
+const MODAL_ANIMATION_DURATION_MS = 2200;
 
 const BADGE_VOICEOVERS: Record<string, string> = {
   en: '/assets/audios/badgeCollected/Badge collected English.mp3',
@@ -65,7 +67,10 @@ const BadgeCelebrationModal = ({
   onClose,
 }: BadgeCelebrationModalProps) => {
   const captureRef = useRef<HTMLDivElement>(null);
+  const popupAudioRef = useRef<HTMLAudioElement | null>(null);
+  const cheerAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const voiceoverUrl =
     milestone === null ? null : getVoiceoverUrl(languageCode, milestone);
@@ -118,11 +123,13 @@ const BadgeCelebrationModal = ({
 
     const popupAudio = new Audio(POPUP_SOUND);
     const cheerAudio = new Audio(CHEER_SOUND);
+    popupAudioRef.current = popupAudio;
+    cheerAudioRef.current = cheerAudio;
     void popupAudio.play().catch(() => undefined);
 
     const cheerTimer = window.setTimeout(() => {
       void cheerAudio.play().catch(() => undefined);
-    }, 220);
+    }, 2000);
     const voiceTimer = window.setTimeout(() => {
       void AudioUtil.playAudioOrTts({ audioUrl: voiceoverUrl });
     }, VOICEOVER_DELAY_MS);
@@ -132,6 +139,8 @@ const BadgeCelebrationModal = ({
       window.clearTimeout(voiceTimer);
       popupAudio.pause();
       cheerAudio.pause();
+      popupAudioRef.current = null;
+      cheerAudioRef.current = null;
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
   }, [milestone, voiceoverUrl]);
@@ -142,6 +151,17 @@ const BadgeCelebrationModal = ({
       void AudioUtil.stopAudioUrlOrTtsPlayback();
       void AudioUtil.playAudioOrTts({ audioUrl: voiceoverUrl });
     }
+  };
+
+  const closeModal = () => {
+    if (isClosing) return;
+    // Keep the modal mounted until its reverse animation finishes.
+    logPopupButtonClick('close_cross');
+    popupAudioRef.current?.pause();
+    cheerAudioRef.current?.pause();
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    setIsClosing(true);
+    window.setTimeout(onClose, MODAL_ANIMATION_DURATION_MS);
   };
 
   const shareBadge = async () => {
@@ -187,14 +207,25 @@ const BadgeCelebrationModal = ({
   if (milestone === null) return null;
 
   return (
-    <div className="BadgeCelebrationModal-overlay" role="presentation">
-      <Confetti
-        className="BadgeCelebrationModal-confetti"
-        numberOfPieces={180}
-        recycle={false}
-      />
+    <div
+      className={`BadgeCelebrationModal-overlay${
+        isClosing ? ' BadgeCelebrationModal-overlay--closing' : ''
+      }`}
+      role="presentation"
+    >
+      {!isClosing && (
+        <Confetti
+          className="BadgeCelebrationModal-confetti"
+          width={window.innerWidth}
+          height={window.innerHeight}
+          numberOfPieces={300}
+          recycle={false}
+        />
+      )}
       <div
-        className="BadgeCelebrationModal-modal BadgeCelebrationModal-shell"
+        className={`BadgeCelebrationModal-modal BadgeCelebrationModal-shell${
+          isClosing ? ' BadgeCelebrationModal-modal--closing' : ''
+        }`}
         role="dialog"
         aria-modal="true"
       >
@@ -212,10 +243,7 @@ const BadgeCelebrationModal = ({
         <button
           type="button"
           className="BadgeCelebrationModal-close"
-          onClick={() => {
-            logPopupButtonClick('close_cross');
-            onClose();
-          }}
+          onClick={closeModal}
           aria-label={String(t('Close', { defaultValue: 'Close' }))}
         />
         <SharedBadgeArtwork
@@ -227,6 +255,7 @@ const BadgeCelebrationModal = ({
         <button
           type="button"
           className="BadgeCelebrationModal-share"
+          {...getTrackableProps(TRACKABLE_IDS.BADGE_CELEBRATION_SHARE)}
           onClick={shareBadge}
           disabled={isSharing}
         >
@@ -236,9 +265,7 @@ const BadgeCelebrationModal = ({
             alt=""
             aria-hidden="true"
           />
-          {isSharing
-            ? t('Sharing...', { defaultValue: 'Sharing...' })
-            : t('Share', { defaultValue: 'Share' })}
+          {t('Share', { defaultValue: 'Share' })}
         </button>
       </div>
     </div>

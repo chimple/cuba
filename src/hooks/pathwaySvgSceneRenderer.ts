@@ -287,13 +287,14 @@ export function renderPathwaySvgScene(params: any) {
       !hasNextSticker || !hasRenderableSticker || gbWantsMystery
         ? 'mystery_box'
         : 'sticker';
-
     rewardWrapper.setAttribute('data-reward-mode', rewardMode);
+    rewardWrapper.dataset.trackable = 'true';
+    rewardWrapper.dataset.trackableId =
+      rewardMode === 'sticker' ? 'open_sticker_reward' : 'open_mystery_reward';
     rewardWrapper.setAttribute(
       'aria-label',
       rewardMode === 'sticker' ? 'Sticker reward' : 'Mystery box reward',
     );
-
     const width =
       window.innerWidth >= 1024 ? 68 : window.innerWidth >= 768 ? 62 : 57;
     const height = Math.round(width * 0.767);

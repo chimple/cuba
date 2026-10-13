@@ -15,6 +15,7 @@ import {
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import Loading from '../Loading';
 import DialogBoxButtons from './DialogBoxButtons';
 import './ProfileCard.css';
@@ -95,10 +96,7 @@ const ProfileCard: React.FC<{
     <IonCard
       id="profile-card"
       className={userType ? 'profile-card-user' : 'profile-card-add-child'}
-      style={{
-        width: width,
-        height: height,
-      }}
+      style={{ width, height }}
       onClick={() => {}}
     >
       <div id="profile-card-edit-icon-div">
@@ -107,12 +105,13 @@ const ProfileCard: React.FC<{
             type="button"
             id="profile-card-edit-icon"
             aria-label="Edit"
+            {...getTrackableProps(TRACKABLE_IDS.PARENT_PROFILE_MANAGE)}
             onClick={(event) => {
               event.stopPropagation();
               if (!online) {
                 presentToast({
                   message: t(
-                    `Device is offline. Cannot edit or delete child profile`,
+                    'Device is offline. Cannot edit or delete child profile',
                   ),
                   color: 'danger',
                   duration: 3000,
@@ -155,6 +154,7 @@ const ProfileCard: React.FC<{
             <button
               id="profile-card-image-report"
               type="button"
+              {...getTrackableProps(TRACKABLE_IDS.PARENT_PROFILE_PROGRESS)}
               onClick={async () => {
                 logProfileCardAction('view_progress');
                 await Util.setCurrentStudent(user, undefined, false, false);
@@ -171,11 +171,12 @@ const ProfileCard: React.FC<{
             type="button"
             id="profile-card-new-user-icon"
             aria-label={t('Add a Child') ?? undefined}
+            {...getTrackableProps(TRACKABLE_IDS.PARENT_PROFILE_ADD_CHILD)}
             onClick={() => {
               if (!online) {
                 presentToast({
                   message: t(
-                    `Device is offline. Cannot create a new child profile`,
+                    'Device is offline. Cannot create a new child profile',
                   ),
                   color: 'danger',
                   duration: 3000,
@@ -217,6 +218,9 @@ const ProfileCard: React.FC<{
           showCloseButton={true}
           yesIcon={editProfileDialogIcon}
           noIcon={deleteProfileDialogIcon}
+          closeTrackableId={TRACKABLE_IDS.PARENT_PROFILE_OPTIONS_CLOSE}
+          yesTrackableId={TRACKABLE_IDS.PARENT_PROFILE_EDIT}
+          noTrackableId={TRACKABLE_IDS.PARENT_PROFILE_DELETE}
           handleClose={() => {
             setShowDialogBox(false);
           }}
@@ -248,6 +252,9 @@ const ProfileCard: React.FC<{
           noText={t('No')}
           className="profile-card-delete-dialog"
           showCloseButton={true}
+          closeTrackableId={TRACKABLE_IDS.PARENT_PROFILE_DELETE_CANCEL}
+          yesTrackableId={TRACKABLE_IDS.PARENT_PROFILE_DELETE_CONFIRM}
+          noTrackableId={TRACKABLE_IDS.PARENT_PROFILE_DELETE_CANCEL}
           handleClose={() => {
             void Util.logEvent(EVENTS.PROFILE_DELETION_CANCELLED, {
               target_student_id: user.id,

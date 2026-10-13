@@ -430,6 +430,13 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
   } catch (error) {
     logger.error('? Failed to process lesson end', error);
     localStorage.removeItem(LIDO_SCORES_KEY);
+    if (Util.isRespectMode) {
+      // Let the learner leave through the completion screen after a RESPECT
+      // launch even when result persistence is unavailable.
+      setIsLoading(false);
+      setShowDialogBox(true);
+      return;
+    }
     push();
   }
 };

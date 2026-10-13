@@ -9,7 +9,7 @@
 .rewards-tab-switcher {
   display: flex;
   align-self: center;
-  margin-top: -5px;
+  margin-top: 0px;
   max-width: calc(100% - 32px);
   border-radius: 8.571px;
   background: #fff;

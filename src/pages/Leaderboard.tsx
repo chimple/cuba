@@ -12,6 +12,7 @@ import DebugMode from '../teachers-module/components/DebugMode';
 import LeaderboardTable from '../components/leaderboard/LeaderboardTable';
 import { useLeaderboardPage } from '../hooks/useLeaderboardPage';
 import { useHistory } from 'react-router-dom';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 
 const Leaderboard: React.FC = () => {
   const leaderboard = useLeaderboardPage();
@@ -39,6 +40,7 @@ const Leaderboard: React.FC = () => {
                   onClick={() => {
                     Util.setPathToBackButton(PAGES.HOME, history);
                   }}
+                  {...getTrackableProps(TRACKABLE_IDS.REWARDS_BACK_HOME)}
                 />
               </div>
             )}
@@ -89,6 +91,9 @@ const Leaderboard: React.FC = () => {
                         id="leaderboard-page-tab-bar"
                         value="debugMode"
                         label={t('debugMode')}
+                        {...getTrackableProps(
+                          TRACKABLE_IDS.LEADERBOARD_DEBUG_TAB,
+                        )}
                       />
                     )}
                   </Tabs>
@@ -106,6 +111,8 @@ const Leaderboard: React.FC = () => {
                 handleClose={leaderboard.closeDebugDialog}
                 onYesButtonClicked={leaderboard.closeDebugDialog}
                 onNoButtonClicked={leaderboard.openDebugMode}
+                yesTrackableId={TRACKABLE_IDS.LEADERBOARD_DEBUG_DIALOG_CANCEL}
+                noTrackableId={TRACKABLE_IDS.LEADERBOARD_DEBUG_TAB}
               />
             )}
             {leaderboard.tabIndex === 'debugMode' && (
@@ -117,6 +124,7 @@ const Leaderboard: React.FC = () => {
               <div
                 id="leaderboard-switch-user-button"
                 onClick={leaderboard.switchProfile}
+                {...getTrackableProps(TRACKABLE_IDS.LEADERBOARD_SWITCH_PROFILE)}
               >
                 <img
                   id="leaderboard-switch-user-button-img"

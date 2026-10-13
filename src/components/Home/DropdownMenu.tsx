@@ -1,4 +1,9 @@
 import { useDropdownMenu } from '../../hooks/useDropdownMenu';
+import {
+  TRACKABLE_IDS,
+  getTrackableParentIgnoreProps,
+  getTrackableProps,
+} from '../../analytics/trackable';
 import './DropdownMenu.css';
 
 const DropdownMenu = (props: Parameters<typeof useDropdownMenu>[0]) => {
@@ -24,6 +29,7 @@ const DropdownMenu = (props: Parameters<typeof useDropdownMenu>[0]) => {
       <div
         className={`dropdownmenu-dropdown-container ${expanded ? 'dropdownmenu-expanded' : ''}`}
         onClick={handleToggleExpand}
+        {...getTrackableProps(TRACKABLE_IDS.PATHWAY_COURSE_SELECTOR)}
       >
         <div className="dropdownmenu-dropdown-left">
           {selected && (
@@ -50,6 +56,7 @@ const DropdownMenu = (props: Parameters<typeof useDropdownMenu>[0]) => {
             className={`dropdownmenu-dropdown-items ${expanded ? 'dropdownmenu-open' : 'dropdownmenu-closed'}`}
             onClick={(e) => e.stopPropagation()}
             aria-hidden={!expanded}
+            {...getTrackableParentIgnoreProps()}
           >
             {courseDetails.map((detail, index) => (
               <div
@@ -63,6 +70,7 @@ const DropdownMenu = (props: Parameters<typeof useDropdownMenu>[0]) => {
                 }`}
                 key={detail.course.id}
                 onClick={() => handleSelect(detail, index)}
+                {...getTrackableProps(TRACKABLE_IDS.PATHWAY_COURSE_OPTION)}
               >
                 <div className="dropdownmenu-open-item-icon-autofit">
                   <div className="dropdownmenu-open-item-icon-wrapper">

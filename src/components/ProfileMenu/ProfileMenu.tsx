@@ -1,5 +1,24 @@
 import { useProfileMenu } from '../../hooks/useProfileMenu';
+import {
+  TRACKABLE_IDS,
+  getTrackableProps,
+  type TrackableId,
+} from '../../analytics/trackable';
 import './ProfileMenu.css';
+
+const profileMenuTrackableIds: Partial<Record<string, TrackableId>> = {
+  'Sticker Book': TRACKABLE_IDS.PROFILE_MENU_STICKER_BOOK,
+  Leaderboard: TRACKABLE_IDS.PROFILE_MENU_LEADERBOARD,
+  Rewards: TRACKABLE_IDS.PROFILE_MENU_REWARDS,
+  'Edit Profile': TRACKABLE_IDS.PROFILE_MENU_EDIT_PROFILE,
+  'Parents Section': TRACKABLE_IDS.PROFILE_MENU_PARENT_SECTION,
+  'Switch Profile': TRACKABLE_IDS.PROFILE_MENU_SWITCH_PROFILE,
+};
+
+const getProfileMenuTrackableProps = (label: string) => {
+  const trackableId = profileMenuTrackableIds[label];
+  return trackableId ? getTrackableProps(trackableId) : {};
+};
 
 const ProfileMenu = (props: Parameters<typeof useProfileMenu>[0]) => {
   const {
@@ -44,6 +63,9 @@ const ProfileMenu = (props: Parameters<typeof useProfileMenu>[0]) => {
       >
         <div
           className="profile-header-content"
+          {...(!isSchoolKidsMode
+            ? getTrackableProps(TRACKABLE_IDS.PROFILE_MENU_EDIT_PROFILE)
+            : {})}
           onClick={() => {
             if (!isSchoolKidsMode) onEdit();
           }}
@@ -113,7 +135,12 @@ const ProfileMenu = (props: Parameters<typeof useProfileMenu>[0]) => {
 
       <div className="profile-menu-list">
         {menuItems.map((item, index) => (
-          <div key={index} className="profile-menu-item" onClick={item.onClick}>
+          <div
+            key={index}
+            className="profile-menu-item"
+            onClick={item.onClick}
+            {...getProfileMenuTrackableProps(item.label)}
+          >
             <div className="profile-menu-item-row">
               <img
                 src={item.icon}

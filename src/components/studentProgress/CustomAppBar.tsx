@@ -2,6 +2,11 @@ import React from 'react';
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import BackButton from '../common/BackButton';
 import { useHistory } from 'react-router-dom';
+import {
+  TRACKABLE_IDS,
+  getTrackableProps,
+  type TrackableId,
+} from '../../analytics/trackable';
 
 interface TabBarProps {
   tabs: { [key: string]: React.ReactNode }; // Using an object map for tabs
@@ -9,7 +14,16 @@ interface TabBarProps {
   onChange: (newValue: string) => void;
   handleBackButton: () => void;
   customStyle?: boolean;
+  defaultTabTrackableId?: TrackableId;
+  backTrackableId?: TrackableId;
 }
+
+const parentTabTrackableIds: Record<string, TrackableId> = {
+  profile: TRACKABLE_IDS.PARENT_TAB_PROFILE,
+  settings: TRACKABLE_IDS.PARENT_TAB_SETTINGS,
+  help: TRACKABLE_IDS.PARENT_TAB_HELP,
+  faq: TRACKABLE_IDS.PARENT_TAB_FAQ,
+};
 
 const CustomAppBar: React.FC<TabBarProps> = ({
   tabs,
@@ -17,6 +31,8 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   onChange,
   handleBackButton,
   customStyle,
+  defaultTabTrackableId,
+  backTrackableId = TRACKABLE_IDS.PARENT_RETURN_PROFILE_SWITCHER,
 }) => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     onChange(newValue);
@@ -27,7 +43,10 @@ const CustomAppBar: React.FC<TabBarProps> = ({
     <div>
       <div className="back-button-in-custom-app-bar">
         <span className="hidden-text">Back</span>
-        <BackButton onClicked={handleBackButton} />
+        <BackButton
+          onClicked={handleBackButton}
+          trackableId={backTrackableId}
+        />
       </div>
       <AppBar
         position="static"
@@ -76,6 +95,12 @@ const CustomAppBar: React.FC<TabBarProps> = ({
                 value={tabId}
                 label={tabName}
                 id="custom-app-bar"
+                {...((parentTabTrackableIds[tabId] ?? defaultTabTrackableId)
+                  ? getTrackableProps(
+                      (parentTabTrackableIds[tabId] ??
+                        defaultTabTrackableId) as TrackableId,
+                    )
+                  : {})}
               />
             ))}
           </Tabs>

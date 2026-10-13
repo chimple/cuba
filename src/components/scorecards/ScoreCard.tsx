@@ -1,5 +1,6 @@
 import { useScoreCard } from '../../hooks/useScoreCard';
 import './ScoreCard.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
   const viewProps = useScoreCard(props);
@@ -101,6 +102,7 @@ const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
               <button
                 id="lesson_end_continue"
                 className={`dialog-box-button-style-score-card ${progressRowCountClass} ${progressContinueStateClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
+                {...getTrackableProps(TRACKABLE_IDS.CONTINUE_AFTER_LESSON)}
                 onClick={handleContinueClick}
               >
                 <span>{noText}</span>
