@@ -123,6 +123,7 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
     }
 
     await this.ensureLessonAssetColumns();
+    await this.ensureRewardSchema();
     localStorage.setItem(CURRENT_SQLITE_VERSION, this.DB_VERSION.toString());
 
     await this.checkAndSyncData();
@@ -167,6 +168,33 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
         `Lesson schema migration incomplete; missing columns: ${missingColumns.join(', ')}`,
       );
     }
+  }
+
+  /** Repairs installations that were marked upgraded after the broken v6 migration. */
+  private async ensureRewardSchema(): Promise<void> {
+    if (!this._db) return;
+
+    const rewardTable = await this._db.query(
+      `PRAGMA table_info(${TABLES.RiveReward})`,
+    );
+    if (!(rewardTable.values ?? []).length) {
+      await this._db.query(
+        `CREATE TABLE IF NOT EXISTS ${TABLES.RiveReward} (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER)`,
+      );
+    }
+
+    const userColumns = await this._db.query(
+      `PRAGMA table_info(${TABLES.User})`,
+    );
+    const hasRewardColumn = (userColumns.values ?? []).some(
+      (row: { name?: unknown }) => row.name === 'reward',
+    );
+    if (!hasRewardColumn) {
+      await this._db.query(`ALTER TABLE ${TABLES.User} ADD COLUMN reward TEXT`);
+    }
+
+    this._tableColumnsCache.delete(TABLES.User);
+    this._tableColumnsCache.delete(TABLES.RiveReward);
   }
 
   protected async importBundledDataAfterUpgrade(): Promise<void> {

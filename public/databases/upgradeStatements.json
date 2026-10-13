@@ -75,7 +75,7 @@
     "toVersion": 6,
     "statements": [
       "ALTER TABLE user ADD COLUMN reward TEXT;",
-      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT), type TEXT, max_state_value INTEGER;"
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
   },
   "7": {
@@ -249,6 +249,12 @@
     "statements": [
       "ALTER TABLE lesson ADD COLUMN previous_lido_lesson_id TEXT;",
       "ALTER TABLE lesson ADD COLUMN previous_cocos_lesson_id TEXT;"
+    ]
+  },
+  "18": {
+    "toVersion": 18,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
   }
 }
