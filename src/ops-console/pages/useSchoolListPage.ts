@@ -141,6 +141,15 @@ export function useSchoolListPage() {
     }
   }, [api]);
 
+  // Program filters are restored from the URL when returning from a school
+  // details page. Load their labels as well so the applied chip can be
+  // rendered immediately, without requiring the user to reopen the filter.
+  useEffect(() => {
+    if (filters.program.length > 0) {
+      void loadSchoolFilterOptions();
+    }
+  }, [filters.program, loadSchoolFilterOptions]);
+
   const {
     schools,
     total,
