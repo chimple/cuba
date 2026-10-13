@@ -88,67 +88,70 @@ const HomePage = () => {
           onChange={handleChange}
           className="homepage-bottom-nav"
           showLabels
+          style={{ height: '10vh' }}
         >
           <BottomNavigationAction
             value={0}
             label={t('Home')}
-            showLabel
             icon={
-              <span className="footer-action-content">
+              footerTabValue === 0 ? (
                 <img
                   className="footerIcons"
-                  src={
-                    footerTabValue === 0
-                      ? 'assets/icons/homeSelected.png'
-                      : 'assets/icons/home.png'
-                  }
+                  src="assets/icons/homeSelected.png"
                   alt=""
                 />
-                <span className="footer-action-label">{t('Home')}</span>
-              </span>
+              ) : (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/home.png"
+                  alt=""
+                />
+              )
             }
+            className="bottom-nav-action"
           />
 
           {!isExternalUser && !isTeacherSchoolMode && (
             <BottomNavigationAction
               value={2}
               label={t('Assign')}
-              showLabel
               icon={
-                <span className="footer-action-content">
+                footerTabValue === 2 ? (
                   <img
                     className="footerIcons"
-                    src={
-                      footerTabValue === 2
-                        ? 'assets/icons/assignmentSelected.png'
-                        : 'assets/icons/assignmentfooter.png'
-                    }
+                    src="assets/icons/assignmentSelected.png"
                     alt=""
                   />
-                  <span className="footer-action-label">{t('Assign')}</span>
-                </span>
+                ) : (
+                  <img
+                    className="footerIcons"
+                    src="assets/icons/assignmentfooter.png"
+                    alt=""
+                  />
+                )
               }
-              className="middle-action"
+              className="bottom-nav-action middle-action"
             />
           )}
           <BottomNavigationAction
             value={3}
             label={t('Reports')}
-            showLabel
             icon={
-              <span className="footer-action-content">
+              footerTabValue === 3 ? (
                 <img
                   className="footerIcons"
-                  src={
-                    footerTabValue === 3
-                      ? 'assets/icons/reportSelected.png'
-                      : 'assets/icons/report.png'
-                  }
+                  src="assets/icons/reportSelected.png"
                   alt=""
                 />
-                <span className="footer-action-label">{t('Reports')}</span>
-              </span>
+              ) : (
+                <img
+                  className="footerIcons"
+                  src="assets/icons/report.png"
+                  alt=""
+                />
+              )
             }
+            className="bottom-nav-action"
           />
         </BottomNavigation>
       </footer>
