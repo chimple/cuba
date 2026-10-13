@@ -18,6 +18,7 @@ import { ClearCacheData } from './DataClear';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
 import logger from '../../utility/logger';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 
 const ParentLogout: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -73,6 +74,7 @@ const ParentLogout: React.FC = () => {
           logger.info('Switched to Supabase mode on logout');
         }}
         onNoButtonClicked={onSignOut}
+        yesTrackableId={TRACKABLE_IDS.SETTINGS_SIGN_OUT_CANCEL}
       />
     </div>
   );

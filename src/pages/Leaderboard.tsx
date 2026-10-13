@@ -91,6 +91,9 @@ const Leaderboard: React.FC = () => {
                         id="leaderboard-page-tab-bar"
                         value="debugMode"
                         label={t('debugMode')}
+                        {...getTrackableProps(
+                          TRACKABLE_IDS.LEADERBOARD_DEBUG_TAB,
+                        )}
                       />
                     )}
                   </Tabs>
@@ -108,6 +111,8 @@ const Leaderboard: React.FC = () => {
                 handleClose={leaderboard.closeDebugDialog}
                 onYesButtonClicked={leaderboard.closeDebugDialog}
                 onNoButtonClicked={leaderboard.openDebugMode}
+                yesTrackableId={TRACKABLE_IDS.LEADERBOARD_DEBUG_DIALOG_CANCEL}
+                noTrackableId={TRACKABLE_IDS.LEADERBOARD_DEBUG_TAB}
               />
             )}
             {leaderboard.tabIndex === 'debugMode' && (
