@@ -10,6 +10,7 @@ const HomePage = () => {
     BottomNavigation,
     BottomNavigationAction,
     ClassSummaryInfoPopup,
+    ScoreCalculationPopup,
     Header,
     PAGES,
     autoStartScan,
@@ -23,6 +24,7 @@ const HomePage = () => {
     history,
     isExternalUser,
     isHomeInfoOpen,
+    isScoreCalculationOpen,
     isLibraryTab,
     isOpsUser,
     isTeacherSchoolMode,
@@ -30,6 +32,7 @@ const HomePage = () => {
     renderKey,
     setAutoStartScan,
     setIsHomeInfoOpen,
+    setIsScoreCalculationOpen,
     setShowAssignOptionsScreen,
     setShowUnavailableQrAlert,
     setTabValue,
@@ -53,15 +56,24 @@ const HomePage = () => {
         className={currentClass?.name}
         schoolName={currentSchool?.name}
         showSideMenu={!isLibraryTab}
-        customText={isLibraryTab ? 'Library' : ''}
+        customText={
+          isLibraryTab ? 'Library' : tabValue === 4 ? 'My Leaderboard' : ''
+        }
         onBackButtonClick={isLibraryTab ? handleLibraryBack : undefined}
         showSearchIcon={isLibraryTab && !isOpsUser}
         onSearchIconClick={
           isLibraryTab ? () => history.replace(PAGES.SEARCH_LESSON) : undefined
         }
         onShareClick={tabValue === 3 ? handleShare : undefined}
-        showInfoButton={!isLibraryTab && tabValue === 0}
-        onInfoClick={() => setIsHomeInfoOpen(true)}
+        showInfoButton={!isLibraryTab && (tabValue === 0 || tabValue === 4)}
+        onInfoClick={() => {
+          // The shared header icon opens information for the currently active tab.
+          if (tabValue === 4) {
+            setIsScoreCalculationOpen(true);
+            return;
+          }
+          setIsHomeInfoOpen(true);
+        }}
       />
       <main className="home-container-body">
         <HomePageTabContent
@@ -81,6 +93,10 @@ const HomePage = () => {
         isOpen={isHomeInfoOpen}
         onClose={() => setIsHomeInfoOpen(false)}
         dateRangeLabel={classSummaryDateRangeLabel}
+      />
+      <ScoreCalculationPopup
+        isOpen={isScoreCalculationOpen}
+        onClose={() => setIsScoreCalculationOpen(false)}
       />
       <footer className="container-footer">
         <BottomNavigation
@@ -150,6 +166,23 @@ const HomePage = () => {
                   alt=""
                 />
               )
+            }
+            className="bottom-nav-action"
+          />
+          <BottomNavigationAction
+            value={4}
+            label={t('Leaderboard')}
+            icon={
+              // Keep selected and unselected leaderboard states consistent with other tabs.
+              <img
+                className="footerIcons"
+                src={
+                  footerTabValue === 4
+                    ? '/assets/icons/leaderboard-selected.svg'
+                    : '/assets/icons/leaderboard.svg'
+                }
+                alt=""
+              />
             }
             className="bottom-nav-action"
           />
