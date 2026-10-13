@@ -163,9 +163,16 @@ export class LidoAvatar {
     this.riveInstance = new Rive({
       src: rivSrc,
       canvas: canvas,
-      stateMachines: 'Idle',
+      stateMachines: 'State Machine 1',
       autoplay: true,
       onLoad: () => {
+        // Some avatars expose an idle animation instead of the expected state machine.
+        if (!this.riveInstance.stateMachineNames.includes('State Machine 1')) {
+          const idleAnimation = this.riveInstance.animationNames.find(name => name.toLowerCase() === 'idle');
+          if (idleAnimation) {
+            this.riveInstance.play(idleAnimation);
+          }
+        }
         this.riveInstance.resizeDrawingSurfaceToCanvas();
         riveService.setRiveInstance(this.riveInstance);
       },
