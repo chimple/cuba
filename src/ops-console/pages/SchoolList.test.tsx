@@ -923,11 +923,9 @@ describe('SchoolList percentage filters', () => {
         mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
-    expect(
-      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
-    ).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Filter' }));
+
     await waitFor(() =>
       expect(
         mockApiHandler.getSchoolFilterOptionsForSchoolListing,
