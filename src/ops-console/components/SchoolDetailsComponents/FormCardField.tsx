@@ -5,7 +5,7 @@ import { PhoneInput } from 'react-international-phone';
 import type { FieldConfig } from './FormCard';
 type FormCardFieldProps = {
   field: FieldConfig;
-  handleChange: (name: string, value: string) => void;
+  handleChange: (name: string, value: string, dialCode?: string) => void;
   openSelect: string | null;
   setOpenSelect: (name: string | null) => void;
   values: Record<string, string>;
@@ -33,7 +33,7 @@ export const FormCardField = ({
           const digits = value.replace(/\D/g, '');
           const dialCode = meta?.country?.dialCode ?? '';
           const isCountryCodeOnly = dialCode !== '' && digits === dialCode;
-          handleChange(field.name, isCountryCodeOnly ? '' : value);
+          handleChange(field.name, isCountryCodeOnly ? '' : value, dialCode);
         }}
         disabled={field.disabled}
         disableCountryGuess
