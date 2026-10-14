@@ -897,6 +897,7 @@ describe('SchoolList percentage filters', () => {
   });
 
   it('restores the selected program filter name after returning to the school listing', async () => {
+    const user = userEvent.setup();
     mockLocationSearch = '?filters=%7B%22program%22%3A%5B%22program-a%22%5D%7D';
 
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
@@ -922,6 +923,9 @@ describe('SchoolList percentage filters', () => {
         mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
     await waitFor(() =>
       expect(
         mockApiHandler.getSchoolFilterOptionsForSchoolListing,
