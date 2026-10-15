@@ -38,9 +38,6 @@ type SchoolMetricsRangeQuery = {
 
 const SCHOOL_METRICS_BATCH_SIZE = 1000;
 
-const buildExactIlikeOrFilter = (column: string, values: string[]) =>
-  values.map((value) => `${column}.ilike."${value.trim()}"`).join(',');
-
 // Supabase can cap a single response at the API max rows limit, so client-side
 // aggregation paths must page through every matching row before grouping.
 const fetchAllSchoolMetricRows = async (
@@ -344,14 +341,10 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       }
 
       if (cleanedFilters.state?.length) {
-        query = query.or(
-          buildExactIlikeOrFilter('state', cleanedFilters.state),
-        );
+        query = query.in('state', cleanedFilters.state);
       }
       if (cleanedFilters.district?.length) {
-        query = query.or(
-          buildExactIlikeOrFilter('district', cleanedFilters.district),
-        );
+        query = query.in('district', cleanedFilters.district);
       }
       if (cleanedFilters.block?.length) {
         query = query.in('block', cleanedFilters.block);
