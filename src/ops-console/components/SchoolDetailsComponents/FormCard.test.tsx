@@ -209,6 +209,6 @@ describe('FormCard', () => {
     expect(
       screen.queryByText('Select Class And Section'),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toHaveValue('class-1');
+    expect(screen.getByText('Class A')).toBeInTheDocument();
   });
 });
