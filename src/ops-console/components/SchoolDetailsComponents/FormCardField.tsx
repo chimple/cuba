@@ -3,6 +3,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { t } from 'i18next';
 import { PhoneInput } from 'react-international-phone';
 import type { FieldConfig } from './FormCard';
+import { FormCardSelectField } from './FormCardSelectField';
 type FormCardFieldProps = {
   field: FieldConfig;
   handleChange: (name: string, value: string, dialCode?: string) => void;
@@ -187,106 +188,14 @@ export const FormCardField = ({
       </div>
     );
   }
-  const shouldUseCustomDropdown = (field.options?.length || 0) > 3;
-  if (shouldUseCustomDropdown) {
-    const currentValue = values[field.name] || '';
-    const selectedOption = field.options?.find(
-      (option) => option.value === currentValue,
-    );
-    const displayText = selectedOption ? t(selectedOption.label) : '';
-    return (
-      <div
-        className={`formcard-select-wrapper ${
-          isThisSelectOpen ? 'formcard-select-open' : ''
-        }`}
-      >
-        <input
-          className="formcard-placeholder-validator"
-          value={values[field.name] || ''}
-          required={field.required}
-          onChange={() => {}}
-          tabIndex={-1}
-          onInvalid={(e) => {
-            (e.target as HTMLInputElement).focus();
-          }}
-        />
-        <div
-          className="formcard-multiselect-trigger"
-          onClick={() => setOpenSelect(isThisSelectOpen ? null : field.name)}
-          tabIndex={0}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              setOpenSelect(null);
-            }
-          }}
-        >
-          <span
-            className={`formcard-multiselect-trigger-text ${
-              displayText ? '' : 'formcard-multiselect-trigger-placeholder'
-            }`}
-            title={displayText || undefined}
-          >
-            {displayText || placeholderText}
-          </span>
-          <span className="formcard-select-arrow-flipper">
-            <span className="formcard-arrow-down" />
-            <span className="formcard-arrow-up" />
-          </span>
-        </div>
-        {isThisSelectOpen && (
-          <div className="formcard-multiselect-dropdown">
-            {field.options?.map((opt) => {
-              const isSelected = currentValue === opt.value;
-              return (
-                <div
-                  key={opt.value}
-                  className={`formcard-multiselect-option ${
-                    isSelected ? 'selected' : ''
-                  }`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleChange(field.name, opt.value);
-                    setOpenSelect(null);
-                  }}
-                >
-                  {t(opt.label)}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  }
   return (
-    <div
-      className={`formcard-select-wrapper ${
-        isThisSelectOpen ? 'formcard-select-open' : ''
-      }`}
-    >
-      <select
-        {...commonInputProps}
-        disabled={field.disabled}
-        onMouseDown={() => setOpenSelect(isThisSelectOpen ? null : field.name)}
-        onChange={(e) => {
-          handleChange(field.name, e.target.value);
-          setOpenSelect(null);
-        }}
-        onBlur={() => setOpenSelect(null)}
-      >
-        {!field.suppressPlaceholderOption && (
-          <option value="">{placeholderText}</option>
-        )}
-        {field.options?.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {t(opt.label)}
-          </option>
-        ))}
-      </select>
-      <span className="formcard-select-arrow-flipper">
-        <span className="formcard-arrow-down" />
-        <span className="formcard-arrow-up" />
-      </span>
-    </div>
+    <FormCardSelectField
+      field={field}
+      handleChange={handleChange}
+      isThisSelectOpen={isThisSelectOpen}
+      placeholderText={placeholderText}
+      setOpenSelect={setOpenSelect}
+      values={values}
+    />
   );
 };

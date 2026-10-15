@@ -211,7 +211,7 @@ describe('FormCard', () => {
     expect(
       screen.queryByText('Select Class And Section'),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toHaveValue('class-1');
+    expect(screen.getByText('Class A')).toBeInTheDocument();
   });
 
   it('requires 10 phone digits excluding the country dial code', async () => {
