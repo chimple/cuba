@@ -39,10 +39,18 @@ type SchoolMetricsRangeQuery = {
 const SCHOOL_METRICS_BATCH_SIZE = 1000;
 
 const buildExactIlikeOrFilter = (column: string, values: string[]) =>
-  values.map((value) => `${column}.ilike."${value.trim()}"`).join(',');
+  values
+    .map((value) => {
+      const escapedValue = value
+        .trim()
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_');
+      return `${column}.ilike."${escapedValue}"`;
+    })
+    .join(',');
 
-// Supabase can cap a single response at the API max rows limit, so client-side
-// aggregation paths must page through every matching row before grouping.
 const fetchAllSchoolMetricRows = async (
   query: SchoolMetricsRangeQuery,
 ): Promise<SchoolMetricsQueryResponse> => {
@@ -51,7 +59,6 @@ const fetchAllSchoolMetricRows = async (
   let total: number | null = null;
 
   while (true) {
-    // Reuse the same filtered query and advance only the requested range.
     const { data, error, count } = await query.range(
       from,
       from + SCHOOL_METRICS_BATCH_SIZE - 1,
@@ -125,7 +132,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         );
         return { data: [], total: 0 };
       }
-
       if (
         !data ||
         typeof data !== 'object' ||
@@ -136,7 +142,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           'Supabase RPC did not return expected { data, total } shape',
         );
       }
-
       return {
         data: (data.data ??
           []) as unknown as FilteredSchoolsForSchoolListingOps[],
@@ -172,7 +177,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       logger.error('Supabase client is not initialized');
       return { data: [], total: 0 };
     }
-
     const {
       data: { user: authUser },
       error: authError,
@@ -181,7 +185,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       logger.error('Current user is not available for school metrics query');
       return { data: [], total: 0 };
     }
-
     const {
       filters,
       programId,
