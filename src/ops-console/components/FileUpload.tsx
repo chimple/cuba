@@ -131,7 +131,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
         {file && (
           <div className="file-upload-preview">
-            <div className="file-uploading-icon">ðŸ“„</div>
+            <span className="file-uploading-icon">{'\u{1F4C4}'}</span>
             <div className="file-upload-view">
               <div className="file-uploading-header">
                 <p className="file-upload-name">{file.name}</p>
