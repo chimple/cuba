@@ -140,7 +140,6 @@ export const FormCardSelectField = ({
         name={field.name}
         value={values[field.name] ?? ''}
         required={field.required}
-        placeholder={field.placeholder}
         disabled={field.disabled}
         onMouseDown={() => setOpenSelect(isThisSelectOpen ? null : field.name)}
         onChange={(e) => {
