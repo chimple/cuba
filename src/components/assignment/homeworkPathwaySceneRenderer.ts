@@ -1,5 +1,6 @@
 import {
   CONTINUE,
+  HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
   SOURCE,
@@ -7,9 +8,7 @@ import {
 } from '../../common/constants';
 import { parsePath } from 'history';
 import { Util } from '../../utility/util';
-import {
-  hasPendingFinalHomeworkStickerFlow,
-} from '../../utility/homeworkStickerFlow';
+import { hasPendingFinalHomeworkStickerFlow } from '../../utility/homeworkStickerFlow';
 import { runHomeworkPathwayRewardAnimation } from './homeworkPathwayRewardAnimation';
 import { buildHomeworkPathwayRewardNode } from './homeworkPathwayRewardNode';
 
@@ -266,7 +265,9 @@ export function renderHomeworkPathwayScene(params: any) {
               state: {
                 courseId: fetchedCourse?.id,
                 lesson: JSON.stringify(lesson),
-                from: history.location.pathname + `?${CONTINUE}=true`,
+                from:
+                  history.location.pathname +
+                  `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
                 isHomework: true,
                 homeworkIndex: lessonIdx,
                 reward: shouldMarkRewardLesson,
@@ -287,7 +288,9 @@ export function renderHomeworkPathwayScene(params: any) {
                 course: JSON.stringify(fetchedCourse),
                 lesson: JSON.stringify(lesson),
                 chapter: JSON.stringify(fetchedChapter),
-                from: history.location.pathname + `?${CONTINUE}=true`,
+                from:
+                  history.location.pathname +
+                  `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
                 isHomework: true,
                 homeworkIndex: lessonIdx,
                 reward: shouldMarkRewardLesson,

@@ -1,9 +1,9 @@
-// SchoolNotes.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import './SchoolNotes.css';
 import NoteDetailsDrawer from './NoteDetailsDrawer';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import { readFcSchoolOfflineCache } from '../../../services/offline/fcSchoolOfflineCache';
 import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { Pagination } from '@mui/material';
@@ -13,6 +13,7 @@ import { getAppPathname } from '../../../utility/routerLocation';
 type ApiNote = {
   id: string;
   content?: string;
+  text?: string;
   classId?: string | null;
   className?: string | null;
   visitId?: string | null;
@@ -75,7 +76,7 @@ const SchoolNotes: React.FC = () => {
     role: r.createdBy?.role ?? null,
     className: r.className ?? null,
     date: parseDateForDisplay(r.createdAt),
-    text: r.content ?? '',
+    text: r.content ?? r.text ?? '',
     media_links: r.media_links,
   });
 
@@ -90,6 +91,29 @@ const SchoolNotes: React.FC = () => {
 
     try {
       if (!schoolId) throw new Error('No schoolId');
+
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+        const cachedNotes = cachedSchool?.notes ?? [];
+        const sortedNotes = [...cachedNotes].sort((a: ApiNote, b: ApiNote) => {
+          if (sortMode === 'nameAsc') {
+            return (a.createdBy?.name ?? '').localeCompare(
+              b.createdBy?.name ?? '',
+            );
+          }
+          return (b.createdAt ?? '').localeCompare(a.createdAt ?? '');
+        });
+        const offset = (currentPage - 1) * NOTES_PER_PAGE;
+        setNotes(
+          sortedNotes
+            .slice(offset, offset + NOTES_PER_PAGE)
+            .map((note: ApiNote) => mapApiNote(note)),
+        );
+        setTotalPages(
+          Math.max(1, Math.ceil(sortedNotes.length / NOTES_PER_PAGE)),
+        );
+        return;
+      }
 
       const api = ServiceConfig.getI().apiHandler;
       if (!api?.getNotesBySchoolId) {
@@ -175,7 +199,6 @@ const SchoolNotes: React.FC = () => {
         </div>
       )}
 
-      {/* SCROLLABLE TABLE AREA */}
       <div
         id="school-notes-table-container"
         className="school-notes-table-container"
@@ -233,7 +256,6 @@ const SchoolNotes: React.FC = () => {
         </table>
       </div>
 
-      {/* FIXED PAGINATION AREA */}
       {totalPages > 1 && (
         <div
           id="school-notes-pagination-container"

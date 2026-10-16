@@ -99,10 +99,12 @@ export async function syncPendingFcTouchPoints(
 
         const snapshot =
           (await getQueuedVisitSnapshot(entry.userId, entry.schoolId)) ?? null;
+        const visitSnapshot = snapshot?.id === visitId ? snapshot : null;
+        const visitType = visitSnapshot?.type ?? entry.payload.visitType;
         const nextNumberOfParents =
-          snapshot?.type === 'community_visit'
+          visitType === 'community_visit'
             ? entry.payload.numberOfParents == null
-              ? snapshot.number_of_parents
+              ? (visitSnapshot?.number_of_parents ?? null)
               : entry.payload.numberOfParents
             : null;
 
@@ -116,7 +118,7 @@ export async function syncPendingFcTouchPoints(
             updated_at: entry.occurredAt,
             distance_from_school:
               entry.payload.distanceFromSchool == null
-                ? (snapshot?.distance_from_school ?? null)
+                ? (visitSnapshot?.distance_from_school ?? null)
                 : String(entry.payload.distanceFromSchool),
           })
           .eq('id', visitId)

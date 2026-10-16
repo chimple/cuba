@@ -13,6 +13,11 @@ import {
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   TableTypes,
 } from '../common/constants';
+import {
+  TRACKABLE_IDS,
+  getTrackableParentIgnoreProps,
+  getTrackableProps,
+} from '../analytics/trackable';
 
 const DownloadLesson: React.FC<{
   lesson?: TableTypes<'lesson'>;
@@ -195,6 +200,14 @@ const DownloadLesson: React.FC<{
   return isNativePlatform ? (
     <div
       className="download-or-delete-button"
+      {...getTrackableParentIgnoreProps()}
+      {...(showIcon
+        ? getTrackableProps(
+            chapter
+              ? TRACKABLE_IDS.DOWNLOAD_CHAPTER
+              : TRACKABLE_IDS.DOWNLOAD_LESSON,
+          )
+        : {})}
       onClick={(event) => {
         const mouseEvent = event as React.MouseEvent<HTMLDivElement>;
         mouseEvent.stopPropagation();

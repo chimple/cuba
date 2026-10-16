@@ -8,6 +8,7 @@ import {
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
+import { getRuntimeCurrentAcademicYear } from '../academicYearHelper';
 import { SupabaseApiSchoolCourses } from './SupabaseApi.school.courses';
 
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
@@ -40,6 +41,7 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
     const timestamp = new Date().toISOString();
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
+    const academicYear = JSON.stringify([getRuntimeCurrentAcademicYear()]);
 
     let newSchool: TableTypes<'school'> | null = null;
 
@@ -63,7 +65,7 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
         updated_at: timestamp,
         is_deleted: false,
         model: null,
-        academic_year: null,
+        academic_year: academicYear,
         firebase_id: null,
         is_firebase: null,
         is_ops: null,

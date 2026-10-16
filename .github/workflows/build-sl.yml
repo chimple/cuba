@@ -40,6 +40,11 @@ jobs:
           CI: false
           VITE_PERISKOPE_API_KEY: ${{ secrets.REACT_APP_PERISKOPE_API_KEY }}
           VITE_PERISKOPE_API_BASE_URL: ${{ secrets.REACT_APP_PERISKOPE_API_BASE_URL }}
+          VITE_PERISKOPE_PHONE_NUMBER: ${{ secrets.REACT_APP_PERISKOPE_PHONE_NUMBER }}
+          VITE_MAYTAPI_API_KEY: ${{ secrets.REACT_APP_MAYTAPI_API_KEY }}
+          VITE_MAYTAPI_PRODUCT_ID: ${{ secrets.REACT_APP_MAYTAPI_PRODUCT_ID }}
+          VITE_MAYTAPI_PHONE_ID: ${{ secrets.REACT_APP_MAYTAPI_PHONE_ID }}
+          VITE_MAYTAPI_API_BASE_URL: ${{ secrets.REACT_APP_MAYTAPI_API_BASE_URL }}
 
       - name: deploy web
         uses: peaceiris/actions-gh-pages@v3

@@ -1,5 +1,6 @@
 import './Assignment.css';
 import { useAssignmentPage } from '../hooks/useAssignmentPage';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 
 const AssignmentPage = (props: Parameters<typeof useAssignmentPage>[0]) => {
   const {
@@ -70,6 +71,7 @@ const AssignmentPage = (props: Parameters<typeof useAssignmentPage>[0]) => {
                     shape="round"
                     disabled={downloadButtonLoading}
                     className="dowload-homework-button"
+                    {...getTrackableProps(TRACKABLE_IDS.DOWNLOAD_ALL_HOMEWORK)}
                     onClick={() => {
                       if (!online) {
                         presentToast({

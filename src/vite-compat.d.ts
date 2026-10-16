@@ -27,6 +27,13 @@ interface ImportMetaEnv {
   readonly VITE_LOG_LEVEL?: string;
   readonly VITE_MEASUREMENT_ID?: string;
   readonly VITE_MESSAGING_SENDER_ID?: string;
+  readonly VITE_PERISKOPE_API_KEY?: string;
+  readonly VITE_PERISKOPE_API_BASE_URL?: string;
+  readonly VITE_PERISKOPE_PHONE_NUMBER?: string;
+  readonly VITE_MAYTAPI_PRODUCT_ID?: string;
+  readonly VITE_MAYTAPI_PHONE_ID?: string;
+  readonly VITE_MAYTAPI_API_KEY?: string;
+  readonly VITE_MAYTAPI_API_BASE_URL?: string;
   readonly VITE_PROJECT_ID?: string;
   readonly VITE_RAPIDAPI_KEY?: string;
   readonly VITE_SENTRY_DSN?: string;

@@ -3,6 +3,7 @@ import { SqliteApiSticker } from './SqliteApi.sticker';
 import type {
   WhatsappIntegrationStatusParams,
   WhatsappIntegrationStatusResponse,
+  WhatsappProviderStatusRow,
 } from '../serviceapi/ServiceApi.whatsapp';
 
 export interface SqliteApiWhatsApp {
@@ -18,6 +19,15 @@ export class SqliteApiWhatsApp extends SqliteApiSticker {
       );
     }
     return await this._serverApi.getWhatsappIntegrationStatus(params);
+  }
+
+  async getWhatsappProviderStatus(): Promise<WhatsappProviderStatusRow[]> {
+    if (!this._serverApi.getWhatsappProviderStatus) {
+      throw new Error(
+        'WhatsApp provider status is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getWhatsappProviderStatus();
   }
 
   // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.

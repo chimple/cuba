@@ -341,6 +341,13 @@ export class ApiHandlerOpsUsers extends ApiHandlerCampaigns {
     return this.s.getFieldCoordinatorsByProgram(programId);
   }
 
+  async updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean> {
+    return this.s.updateProgramFieldCoordinators(programId, userIds);
+  }
+
   async getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
     return this.s.getProgramsByRole();
   }

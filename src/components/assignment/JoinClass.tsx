@@ -1,5 +1,6 @@
 import { useJoinClass } from '../../hooks/useJoinClass';
 import './JoinClass.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 const JoinClass = (props: Parameters<typeof useJoinClass>[0]) => {
   const viewProps = useJoinClass(props);
@@ -90,6 +91,7 @@ const JoinClass = (props: Parameters<typeof useJoinClass>[0]) => {
         </div>
         <button
           className="join-class-confirm-button"
+          {...getTrackableProps(TRACKABLE_IDS.CONFIRM_JOIN_CLASS)}
           onClick={onJoin}
           disabled={loading || joiningClass || !isFormValid}
         >

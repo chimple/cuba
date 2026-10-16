@@ -44,6 +44,7 @@ export const useLessonCard = ({
   chapter,
   assignment,
   lessonCourseMap,
+  onSelected,
 }: {
   width: string;
   height: string;
@@ -65,6 +66,7 @@ export const useLessonCard = ({
   lessonCourseMap?: {
     [lessonId: string]: { course_id: string };
   };
+  onSelected?: () => void;
 }) => {
   const history = useHistory();
   const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
@@ -139,6 +141,7 @@ export const useLessonCard = ({
     lesson,
     lessonCardColor,
     onDownloadOrDelete,
+    onSelected,
     online,
     parsePath,
     presentToast,

@@ -277,6 +277,8 @@ export class OneRosterApi implements ServiceApi {
     is_deleted: null,
     language_id: null,
     lido_lesson_id: null,
+    previous_cocos_lesson_id: null,
+    previous_lido_lesson_id: null,
     metadata: null,
     name: null,
     outcome: null,
@@ -500,6 +502,8 @@ export class OneRosterApi implements ServiceApi {
               is_deleted: null,
               language_id: null,
               lido_lesson_id: null,
+              previous_cocos_lesson_id: null,
+              previous_lido_lesson_id: null,
               metadata: null,
               outcome: lesson.outcome,
               plugin_type: lesson.pluginType,
@@ -547,6 +551,8 @@ export class OneRosterApi implements ServiceApi {
                 is_deleted: null,
                 language_id: lesson.language || null,
                 lido_lesson_id: null,
+                previous_cocos_lesson_id: null,
+                previous_lido_lesson_id: null,
                 metadata: null,
                 outcome: lesson.outcome,
                 plugin_type: lesson.pluginType,
@@ -907,6 +913,12 @@ export class OneRosterApi implements ServiceApi {
   getFieldCoordinatorsByProgram(
     programId: string,
   ): Promise<{ data: TableTypes<'user'>[] }> {
+    throw new Error('Method not implemented.');
+  }
+  updateProgramFieldCoordinators(
+    programId: string,
+    userIds: string[],
+  ): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
   getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
@@ -2811,6 +2823,8 @@ export class OneRosterApi implements ServiceApi {
                   is_deleted: null,
                   language_id: lesson.language || null,
                   lido_lesson_id: null,
+                  previous_cocos_lesson_id: null,
+                  previous_lido_lesson_id: null,
                   metadata: null,
                   outcome: lesson.outcome,
                   plugin_type: lesson.pluginType,
@@ -2984,6 +2998,8 @@ export class OneRosterApi implements ServiceApi {
               is_deleted: null,
               language_id: lesson.language ?? null,
               lido_lesson_id: null,
+              previous_cocos_lesson_id: null,
+              previous_lido_lesson_id: null,
               metadata: null,
               outcome: lesson.outcome,
               plugin_type: lesson.pluginType,

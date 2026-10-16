@@ -24,6 +24,7 @@ import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 const mockHistoryReplace = jest.fn();
 const mockHistoryPush = jest.fn();
 let mockLocationSearch = '';
+let mockLocationState: Record<string, unknown> | undefined;
 
 jest.mock('@ionic/react', () => ({
   IonPage: (props: any) => <div>{props.children}</div>,
@@ -33,7 +34,10 @@ jest.mock('@ionic/react', () => ({
 
 jest.mock('react-router', () => ({
   useHistory: () => ({ replace: mockHistoryReplace, push: mockHistoryPush }),
-  useLocation: () => ({ search: mockLocationSearch }),
+  useLocation: () => ({
+    search: mockLocationSearch,
+    state: mockLocationState,
+  }),
 }));
 
 jest.mock('../components/HomeHeader', () => (props: any) => (
@@ -122,6 +126,7 @@ describe('Home page (Home tab)', () => {
     jest.clearAllMocks();
     localStorage.clear();
     mockLocationSearch = '';
+    mockLocationState = undefined;
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
       apiHandler: mockApi,
       authHandler: {
@@ -184,6 +189,18 @@ describe('Home page (Home tab)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('learning-pathway')).toBeInTheDocument();
     });
+  });
+
+  test('returns to the Homework tab after a homework lesson completes', async () => {
+    mockLocationSearch = '?tab=ASSIGNMENT&continue=true';
+    mockLocationState = { fromLido: true, isHomework: true };
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('assignment-tab')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('learning-pathway')).not.toBeInTheDocument();
   });
 
   // Covers: navigates to subjects tab from header icon

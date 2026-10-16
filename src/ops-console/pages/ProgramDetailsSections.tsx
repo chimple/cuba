@@ -26,6 +26,8 @@ type ProgramData = {
   }[];
 };
 
+type ProgramContact = ProgramData['programManagers'][number] & { id?: string };
+
 export const ProgramInfoColumn = ({ data }: { data: ProgramData }) => (
   <Grid size={{ xs: 12, md: 4 }} order={{ xs: 2, md: 1 }}>
     <Box className="program-detail-page-column-container">
@@ -35,7 +37,17 @@ export const ProgramInfoColumn = ({ data }: { data: ProgramData }) => (
   </Grid>
 );
 
-export const ProgramContactsColumn = ({ data }: { data: ProgramData }) => (
+export const ProgramContactsColumn = ({
+  data,
+  fieldCoordinators,
+  canEditFieldCoordinators,
+  onEditFieldCoordinators,
+}: {
+  data: ProgramData;
+  fieldCoordinators: ProgramContact[];
+  canEditFieldCoordinators: boolean;
+  onEditFieldCoordinators: () => void;
+}) => (
   <Grid size={{ xs: 12, md: 4 }} order={{ xs: 3, md: 2 }}>
     <Box className="program-detail-page-column-container">
       <InfoCard
@@ -68,6 +80,23 @@ export const ProgramContactsColumn = ({ data }: { data: ProgramData }) => (
                 name={manager.name}
                 role={manager.role}
                 phone={manager.phone || manager.email || ''}
+              />
+            ))}
+          </Box>
+        }
+      />
+      <InfoCard
+        title={t('Field Coordinators')}
+        showEditIcon={canEditFieldCoordinators}
+        onEditClick={onEditFieldCoordinators}
+        children={
+          <Box className="program-detail-page-managers-list">
+            {fieldCoordinators.map((coordinator) => (
+              <ContactCard
+                key={coordinator.id || coordinator.email || coordinator.phone}
+                name={coordinator.name}
+                role={coordinator.role}
+                phone={coordinator.phone || coordinator.email || ''}
               />
             ))}
           </Box>
@@ -119,4 +148,4 @@ export const ProgramStatisticsColumn = ({
   </Grid>
 );
 
-export type { ProgramData, ProgramStats };
+export type { ProgramContact, ProgramData, ProgramStats };

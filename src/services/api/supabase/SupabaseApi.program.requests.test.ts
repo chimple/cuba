@@ -41,9 +41,11 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.data = rows;
     chain.error = null;
     chain.select = jest.fn(() => chain);
-    chain.eq = jest.fn(() => chain);
-    chain.in = jest.fn(() => chain);
-    chain.not = jest.fn(() => chain);
+    chain.eq = jest.fn((_column: string, _value: unknown) => chain);
+    chain.in = jest.fn((_column: string, _values: unknown[]) => chain);
+    chain.not = jest.fn(
+      (_column: string, _operator: string, _value: unknown) => chain,
+    );
     chain.then = (onfulfilled, onrejected) =>
       Promise.resolve({ data: chain.data, error: chain.error }).then(
         onfulfilled,
@@ -58,7 +60,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
       new SupabaseApiProgramRequests() as SupabaseApiProgramRequests & {
         supabase: typeof supabase;
       };
-    api.supabase = supabase;
+    api.supabase = supabase as unknown as typeof api.supabase;
 
     await expect(api.getRequestFilterOptions('requested')).resolves.toEqual({
       requestType: ['student', 'teacher', 'principal', 'school'],
@@ -110,9 +112,11 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.data = rows;
     chain.error = null;
     chain.select = jest.fn(() => chain);
-    chain.eq = jest.fn(() => chain);
-    chain.in = jest.fn(() => chain);
-    chain.not = jest.fn(() => chain);
+    chain.eq = jest.fn((_column: string, _value: unknown) => chain);
+    chain.in = jest.fn((_column: string, _values: unknown[]) => chain);
+    chain.not = jest.fn(
+      (_column: string, _operator: string, _value: unknown) => chain,
+    );
 
     const supabase = {
       from: jest.fn(() => chain),
@@ -122,7 +126,7 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
       new SupabaseApiProgramRequests() as SupabaseApiProgramRequests & {
         supabase: typeof supabase;
       };
-    api.supabase = supabase;
+    api.supabase = supabase as unknown as typeof api.supabase;
 
     await expect(api.getRequestFilterOptions('requested')).resolves.toEqual({
       requestType: ['student', 'teacher', 'principal', 'school'],
@@ -146,15 +150,17 @@ describe('SupabaseApiProgramRequests.getRequestFilterOptions', () => {
     chain.data = [];
     chain.error = null;
     chain.select = jest.fn(() => chain);
-    chain.eq = jest.fn(() => chain);
-    chain.in = jest.fn(() => chain);
-    chain.not = jest.fn(() => chain);
+    chain.eq = jest.fn((_column: string, _value: unknown) => chain);
+    chain.in = jest.fn((_column: string, _values: unknown[]) => chain);
+    chain.not = jest.fn(
+      (_column: string, _operator: string, _value: unknown) => chain,
+    );
     const supabase = { from: jest.fn(() => chain) };
     const api =
       new SupabaseApiProgramRequests() as SupabaseApiProgramRequests & {
         supabase: typeof supabase;
       };
-    api.supabase = supabase;
+    api.supabase = supabase as unknown as typeof api.supabase;
 
     await api.getRequestFilterOptions('approved');
 

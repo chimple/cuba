@@ -8,6 +8,7 @@ import {
 } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { ServiceConfig } from '../../ServiceConfig';
+import { getRuntimeCurrentAcademicYear } from '../academicYearHelper';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiSchoolCourses } from './SqliteApi.school.courses';
 
@@ -35,6 +36,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     if (!_currentUser) throw 'User is not Logged in';
 
     const schoolId = uuidv4();
+    const academicYear = JSON.stringify([getRuntimeCurrentAcademicYear()]);
     const result = image
       ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
       : null;
@@ -53,7 +55,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
       udise: udise ?? null,
       address: address ?? null,
       model: null,
-      academic_year: null,
+      academic_year: academicYear,
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
@@ -69,8 +71,8 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     if (oSchool) {
       await this.executeQuery(
         `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country, academic_year)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           newSchool.id,
@@ -84,6 +86,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
           newSchool.is_deleted,
           newSchool.status,
           newSchool.country,
+          newSchool.academic_year,
         ],
       );
 

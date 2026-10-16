@@ -36,6 +36,11 @@ export enum LeaderboardRewardsType {
   BONUS = 'bonus',
   STICKER = 'sticker',
 }
+
+export const REWARDS_TABS = {
+  LESSON_COMPLETION: 'lesson_completion',
+  COMPETITIONS: 'competitions',
+} as const;
 export const DOWNLOAD_LESSON_BATCH_SIZE = 1;
 export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 

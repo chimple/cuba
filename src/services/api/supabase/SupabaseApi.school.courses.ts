@@ -38,7 +38,7 @@ export class SupabaseApiSchoolCourses extends SupabaseApiSchoolVisits {
 
     if (error) {
       logger.error('Error fetching school courses:', error);
-      return [];
+      throw error;
     }
 
     return data ?? [];

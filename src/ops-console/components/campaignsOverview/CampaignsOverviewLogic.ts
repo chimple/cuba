@@ -153,16 +153,14 @@ const DEFAULT_PERFORMANCE_TOOLTIP_BY_LABEL: Record<string, string> = {
   'Participating Schools':
     'Total number of schools that are part of this campaign.',
   'Total Students': 'Total number of students participating in this campaign.',
-  'Average Weekly Engagement Time':
-    'Displays the average time students actively spent using the application during the last 7 days.',
-  'Avg Weekly Engagement Time':
-    'Displays the average time students actively spent using the application during the last 7 days.',
+  'Avg Campaign Engagement Time':
+    'Displays the average time active students spent using the application during the campaign period.',
   'Campaign Completion':
     'Displays the percentage of the campaign duration completed.',
   'Active Students':
-    'Displays the total number of unique active students during the last 7 days.',
+    'Displays the total number of unique active students during the campaign period.',
   'Active Participants':
-    'Displays the total number of unique active students during the last 7 days.',
+    'Displays the total number of unique active students during the campaign period.',
 };
 
 const STATUS_TONE_BY_VALUE: Record<string, CampaignsOverviewStatusTone> = {
@@ -417,7 +415,7 @@ export const buildCampaignsOverviewViewModel = (
       'Participating Schools':
         metrics?.participating_schools ?? program?.institutes_count,
       'Total Students': metrics?.total_students ?? program?.students_count,
-      'Avg Weekly Engagement Time': formatMinutes(
+      'Avg Campaign Engagement Time': formatMinutes(
         metrics?.average_weekly_engagement_time ??
           response?.data?.avgWeeklyEngagementTimeMinutes,
       ),

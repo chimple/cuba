@@ -9,6 +9,7 @@ import {
   AddSchoolDetailsSection,
   AddSchoolProgramSection,
 } from '../components/addSchool/AddSchoolFormSections';
+import { SchoolCourseSelector } from '../components/addSchool/SchoolCourseSelector';
 import { useAddSchoolPage } from '../hooks/useAddSchoolPage';
 
 const AddSchoolPage: React.FC = () => {
@@ -71,6 +72,18 @@ const AddSchoolPage: React.FC = () => {
           setSchoolModel={controller.setSchoolModel}
           setSchoolName={controller.setSchoolName}
           udise={controller.udise}
+        />
+
+        <SchoolCourseSelector
+          mode={controller.editData ? 'edit' : 'create'}
+          courses={controller.courses}
+          removalError={controller.courseRemovalError}
+          grades={controller.grades}
+          loading={controller.isCoursesLoading}
+          selectedCourseIds={controller.selectedCourseIds}
+          selectedGradeId={controller.selectedGradeId}
+          onGradeChange={controller.setSelectedGradeId}
+          onToggle={controller.toggleCourse}
         />
 
         <AddSchoolAddressSection

@@ -1,11 +1,74 @@
 import { SupabaseApiProgramSchoolStats } from './SupabaseApi.program.schoolStats';
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import { v4 as uuidv4 } from 'uuid';
+import { nextBadgeProgress } from '../../../common/Badges/badgeProgress';
 
 export interface SupabaseApiRewards {
   [key: string]: any;
 }
 export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
+  /** Marks the selected child's badge progress as viewed in Supabase. */
+  async markUserBadgeSeen(userId: string): Promise<void> {
+    if (!this.supabase) return;
+    const { error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .update({ has_unseen_badge: false, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_deleted', false);
+    if (error) throw error;
+  }
+
+  async getUserBadgeProgress(
+    userId: string,
+  ): Promise<TableTypes<'user_badge_progress'> | undefined> {
+    // Read one active progress row for the child profile.
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    if (error) {
+      logger.error('Failed to load badge progress:', error);
+      throw error;
+    }
+    return data ?? undefined;
+  }
+
+  async recordBadgeLessonCompletion(userId: string): Promise<{
+    progress: TableTypes<'user_badge_progress'>;
+    milestoneReached: number | null;
+  }> {
+    // Calculate and persist the next lesson milestone for the child.
+    const existing = await this.getUserBadgeProgress(userId);
+    const { progress: nextProgress, milestoneReached } =
+      nextBadgeProgress(existing);
+    const count = nextProgress.lessons_played_count;
+    const progress = {
+      id: existing?.id ?? uuidv4(),
+      user_id: userId,
+      lessons_played_count: count,
+      latest_badge_milestone: nextProgress.latest_badge_milestone,
+      has_unseen_badge:
+        milestoneReached !== null || Boolean(existing?.has_unseen_badge),
+      created_at: existing?.created_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    } as TableTypes<'user_badge_progress'>;
+    if (!this.supabase) return { progress, milestoneReached };
+    // Upsert by user_id because badge progress has one row per student.
+    const { error } = await this.supabase
+      .from(TABLES.UserBadgeProgress)
+      .upsert(progress, { onConflict: 'user_id' });
+    if (error) {
+      logger.error('Failed to save badge progress:', error);
+      throw error;
+    }
+    return { progress, milestoneReached };
+  }
+
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     if (!this.supabase || ids.length === 0) return [];
 

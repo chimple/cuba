@@ -93,6 +93,11 @@ export class SupabaseApiAssignmentSchoolLookups extends SupabaseApiAssignmentCou
         .select('*')
         .eq('id', studentId)
         .eq('is_deleted', false);
+
+      if (res?.error) {
+        throw res.error;
+      }
+
       return res?.data?.[0];
     } catch (error) {
       throw error;

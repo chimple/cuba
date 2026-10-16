@@ -72,6 +72,12 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
   );
 
   useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setCoordinators([]);
+      setTotalCount(0);
+      return;
+    }
+
     if (page === 1) {
       setCoordinators(data.coordinators || []);
       setTotalCount(data.totalCoordinatorCount || 0);

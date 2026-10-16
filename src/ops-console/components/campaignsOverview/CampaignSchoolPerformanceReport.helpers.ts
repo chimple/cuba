@@ -422,7 +422,7 @@ export const useCampaignSchoolPerformanceReportState = (
   const [reportData, setReportData] =
     useState<CampaignSchoolPerformanceReportResponse | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [daysFilter, setDaysFilter] = useState<DaysFilterKey>('last7');
+  const [daysFilter, setDaysFilter] = useState<DaysFilterKey>('campaignDays');
   const [page, setPage] = useState(1);
   const [sortKey, setSortKey] =
     useState<SchoolPerformanceColumnKey>('schoolName');

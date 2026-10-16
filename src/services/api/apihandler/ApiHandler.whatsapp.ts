@@ -3,6 +3,7 @@ import { Json } from '../../database';
 import type {
   WhatsappIntegrationStatusParams,
   WhatsappIntegrationStatusResponse,
+  WhatsappProviderStatusRow,
 } from '../serviceapi/ServiceApi.whatsapp';
 
 export class ApiHandlerWhatsApp extends ApiHandlerFieldActivities {
@@ -10,6 +11,15 @@ export class ApiHandlerWhatsApp extends ApiHandlerFieldActivities {
     params: WhatsappIntegrationStatusParams = {},
   ): Promise<WhatsappIntegrationStatusResponse> {
     return await this.s.getWhatsappIntegrationStatus(params);
+  }
+
+  async getWhatsappProviderStatus(): Promise<WhatsappProviderStatusRow[]> {
+    if (!this.s.getWhatsappProviderStatus) {
+      throw new Error(
+        'WhatsApp provider status is not implemented in current API service.',
+      );
+    }
+    return await this.s.getWhatsappProviderStatus();
   }
 
   async getWhatsappGroupDetails(groupId: string, bot: string) {

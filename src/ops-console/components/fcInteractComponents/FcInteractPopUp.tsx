@@ -81,6 +81,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   }
 
   const { isQuestionsLoading, localQuestions } = useFcInteractPopup({
+    schoolId,
     status,
     initialUserType,
     spokeWith,

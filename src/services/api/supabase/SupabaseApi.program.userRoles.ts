@@ -17,7 +17,10 @@ import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiProgramClassMetrics } from './SupabaseApi.program.classMetrics';
 
 type SpecialUserRole = NonNullable<TableTypes<'special_users'>['role']>;
-type SpecialUsersCacheKey = 'super-admin' | 'operational-director';
+type SpecialUsersCacheKey =
+  | 'super-admin'
+  | 'operational-director'
+  | 'program-manager';
 type CachedSpecialUser = { role: SpecialUserRole; userId: string };
 
 const SPECIAL_USERS_CACHE_TTL_MS = 300_000;
@@ -234,6 +237,7 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProgramManager = roles.includes(RoleType.PROGRAM_MANAGER);
     const allowedRoleFilters: SpecialUserRole[] = isSuperAdmin
       ? [
           RoleType.SUPER_ADMIN,
@@ -249,7 +253,7 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
             RoleType.FIELD_COORDINATOR,
             RoleType.EXTERNAL_USER,
           ]
-        : roles.includes(RoleType.PROGRAM_MANAGER)
+        : isProgramManager
           ? [RoleType.FIELD_COORDINATOR]
           : [];
     const roleFilter = role
@@ -260,10 +264,16 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     }
     const from = (page - 1) * limit;
     const to = from + limit - 1;
-    if (isSuperAdmin || isOpsDirector) {
+    if (
+      isSuperAdmin ||
+      isOpsDirector ||
+      (isProgramManager && roleFilter === RoleType.FIELD_COORDINATOR)
+    ) {
       const cacheKey: SpecialUsersCacheKey = isSuperAdmin
         ? 'super-admin'
-        : 'operational-director';
+        : isOpsDirector
+          ? 'operational-director'
+          : 'program-manager';
       const cachedSpecialUsers = this.specialUsersCache.get(cacheKey);
       let specialUsers: CachedSpecialUser[];
 

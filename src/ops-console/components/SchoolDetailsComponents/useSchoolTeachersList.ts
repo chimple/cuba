@@ -74,6 +74,13 @@ export const useSchoolTeachersList = ({
           programScopedClassIds,
         );
         const shouldCache = currentPage === 1 && search.trim() === '';
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          const cachedTeachers = data.teachers || [];
+          setTeachers(cachedTeachers);
+          setTotalCount(data.totalTeacherCount ?? cachedTeachers.length);
+          setIsLoading(false);
+          return;
+        }
         if (programScopedClassIds && programScopedClassIds.length === 0) {
           setTeachers([]);
           setTotalCount(0);
@@ -123,7 +130,7 @@ export const useSchoolTeachersList = ({
         }
       }, 500);
     };
-  }, [schoolId, programScopedClassIds]);
+  }, [data.teachers, data.totalTeacherCount, schoolId, programScopedClassIds]);
 
   useEffect(() => {
     const isInitial = page === 1 && !searchTerm && filters.class.length === 0;

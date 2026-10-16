@@ -99,7 +99,6 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
         return false;
       }
 
-      // Step 2: Insert into program_user table
       const programUserRows = payload.selectedManagers.map(
         (userId: string) => ({
           program_id: programId,
@@ -109,9 +108,18 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
           role: RoleType.PROGRAM_MANAGER,
         }),
       );
+      const fieldCoordinatorRows = (
+        payload.selectedFieldCoordinators ?? []
+      ).map((userId: string) => ({
+        program_id: programId,
+        user: userId,
+        is_deleted: false,
+        is_ops: null,
+        role: RoleType.FIELD_COORDINATOR,
+      }));
       const { error: programUserError } = await this.supabase
         .from(TABLES.ProgramUser)
-        .insert(programUserRows);
+        .insert([...programUserRows, ...fieldCoordinatorRows]);
 
       if (programUserError) {
         logger.error('Error inserting program users:', programUserError);

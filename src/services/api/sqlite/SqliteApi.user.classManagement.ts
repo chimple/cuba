@@ -8,6 +8,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
+import { resolveAcademicYearForClassAndSchool } from '../academicYearHelper';
 import { JoinClassInviteLookupResult } from '../ServiceApi';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiUserSchoolRoles } from './SqliteApi.user.schoolRoles';
@@ -141,6 +142,26 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
     if (!_currentUser) throw 'User is not Logged in';
 
     const classId = uuidv4();
+    const schoolResult = await this.executeQuery(
+      `SELECT academic_year FROM ${TABLES.School} WHERE id = ? AND is_deleted = 0 LIMIT 1;`,
+      [schoolId],
+    );
+    const { classAcademicYear, schoolAcademicYear } =
+      resolveAcademicYearForClassAndSchool(
+        schoolResult?.values?.[0]?.academic_year,
+      );
+    if (schoolAcademicYear !== null) {
+      const schoolUpdatedAt = new Date().toISOString();
+      await this.executeQuery(
+        `UPDATE ${TABLES.School} SET academic_year = ?, updated_at = ? WHERE id = ? AND is_deleted = 0;`,
+        [schoolAcademicYear, schoolUpdatedAt, schoolId],
+      );
+      await this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
+        id: schoolId,
+        academic_year: schoolAcademicYear,
+        updated_at: schoolUpdatedAt,
+      });
+    }
     const newClass: TableTypes<'class'> = {
       id: classId,
       name: className,
@@ -152,7 +173,7 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
       updated_at: new Date().toISOString(),
 
       is_deleted: false,
-      academic_year: null,
+      academic_year: classAcademicYear,
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
@@ -165,8 +186,8 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, grade_id, standard, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, grade_id, standard, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link, academic_year)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
@@ -180,6 +201,7 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
         newClass.is_deleted,
         newClass.group_id,
         newClass.whatsapp_invite_link,
+        newClass.academic_year,
       ],
     );
 

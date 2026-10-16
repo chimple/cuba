@@ -5,14 +5,25 @@
 #LeaderBoard-AppBar {
   padding: 0%;
   background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 #LeaderBoard-Header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 101px minmax(0, 1fr) 101px;
+  align-items: start;
   margin: var(--margin);
   margin-bottom: 0;
+}
+
+#LeaderBoard-Header .leaderboard-header-title {
+  grid-column: 2;
+  min-width: 0;
+}
+
+#LeaderBoard-Header .leaderboard-header-title #LeaderBoard-AppBar {
+  position: relative;
+  min-height: 48px;
 }
 #leaderboard-debug-mode {
   display: flex;
@@ -22,9 +33,14 @@
   margin-bottom: 0;
 }
 #back-button-in-LeaderBoard-Header {
+  grid-column: 1;
   height: 35px;
   width: 101px;
   cursor: pointer;
+}
+
+#back-button-in-LeaderBoard-Header img {
+  display: block;
 }
 
 #leaderboard-UI {
@@ -132,4 +148,8 @@
   font-style: normal;
   font-weight: 500;
   line-height: normal;
+}
+
+.rewards-page-header .MuiTabs-root {
+  transform: translateY(-4px);
 }

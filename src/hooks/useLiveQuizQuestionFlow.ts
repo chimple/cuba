@@ -74,9 +74,10 @@ export function useLiveQuizQuestionFlow({
     localStorage.getItem(GAME_URL) ??
     'http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/';
 
+  const [resolvedQuizLessonId, setResolvedQuizLessonId] = useState<string>();
   const quizPath =
-    lessonId || cocosLessonId
-      ? quizPathBase + (lessonId || cocosLessonId)
+    resolvedQuizLessonId || lessonId || cocosLessonId
+      ? quizPathBase + (resolvedQuizLessonId || lessonId || cocosLessonId)
       : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
@@ -207,22 +208,22 @@ export function useLiveQuizQuestionFlow({
     }
 
     let configFile: LiveQuiz | undefined;
+    let resolvedLessonKey = lessonKey;
 
-    // Offline devices first reuse an already extracted lesson, then fall back
-    // to the packaged APK ZIP. Online devices retain remote-first behavior.
+    // Latest asset is always preferred. This keeps online launches on the
+    // newest lesson while allowing offline devices to reuse extracted data.
     const isOffline =
       typeof navigator !== 'undefined' && navigator.onLine === false;
-
     const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
       BUNDLE_ZIP_URLS,
       getBundleZipUrlsForEnv(),
     );
 
-    const localConfigPath = lessonKey ? `${lessonKey}/config.json` : '';
-    if (isOffline && localConfigPath) {
-      configFile = await readLocalConfig(localConfigPath);
+    if (lessonKey) {
+      configFile = await readLocalConfig(`${lessonKey}/config.json`);
     }
 
+    // Preserve the existing online latest-content path.
     for (const baseUrl of configFile || isOffline ? [] : remoteUrls) {
       try {
         const response = await fetch(
@@ -237,29 +238,44 @@ export function useLiveQuizQuestionFlow({
       }
     }
 
-    // Use the packaged APK copy when remote URLs are unavailable or fail.
+    // If the latest content was not remote-resolvable, try the latest APK copy.
     if (!configFile && lessonKey) {
       configFile = await extractPackagedQuizBundle(lessonKey);
     }
 
     if (!configFile) {
-      const configPath = (lessonId || cocosLessonId) + '/config.json';
+      const configPath = (lessonKey || '') + '/config.json';
+      configFile = lessonKey ? await readLocalConfig(configPath) : undefined;
 
-      configFile = await readLocalConfig(configPath);
-
-      if (!configFile && lessonId && lesson) {
-        logger.warn('[LiveQuiz] Config not found locally, downloading...');
+      if (!configFile && !isOffline && lessonId && lesson) {
         await downloadQuiz(lesson);
 
         configFile = await readLocalConfig(configPath);
-      } else if (!configFile && lessonId) {
-        logger.warn('[LiveQuiz] Lesson data required for bundle download');
+      }
+    }
+
+    // Only after latest local/network/package attempts fail, use the ID whose
+    // asset was preserved during sync. The latest online path above remains
+    // authoritative whenever it succeeds.
+    if (!configFile && lesson) {
+      const previousLessonKey =
+        lesson.previous_cocos_lesson_id ?? lesson.previous_lido_lesson_id;
+      if (previousLessonKey) {
+        configFile = await readLocalConfig(`${previousLessonKey}/config.json`);
+        if (!configFile) {
+          configFile = await extractPackagedQuizBundle(previousLessonKey);
+        }
+        if (configFile) {
+          resolvedLessonKey = previousLessonKey;
+        }
       }
     }
 
     if (!configFile) {
       throw new Error('Failed to load live quiz config.');
     }
+
+    if (resolvedLessonKey) setResolvedQuizLessonId(resolvedLessonKey);
 
     setLiveQuizConfig(configFile);
     if (onConfigLoaded) onConfigLoaded(configFile);

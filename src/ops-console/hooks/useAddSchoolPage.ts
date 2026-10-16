@@ -5,86 +5,19 @@ import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import { SchoolCourseRemovalError } from '../../utility/schoolCourseRemoval';
+import { useSchoolCourseSelection } from './useSchoolCourseSelection';
+import { useSchoolFormChanges } from './useSchoolFormChanges';
+import {
+  getSchoolModelOptionsForProgram,
+  isSchoolModelAllowedForProgram,
+} from './schoolModelOptions';
 
 const DEFAULT_COUNTRY = 'INDIA';
 const UDISE_LENGTH = 11;
 const INVALID_UDISE_MESSAGE = t(
   'Please enter a valid 11-digit UDISE code (use leading zeros if required).',
 );
-const SCHOOL_MODEL_VALUES = ['at_home', 'at_school', 'hybrid'] as const;
-
-type SchoolModelValue = (typeof SCHOOL_MODEL_VALUES)[number];
-type SchoolModelOption = { label: string; value: SchoolModelValue };
-
-const isSchoolModelValue = (value: string): value is SchoolModelValue =>
-  (SCHOOL_MODEL_VALUES as readonly string[]).includes(value);
-
-const getSchoolModelLabel = (value: SchoolModelValue) => {
-  if (value === 'at_home') return t('At Home');
-  if (value === 'at_school') return t('At School');
-  return t('Hybrid');
-};
-
-const normalizeModelList = (value: unknown): string[] => {
-  if (!value) return [];
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item).trim().toLowerCase())
-      .filter(Boolean);
-  }
-
-  if (typeof value !== 'string') return [];
-
-  const trimmed = value.trim();
-  if (!trimmed) return [];
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .map((item) => String(item).trim().toLowerCase())
-        .filter(Boolean);
-    }
-    if (typeof parsed === 'string') {
-      const normalized = parsed.trim().toLowerCase();
-      return normalized ? [normalized] : [];
-    }
-  } catch {
-    // Fall back to simple string parsing below.
-  }
-
-  return trimmed
-    .replace(/^\[/, '')
-    .replace(/\]$/, '')
-    .split(',')
-    .map((item) => item.replace(/['"]/g, '').trim().toLowerCase())
-    .filter(Boolean);
-};
-
-const getSchoolModelValuesForProgram = (
-  programModel: unknown,
-): SchoolModelValue[] => {
-  const parsed = normalizeModelList(programModel);
-  const uniqueValues = Array.from(new Set(parsed));
-  return uniqueValues.filter(isSchoolModelValue);
-};
-
-const getSchoolModelOptionsForProgram = (
-  programModel: unknown,
-): SchoolModelOption[] =>
-  getSchoolModelValuesForProgram(programModel).map((value) => ({
-    label: getSchoolModelLabel(value),
-    value,
-  }));
-
-const isSchoolModelAllowedForProgram = (
-  programModel: unknown,
-  schoolModel: string,
-) =>
-  getSchoolModelValuesForProgram(programModel).includes(
-    schoolModel.toLowerCase() as SchoolModelValue,
-  );
-
 const initialAddress = {
   state: '',
   district: '',
@@ -117,6 +50,20 @@ export const useAddSchoolPage = () => {
   const location = useLocation();
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
+  const {
+    courseLoadError,
+    courseRemovalError,
+    courseRemovalWarning,
+    setCourseRemovalError,
+    courses,
+    grades,
+    initialSelectedCourseIds,
+    isCoursesLoading,
+    selectedCourseIds,
+    selectedGradeId,
+    setSelectedGradeId,
+    toggleCourse,
+  } = useSchoolCourseSelection({ api, editData });
   const latestUdiseValue = useRef('');
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState('');
@@ -126,6 +73,8 @@ export const useAddSchoolPage = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [fieldCoordinator, setFieldCoordinator] = useState<any>(null);
   const [fieldCoordinators, setFieldCoordinators] = useState<any[]>([]);
+  const [isFieldCoordinatorReady, setIsFieldCoordinatorReady] =
+    useState(!editData);
   const [errorMessage, setErrorMessage] = useState('');
   const [lockDropdowns, setLockDropdowns] = useState(false);
   const [states, setStates] = useState<string[]>([]);
@@ -135,9 +84,21 @@ export const useAddSchoolPage = () => {
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [initialData, setInitialData] = useState<any>(null);
   const [address, setAddress] = useState(initialAddress);
   const [contacts, setContacts] = useState(buildInitialContacts);
+  const { hasChanges } = useSchoolFormChanges({
+    editData,
+    program,
+    fieldCoordinator,
+    contacts,
+    schoolName,
+    udise,
+    schoolModel,
+    address,
+    selectedCourseIds,
+    initialSelectedCourseIds,
+    isFieldCoordinatorReady,
+  });
   const schoolModelOptions = useMemo(
     () => getSchoolModelOptionsForProgram(program?.model),
     [program?.model],
@@ -201,41 +162,23 @@ export const useAddSchoolPage = () => {
     setProgram(editData.programData);
 
     async function fetch() {
-      const fcs = await api.getFieldCoordinatorsForSchools([school.id]);
-      const fc = fcs[0]?.users[0] || null;
-      setFieldCoordinator(fc);
-      if (editData.programData && fc) {
-        setLockDropdowns(true);
+      // A completed lookup with no FC is valid initial state and differs from
+      // an FC lookup that is still in flight.
+      setIsFieldCoordinatorReady(false);
+      try {
+        const fcs = await api.getFieldCoordinatorsForSchools([school.id]);
+        const fc = fcs[0]?.users[0] || null;
+        setFieldCoordinator(fc);
+        setLockDropdowns(Boolean(editData.programData && fc));
+      } catch {
+        setFieldCoordinator(null);
+        setLockDropdowns(false);
+      } finally {
+        setIsFieldCoordinatorReady(true);
       }
     }
-    fetch();
+    void fetch();
   }, [editData, api]);
-
-  useEffect(() => {
-    if (!editData || !program || fieldCoordinator === null || initialData) {
-      return;
-    }
-
-    const school = editData.schoolData;
-    setInitialData({
-      schoolName: school?.name || '',
-      udise: school?.udise || '',
-      schoolModel: school?.model || '',
-      address: {
-        state: school?.group1 || '',
-        district: school?.group2 || '',
-        block: school?.group3 || '',
-        cluster: school?.group4 || '',
-        address: school?.address || '',
-        link: school?.location_link || '',
-      },
-      programId: editData.programData?.id || null,
-      fieldCoordinatorId: fieldCoordinator?.id || null,
-      contacts: contacts.map((contact) =>
-        contact.fields.map((field) => field.value || ''),
-      ),
-    });
-  }, [editData, program, fieldCoordinator, initialData, contacts]);
 
   useEffect(() => {
     if (!program || !schoolModel) {
@@ -246,24 +189,6 @@ export const useAddSchoolPage = () => {
       setSchoolModel('');
     }
   }, [program, schoolModel, schoolModelOptions]);
-
-  const hasChanges = () => {
-    if (!initialData) return false;
-    return (
-      JSON.stringify(initialData) !==
-      JSON.stringify({
-        schoolName,
-        udise,
-        schoolModel,
-        address,
-        programId: program?.id,
-        fieldCoordinatorId: fieldCoordinator?.id,
-        contacts: contacts.map((contact) =>
-          contact.fields.map((field) => field.value || ''),
-        ),
-      })
-    );
-  };
 
   const handleAddressChange = (name: string, value: string) => {
     setAddress((prev) => {
@@ -313,6 +238,10 @@ export const useAddSchoolPage = () => {
       contacts[0].fields[1].value?.length === 10 &&
       (contacts[1].fields[1].value?.length === 0 ||
         contacts[1].fields[1].value?.length === 10) &&
+      selectedCourseIds.length > 0 &&
+      !isCoursesLoading &&
+      !courseLoadError &&
+      !courseRemovalError &&
       !errorMessage;
 
     return editData ? !isFormValid || !hasChanges() : !isFormValid;
@@ -445,6 +374,10 @@ export const useAddSchoolPage = () => {
   }, [api, editData, program]);
 
   async function handleApprove() {
+    if (isCoursesLoading || courseLoadError || selectedCourseIds.length === 0) {
+      return;
+    }
+
     if (udise.length !== UDISE_LENGTH) {
       setErrorMessage(INVALID_UDISE_MESSAGE);
       return;
@@ -463,6 +396,10 @@ export const useAddSchoolPage = () => {
     try {
       setIsSaving(true);
       if (editData) {
+        await api.updateSchoolCourseSelection(
+          editData.schoolData.id,
+          selectedCourseIds,
+        );
         await api.updateSchoolProfile(
           editData.schoolData,
           schoolName,
@@ -481,7 +418,7 @@ export const useAddSchoolPage = () => {
           address.link,
           keyContacts,
         );
-        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
+        if (schoolModel === 'at_school' || schoolModel === 'hybrid') {
           await api.createAtSchoolUser(
             editData.schoolData.id,
             schoolName,
@@ -520,7 +457,8 @@ export const useAddSchoolPage = () => {
           address.link,
           keyContacts,
         );
-        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
+        await api.updateSchoolCourseSelection(school.id, selectedCourseIds);
+        if (schoolModel === 'at_school' || schoolModel === 'hybrid') {
           await api.createAtSchoolUser(
             school.id,
             schoolName,
@@ -539,6 +477,14 @@ export const useAddSchoolPage = () => {
       }
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
+      if (err instanceof SchoolCourseRemovalError) {
+        setCourseRemovalError(
+          t(
+            'Cannot remove these courses because the following classes would have no courses: {{classes}}. Add another course to these classes first.',
+            { classes: err.classNames.join(', ') },
+          ) ?? '',
+        );
+      }
       logger.error('Save error:', err);
     } finally {
       setIsSaving(false);
@@ -548,6 +494,8 @@ export const useAddSchoolPage = () => {
   return {
     address,
     blocks,
+    courses,
+    courseRemovalError: courseRemovalWarning || courseRemovalError,
     contacts,
     districts,
     editData,
@@ -560,7 +508,9 @@ export const useAddSchoolPage = () => {
     handleUdiseChange,
     history,
     isBlocksLoading,
+    isCoursesLoading,
     isDistrictsLoading,
+    isFieldCoordinatorReady,
     isSaveDisabled,
     isSaving,
     isStatesLoading,
@@ -571,11 +521,16 @@ export const useAddSchoolPage = () => {
     schoolModel,
     schoolModelOptions,
     schoolName,
+    grades,
+    selectedCourseIds,
+    selectedGradeId,
     setFieldCoordinator,
     setProgram,
     setSchoolModel,
     setSchoolName,
     states,
+    setSelectedGradeId,
+    toggleCourse,
     udise,
   };
 };

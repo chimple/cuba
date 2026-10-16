@@ -1,5 +1,6 @@
 import { useLessonCard } from '../hooks/useLessonCard';
 import './LessonCard.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
   const viewProps = useLessonCard(props);
   const {
@@ -33,6 +34,7 @@ const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
     lesson,
     lessonCardColor,
     onDownloadOrDelete,
+    onSelected,
     online,
     parsePath,
     presentToast,
@@ -73,7 +75,9 @@ const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
           width: width,
           height: 'auto',
         }}
+        {...getTrackableProps(TRACKABLE_IDS.LESSON_CARD)}
         onClick={async () => {
+          onSelected?.();
           if (isUnlocked) {
             const resolvedCourse =
               course ?? currentCourse ?? (await getCurrentCourse());

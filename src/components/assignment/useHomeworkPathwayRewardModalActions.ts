@@ -3,6 +3,7 @@ import { parsePath } from 'history';
 
 import {
   CONTINUE,
+  HOMEHEADERLIST,
   HOMEWORK_PATHWAY,
   LIVE_QUIZ,
   PAGES,
@@ -51,10 +52,7 @@ export const useHomeworkPathwayRewardModalActions = ({
     (e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
       setRewardModalOpen(false);
-      sessionStorage.setItem(
-        REWARD_MODAL_SHOWN_DATE,
-        new Date().toISOString(),
-      );
+      sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
     },
     [setRewardModalOpen],
   );
@@ -63,10 +61,7 @@ export const useHomeworkPathwayRewardModalActions = ({
     async (e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
       setRewardModalOpen(false);
-      sessionStorage.setItem(
-        REWARD_MODAL_SHOWN_DATE,
-        new Date().toISOString(),
-      );
+      sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
       try {
         const storedHomeworkPath = localStorage.getItem(HOMEWORK_PATHWAY);
         if (!storedHomeworkPath) return;
@@ -124,7 +119,9 @@ export const useHomeworkPathwayRewardModalActions = ({
         const nextChapter =
           currentChapter?.id === chapterDocId
             ? currentChapter
-            : await api.getChapterById(chapterDocId).catch(() => currentChapter);
+            : await api
+                .getChapterById(chapterDocId)
+                .catch(() => currentChapter);
 
         if (lesson.plugin_type === LIVE_QUIZ) {
           history.push({
@@ -134,7 +131,9 @@ export const useHomeworkPathwayRewardModalActions = ({
             state: {
               courseId: courseDocId,
               lesson: JSON.stringify(lesson),
-              from: history.location.pathname + `?${CONTINUE}=true`,
+              from:
+                history.location.pathname +
+                `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
               isHomework: true,
               homeworkIndex: homeworkPath.currentIndex,
               reward: true,
@@ -155,7 +154,9 @@ export const useHomeworkPathwayRewardModalActions = ({
               course: JSON.stringify(nextCourse),
               lesson: JSON.stringify(lesson),
               chapter: JSON.stringify(nextChapter),
-              from: history.location.pathname + `?${CONTINUE}=true`,
+              from:
+                history.location.pathname +
+                `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
               isHomework: true,
               homeworkIndex: homeworkPath.currentIndex,
               reward: true,

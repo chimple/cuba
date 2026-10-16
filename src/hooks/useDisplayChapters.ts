@@ -439,6 +439,28 @@ export const useDisplayChapters = () => {
 
     return startIndex;
   }
+
+  function getLessonSliderStartIndex() {
+    const selectedIndex =
+      localData.selectedLessonIndexByChapter?.[currentChapter?.id ?? ''];
+
+    return searchParams.get(CONTINUE) &&
+      typeof selectedIndex === 'number' &&
+      selectedIndex >= 0 &&
+      selectedIndex < (lessons?.length ?? 0)
+      ? selectedIndex
+      : getLastPlayedLessonIndex();
+  }
+
+  function onLessonSliderMoved(splide: { index: number }) {
+    const chapterId = currentChapter?.id;
+    if (!chapterId) return;
+
+    localData.selectedLessonIndexByChapter = {
+      ...localData.selectedLessonIndexByChapter,
+      [chapterId]: splide.index,
+    };
+  }
   function addStateTolocalStorage(stage: STAGES) {
     localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
   }
@@ -460,6 +482,7 @@ export const useDisplayChapters = () => {
     currentCourse,
     currentGrade,
     getCourseBasedName,
+    getLessonSliderStartIndex,
     getLastPlayedLessonIndex,
     isLoading,
     lessonResultMap,
@@ -468,6 +491,7 @@ export const useDisplayChapters = () => {
     onBackButton,
     onChapterChange,
     onGradeChanges,
+    onLessonSliderMoved,
     stage,
     t,
   };

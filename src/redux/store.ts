@@ -3,18 +3,20 @@ import { persistStore, persistReducer, PersistConfig } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authreducer, { authTransform } from './slices/auth/authSlice';
 import growthbookReducer from './slices/growthbook/growthbookSlice';
+import badgeProgressReducer from './slices/badgeProgress/badgeProgressSlice';
 import { GrowthBookAttributes } from '../common/constants';
 
 const rootReducer = combineReducers({
   auth: authreducer,
   growthbook: growthbookReducer,
+  badgeProgress: badgeProgressReducer,
 });
 
 const persistConfig: PersistConfig<RootState> = {
   key: 'root',
   storage,
   version: 1,
-  whitelist: ['auth', 'growthbook'],
+  whitelist: ['auth', 'growthbook', 'badgeProgress'],
   transforms: [authTransform],
 };
 

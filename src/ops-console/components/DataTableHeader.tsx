@@ -48,6 +48,7 @@ type DataTableHeaderProps<T extends object> = {
   orderBy: string | null;
   renderHeaderActions?: (column: Column<T>) => React.ReactNode;
   selectableRows: boolean;
+  showSelectAllRows: boolean;
   someRowsSelected: boolean;
 };
 
@@ -69,11 +70,12 @@ export const DataTableHeader = <T extends object>({
   orderBy,
   renderHeaderActions,
   selectableRows,
+  showSelectAllRows,
   someRowsSelected,
 }: DataTableHeaderProps<T>) => (
   <TableHead>
     <TableRow>
-      {selectableRows && (
+      {selectableRows && showSelectAllRows && (
         <TableCell
           id="data-tablebody-select-all-head-cell"
           className="data-tablebody-head-cell data-tablebody-select-all-head-cell"
@@ -86,6 +88,13 @@ export const DataTableHeader = <T extends object>({
             inputProps={{ 'aria-label': 'Select all rows' }}
           />
         </TableCell>
+      )}
+      {selectableRows && !showSelectAllRows && (
+        <TableCell
+          id="data-tablebody-select-all-head-cell"
+          aria-hidden="true"
+          className="data-tablebody-head-cell data-tablebody-select-all-head-cell"
+        />
       )}
       {columns.map((col) => {
         const resolvedHeaderAlign = col.headerAlign ?? headerAlign;

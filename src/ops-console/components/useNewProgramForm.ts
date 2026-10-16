@@ -5,6 +5,7 @@ import { PAGES, ProgramType } from '../../common/constants';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import { useFieldCoordinatorOptions } from './useFieldCoordinatorOptions';
 
 export function useNewProgramForm() {
   const [partners, setPartners] = useState({
@@ -24,6 +25,12 @@ export function useNewProgramForm() {
     { name: string; id: string }[]
   >([]);
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
+  const [selectedFieldCoordinators, setSelectedFieldCoordinators] = useState<
+    string[]
+  >([]);
+  const fieldCoordinatorPicker = useFieldCoordinatorOptions(
+    selectedFieldCoordinators,
+  );
   const [geoData, setGeoData] = useState<{
     Country: string[];
     State: string[];
@@ -281,6 +288,7 @@ export function useNewProgramForm() {
     setProgramType(ProgramType.LearningCenter);
     setModels([]);
     setSelectedManagers([]);
+    setSelectedFieldCoordinators([]);
     setStats({ schools: '', students: '', devices: '' });
     setStartDate(dayjs());
     setEndDate(dayjs());
@@ -296,6 +304,7 @@ export function useNewProgramForm() {
       programType,
       models,
       selectedManagers,
+      selectedFieldCoordinators,
       stats,
       startDate: startDate?.format('YYYY-MM-DD'),
       endDate: endDate?.format('YYYY-MM-DD'),
@@ -320,6 +329,7 @@ export function useNewProgramForm() {
   return {
     endDate,
     errors,
+    fieldCoordinatorPicker,
     geoData,
     handleBlur,
     handleLocationChange,
@@ -340,8 +350,10 @@ export function useNewProgramForm() {
     programName,
     programNameInputRef,
     programType,
+    selectedFieldCoordinators,
     selectedManagers,
     setEndDate,
+    setSelectedFieldCoordinators,
     setIsEditingProgramName,
     setProgramName,
     setProgramType,

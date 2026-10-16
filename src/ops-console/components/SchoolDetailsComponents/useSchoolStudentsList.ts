@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PerformanceLevel } from '../../../common/constants';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import logger from '../../../utility/logger';
+import {
+  readFcSchoolOfflineCache,
+  writeFcSchoolOfflineCache,
+} from '../../../services/offline/fcSchoolOfflineCache';
 import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
 import {
   getClassDisplayLabel,
@@ -10,7 +14,10 @@ import {
   ProgramGradeScopeData,
 } from './ClassDetailsPageUtils';
 import type { ClassRow, SchoolData } from './SchoolClass';
-import type { ApiStudentData } from './SchoolStudents.types';
+import type {
+  ApiStudentData,
+  StudentListCacheEntry,
+} from './SchoolStudents.types';
 import {
   getStudentListCacheKey,
   ROWS_PER_PAGE,
@@ -39,6 +46,58 @@ type UseSchoolStudentsListParams = {
   schoolId: string;
 };
 
+const isOffline = () =>
+  typeof navigator !== 'undefined' && navigator.onLine === false;
+
+const dedupeStudentRows = (students: ApiStudentData[]): ApiStudentData[] => {
+  const seen = new Set<string>();
+  return students.filter((student) => {
+    const studentId = String(student.user?.id ?? '').trim();
+    if (!studentId) return false;
+
+    const classId = String(student.classWithidname?.id ?? '').trim();
+    const key = classId + ':' + studentId;
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+};
+
+const readCachedStudentsForScope = async (
+  schoolId: string,
+  classId: string | undefined,
+  classIds: string[] | undefined,
+): Promise<StudentListCacheEntry | null> => {
+  const cachedSchool = await readFcSchoolOfflineCache(schoolId);
+  const studentsByClassId = cachedSchool?.studentsByClassId;
+  if (!studentsByClassId) return null;
+
+  const students = classId
+    ? (studentsByClassId[classId] ?? [])
+    : classIds && classIds.length > 0
+      ? classIds.flatMap((id) => studentsByClassId[id] ?? [])
+      : Object.values(studentsByClassId).flat();
+
+  const data = dedupeStudentRows(students as ApiStudentData[]);
+  return { data, total: data.length };
+};
+
+const groupStudentsByClassId = (
+  students: ApiStudentData[],
+): Record<string, ApiStudentData[]> => {
+  return students.reduce<Record<string, ApiStudentData[]>>(
+    (groups, student) => {
+      const classId = String(student.classWithidname?.id ?? '').trim();
+      if (!classId) return groups;
+
+      groups[classId] = [...(groups[classId] ?? []), student];
+      return groups;
+    },
+    {},
+  );
+};
+
 export const useSchoolStudentsList = ({
   allowedGrades,
   data,
@@ -54,7 +113,9 @@ export const useSchoolStudentsList = ({
     optionalClassId,
     programScopedClassIds,
   );
-  const cachedInitialStudents = studentListCache.get(initialStudentCacheKey);
+  const cachedInitialStudents = isOffline()
+    ? studentListCache.get(initialStudentCacheKey)
+    : undefined;
   const [students, setStudents] = useState<ApiStudentData[]>(
     cachedInitialStudents?.data ?? data.students ?? [],
   );
@@ -103,6 +164,27 @@ export const useSchoolStudentsList = ({
         scopedClassIds,
       );
       const shouldCache = search.trim() === '';
+      const applyCachedStudents = async (): Promise<boolean> => {
+        const cachedStudents =
+          studentListCache.get(cacheKey) ??
+          (await readCachedStudentsForScope(
+            schoolId,
+            scopedClassId,
+            scopedClassIds,
+          ));
+        if (!cachedStudents) return false;
+        if (currentFetchId !== fetchIdRef.current) return true;
+
+        setStudents(cachedStudents.data);
+        setTotalCount(cachedStudents.total);
+        studentListCache.set(cacheKey, cachedStudents);
+        return true;
+      };
+
+      if (isOffline() && (await applyCachedStudents())) {
+        if (currentFetchId === fetchIdRef.current) setIsLoading(false);
+        return;
+      }
       if (scopedClassIds && scopedClassIds.length === 0) {
         if (currentFetchId !== fetchIdRef.current) return;
         setStudents([]);
@@ -133,6 +215,14 @@ export const useSchoolStudentsList = ({
         };
         const firstPage = await fetchStudentPage(1);
         if (currentFetchId !== fetchIdRef.current) return;
+        if (
+          isOffline() &&
+          (firstPage.data?.length ?? 0) === 0 &&
+          (firstPage.total ?? 0) === 0 &&
+          (await applyCachedStudents())
+        ) {
+          return;
+        }
         const allStudents = [...(firstPage.data ?? [])];
         const totalStudents = Math.max(
           typeof firstPage.total === 'number' ? firstPage.total : 0,
@@ -161,9 +251,19 @@ export const useSchoolStudentsList = ({
             data: allStudents,
             total: totalStudents,
           });
+
+          const studentsByClassId = groupStudentsByClassId(allStudents);
+          if (Object.keys(studentsByClassId).length > 0) {
+            void writeFcSchoolOfflineCache(schoolId, {
+              studentsByClassId,
+            }).catch((error) => {
+              logger.error('Failed to cache students for offline use:', error);
+            });
+          }
         }
       } catch (error) {
         if (currentFetchId === fetchIdRef.current) {
+          if (isOffline() && (await applyCachedStudents())) return;
           logger.error('Failed to fetch students:', error);
         }
       } finally {
@@ -310,7 +410,8 @@ export const useSchoolStudentsList = ({
       index,
       user: {
         name: student.user.name ?? undefined,
-        email: student.user.email ?? undefined,
+        email: student.user.email ?? student.parent?.email ?? undefined,
+        phone: student.user.phone ?? student.parent?.phone ?? undefined,
         student_id: student.user.student_id ?? undefined,
       },
       grade: student.grade,

@@ -1,4 +1,8 @@
-import { BASE_NAME, CURRENT_SQLITE_VERSION } from '../../../common/constants';
+import {
+  BASE_NAME,
+  CURRENT_SQLITE_VERSION,
+  TABLES,
+} from '../../../common/constants';
 import { setGlobalLoading } from '../../../redux/slices/auth/authSlice';
 import { store } from '../../../redux/store';
 import logger from '../../../utility/logger';
@@ -118,7 +122,51 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
       }
     }
 
+    await this.ensureLessonAssetColumns();
+    localStorage.setItem(CURRENT_SQLITE_VERSION, this.DB_VERSION.toString());
+
     await this.checkAndSyncData();
+  }
+
+  private async ensureLessonAssetColumns(): Promise<void> {
+    if (!this._db) return;
+
+    const result = await this._db.query(`PRAGMA table_info(${TABLES.Lesson})`);
+    const columns = new Set(
+      (result.values ?? [])
+        .map((row: { name?: unknown }) => row.name)
+        .filter((name: unknown): name is string => typeof name === 'string'),
+    );
+    const requiredColumns = [
+      'previous_lido_lesson_id',
+      'previous_cocos_lesson_id',
+    ];
+
+    for (const column of requiredColumns) {
+      if (columns.has(column)) continue;
+      logger.warn(`[LessonSync] Adding missing lesson column column=${column}`);
+      await this._db.query(
+        `ALTER TABLE ${TABLES.Lesson} ADD COLUMN ${column} TEXT`,
+      );
+    }
+
+    this._tableColumnsCache.delete(TABLES.Lesson);
+    const verified = await this._db.query(
+      `PRAGMA table_info(${TABLES.Lesson})`,
+    );
+    const verifiedColumns = new Set(
+      (verified.values ?? [])
+        .map((row: { name?: unknown }) => row.name)
+        .filter((name: unknown): name is string => typeof name === 'string'),
+    );
+    const missingColumns = requiredColumns.filter(
+      (column) => !verifiedColumns.has(column),
+    );
+    if (missingColumns.length > 0) {
+      throw new Error(
+        `Lesson schema migration incomplete; missing columns: ${missingColumns.join(', ')}`,
+      );
+    }
   }
 
   protected async importBundledDataAfterUpgrade(): Promise<void> {
