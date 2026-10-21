@@ -3,8 +3,11 @@ import os
 import csv
 import glob
 
-IMPORT_JSON_PATH = 'public/databases/import.json'
-IMPORT_DATA_DIR = 'public/databases/import_data'
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(SCRIPT_DIR)
+
+IMPORT_JSON_PATH = os.path.join(REPO_ROOT, 'public/databases/import.json')
+IMPORT_DATA_DIR = os.path.join(REPO_ROOT, 'public/databases/import_data')
 
 def load_json(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -12,7 +15,7 @@ def load_json(path):
 
 def save_json(path, data):
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 def parse_csv_value(value, column_name):
     if value is None:

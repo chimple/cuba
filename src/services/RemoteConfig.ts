@@ -27,7 +27,7 @@ const BUNDLE_ZIP_URLS_BY_ENV = {
     'https://cuba-stage-zip-bundle.web.app/',
     'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
     'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
-  ],
+  ],  
 } as const;
 
 export const LIDO_BUNDLE_ZIP_URLS_BY_ENV = {

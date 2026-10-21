@@ -359,6 +359,11 @@ export class SupabaseAuth implements ServiceAuth {
       await this.doRefreshSession();
       const authData = await this.resolveSessionWithRetryDeduped();
       if (!authData || !authData.data.session?.user?.id) {
+        const persistedUser = this.getPersistedUserForResume(
+          'missing_session_using_persisted_user',
+        );
+        if (persistedUser) return persistedUser;
+
         logAuthDebug('Unable to resolve current user from session.', {
           source: 'SupabaseAuth.getCurrentUser',
           reason: 'missing_session_or_user_id',
@@ -532,8 +537,14 @@ export class SupabaseAuth implements ServiceAuth {
         (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24),
       );
       const currentSession = await this._auth?.getSession();
-      const hasActiveSession = !!currentSession?.data?.session?.access_token;
-      if (daysDiff < 1 && hasActiveSession) {
+      const activeSession = currentSession?.data?.session;
+      const expiresAtMs = (activeSession?.expires_at ?? 0) * 1000;
+      // A session restored after offline play can still contain an access
+      // token, but that token may already be expired. In that case we must
+      // refresh it when connectivity returns instead of treating it as valid.
+      const hasUsableActiveSession =
+        !!activeSession?.access_token && expiresAtMs > Date.now() + 60_000;
+      if (daysDiff < 1 && hasUsableActiveSession) {
         logAuthDebug('Skipping session refresh because token is still fresh.', {
           source: 'SupabaseAuth.doRefreshSession',
           reason: 'token_recent',
@@ -645,6 +656,28 @@ export class SupabaseAuth implements ServiceAuth {
       }
     }
     return authData;
+  }
+
+  private getPersistedUserForResume(
+    reason: string,
+  ): TableTypes<'user'> | undefined {
+    const persistedUser = store.getState()?.auth?.user as
+      | TableTypes<'user'>
+      | undefined;
+    const storedRefreshToken = Util.getRefreshTokenFromStore();
+
+    if (!persistedUser?.id || !storedRefreshToken?.token) return;
+
+    this._currentUser = persistedUser;
+    logAuthDebug(
+      'Using persisted app user while Supabase session finishes restoring.',
+      {
+        source: 'SupabaseAuth.getCurrentUser',
+        reason,
+        user_id: persistedUser.id,
+      },
+    );
+    return this._currentUser;
   }
 
   private isRecoverableDependencyError(error: unknown): boolean {

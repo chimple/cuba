@@ -125,6 +125,7 @@
     "build:android": "tsc -p tsconfig.build.json && vite build && npm run copy-build && npx @capawesome/cli manifests:generate --path dist && npx cap sync android",
     "build:storybook": "storybook build",
     "build:full": "npm run build",
+    "format:changed": "git diff --name-only -z --diff-filter=d HEAD | grep -zE '\\.(js|jsx|ts|tsx|css|json|md)$' | xargs -0 -r prettier --write",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "serve-build": "http-server dist",
     "test": "jest --config jest.config.js",

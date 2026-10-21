@@ -264,13 +264,14 @@ const CocosGame: React.FC = () => {
     };
 
     if (Capacitor.isNativePlatform()) {
+      const separator = fromPath.includes('?') ? '&' : '?';
       if (!!isDeviceAwake) {
-        history.replace(fromPath + '&isReload=true', {
+        history.replace(fromPath + separator + 'isReload=true', {
           ...lessonDetailsState,
           fromCocos: true,
         });
       } else {
-        history.replace(fromPath + '&isReload=false', {
+        history.replace(fromPath + separator + 'isReload=false', {
           ...lessonDetailsState,
           fromCocos: true,
         });

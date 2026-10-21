@@ -112,6 +112,10 @@ const DisplaySubjects: FC<{}> = () => {
 
       setIsLoading(false);
     } else if (!!urlParams.get('isReload')) {
+      // Native lesson returns add isReload=true. Reload the page data so the
+      // initial loading state is always resolved instead of leaving this page
+      // behind its loading indicator.
+      await getCourses();
     } else {
       await getCourses();
     }
