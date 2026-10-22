@@ -94,12 +94,17 @@ export async function initializeLidoPlayer(ctx: any) {
       REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
     );
     if (dow) {
-      // The remote download is stored outside the APK. Never select the
-      // bundled ZIP after a successful online download.
-      hasPackagedZip = false;
-      downloadedLessonPath = await Util.getLessonPath({
+      // downloadZipBundle() returns true both when it downloads/extracts the
+      // bundle and when the bundle is already packaged in the APK. Only
+      // switch away from the APK ZIP after an extracted external path is
+      // actually available.
+      const resolvedDownloadedPath = await Util.getLessonPath({
         lessonId: playableLessonId,
       });
+      if (resolvedDownloadedPath) {
+        downloadedLessonPath = resolvedDownloadedPath;
+        hasPackagedZip = false;
+      }
     }
   }
 
