@@ -345,6 +345,8 @@
   align-items: center;
   gap: 3px;
   font-size: 8px;
+  /* Local enhancement: make engagement band labels slightly more prominent. */
+  font-weight: 700;
   justify-self: center;
 }
 
