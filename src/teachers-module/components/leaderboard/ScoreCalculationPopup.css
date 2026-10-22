@@ -1,4 +1,10 @@
 .score-calculation-popup-modal {
+  --score-calculation-enter-duration: 650ms;
+  --score-calculation-leave-duration: 350ms;
+  --score-calculation-enter-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --score-calculation-leave-easing: ease-in;
+  --score-calculation-offscreen-transform: translate3d(100vw, 0, 0);
+  --score-calculation-centered-transform: translate3d(0, 0, 0);
   --width: 100%;
   --height: 100%;
   --max-width: 100%;
@@ -10,6 +16,10 @@
 .score-calculation-popup-modal::part(backdrop) {
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
+}
+
+.score-calculation-popup-modal::part(content) {
+  will-change: transform, opacity;
 }
 
 .score-calculation-popup-overlay {
@@ -470,5 +480,12 @@
   .score-calculation-popup-final {
     padding-top: 8px;
     padding-bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-calculation-popup-modal {
+    --score-calculation-enter-duration: 1ms;
+    --score-calculation-leave-duration: 1ms;
   }
 }
