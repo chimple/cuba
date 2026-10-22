@@ -1,6 +1,16 @@
 import { SqliteApiAssignmentCourseLookups } from './SqliteApi.assignment.courseLookups';
 import { SqliteApiCourseCatalog } from './SqliteApi.course.catalog';
 
+// These parent classes import the full SQLite API inheritance graph. Mocking
+// only the parent constructors keeps this unit test focused on the query
+// methods and avoids the production-only circular module graph.
+jest.mock('./SqliteApi.school.referenceData', () => ({
+  SqliteApiSchoolReferenceData: class {},
+}));
+jest.mock('./SqliteApi.user.leaderboards', () => ({
+  SqliteApiUserLeaderboards: class {},
+}));
+
 type QueryDb = {
   query: jest.Mock;
 };
