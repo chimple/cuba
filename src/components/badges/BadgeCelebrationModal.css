@@ -1,0 +1,377 @@
+.BadgeCelebrationModal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+@keyframes BadgeCelebrationModal-fade-out {
+  from {
+    background: rgba(0, 0, 0, 0.58);
+  }
+
+  to {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+.BadgeCelebrationModal-overlay--closing {
+  /* Fade the scrim with the modal so dismissal does not leave a grey screen. */
+  animation: BadgeCelebrationModal-fade-out 2200ms ease-out both;
+  pointer-events: none;
+}
+
+.BadgeCelebrationModal-confetti {
+  position: fixed !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.BadgeCelebrationModal-modal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 480px;
+  height: 495px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 1rem);
+  box-sizing: border-box;
+  padding: 5px 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-radius: 0 0 24px 24px;
+  background: #fffdee;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+  border: none !important;
+  outline: none !important;
+  overflow: visible;
+  --close-size: 3.6rem;
+  --close-outset: calc(var(--close-size) * 0.82);
+  --close-top: calc(var(--close-size) * 0.1);
+  --close-pad: calc(var(--close-size) * 0.18);
+  --audio-size: 3.6rem;
+  margin-right: calc(var(--close-size) * 1.5);
+  margin-left: calc(var(--audio-size) * 1.5);
+  isolation: isolate;
+  backface-visibility: hidden;
+  animation: BadgeCelebrationModal-slide-down 2200ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes BadgeCelebrationModal-slide-down {
+  from {
+    transform: translateY(-100vh);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes BadgeCelebrationModal-slide-up {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100vh);
+  }
+}
+
+.BadgeCelebrationModal-modal--closing {
+  animation: BadgeCelebrationModal-slide-up 1600ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+.BadgeCelebrationModal-modal::before,
+.BadgeCelebrationModal-modal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: calc(var(--close-size) * 1.5 + 20px);
+  height: calc(var(--close-size) * 1.35);
+  border-radius: 50%;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.BadgeCelebrationModal-modal::before {
+  right: calc(100% - 20px);
+  border-radius: 999px 1.125rem 0 999px;
+}
+.BadgeCelebrationModal-modal::after {
+  left: calc(100% - 20px);
+  border-radius: 1.125rem 999px 999px 0;
+}
+
+.BadgeCelebrationModal-audio-button {
+  position: absolute;
+  top: calc(var(--audio-size) * 0.175);
+  right: calc(100% + var(--audio-size) * 0.29);
+  width: var(--audio-size);
+  height: var(--audio-size);
+  z-index: 2;
+}
+
+.BadgeCelebrationModal-audio-button-control .audio-button__icon {
+  max-width: none;
+  max-height: none;
+}
+
+.BadgeCelebrationModal-close {
+  position: absolute;
+  width: var(--close-size);
+  height: var(--close-size);
+  top: calc(var(--close-size) * 0.175);
+  left: calc(100% + var(--close-size) * 0.29);
+  border: 2px solid #f34d08;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.BadgeCelebrationModal-close::before,
+.BadgeCelebrationModal-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52%;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: #f34d08;
+}
+
+.BadgeCelebrationModal-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.BadgeCelebrationModal-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.BadgeCelebrationModal-share-card {
+  display: flex;
+  width: 100%;
+  height: 426px;
+  flex: 0 0 426px;
+  align-items: center;
+  justify-content: center;
+}
+
+.BadgeCelebrationModal-badge-art {
+  position: relative;
+  width: 500px;
+  max-width: 100%;
+  height: 415px;
+  margin: 0 auto;
+  overflow: hidden;
+  transform: translateY(-10px);
+}
+
+.BadgeCelebrationModal-badge-art > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.BadgeCelebrationModal-badge-art > span > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.BadgeCelebrationModal-copy-art {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.BadgeCelebrationModal-copy-art text {
+  color: #182a4f;
+  fill: #182a4f;
+  font-family: 'BalooRegular', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.BadgeCelebrationModal-copy-heading {
+  font-size: 16px;
+}
+
+.BadgeCelebrationModal-copy-completed,
+.BadgeCelebrationModal-copy-encouragement {
+  font-size: 13px;
+}
+
+.BadgeCelebrationModal-generated-badge {
+  position: absolute;
+  top: calc(50% - 18px);
+  left: 50%;
+  z-index: 1;
+  width: 164px;
+  height: 151px;
+  transform: translate(-50%, -50%) scale(0.8);
+  transform-origin: center;
+}
+
+.BadgeCelebrationModal-generated-badge [class^='badges-item-'] {
+  margin: 0;
+  filter: drop-shadow(5px 1px 0 #565656);
+}
+
+.BadgeCelebrationModal-generated-badge .badges-number {
+  color: #005757 !important;
+  font-family: Baloo, 'Baloo 2', sans-serif !important;
+  font-size: clamp(17.015px, 5vw, 24px) !important;
+  font-style: normal;
+  font-weight: 800 !important;
+  line-height: normal !important;
+  bottom: 18px;
+}
+
+.BadgeCelebrationModal-share {
+  /* Match the celebration artwork's rounded Share control and bottom edge. */
+  display: flex;
+  width: max-content;
+  min-width: 100px;
+  max-width: calc(100% - 1rem);
+  height: 64px;
+  min-height: 60px;
+  margin-top: -10px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 2.188px clamp(0.75rem, 4vw, 22.636px) 2.992px;
+  flex: 0 1 auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  border: none;
+  border-radius: 12px;
+  border-bottom: 5.455px solid #300d37;
+  background: #c094ef;
+  color: #2d1644;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.BadgeCelebrationModal-share:active:not(:disabled) {
+  transform: translateY(0.24rem);
+  box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+}
+.BadgeCelebrationModal-share:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.BadgeCelebrationModal-share-icon {
+  width: clamp(15.7px, 4vw, 21.421px);
+  height: clamp(18.421px, 4.7vw, 22.6px);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 420px) {
+  .BadgeCelebrationModal-badge-art {
+    transform: scale(0.94);
+    transform-origin: top center;
+  }
+}
+
+@media (max-height: 500px) {
+  .BadgeCelebrationModal-modal {
+    height: calc(100vh - 1.5rem);
+    width: 370px;
+  }
+
+  .BadgeCelebrationModal-share-card {
+    height: calc(100% - 64px);
+    flex: 0 0 calc(100% - 64px);
+  }
+
+  .BadgeCelebrationModal-badge-art {
+    height: 100%;
+    transform: translateY(-5px);
+  }
+
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.65);
+  }
+
+  .BadgeCelebrationModal-share {
+    height: 62px;
+    min-height: 58px;
+    margin-top: 1px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-height: 380px) {
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.54);
+    top: calc(50% - 15px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 900px) and (min-height: 1000px),
+  (min-width: 1000px) and (max-width: 1400px) and (min-height: 700px) and (max-height: 900px) {
+  .BadgeCelebrationModal-modal {
+    width: 460px;
+    height: 470px;
+  }
+
+  .BadgeCelebrationModal-share-card {
+    height: 396px;
+    flex-basis: 396px;
+  }
+
+  .BadgeCelebrationModal-badge-art {
+    width: 460px;
+    height: 396px;
+  }
+
+  .BadgeCelebrationModal-generated-badge {
+    transform: translate(-50%, -50%) scale(0.62);
+  }
+}
+
+@media (min-width: 901px) and (min-height: 600px) {
+  .BadgeCelebrationModal-modal {
+    width: 500px;
+    height: 500px;
+  }
+
+  .BadgeCelebrationModal-share-card {
+    height: 426px;
+    flex-basis: 426px;
+  }
+
+  .BadgeCelebrationModal-badge-art {
+    width: 500px;
+    height: 426px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .BadgeCelebrationModal-modal {
+    animation: none;
+  }
+}

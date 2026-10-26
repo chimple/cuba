@@ -17,13 +17,13 @@
   font-size: 1.07rem;
 }
 .principal-teacher-pending-breadcrumbs .link {
-  color: #3799fd;
+  color: #1a71f6;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7vw;
 }
 .principal-teacher-pending-breadcrumbs .active {
-  color: #232323;
+  color: #888;
   font-weight: 600;
   margin-left: 0.7vw;
 }
@@ -229,13 +229,13 @@
 }
 
 .principal-teacher-pending-active {
-  color: #333; /* gray or your theme color */
+  color: #888; /* existing active/current breadcrumb grey */
   cursor: default;
   font-weight: 600;
   margin-left: 0.7vw;
 }
 .principal-teacher-pending-link {
-  color: blue;
+  color: #1a71f6;
   text-decoration: none;
   cursor: pointer;
 }

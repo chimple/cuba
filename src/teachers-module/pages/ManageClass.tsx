@@ -14,6 +14,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 const CLASS_CREATION_ROLES = [
   RoleType.SUPER_ADMIN,
@@ -73,8 +74,11 @@ const ManageClass: React.FC = () => {
     !!currentSchoolRole && CLASS_CREATION_ROLES.includes(currentSchoolRole);
 
   const onBackButtonClick = () => {
-    history.replace(PAGES.HOME_PAGE, {
-      tabValue: 0,
+    history.replace({
+      ...parsePath(PAGES.HOME_PAGE),
+      state: {
+        tabValue: 0,
+      },
     });
   };
   useEffect(() => {
@@ -118,7 +122,12 @@ const ManageClass: React.FC = () => {
       {canCreate && !isExternalUser && (
         <AddButton
           onClick={() => {
-            history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
+            history.replace({
+              ...parsePath(PAGES.ADD_CLASS),
+              state: {
+                origin: PAGES.MANAGE_CLASS,
+              },
+            });
           }}
         />
       )}

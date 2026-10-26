@@ -3,7 +3,7 @@ import { ScreenOrientation } from '../utility/screenOrientation';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
 import { FC, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import {
   AVATARS,
   EDIT_STUDENTS_MAP,
@@ -12,16 +12,21 @@ import {
   PAGES,
   TableTypes,
 } from '../common/constants';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 import ParentalLock from '../components/parent/ParentalLock';
 import SkeltonLoading from '../components/SkeltonLoading';
+import InlineSvg from '../components/InlineSvg';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
+import { logClickAnalytics } from '../analytics/clickUtil';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
+import { getAppSearch } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
-import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
+import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import './DisplayStudents.css';
+import { parsePath } from 'history';
+
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -29,7 +34,7 @@ const DisplayStudents: FC<{}> = () => {
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const location = useLocation<{ fromSwitchProfileReturn?: boolean }>();
   const { setGbUpdated } = useGbContext();
   const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
@@ -38,6 +43,7 @@ const DisplayStudents: FC<{}> = () => {
     const currentClass = Util.getCurrentClass();
     return {
       action_type: 'play',
+      student_id: student.id,
       target_student_id: student.id,
       target_student_grade: student.grade_id ?? '',
       ...(studentMode === MODES.TEACHER_SCHOOL && currentClass?.id
@@ -69,8 +75,11 @@ const DisplayStudents: FC<{}> = () => {
       storedMapStr,
     );
     if (!mergedStudents || mergedStudents.length < 1) {
-      history.replace(PAGES.CREATE_STUDENT, {
-        showBackButton: false,
+      history.replace({
+        ...parsePath(PAGES.CREATE_STUDENT),
+        state: {
+          showBackButton: false,
+        },
       });
       return;
     }
@@ -80,7 +89,8 @@ const DisplayStudents: FC<{}> = () => {
     setIsLoading(false);
   };
   const onStudentClick = async (student: TableTypes<'user'>) => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    if (studentMode !== MODES.SCHOOL && studentMode !== MODES.TEACHER_SCHOOL)
+      schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
@@ -105,35 +115,20 @@ const DisplayStudents: FC<{}> = () => {
     });
     setGbUpdated(true);
     if (!student.language_id) {
-      history.replace(PAGES.EDIT_STUDENT, {
-        from: history.location.pathname,
+      history.replace({
+        ...parsePath(PAGES.EDIT_STUDENT),
+        state: {
+          from: history.location.pathname,
+        },
       });
     } else {
-      history.replace(PAGES.HOME + window.location.search);
-    }
-  };
-  const onCreateNewStudent = () => {
-    if (!online) {
-      presentToast({
-        message: t(`Device is offline. Cannot create a new child profile`),
-        color: 'danger',
-        duration: 3000,
-        position: 'bottom',
-        buttons: [
-          {
-            text: 'Dismiss',
-            role: 'cancel',
-          },
-        ],
+      history.replace({
+        ...parsePath(PAGES.HOME),
+        state: location.state?.fromSwitchProfileReturn
+          ? { fromSwitchProfileReturn: true }
+          : undefined,
       });
-
-      return;
     }
-    const isProfilesExist = students && students.length > 0;
-    const locationState = isProfilesExist
-      ? { showBackButton: true }
-      : undefined;
-    history.replace(PAGES.CREATE_STUDENT, locationState);
   };
   return (
     <IonPage
@@ -144,7 +139,10 @@ const DisplayStudents: FC<{}> = () => {
         <div id="display-students-parent-icon"></div>
         <div className="display-students-title">
           <div className="display-students-welcome-title">
-            <BrandLogoIcon className="display-students-brand-logo" />
+            <InlineSvg
+              svg={BrandLogoIcon}
+              className="display-students-brand-logo"
+            />
             <span>{t('Welcome to Chimple!')}</span>
           </div>
           <span className="display-students-subtitle">
@@ -157,6 +155,7 @@ const DisplayStudents: FC<{}> = () => {
           onClick={() => {
             setShowDialogBox(true);
           }}
+          {...getTrackableProps(TRACKABLE_IDS.PROFILE_SWITCHER_PARENT)}
         >
           {t('Parent')}
           <img id="parent-icon" src={'assets/icons/user.png'} alt="" />
@@ -167,7 +166,11 @@ const DisplayStudents: FC<{}> = () => {
           <div className="avatar-container">
             {students.map((student) => (
               <article
-                key={student.id}
+                key={
+                  Util.isRespectMode
+                    ? (student as any).registration
+                    : student.id
+                }
                 className="display-students-card display-students-avatar"
               >
                 <img
@@ -189,12 +192,18 @@ const DisplayStudents: FC<{}> = () => {
                     id={`display-students-play-${student.id}`}
                     type="button"
                     className="display-students-play-button"
-                    onClick={() => {
-                      void Util.logEvent(
+                    onClick={async () => {
+                      // Set the selected profile before logging the selection event
+                      // so global analytics context contains this student ID.
+                      await Util.setCurrentStudent(student, undefined, true);
+                      await logClickAnalytics(
+                        TRACKABLE_IDS.PROFILE_SWITCHER_PLAY_PROFILE,
+                      );
+                      await Util.logEvent(
                         EVENTS.PROFILE_CARD_ACTION_CLICKED,
                         getProfileCardPlayActionParams(student),
                       );
-                      onStudentClick(student);
+                      await onStudentClick(student);
                     }}
                   >
                     {t('Play')}

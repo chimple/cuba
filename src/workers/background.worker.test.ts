@@ -318,6 +318,59 @@ describe('background.worker', () => {
     expect(response.ok).toBe(false);
     expect(response.error).toContain('Unsupported worker task');
   });
+
+  test('streams predictive ZIPs one at a time when concurrency is one', async () => {
+    const onmessage = await loadWorker();
+    const originalFetch = globalThis.fetch;
+    const fetchMock = jest.fn((input: RequestInfo | URL) =>
+      Promise.resolve({
+        ok: true,
+        arrayBuffer: async () => new ArrayBuffer(2),
+        url: String(input),
+      } as Response),
+    );
+    Object.defineProperty(globalThis, 'fetch', {
+      configurable: true,
+      value: fetchMock,
+    });
+    const postMessage = (globalThis as unknown as { postMessage: jest.Mock })
+      .postMessage;
+    postMessage.mockImplementation((message) => {
+      if (message.type === 'PREDICTIVE_ZIP_READY') {
+        queueMicrotask(() =>
+          onmessage({ data: { id: message.id, type: 'ACK' } }),
+        );
+      }
+    });
+
+    await onmessage({
+      data: {
+        id: 'zip-stream',
+        type: 'STREAM_PREDICTIVE_LESSON_ZIPS',
+        payload: {
+          concurrency: 1,
+          lessons: [
+            { lessonId: 'lesson-1', dbVersion: 1, zipUrls: ['https://zip/'] },
+            { lessonId: 'lesson-2', dbVersion: 1, zipUrls: ['https://zip/'] },
+          ],
+        },
+      },
+    });
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      'https://zip/lesson-1.zip',
+      'https://zip/lesson-2.zip',
+    ]);
+    expect(postMessage).toHaveBeenLastCalledWith({
+      id: 'zip-stream',
+      type: 'DONE',
+    });
+    if (originalFetch) {
+      globalThis.fetch = originalFetch;
+    } else {
+      delete (globalThis as { fetch?: typeof fetch }).fetch;
+    }
+  });
 });
 
 export {};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
@@ -16,6 +16,7 @@ jest.mock('i18next', () => ({
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+let mockLocationSearch = '';
 
 jest.mock('react-router', () => ({
   ...jest.requireActual('react-router'),
@@ -24,7 +25,7 @@ jest.mock('react-router', () => ({
     replace: mockReplace,
   }),
   useLocation: () => ({
-    search: '',
+    search: mockLocationSearch,
   }),
 }));
 
@@ -34,6 +35,7 @@ jest.mock('../../redux/hooks', () => ({
 
 const mockApiHandler = {
   getSchoolFilterOptionsForSchoolListing: jest.fn(),
+  getSchoolMetricsForSchoolListing: jest.fn(),
   getFilteredSchoolsForSchoolListing: jest.fn(),
 };
 
@@ -76,8 +78,32 @@ jest.mock('../../utility/util', () => ({
 }));
 
 jest.mock('../components/DataTableBody', () => {
-  return function MockDataTableBody() {
-    return <div data-testid="data-table-body">table</div>;
+  return function MockDataTableBody(props: {
+    columns: Array<{ key: string; label: string; sortable?: boolean }>;
+    onSort?: (key: string) => void;
+    renderHeaderActions?: (column: {
+      key: string;
+      label: string;
+      sortable?: boolean;
+    }) => React.ReactNode;
+  }) {
+    return (
+      <div data-testid="data-table-body">
+        {props.columns.map((column) => (
+          <div key={column.key}>
+            <button
+              type="button"
+              data-testid={`sort-${column.key}`}
+              disabled={column.sortable === false}
+              onClick={() => props.onSort?.(column.key)}
+            >
+              {column.label}
+            </button>
+            {props.renderHeaderActions?.(column)}
+          </div>
+        ))}
+      </div>
+    );
   };
 });
 
@@ -115,14 +141,110 @@ jest.mock('../components/SearchAndFilter', () => {
 });
 
 jest.mock('../components/FilterSlider', () => {
-  return function MockFilterSlider() {
-    return <div data-testid="filter-slider" />;
+  return function MockFilterSlider(props: {
+    isOpen?: boolean;
+    isLoading?: boolean;
+    filterConfigs?: Array<{ key: string; label: string }>;
+    filterOptions?: Record<
+      string,
+      Array<string | { id: string; name: string }>
+    >;
+    filters?: Record<string, string[]>;
+    onFilterChange?: (key: string, values: string[]) => void;
+    onApply?: () => void;
+    onCancel?: () => void;
+    onClose?: () => void;
+  }) {
+    if (!props.isOpen) return null;
+    if (props.isLoading) {
+      return <div data-testid="filter-slider-loading">loading filters</div>;
+    }
+
+    return (
+      <div data-testid="filter-slider">
+        {(props.filterConfigs ?? []).map((config) => (
+          <div key={config.key} data-testid={`filter-group-${config.key}`}>
+            <div>{config.label}</div>
+            {(props.filterOptions?.[config.key] ?? []).map((option) => {
+              const value = typeof option === 'string' ? option : option.id;
+              const label = typeof option === 'string' ? option : option.name;
+              const isSelected = (props.filters?.[config.key] ?? []).includes(
+                value,
+              );
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  data-testid={`filter-option-${config.key}-${value}`}
+                  data-selected={isSelected ? 'true' : 'false'}
+                  onClick={() =>
+                    props.onFilterChange?.(
+                      config.key,
+                      config.key === 'program'
+                        ? isSelected
+                          ? []
+                          : [value]
+                        : isSelected
+                          ? (props.filters?.[config.key] ?? []).filter(
+                              (item) => item !== value,
+                            )
+                          : [...(props.filters?.[config.key] ?? []), value],
+                    )
+                  }
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        <button type="button" onClick={props.onCancel}>
+          clear
+        </button>
+        <button type="button" onClick={props.onApply}>
+          apply
+        </button>
+        <button type="button" onClick={props.onClose}>
+          close
+        </button>
+      </div>
+    );
   };
 });
 
 jest.mock('../components/SelectedFilters', () => {
-  return function MockSelectedFilters() {
-    return <div data-testid="selected-filters" />;
+  return function MockSelectedFilters(props: {
+    filters?: Record<string, string[]>;
+    extraFilters?: Array<{ key: string; value: string; label: string }>;
+    onDeleteFilter?: (key: string, value: string) => void;
+    getFilterLabel?: (key: string, value: string) => React.ReactNode;
+  }) {
+    return (
+      <div data-testid="selected-filters">
+        {Object.entries(props.filters ?? {}).flatMap(([key, values]) =>
+          values.map((value, index) => (
+            <button
+              key={`${key}-${index}`}
+              type="button"
+              data-testid={`selected-filter-${key}`}
+              onClick={() => props.onDeleteFilter?.(key, value)}
+            >
+              {props.getFilterLabel?.(key, value) ?? value}
+            </button>
+          )),
+        )}
+        {(props.extraFilters ?? []).map((filter) => (
+          <button
+            key={`${filter.key}-${filter.value}`}
+            type="button"
+            data-testid={`selected-filter-${filter.key}`}
+            onClick={() => props.onDeleteFilter?.(filter.key, filter.value)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+    );
   };
 });
 
@@ -157,8 +279,13 @@ const openActionsMenu = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockLocationSearch = '';
 
   mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValue({
+    program: [
+      { id: 'program-a', name: 'Program A' },
+      { id: 'program-b', name: 'Program B' },
+    ],
     programType: [],
     partner: [],
     programManager: [],
@@ -167,6 +294,10 @@ beforeEach(() => {
     district: [],
     block: [],
     cluster: [],
+  });
+  mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+    data: [],
+    total: 0,
   });
   mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
     data: [],
@@ -200,12 +331,111 @@ const mockRunBackgroundWorkerTask =
   >;
 
 describe('SchoolList actions menu', () => {
+  it('loads school filter options only after opening filters and caches them', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading inside the filter drawer until options are available', async () => {
+    let resolveFilterOptions: (value: Record<string, unknown[]>) => void = () =>
+      undefined;
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFilterOptions = resolve;
+      }),
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    expect(screen.getByTestId('filter-slider-loading')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFilterOptions({ program: [] });
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId('filter-slider-loading'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('hides the program filter when the API returns no programs', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValueOnce(
+      {
+        program: [],
+      },
+    );
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId('filter-slider-loading'),
+      ).not.toBeInTheDocument(),
+    );
+
+    expect(screen.getByTestId('filter-slider')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('filter-group-program'),
+    ).not.toBeInTheDocument();
+  });
+
   it('shows migrate, upload and add school actions for privileged users', async () => {
     renderPage();
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -228,7 +458,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -251,7 +481,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -274,7 +504,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -287,13 +517,13 @@ describe('SchoolList actions menu', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('closes the actions menu when clicking outside', async () => {
+  it('closes the actions menu when pressing Escape', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -302,10 +532,7 @@ describe('SchoolList actions menu', () => {
       screen.getByRole('menuitem', { name: 'Upload' }),
     ).toBeInTheDocument();
 
-    const backdrop = document.querySelector('.MuiBackdrop-root');
-    expect(backdrop).toBeTruthy();
-
-    await user.click(backdrop as HTMLElement);
+    await user.keyboard('{Escape}');
 
     await waitFor(() =>
       expect(
@@ -326,7 +553,7 @@ describe('SchoolList export', () => {
 
   it('exports the filtered school metrics rows to an xlsx file', async () => {
     const user = userEvent.setup();
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -337,16 +564,19 @@ describe('SchoolList export', () => {
           udise: '1234567890',
           num_students: 120,
           num_teachers: 8,
+          total_teachers: 8,
           onboarded_students: 100,
           activated_students: 80,
           active_students: 60,
           avg_time_spent: 45,
           active_teachers: 6,
+          activated_teachers: 6,
           activities_assigned: 14,
           parents_reached: 42,
           avg_assignments_completed: 10,
           avg_activities_completed: 8,
           phone_calls_students_parents: 5,
+          inperson_students_parents: 4,
           phone_calls_teachers_hms: 3,
           community_visits: 2,
           school_visits: 7,
@@ -367,10 +597,10 @@ describe('SchoolList export', () => {
     await user.click(exportButton);
 
     expect(
-      mockApiHandler.getFilteredSchoolsForSchoolListing,
+      mockApiHandler.getSchoolMetricsForSchoolListing,
     ).toHaveBeenCalledTimes(2);
     expect(
-      mockApiHandler.getFilteredSchoolsForSchoolListing,
+      mockApiHandler.getSchoolMetricsForSchoolListing,
     ).toHaveBeenLastCalledWith(
       expect.objectContaining({
         page: 1,
@@ -386,15 +616,18 @@ describe('SchoolList export', () => {
           Schools: [
             [
               'School Name',
+              'UDISE',
+              'Field Coordinator',
+              'Block',
               'School Performance',
               'Onboarded Students',
-              'Activated Students',
-              'Activated Students',
-              'Active Students',
-              'Active Students',
+              'Activated Students #',
+              'Activated Students %',
+              'Active Students #',
+              'Active Students %',
               'Avg Time Spent',
-              'Active Teachers',
-              'Active Teachers',
+              'Active Teachers #',
+              'Active Teachers %',
               'Activities Assigned',
               'Avg Assignments Completed',
               'Avg Activities Completed',
@@ -403,12 +636,16 @@ describe('SchoolList export', () => {
               'Community Visits',
               'Parents Reached',
               'School Visits',
+              'In-Person - Students / Parents',
               'On WhatsApp',
               'In Group',
             ],
             [
-              'Alpha School\n1234567890 - Pune',
-              'Performing Well',
+              'Alpha School',
+              '1234567890',
+              'Field Coordinator 1',
+              '--',
+              'High Performing',
               '100',
               '80',
               '80%',
@@ -425,6 +662,7 @@ describe('SchoolList export', () => {
               '2',
               '42',
               '7',
+              '4',
               '40',
               '32',
             ],
@@ -445,20 +683,7 @@ describe('SchoolList export', () => {
           },
         },
         sheetMerges: {
-          Schools: [
-            {
-              s: { r: 0, c: 3 },
-              e: { r: 0, c: 4 },
-            },
-            {
-              s: { r: 0, c: 5 },
-              e: { r: 0, c: 6 },
-            },
-            {
-              s: { r: 0, c: 8 },
-              e: { r: 0, c: 9 },
-            },
-          ],
+          Schools: [],
         },
       },
     );
@@ -472,7 +697,7 @@ describe('SchoolList export', () => {
     jest.useFakeTimers();
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -482,11 +707,13 @@ describe('SchoolList export', () => {
           udise: '1234567890',
           num_students: 120,
           num_teachers: 8,
+          total_teachers: 8,
           onboarded_students: 100,
           activated_students: 80,
           active_students: 60,
           avg_time_spent: 45,
           active_teachers: 6,
+          activated_teachers: 6,
           activities_assigned: 14,
           parents_reached: 42,
           avg_assignments_completed: 10,
@@ -507,7 +734,9 @@ describe('SchoolList export', () => {
 
     expect(exportButton).toBeDisabled();
 
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     await waitFor(() => expect(exportButton).toBeEnabled());
     jest.useRealTimers();
@@ -518,7 +747,7 @@ describe('SchoolList export', () => {
     mockRunBackgroundWorkerTask.mockRejectedValueOnce(
       new Error('worker failed'),
     );
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -528,11 +757,13 @@ describe('SchoolList export', () => {
           udise: '1234567890',
           num_students: 120,
           num_teachers: 8,
+          total_teachers: 8,
           onboarded_students: 100,
           activated_students: 80,
           active_students: 60,
           avg_time_spent: 45,
           active_teachers: 6,
+          activated_teachers: 6,
           activities_assigned: 14,
           parents_reached: 42,
           avg_assignments_completed: 10,
@@ -558,5 +789,295 @@ describe('SchoolList export', () => {
       ),
     );
     expect(mockJsZipLoadAsync).toHaveBeenCalled();
+  });
+});
+
+describe('SchoolList sorting', () => {
+  it('sorts globally by non-name columns using backend order mapping and resets to page 1', async () => {
+    const user = userEvent.setup();
+    mockLocationSearch = '?page=3';
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          phone_calls_students_parents: 5,
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 3,
+          page_size: 20,
+          order_by: '',
+          order_dir: 'asc',
+        }),
+      ),
+    );
+    await screen.findByTestId('data-table-body');
+
+    await user.click(screen.getByTestId('sort-phoneCallsStudentsParents'));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          page_size: 20,
+          order_by: 'student_parent_calls',
+          order_dir: 'desc',
+        }),
+      ),
+    );
+  });
+});
+
+describe('SchoolList percentage filters', () => {
+  it('applies the selected program filter by id and shows the program name in the chip', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          program_id: 'program-a',
+          program_name: 'Program A',
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    await screen.findByTestId('filter-option-program-program-a');
+
+    await user.click(screen.getByTestId('filter-option-program-program-a'));
+    await user.click(screen.getByRole('button', { name: 'apply' }));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          filters: expect.objectContaining({
+            program: ['program-a'],
+          }),
+        }),
+      ),
+    );
+
+    expect(screen.getByTestId('selected-filter-program')).toHaveTextContent(
+      'Program A',
+    );
+  });
+
+  it('restores the selected program filter name after returning to the school listing', async () => {
+    const user = userEvent.setup();
+    mockLocationSearch = '?filters=%7B%22program%22%3A%5B%22program-a%22%5D%7D';
+
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          program_id: 'program-a',
+          program_name: 'Program A',
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+
+    expect(screen.getByTestId('selected-filter-program')).toHaveTextContent(
+      'Program A',
+    );
+  });
+
+  it('sends selected percentage bucket filters to the global listing request', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          onboarded_students: 100,
+          activated_students: 25,
+          active_students: 10,
+          active_teachers: 2,
+          activated_teachers: 4,
+          total_teachers: 8,
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    await screen.findByTestId('data-table-body');
+
+    await user.click(
+      screen.getByLabelText('Activated Students percentage filter'),
+    );
+    await user.click(screen.getByText('Low'));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          percentage_filters: {
+            activatedStudents: 'low',
+          },
+        }),
+      ),
+    );
+  });
+
+  it('sends the selected school performance filter to the global listing request', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          school_performance: 'yellow',
+          onboarded_students: 100,
+          active_students: 60,
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    await screen.findByTestId('data-table-body');
+
+    await user.click(screen.getByLabelText('School Performance filter'));
+    await user.click(screen.getAllByText('Medium Performing')[0]);
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          school_performance_filter: 'Medium Performing',
+        }),
+      ),
+    );
+  });
+
+  it('shows selected header filters above the table and clears them from the global request', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          school_performance: 'yellow',
+          onboarded_students: 100,
+          activated_students: 60,
+          active_students: 40,
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+    await screen.findByTestId('data-table-body');
+
+    await user.click(screen.getByLabelText('School Performance filter'));
+    await user.click(screen.getAllByText('Medium Performing')[0]);
+
+    expect(
+      await screen.findByText('School Performance : Medium Performing'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByTestId('selected-filter-schoolPerformanceFilter'),
+    );
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          school_performance_filter: null,
+        }),
+      ),
+    );
   });
 });

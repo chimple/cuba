@@ -15,12 +15,15 @@
   color: #6b7280;
 }
 .ops-flagged-request-details-link {
-  color: #1976d2;
+  color: #1a71f6 !important;
   cursor: pointer;
   text-decoration: underline;
 }
+.ops-flagged-request-details-separator {
+  color: #000;
+}
 .ops-flagged-request-details-active {
-  color: #333;
+  color: #888;
   font-weight: 600;
 }
 

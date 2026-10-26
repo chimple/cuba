@@ -6,7 +6,7 @@ import LiveQuizStudentAvatar from './LiveQuizStudentAvatar';
 import {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizQuestion,
-} from '../../models/liveQuiz';
+} from '../../models/LiveQuiz';
 import { Util } from '../../utility/util';
 import { ServiceConfig } from '../../services/ServiceConfig';
 

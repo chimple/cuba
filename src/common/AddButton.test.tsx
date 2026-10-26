@@ -88,7 +88,7 @@ describe('AddButton Component', () => {
 
   test('button text color is white', () => {
     renderComponent();
-    expect(screen.getByRole('button')).toHaveStyle('color: white');
+    expect(screen.getByRole('button')).toHaveStyle('color: rgb(255, 255, 255)');
   });
 
   test('button background color is correct', () => {

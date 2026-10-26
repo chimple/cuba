@@ -1,8 +1,7 @@
 import { IonPage } from '@ionic/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Redirect,
-  Switch,
   useParams,
   useRouteMatch,
   useHistory,
@@ -13,41 +12,21 @@ import {
   PAGES,
   TableTypes,
 } from '../../common/constants';
-import ProtectedRoute from '../../ProtectedRoute';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
-import NewProgram from '../components/NewProgram';
+import { clearAllSchoolHeaderCache } from '../../services/offline/offlineCache';
 import Sidebar from '../components/Sidebar';
-import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
-import ActivitiesPage from './ActivitiesPage';
-import AddSchoolPage from './AddSchoolPage';
-import CampaignSetupPage from './CampaignSetupPage';
-import MigrateSchoolsPage from './MigrateSchoolsPage';
-import NewUserPage from './NewUserPageOps';
-import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
-import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
-import OpsModulePage from './OpsModulePage';
-import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
-import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
 import ProgramDetailsPage from './ProgramDetailsPage';
-import ProgramsPage from './ProgramPage';
-import RequestList from './RequestList';
-import SchoolActivities from './SchoolActivities';
-import SchoolApprovedRequest from './SchoolApprovedRequest';
 import SchoolDetailsPage from './SchoolDetailsPage';
-import SchoolFormPage from './SchoolFormPage';
-import SchoolList from './SchoolList';
-import SchoolPendingRequest from './SchoolPendingRequest';
-import SchoolRejectedRequest from './SchoolRejectedRequest';
+import CampaignsOverview from '../components/campaignsOverview/CampaignsOverview';
+import { CampaignsOverviewApiResponse } from '../components/campaignsOverview/CampaignsOverviewLogic';
 import './SidebarPage.css';
-import StudentPendingRequest from './StudentPendingRequest';
-import UserDetailsPage from './UserDetailsPage';
-import UsersPage from './UsersPage';
 import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { SidebarRoutes } from './SidebarRoutes';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -64,6 +43,45 @@ const ProgramConnectedSchoolRoute: React.FC = () => {
   return <ProgramConnectedSchoolPage id={program_id} />;
 };
 
+type CampaignOverviewRouteState = {
+  campaignOverviewData?: CampaignsOverviewApiResponse;
+  returnTo?: {
+    pathname: string;
+    search?: string;
+  };
+};
+
+const CampaignOverviewRoute: React.FC = () => {
+  const history = useHistory();
+  const location = useLocation<CampaignOverviewRouteState>();
+  const campaignOverviewData = location.state?.campaignOverviewData;
+  const returnTo = location.state?.returnTo;
+
+  const handleOpenCampaignListing = () => {
+    history.replace({
+      pathname:
+        returnTo?.pathname || `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`,
+      search: returnTo?.search || '',
+    });
+  };
+
+  if (!campaignOverviewData) {
+    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`} />;
+  }
+
+  return (
+    <CampaignsOverview
+      campaignOverviewData={campaignOverviewData}
+      onBackClick={handleOpenCampaignListing}
+      onBreadcrumbClick={(_, index) => {
+        if (index === 0) {
+          handleOpenCampaignListing();
+        }
+      }}
+    />
+  );
+};
+
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
   const history = useHistory();
@@ -77,27 +95,107 @@ const SidebarPage: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const canAccessProgramPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
+  const canAccessModulePage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+      RoleType.FIELD_COORDINATOR,
+    ].includes(role as RoleType),
+  );
+  const canCreateProgram = userRoles.some((role) =>
+    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+      role as RoleType,
+    ),
+  );
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
+  const canAccessMessagesPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
+  const canAccessCoordinatorPages = userRoles.includes(
+    RoleType.FIELD_COORDINATOR,
+  );
+  const previousPathRef = useRef(location.pathname);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (!isExternalUser) return;
+    if (canAccessProgramPage && !isExternalUser) return;
 
     const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
     const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
+    const activitiesPath = `${schoolListPath}${PAGES.ACTIVITIES_PAGE}`;
+    const schoolActivitiesPath = `${activitiesPath}${PAGES.SCHOOL_ACTIVITIES}`;
+    const campaignsPath = `${path}${PAGES.ADMIN_CAMPAIGNS}`;
+    const campaignDetailsPrefix = `${campaignsPath}/`;
+    const messagesPath = `${path}${PAGES.MESSAGES}`;
+    const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
+    const requestListPath = `${path}${PAGES.REQUEST_LIST}`;
+    const requestDetailsPrefix = `${requestListPath}/`;
+    const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
+    const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
+    const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
+    const opsModulePath = `${path}${PAGES.OPS_MODULE_PAGE}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
-      location.pathname.startsWith(schoolDetailsPrefix);
+      location.pathname.startsWith(schoolDetailsPrefix) ||
+      (canAccessCampaignPage &&
+        (location.pathname === campaignsPath ||
+          location.pathname === campaignCreatePath ||
+          location.pathname.startsWith(campaignDetailsPrefix))) ||
+      (canAccessMessagesPage && location.pathname === messagesPath) ||
+      (canAccessModulePage && location.pathname.startsWith(opsModulePath)) ||
+      (canAccessCoordinatorPages &&
+        (location.pathname === requestListPath ||
+          location.pathname.startsWith(requestDetailsPrefix) ||
+          location.pathname === devicesPath ||
+          location.pathname === resourcesPath ||
+          location.pathname === dashboardPath ||
+          location.pathname === activitiesPath ||
+          location.pathname === schoolActivitiesPath));
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
     }
-  }, [history, isExternalUser, location.pathname, path]);
+  }, [
+    canAccessCampaignPage,
+    canAccessMessagesPage,
+    canAccessModulePage,
+    canAccessProgramPage,
+    canAccessCoordinatorPages,
+    history,
+    isExternalUser,
+    location.pathname,
+    path,
+  ]);
+
+  useEffect(() => {
+    const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
+    const previousPath = previousPathRef.current;
+    const wasInSchoolList = previousPath.startsWith(schoolListPath);
+    const isInSchoolList = location.pathname.startsWith(schoolListPath);
+
+    previousPathRef.current = location.pathname;
+
+    if (wasInSchoolList && !isInSchoolList) {
+      void clearAllSchoolHeaderCache();
+    }
+  }, [location.pathname, path]);
 
   const fetchData = async () => {
     try {
@@ -129,167 +227,18 @@ const SidebarPage: React.FC = () => {
           photo={currentUser?.image || ''}
         />
         <div className="sidebarpage-render">
-          <Switch>
-            <ProtectedRoute exact path={path}>
-              <Redirect
-                to={`${
-                  path +
-                  (isExternalUser ? PAGES.SCHOOL_LIST : PAGES.PROGRAM_PAGE)
-                }`}
-              />
-            </ProtectedRoute>
-            {/* <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_DASHBOARD}`}
-              exact={true}
-            >
-              <Dashboard />
-            </ProtectedRoute> */}
-            <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
-              <ProgramsPage />
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
-              <SchoolList />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignSetupPage />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
-              <RequestList />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
-              exact={true}
-            >
-              <OpsModulePage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
-              exact={true}
-            >
-              <ParentWhatsappInvitationPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_APPROVED_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolApprovedRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_REJECTED_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolRejectedRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}${PAGES.SCHOOL_FORM_PAGE}/:id`}
-              exact={true}
-            >
-              <SchoolFormPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <StudentPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_APPROVED_REQUEST}/:id`}
-              exact={true}
-            >
-              <OpsApprovedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_REQUEST}/:id`}
-              exact={true}
-            >
-              <OpsRejectedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_FLAGGED}/:id`}
-              exact={true}
-            >
-              <OpsFlaggedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <PrincipalTeacherPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
-              exact={true}
-            >
-              <SchoolDetailsRoute />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
-              exact={true}
-            >
-              <ProgramDetailsRoute />
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
-              <NewProgram />
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
-              <UsersPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
-              exact={true}
-            >
-              <ProgramConnectedSchoolRoute />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
-              exact={true}
-            >
-              <NewUserPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
-              exact={true}
-            >
-              <UserDetailsPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`}
-              exact={true}
-            >
-              <AddSchoolPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
-              exact={true}
-            >
-              <MigrateSchoolsPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}
-              exact={true}
-            >
-              <ActivitiesPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`}
-              exact={true}
-            >
-              <SchoolActivities />
-            </ProtectedRoute>
-          </Switch>
+          {' '}
+          <SidebarRoutes
+            CampaignOverviewRoute={CampaignOverviewRoute}
+            ProgramConnectedSchoolRoute={ProgramConnectedSchoolRoute}
+            ProgramDetailsRoute={ProgramDetailsRoute}
+            SchoolDetailsRoute={SchoolDetailsRoute}
+            canAccessCampaignPage={canAccessCampaignPage}
+            canAccessMessagesPage={canAccessMessagesPage}
+            canAccessProgramPage={canAccessProgramPage}
+            canCreateProgram={canCreateProgram}
+            path={path}
+          />
         </div>
       </div>
     </IonPage>

@@ -7,6 +7,8 @@ import {
   HeaderIconConfig,
   PAGES,
   MODES,
+  CURRENT_MODE,
+  IS_CONECTED,
   TableTypes,
   CURRENT_STUDENT_CHANGED_EVENT,
   HOME_HEADER_SPECIALS_ENABLED,
@@ -20,12 +22,10 @@ import { useHistory } from 'react-router';
 import { schoolUtil } from '../utility/schoolUtil';
 import ProfileMenu from './ProfileMenu/ProfileMenu';
 import logger from '../utility/logger';
-
 // Define the Props for StarsCounter
 interface StarsCounterProps {
   starsCount: number;
 }
-
 // StarsCounter Component
 const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
   return (
@@ -39,33 +39,68 @@ const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
     </div>
   );
 };
-
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
   pendingAssignmentCount: number;
   pendingLiveQuizCount: number;
+  isReturnFromLidoOrSwitchProfile?: boolean;
+  isReturnFromSwitchProfileReturn?: boolean;
 }> = ({
   currentHeader,
   onHeaderIconClick,
   pendingAssignmentCount,
   pendingLiveQuizCount,
+  isReturnFromLidoOrSwitchProfile,
+  isReturnFromSwitchProfileReturn,
 }) => {
   const { t } = useTranslation();
-  const [currentHeaderIconList, setCurrentHeaderIconList] =
-    useState<HeaderIconConfig[]>();
+  const currentStudent = Util.getCurrentStudent();
+  const currentMode = localStorage.getItem(CURRENT_MODE);
+  const [currentHeaderIconList, setCurrentHeaderIconList] = useState<
+    HeaderIconConfig[] | undefined
+  >(() =>
+    Array.from(DEFAULT_HEADER_ICON_CONFIGS.values()).filter((element) => {
+      if (
+        currentMode === MODES.SCHOOL &&
+        element.headerList === HOMEHEADERLIST.ASSIGNMENT
+      ) {
+        return false;
+      }
+      return true;
+    }),
+  );
   var headerIconList: HeaderIconConfig[] = [];
-
   const history = useHistory();
-  const [student, setStudent] = useState<TableTypes<'user'>>();
-  const studentRef = useRef<TableTypes<'user'> | null>(null);
-
-  const [studentMode, setStudentMode] = useState<string | undefined>();
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+  const [student, setStudent] = useState<TableTypes<'user'> | undefined>(
+    currentStudent,
+  );
+  const studentRef = useRef<TableTypes<'user'> | null>(currentStudent ?? null);
+  const [studentMode, setStudentMode] = useState<string | undefined>(
+    localStorage.getItem(CURRENT_MODE) ?? undefined,
+  );
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [starsCount, setStarsCount] = useState<number>(0); // State for stars count
-
-  const [isLinked, setIsLinked] = useState(false);
+  const [starsCount, setStarsCount] = useState<number>(() =>
+    currentStudent?.id
+      ? Util.getLocalStarsForStudent(
+          currentStudent.id,
+          currentStudent.stars || 0,
+        )
+      : 0,
+  ); // State for stars count
+  const [isLinked, setIsLinked] = useState<boolean>(() => {
+    if (!currentStudent?.id) return false;
+    try {
+      const connectedData = localStorage.getItem(IS_CONECTED);
+      const parsedConnectedData = connectedData
+        ? JSON.parse(connectedData)
+        : {};
+      return Boolean(parsedConnectedData[currentStudent.id]);
+    } catch {
+      return false;
+    }
+  });
   const isHomeHeaderSpecialsEnabled = useFeatureIsOn(
     HOME_HEADER_SPECIALS_ENABLED,
   );
@@ -77,7 +112,6 @@ const HomeHeader: React.FC<{
       setStarsCount(0);
       return;
     }
-
     const dbStars = curr.stars || 0;
     const localStars = Util.getLocalStarsForStudent(curr.id, dbStars);
     setStarsCount(localStars);
@@ -96,18 +130,14 @@ const HomeHeader: React.FC<{
       const linked = await api.isStudentLinked(student.id, fromCache);
       setIsLinked(linked);
       setStudentMode(currMode);
-
       // Fetch stars count for the current student
       const currentStudent = Util.getCurrentStudent();
       setStarsCount(currentStudent?.stars || 0);
-
       // 🔹 store student in state + ref
       setStudent(student);
       studentRef.current = student;
-
       // 🔹 initial stars: LOCAL-FIRST
       refreshStarsFromLocal();
-
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
         if (
           !(
@@ -120,18 +150,17 @@ const HomeHeader: React.FC<{
           headerIconList.push(element);
         }
       });
-
       if (!headerIconList) return;
-
       setCurrentHeaderIconList(headerIconList);
       setStudent(student);
     } catch (error) {
       logger.error('Error in init:', error);
     }
   };
-
   useEffect(() => {
-    init();
+    if (!isReturnFromLidoOrSwitchProfile && !isReturnFromSwitchProfileReturn) {
+      init();
+    }
     window.addEventListener('JoinClassListner', handleJoinClassListner);
 
     const handleStudentChange = (e: Event) => {
@@ -150,7 +179,11 @@ const HomeHeader: React.FC<{
         handleStudentChange,
       );
     };
-  }, [isHomeHeaderSpecialsEnabled]);
+  }, [
+    isHomeHeaderSpecialsEnabled,
+    isReturnFromLidoOrSwitchProfile,
+    isReturnFromSwitchProfileReturn,
+  ]);
 
   const handleJoinClassListner = () => {
     setIsLinked(true);

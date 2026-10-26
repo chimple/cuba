@@ -1,6 +1,10 @@
 import { t } from 'i18next';
 import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
-import { CampaignAssignmentDraft } from './campaignAssignmentUtils';
+import {
+  buildFrequencyTimelineDates,
+  CampaignAssignmentDraft,
+  Frequency,
+} from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 
 export type CampaignCommunicationRowState = {
@@ -51,9 +55,14 @@ export const createEmptyCommunicationRow =
 export const buildCommunicationTimelineDates = (
   assignmentDrafts: CampaignAssignmentDraft[],
   form?: CampaignSetupFormState,
+  frequency?: Frequency,
 ): string[] => {
   if (form?.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     return buildCampaignDurationTimelineDates(form.startDate, form.endDate);
+  }
+
+  if (form && frequency) {
+    return buildFrequencyTimelineDates(form.startDate, form.endDate, frequency);
   }
 
   return Array.from(new Set(assignmentDrafts.map((draft) => draft.startsAt)))
@@ -138,16 +147,6 @@ export const formatTimelineDayLabel = (value: string, index: number) => {
 
 export const formatTimelineDateLabel = (value: string) =>
   formatDateValue(value);
-
-export const buildTimeOptions = (): string[] => {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour += 1) {
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    options.push(`${String(displayHour).padStart(2, '0')}:00 ${suffix}`);
-  }
-  return options;
-};
 
 const parseTimeOption = (
   value: string,

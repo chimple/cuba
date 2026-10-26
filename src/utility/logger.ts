@@ -1,5 +1,11 @@
 /* eslint-disable no-console */
 
+import {
+  NativeBridgePayload,
+  sanitizeNativeBridgePayload,
+} from './safeNativeBridgePayload';
+import { getAppPathname } from './routerLocation';
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
 type LogContext = Record<string, unknown>;
@@ -29,14 +35,24 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
   silent: 4,
 };
 
+type LoggerEnvironment = {
+  VITE_LOG_LEVEL?: string;
+  PROD?: boolean;
+};
+
 const getEnvLogLevel = (): LogLevel => {
-  const envLevel = process.env.REACT_APP_LOG_LEVEL as LogLevel;
+  try {
+    const env = (import.meta as ImportMeta & { env?: LoggerEnvironment }).env;
+    const envLevel = env?.VITE_LOG_LEVEL as LogLevel | undefined;
 
-  if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
-    return envLevel;
+    if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
+      return envLevel;
+    }
+
+    return env?.PROD ? 'warn' : 'debug';
+  } catch {
+    return 'debug';
   }
-
-  return process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();
@@ -49,14 +65,15 @@ const IS_NATIVE =
   !!(window as any).Capacitor &&
   (window as any).Capacitor.getPlatform() !== 'web';
 
-let cachedPage: string | undefined = HAS_WINDOW
-  ? window.location.pathname
-  : undefined;
+let cachedPage: string | undefined = HAS_WINDOW ? getAppPathname() : undefined;
 
 if (HAS_WINDOW) {
-  window.addEventListener('popstate', () => {
-    cachedPage = window.location.pathname;
-  });
+  const updateCachedPage = () => {
+    cachedPage = getAppPathname();
+  };
+
+  window.addEventListener('popstate', updateCachedPage);
+  window.addEventListener('hashchange', updateCachedPage);
 }
 
 /**
@@ -190,7 +207,8 @@ const buildPayload = (level: LogMethod, args: unknown[]): LogPayload => {
 
 const formatForNative = (obj: unknown): string => {
   try {
-    return JSON.stringify(obj, null, 2);
+    const safePayload = sanitizeNativeBridgePayload(obj as NativeBridgePayload);
+    return JSON.stringify(safePayload, null, 2);
   } catch {
     return '[Object]';
   }
@@ -233,7 +251,9 @@ const emit = (level: LogMethod, args: unknown[]) => {
 
     if (IS_NATIVE) {
       const serialized = cleanedArgs.map((a) =>
-        a && typeof a === 'object' ? formatForNative(a) : a,
+        a && typeof a === 'object'
+          ? formatForNative(a)
+          : sanitizeNativeBridgePayload(a as NativeBridgePayload),
       );
       return console.log(`[${level.toUpperCase()}] ${message}`, ...serialized);
     }

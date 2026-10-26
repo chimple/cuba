@@ -22,6 +22,8 @@ interface SchoolDetailsTabsComponentProps {
   refreshClasses?: () => void;
   goToClassesTab?: boolean;
   onTabChange?: (tab: SchoolTabs) => void;
+  onLoadTabData?: (tab: SchoolTabs) => void;
+  mobileActions?: React.ReactNode;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
@@ -31,6 +33,8 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   refreshClasses,
   goToClassesTab,
   onTabChange,
+  onLoadTabData,
+  mobileActions,
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
@@ -56,6 +60,10 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
     if (onTabChange) onTabChange(activeTab);
   }, [activeTab, onTabChange]);
 
+  useEffect(() => {
+    onLoadTabData?.(activeTab);
+  }, [activeTab, onLoadTabData]);
+
   return (
     <div className="school-detail-role-tabs-wrapper">
       {/* ===== FIXED TABS ===== */}
@@ -72,6 +80,8 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           </button>
         ))}
       </div>
+
+      {mobileActions}
 
       {/* ===== SCROLL AREA ===== */}
       <div className="school-detail-tab-content">

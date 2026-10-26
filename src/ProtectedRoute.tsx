@@ -4,8 +4,10 @@ import { Redirect, Route, RouteProps } from 'react-router-dom';
 import { PAGES } from './common/constants';
 import Loading from './components/Loading';
 import { ServiceConfig } from './services/ServiceConfig';
+import { wasRespectLessonLaunchReceived } from './services/respect/RespectLessonLaunchService';
 import { logAuthDebug } from './utility/authDebug';
 import { isRecoverableStorageError } from './utility/recoverableStorageError';
+import { getAppPathname } from './utility/routerLocation';
 
 type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
@@ -16,6 +18,8 @@ export default function ProtectedRoute({
   ...rest
 }: ProtectedRouteProps) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
+  const bypassesAuthForRespectLesson = (): boolean =>
+    rest.path === PAGES.LIDO_PLAYER && wasRespectLessonLaunchReceived();
 
   useEffect(() => {
     const lifecycle: { cancelled: boolean; timeoutId?: number } = {
@@ -35,12 +39,27 @@ export default function ProtectedRoute({
     attempt = 1,
   ) => {
     if (lifecycle.cancelled) return;
+    if (bypassesAuthForRespectLesson()) {
+      setIsAuth(true);
+      return;
+    }
+
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       if (lifecycle.cancelled) return;
+      if (bypassesAuthForRespectLesson()) {
+        setIsAuth(true);
+        return;
+      }
+
       const user = await authHandler?.getCurrentUser();
       if (lifecycle.cancelled) return;
+      if (bypassesAuthForRespectLesson()) {
+        setIsAuth(true);
+        return;
+      }
+
       setIsAuth(!!isUserLoggedIn && !!user);
       if (!isUserLoggedIn || !user) {
         logAuthDebug('ProtectedRoute redirecting to login.', {
@@ -48,7 +67,7 @@ export default function ProtectedRoute({
           reason: !isUserLoggedIn
             ? 'is_user_logged_in_false'
             : 'current_user_missing',
-          from_page: window.location.pathname,
+          from_page: getAppPathname(),
           to_page: PAGES.LOGIN,
         });
       }
@@ -66,7 +85,7 @@ export default function ProtectedRoute({
             source: 'ProtectedRoute.checkAuth',
             reason: 'recoverable_auth_dependency_error',
             attempt,
-            from_page: window.location.pathname,
+            from_page: getAppPathname(),
           },
         );
         lifecycle.timeoutId = window.setTimeout(() => {
@@ -77,13 +96,20 @@ export default function ProtectedRoute({
       logAuthDebug('ProtectedRoute redirecting to login after auth error.', {
         source: 'ProtectedRoute.checkAuth',
         reason: 'auth_check_exception',
-        from_page: window.location.pathname,
+        from_page: getAppPathname(),
         to_page: PAGES.LOGIN,
       });
       if (lifecycle.cancelled) return;
       setIsAuth(false);
     }
   };
+
+  // RESPECT launches create a transient learner in their own preparation path.
+  // The Lido route must not bounce through Cuba's normal login while that
+  // preparation owns navigation.
+  if (bypassesAuthForRespectLesson()) {
+    return <Route {...rest}>{children}</Route>;
+  }
 
   if (isAuth == null) return <Loading isLoading />;
 

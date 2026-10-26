@@ -54,10 +54,15 @@
 }
 
 .circular-icon .img {
+  max-width: 11.5vh;
+  height: 11.5vh;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .iconButton-profile-img {
   height: 11.5vh;
-  width: auto;
+  width: 11.5vh;
+  border-radius: 50%;
+  object-fit: cover;
 }

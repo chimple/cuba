@@ -7,6 +7,8 @@ import './ClassProfile.css';
 import { t } from 'i18next';
 import DeleteClassDialog from '../components/classComponents/DeleteClassDialog';
 import { schoolUtil } from '../../utility/schoolUtil';
+import { parsePath } from 'history';
+
 const ClassProfile: FC = () => {
   const history = useHistory();
   const location = useLocation();
@@ -26,9 +28,12 @@ const ClassProfile: FC = () => {
   };
 
   const handleEditClass = () => {
-    history.replace(PAGES.EDIT_CLASS, {
-      school: currentSchool,
-      classDoc: currentClass,
+    history.replace({
+      ...parsePath(PAGES.EDIT_CLASS),
+      state: {
+        school: currentSchool,
+        classDoc: currentClass,
+      },
     });
   };
 

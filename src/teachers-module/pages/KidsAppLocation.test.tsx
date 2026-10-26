@@ -110,7 +110,7 @@ describe('KidsAppLocation', () => {
   test('logs home selection before opening home kids app', async () => {
     render(React.createElement(KidsAppLocation));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Home' }));
+    fireEvent.click(screen.getByRole('button', { name: /home/i }));
 
     await waitFor(() =>
       expect(logEventMock).toHaveBeenCalledWith(
@@ -128,7 +128,7 @@ describe('KidsAppLocation', () => {
   test('logs school selection before opening school kids app', async () => {
     render(React.createElement(KidsAppLocation));
 
-    fireEvent.click(screen.getByRole('button', { name: 'School' }));
+    fireEvent.click(screen.getByRole('button', { name: /school/i }));
 
     await waitFor(() =>
       expect(logEventMock).toHaveBeenCalledWith(
@@ -140,7 +140,10 @@ describe('KidsAppLocation', () => {
       ),
     );
     expect(setCurrModeMock).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
-    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: PAGES.SELECT_MODE,
+      search: '?schoolKids=true',
+    });
   });
 
   test('does not show location options when access is blocked', () => {
@@ -152,10 +155,10 @@ describe('KidsAppLocation', () => {
     render(React.createElement(KidsAppLocation));
 
     expect(
-      screen.queryByRole('button', { name: 'Home' }),
+      screen.queryByRole('button', { name: /home/i }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'School' }),
+      screen.queryByRole('button', { name: /school/i }),
     ).not.toBeInTheDocument();
   });
 });

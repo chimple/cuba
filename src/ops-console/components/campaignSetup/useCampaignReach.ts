@@ -8,7 +8,10 @@ const emptyReach: CampaignReachSummary = {
   memberCount: 0,
 };
 
-export const useCampaignReach = (selectedSchoolIds: string[]) => {
+export const useCampaignReach = (
+  selectedSchoolIds: string[],
+  enabled = true,
+) => {
   const api = ServiceConfig.getI().apiHandler;
   const [campaignReach, setCampaignReach] =
     useState<CampaignReachSummary>(emptyReach);
@@ -19,49 +22,33 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
 
     const loadReach = async () => {
       if (
+        !enabled ||
         selectedSchoolIds.length === 0 ||
         !api.getParentWhatsappClassesBySchoolId ||
-        !api.getParentWhatsappParentPhonesByClassId
+        !api.getCampaignParentsInGroupBySchoolIds
       ) {
         setCampaignReach(emptyReach);
+        setLoadingReach(false);
         return;
       }
 
       setLoadingReach(true);
       try {
-        const schoolClasses = await Promise.all(
-          selectedSchoolIds.map((schoolId) =>
-            api.getParentWhatsappClassesBySchoolId!(schoolId),
-          ),
+        const schoolClasses =
+          await api.getParentWhatsappClassesBySchoolId(selectedSchoolIds);
+
+        const groupedClasses = schoolClasses.filter(
+          (classRow) =>
+            classRow.group_id && String(classRow.group_id).trim() !== '',
         );
 
-        const groupedClasses = schoolClasses
-          .flat()
-          .filter(
-            (classRow) =>
-              classRow.group_id && String(classRow.group_id).trim() !== '',
-          );
-
-        const memberLists = await Promise.all(
-          groupedClasses.map(async (classRow) => {
-            try {
-              const phones = await api.getParentWhatsappParentPhonesByClassId!(
-                classRow.id,
-              );
-              return Array.from(new Set(phones));
-            } catch {
-              return [];
-            }
-          }),
-        );
+        const memberCount =
+          await api.getCampaignParentsInGroupBySchoolIds(selectedSchoolIds);
 
         if (!mounted) return;
         setCampaignReach({
           groupCount: groupedClasses.length,
-          memberCount: memberLists.reduce(
-            (total, members) => total + members.length,
-            0,
-          ),
+          memberCount,
         });
       } catch (error) {
         logger.error('Failed to load campaign reach:', error);
@@ -74,7 +61,7 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
     return () => {
       mounted = false;
     };
-  }, [api, selectedSchoolIds]);
+  }, [api, enabled, selectedSchoolIds]);
 
   return {
     campaignReach,

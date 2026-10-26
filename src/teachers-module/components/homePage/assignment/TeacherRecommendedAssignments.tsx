@@ -16,6 +16,7 @@ import {
 } from './AssignmentUtil';
 import Loading from '../../../../components/Loading';
 import logger from '../../../../utility/logger';
+import { parsePath } from 'history';
 
 export enum TeacherRecommendedAssignmentsType {
   RECOMMENDED = 'recommended',
@@ -110,7 +111,7 @@ const TeacherRecommendedAssignments: FC = () => {
   };
 
   const handleRecommendedBack = () => {
-    history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 2 } });
   };
   return (
     <div
@@ -162,13 +163,16 @@ const TeacherRecommendedAssignments: FC = () => {
                   buildRecommendedPayload(recommendedAssignments);
 
                 if (Object.keys(selectedAssignments).length > 0) {
-                  history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                    fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
-                    selectedAssignments: {
-                      recommended: formattedRecommended,
+                  history.replace({
+                    ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
+                    state: {
+                      fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
+                      selectedAssignments: {
+                        recommended: formattedRecommended,
+                      },
+                      manualAssignments: {},
+                      recommendedAssignments,
                     },
-                    manualAssignments: {},
-                    recommendedAssignments,
                   });
                 }
               }}

@@ -8,6 +8,8 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { replaceLocation } from './navigation';
+
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
@@ -149,6 +151,8 @@ class PopupManager {
       target: config.action?.target,
     });
 
+    this.isPopupActive = false;
+
     if (config.action?.type === 'DEEP_LINK') {
       const rawTarget = config.action.target; // e.g. "SUBJECTS", "LEADERBOARD"
       const normalizedTarget = rawTarget.toLowerCase();
@@ -160,12 +164,12 @@ class PopupManager {
           normalizedTarget === 'rewards' || normalizedTarget === 'leaderboard'
             ? '/leaderboard'
             : '/home';
-        window.location.replace(`${baseRoute}?tab=${rawTarget}`);
+        replaceLocation(`${baseRoute}?tab=${rawTarget}`);
         return;
       }
 
       if (rawTarget.startsWith('/')) {
-        window.location.replace(rawTarget);
+        replaceLocation(rawTarget);
         return;
       }
 
@@ -176,8 +180,6 @@ class PopupManager {
         window.open(rawTarget, '_blank', 'noopener,noreferrer');
       }
     }
-
-    this.isPopupActive = false;
   }
 }
 

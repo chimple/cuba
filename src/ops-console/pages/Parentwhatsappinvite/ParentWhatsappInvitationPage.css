@@ -523,6 +523,10 @@
   margin-top: 4px;
 }
 
+.parent-whatsapp-page-invite-language {
+  max-width: 320px;
+}
+
 .parent-whatsapp-page-analysis-output .parent-whatsapp-page-dataframe {
   margin-top: 0;
 }

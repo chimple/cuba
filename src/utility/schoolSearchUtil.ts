@@ -1,12 +1,39 @@
+const normalizeSchoolSearchText = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+const compactSchoolSearchText = (value: string) =>
+  normalizeSchoolSearchText(value).replace(/\s+/g, '');
+
+type NormalizedSearchKey = {
+  normalized: string;
+  compact: string;
+};
+
+export const buildSchoolSearchKey = (value: string): NormalizedSearchKey => ({
+  normalized: normalizeSchoolSearchText(value),
+  compact: compactSchoolSearchText(value),
+});
+
 export const getSchoolSearchScore = (
-  name: string,
-  normalizedQuery: string,
+  nameKey: NormalizedSearchKey,
+  queryKey: NormalizedSearchKey,
 ): number => {
-  if (!normalizedQuery) return 0;
-  if (name === normalizedQuery) return 0;
-  if (name.startsWith(normalizedQuery)) return 1;
-  if (name.includes(normalizedQuery)) return 2;
-  return 3;
+  if (!queryKey.compact) return Number.MAX_SAFE_INTEGER;
+  if (nameKey.compact === queryKey.compact) return 0;
+  if (nameKey.compact.startsWith(queryKey.compact)) return 1;
+  if (
+    nameKey.normalized
+      .split(' ')
+      .some((token) => token.startsWith(queryKey.normalized))
+  ) {
+    return 2;
+  }
+  if (nameKey.compact.includes(queryKey.compact)) return 3;
+  return 4;
 };
 
 export const sortBySchoolSearchRelevance = <T>(
@@ -14,17 +41,25 @@ export const sortBySchoolSearchRelevance = <T>(
   query: string,
   getName: (item: T) => string,
 ): T[] => {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return items;
+  const queryKey = buildSchoolSearchKey(query);
+  if (!queryKey.normalized) return items;
 
-  return [...items].sort((a, b) => {
-    const nameA = (getName(a) || '').toLowerCase();
-    const nameB = (getName(b) || '').toLowerCase();
+  const prepared = items.map((item) => {
+    const name = getName(item) || '';
+    return {
+      item,
+      name,
+      key: buildSchoolSearchKey(name),
+    };
+  });
 
-    const scoreA = getSchoolSearchScore(nameA, normalizedQuery);
-    const scoreB = getSchoolSearchScore(nameB, normalizedQuery);
+  prepared.sort((a, b) => {
+    const scoreA = getSchoolSearchScore(a.key, queryKey);
+    const scoreB = getSchoolSearchScore(b.key, queryKey);
 
     if (scoreA !== scoreB) return scoreA - scoreB;
-    return nameA.localeCompare(nameB);
+    return a.key.normalized.localeCompare(b.key.normalized);
   });
+
+  return prepared.map((entry) => entry.item);
 };

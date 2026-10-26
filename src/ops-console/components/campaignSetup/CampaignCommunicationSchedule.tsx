@@ -6,7 +6,7 @@ import { CompactTimePickerField } from './CompactTimePickerField';
 type CampaignCommunicationScheduleProps = {
   messageTime: string;
   pollTime: string;
-  timeOptions: string[];
+  timeOptions?: string[];
   messageTimeError?: string;
   pollTimeError?: string;
   onMessageTimeChange: (value: string) => void;

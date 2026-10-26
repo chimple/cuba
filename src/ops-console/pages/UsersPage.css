@@ -113,3 +113,30 @@
 .user-search-desktop {
   min-width: 250px;
 }
+
+.users-page-role-filter-button {
+  flex: 0 0 auto;
+  min-width: 0 !important;
+  padding: 2px !important;
+  color: #6b7280 !important;
+}
+
+.users-page-role-filter-button-active {
+  color: #1a71f6 !important;
+}
+
+.users-page-role-filter-menu {
+  min-width: 190px;
+}
+
+.users-page-role-header {
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.user-page-header .selected-filters-container-SelectedFilters {
+  margin: 0;
+}

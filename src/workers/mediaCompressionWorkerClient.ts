@@ -19,11 +19,14 @@ type PendingMediaTask = {
   onProgress?: (progress: number) => void;
   signal?: AbortSignal;
   abortListener?: () => void;
+  timeoutId?: ReturnType<typeof setTimeout>;
 };
 
+const MEDIA_COMPRESSION_TIMEOUT_MS = 30_000;
 let workerInstance: Worker | null = null;
 const pendingTasks = new Map<string, PendingMediaTask>();
 let nextId = 0;
+let compressionQueue: Promise<void> = Promise.resolve();
 
 const createRequestId = () => {
   nextId += 1;
@@ -49,6 +52,9 @@ const getWorker = (): Worker => {
       return;
     }
     pendingTasks.delete(response.id);
+    if (pending.timeoutId) {
+      clearTimeout(pending.timeoutId);
+    }
     if (pending.signal && pending.abortListener) {
       pending.signal.removeEventListener('abort', pending.abortListener);
     }
@@ -67,7 +73,12 @@ const getWorker = (): Worker => {
   };
   workerInstance.onerror = (event: ErrorEvent) => {
     const error = new Error(event.message || 'Media compression worker error');
+    workerInstance?.terminate();
+    workerInstance = null;
     for (const [, pending] of pendingTasks) {
+      if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId);
+      }
       if (pending.signal && pending.abortListener) {
         pending.signal.removeEventListener('abort', pending.abortListener);
       }
@@ -85,6 +96,21 @@ export const runMediaCompressionTask = async (
   type: CompressWorkerRequest['type'],
   file: File,
   options: CompressOptions = {},
+): Promise<File> => {
+  const taskPromise = compressionQueue.then(() =>
+    executeMediaCompressionTask(type, file, options),
+  );
+  compressionQueue = taskPromise.then(
+    () => undefined,
+    () => undefined,
+  );
+  return taskPromise;
+};
+
+const executeMediaCompressionTask = async (
+  type: CompressWorkerRequest['type'],
+  file: File,
+  options: CompressOptions,
 ): Promise<File> => {
   if (options.signal?.aborted) {
     throw new DOMException('Aborted', 'AbortError');
@@ -132,12 +158,27 @@ export const runMediaCompressionTask = async (
     };
     const abortListener = () => {
       pendingTasks.delete(id);
+      if (task.timeoutId) {
+        clearTimeout(task.timeoutId);
+      }
       reject(new DOMException('Aborted', 'AbortError'));
     };
     if (options.signal) {
       task.abortListener = abortListener;
       options.signal.addEventListener('abort', abortListener, { once: true });
     }
+    task.timeoutId = setTimeout(() => {
+      if (!pendingTasks.has(id)) {
+        return;
+      }
+      pendingTasks.delete(id);
+      workerInstance?.terminate();
+      workerInstance = null;
+      if (task.signal && task.abortListener) {
+        task.signal.removeEventListener('abort', task.abortListener);
+      }
+      reject(new Error('Media compression timed out'));
+    }, MEDIA_COMPRESSION_TIMEOUT_MS);
     pendingTasks.set(id, task);
     worker.postMessage(request, [request.payload.buffer]);
   });
@@ -150,6 +191,9 @@ export const terminateMediaCompressionWorker = () => {
   workerInstance.terminate();
   workerInstance = null;
   for (const [, pending] of pendingTasks) {
+    if (pending.timeoutId) {
+      clearTimeout(pending.timeoutId);
+    }
     if (pending.signal && pending.abortListener) {
       pending.signal.removeEventListener('abort', pending.abortListener);
     }

@@ -70,12 +70,20 @@ jest.mock('./assets/leftArrowIcon.svg', () => ({
 }));
 
 const mockHistoryReplace = jest.fn();
+let mockLocationState:
+  | {
+      fromSwitchProfileReturn?: boolean;
+    }
+  | undefined;
 jest.mock('react-router', () => {
   const actual = jest.requireActual('react-router');
   return {
     ...actual,
     useHistory: () => ({
       replace: mockHistoryReplace,
+    }),
+    useLocation: () => ({
+      state: mockLocationState,
     }),
   };
 });
@@ -314,6 +322,8 @@ describe('SelectMode page', () => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+    window.history.replaceState({}, '', 'http://localhost/');
+    mockLocationState = undefined;
 
     // Mock Redux hooks
     useAppDispatch.mockReturnValue(jest.fn());
@@ -552,9 +562,6 @@ describe('SelectMode page', () => {
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
     ]);
-    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
-      { id: 'school-1' },
-    ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
 
     render(<SelectMode />);
@@ -669,8 +676,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -697,15 +704,15 @@ describe('SelectMode page', () => {
     );
   });
 
-  it('renders Teacher mode and handles Teacher flow end-to-end', async () => {
-    const user = userEvent.setup();
-
+  it('redirects teacher users with exactly one teacher school to HOME_PAGE after login', async () => {
     mockGetCurrMode.mockResolvedValue(undefined);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
     ]);
 
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
@@ -722,48 +729,41 @@ describe('SelectMode page', () => {
       { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
     ]);
 
-    mockEnsureLidoCommonAudioForStudent.mockResolvedValue(undefined);
+    render(<SelectMode />);
+
+    await waitFor(() =>
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE),
+    );
+    expect(mockApiHandler.getClassesForSchool).not.toHaveBeenCalled();
+    expect(mockApiHandler.getStudentsForClass).not.toHaveBeenCalled();
+    expect(screen.queryByText('Class 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Student 1')).not.toBeInTheDocument();
+  });
+
+  it('redirects teacher users without a name to ADD_TEACHER_NAME after login', async () => {
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+    });
+
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+    ]);
+
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+      { id: 'school-2' },
+    ]);
 
     render(<SelectMode />);
 
-    // wait school dropdown
-    const dropdown = await screen.findByLabelText('school-dropdown');
-    await user.selectOptions(dropdown, 'school-1');
-
-    // click okay
-    const okayBtn = await screen.findByRole('button', { name: /okay/i });
-    await user.click(okayBtn);
-
-    // ✅ ensure classes api called
     await waitFor(() =>
-      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
-        'school-1',
-        'user-1',
-      ),
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.ADD_TEACHER_NAME),
     );
-
-    // wait classes render
-    const classNodes = await screen.findAllByText(/Class 1/i);
-    expect(classNodes.length).toBeGreaterThan(0);
-    await user.click(classNodes[0]);
-
-    // wait students api
-    await waitFor(() =>
-      expect(mockApiHandler.getStudentsForClass).toHaveBeenCalledWith(
-        'class-1',
-      ),
-    );
-
-    // click Play button
-    const playButton = await screen.findByRole('button', { name: 'Play' });
-    await user.click(playButton);
-
-    // assert navigation chain
-    await waitFor(() => {
-      expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled();
-      expect(mockSetCurrentStudent).toHaveBeenCalled();
-      expect(mockHistoryReplace).toHaveBeenCalledWith('/home');
-    });
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    expect(screen.queryByText('Class 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Student 1')).not.toBeInTheDocument();
   });
 
   it('routes to teacher dashboard with TEACHER_SCHOOL mode after biometric authentication from class mode', async () => {
@@ -822,15 +822,16 @@ describe('SelectMode page', () => {
   });
 
   it('routes selected teacher-role school back to full teacher mode from school mode', async () => {
-    const user = userEvent.setup();
     const teacherSchool = { id: 'school-1', name: 'Teacher School' };
     const autoUserSchool = { id: 'school-2', name: 'Auto User School' };
 
-    mockRequireTeacherModeAuth.mockResolvedValue('success');
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
     mockSchoolUtilGetCurrentSchool.mockReturnValue(teacherSchool);
     mockGetCurrentSchool.mockReturnValue(teacherSchool);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: teacherSchool, role: 'TEACHER' },
       { school: autoUserSchool, role: 'AUTOUSER' },
@@ -847,71 +848,114 @@ describe('SelectMode page', () => {
 
     render(<SelectMode />);
 
-    const teacherButton = await screen.findByRole('button', {
-      name: /teacher/i,
-    });
-    await user.click(teacherButton);
-
     await waitFor(() => {
-      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
-      expect(mockUtilSetCurrentSchool).toHaveBeenCalledWith(
-        teacherSchool,
-        'TEACHER',
-      );
-      expect(mockSetCurrentSchool).toHaveBeenCalledWith(teacherSchool);
-      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER);
-      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
     });
-    expect(mockLogEvent).not.toHaveBeenCalledWith(
-      EVENTS.TEACHER_APP_ENTRY_CLICKED,
-      {
-        user_role: 'auto_user',
-        auth_method_attempted: 'biometric',
-      },
-    );
+    expect(mockApiHandler.getClassesForSchool).not.toHaveBeenCalled();
+    expect(mockApiHandler.getStudentsForClass).not.toHaveBeenCalled();
   });
 
   it('keeps teacher app access when stored principal school was removed but teacher role remains', async () => {
-    const user = userEvent.setup();
     const removedPrincipalSchool = {
       id: 'school-removed',
       name: 'Removed Principal School',
     };
     const teacherSchool = { id: 'school-1', name: 'Teacher School' };
 
-    mockRequireTeacherModeAuth.mockResolvedValue('success');
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
     mockSchoolUtilGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
     mockGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: teacherSchool, role: 'teacher' },
+      { school: teacherSchool, role: 'TEACHER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
 
     render(<SelectMode />);
 
-    const teacherButton = await screen.findByRole('button', {
-      name: /teacher/i,
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
     });
-    await user.click(teacherButton);
+    expect(mockApiHandler.getClassesForSchool).not.toHaveBeenCalled();
+    expect(screen.queryByText('Teacher School')).not.toBeInTheDocument();
+  });
+
+  it('keeps explicit kids school entry in school flow for teacher-role users', async () => {
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const classDoc = {
+      id: 'class-1',
+      name: 'Class 1',
+      school_id: teacherSchool.id,
+    };
+    window.history.replaceState(
+      {},
+      '',
+      'http://localhost/#/select-mode?schoolKids=true',
+    );
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classDoc]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
 
     await waitFor(() => {
-      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
-      expect(mockUtilSetCurrentSchool).toHaveBeenCalledWith(
-        teacherSchool,
-        'teacher',
-      );
-      expect(mockSetCurrentSchool).toHaveBeenCalledWith(teacherSchool);
-      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER);
-      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
-      expect(mockHistoryReplace).not.toHaveBeenCalledWith(
-        PAGES.DISPLAY_SCHOOLS,
+      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
+        teacherSchool.id,
+        'user-1',
       );
     });
+    expect(mockSetCurrMode).not.toHaveBeenCalledWith(MODES.TEACHER);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+  });
+
+  it('keeps school-mode switch profile in school flow for teacher-role users', async () => {
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const classDoc = {
+      id: 'class-1',
+      name: 'Class 1',
+      school_id: teacherSchool.id,
+    };
+    mockLocationState = { fromSwitchProfileReturn: true };
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classDoc]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
+        teacherSchool.id,
+        'user-1',
+      );
+    });
+    expect(mockSetCurrMode).not.toHaveBeenCalledWith(MODES.TEACHER);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
   });
 
   it('uses the school picker when multiple teacher schools remain after stored school is removed', async () => {
@@ -923,10 +967,19 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
     mockSchoolUtilGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
     mockGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'Teacher School 1' }, role: 'teacher' },
-      { school: { id: 'school-2', name: 'Teacher School 2' }, role: 'teacher' },
+      {
+        school: { id: 'school-1', name: 'Teacher School 1' },
+        role: 'TEACHER',
+      },
+      {
+        school: { id: 'school-2', name: 'Teacher School 2' },
+        role: 'TEACHER',
+      },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
@@ -936,10 +989,8 @@ describe('SelectMode page', () => {
     await waitFor(() => {
       expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
-      expect(mockSetCurrentSchool).not.toHaveBeenCalledWith({
-        id: 'school-1',
-        name: 'Teacher School 1',
-      });
+      expect(mockApiHandler.getClassesForSchool).not.toHaveBeenCalled();
+      expect(screen.queryByText('Teacher School 1')).not.toBeInTheDocument();
     });
   });
 
@@ -1068,7 +1119,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1102,8 +1153,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1123,7 +1174,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1153,7 +1204,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1209,7 +1260,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1232,7 +1283,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1261,7 +1312,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1308,7 +1359,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1340,7 +1391,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1372,7 +1423,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school, role: 'TEACHER' },
+      { school, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1387,6 +1438,47 @@ describe('SelectMode page', () => {
     expect(screen.getByText('Student 1')).toBeInTheDocument();
   });
 
+  it('preserves school-mode switch profile flag when selecting a student', async () => {
+    const school = { id: 'school-1', name: 'School 1' };
+    const classData = { id: 'class-1', name: 'Class 1', school_id: school.id };
+    mockLocationState = { fromSwitchProfileReturn: true };
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify(school.name));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classData));
+    localStorage.setItem(USER_SELECTION_STAGE, 'true');
+    localStorage.setItem(
+      SELECTED_STUDENTS,
+      JSON.stringify([
+        { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
+      ]),
+    );
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school, role: 'PARENT' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classData]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() =>
+      expect(document.querySelector('.class-container')).not.toBeNull(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+
+    await waitFor(() =>
+      expect(mockHistoryReplace).toHaveBeenCalledWith({
+        pathname: PAGES.HOME,
+        state: { fromSwitchProfileReturn: true },
+      }),
+    );
+  });
+
   it('handles MODES.SCHOOL with schoolName and className, no selectedUser -> STAGES.CLASS', async () => {
     const school = { id: 'school-1', name: 'School 1' };
     const classData = { id: 'class-1', name: 'Class 1' };
@@ -1396,7 +1488,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school, role: 'TEACHER' },
+      { school, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1415,8 +1507,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1484,8 +1576,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1505,7 +1597,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1524,8 +1616,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1562,7 +1654,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1583,8 +1675,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1630,7 +1722,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1667,7 +1759,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1694,7 +1786,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1721,8 +1813,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PARENT' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PARENT' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },

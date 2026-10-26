@@ -33,13 +33,14 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
 
         /*Fetch school → courses */
         const schoolCourses = (await api.getCoursesBySchoolId(schoolId)) ?? [];
-        const courseArrays = await Promise.all(
-          schoolCourses.map((ln) => api.getCourse(ln.course_id)),
+        const courseIds = Array.from(
+          new Set(
+            schoolCourses
+              .map((ln) => ln.course_id)
+              .filter((courseId): courseId is string => Boolean(courseId)),
+          ),
         );
-
-        const courses = courseArrays
-          .flatMap((c: any) => (Array.isArray(c) ? c : [c]))
-          .filter(Boolean);
+        const courses = courseIds.length ? await api.getCourses(courseIds) : [];
 
         /* Collect curriculumIds & gradeIds */
         const curriculumIds = new Set<string>();

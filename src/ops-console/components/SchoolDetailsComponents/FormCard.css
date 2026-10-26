@@ -163,7 +163,7 @@
   right: 10px;
   top: 55%;
   width: 12px;
-  height: 20px;
+  height: 12px;
   transform: translateY(-50%);
   pointer-events: none;
   transform-style: preserve-3d;
@@ -177,17 +177,31 @@
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 19px;
-  color: #5f6368;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
+.formcard-arrow-down::before,
+.formcard-arrow-up::before {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #5f6368;
+  border-bottom: 1.5px solid #5f6368;
+  margin: 1px auto 0;
+}
+
+.formcard-arrow-down::before {
+  transform: rotate(45deg);
+}
+
 .formcard-arrow-up {
   transform: rotateX(180deg);
+}
+
+.formcard-arrow-up::before {
+  transform: rotate(45deg);
 }
 
 .formcard-select-wrapper.formcard-select-open .formcard-select-arrow-flipper {
@@ -456,6 +470,33 @@
 .formcard-multiselect-option.selected {
   background-color: #e8f0fe;
   color: #1967d2;
+}
+
+.formcard-short-select-option:hover,
+.formcard-short-select-option.selected {
+  background-color: #1a73e8;
+  color: #ffffff;
+}
+
+.formcard-short-select {
+  max-height: none;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  border-color: #767676;
+  box-shadow: none;
+}
+
+.formcard-short-select-option {
+  min-height: 38px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.formcard-short-select:has(.formcard-short-select-option:hover)
+  .formcard-short-select-option.selected:not(:hover) {
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .formcard-multiselect-checkbox {

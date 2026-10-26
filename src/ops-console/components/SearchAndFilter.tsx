@@ -6,7 +6,6 @@ import {
   Button,
   IconButton,
   useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -24,9 +23,12 @@ interface SearchAndFilterProps {
   forceOpenSearch?: boolean;
   variantType?: 'outlined' | 'standard';
   filterIconSrc?: string;
+  searchPlaceholder?: string;
+  debounceMs?: number;
+  beforeFilter?: React.ReactNode;
 }
 
-const DEBOUNCE_MS = 400;
+const DEBOUNCE_MS = 800;
 
 const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   searchTerm,
@@ -38,19 +40,17 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   forceOpenSearch = false,
   variantType,
   filterIconSrc,
+  searchPlaceholder,
+  debounceMs = DEBOUNCE_MS,
+  beforeFilter,
 }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const isMobile = useMediaQuery('(max-width: 900px)');
-  const showfilter = isFilter ?? true;
+  const showFilter = isFilter ?? true;
   const isPortraitMobile = useMediaQuery(
     '(max-width: 600px) and (orientation: portrait)',
   );
-  if (filters) {
-    const hasFilters = Object.values(filters).some(
-      (values) => values.length > 0,
-    );
-  }
+  const placeholder = searchPlaceholder || t('Search') || 'Search';
 
   const [inputValue, setInputValue] = useState(searchTerm);
 
@@ -59,15 +59,24 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   }, [searchTerm]);
 
   useEffect(() => {
+    if (debounceMs <= 0) {
+      if (inputValue !== searchTerm) {
+        onSearchChange({
+          target: { value: inputValue },
+        } as React.ChangeEvent<HTMLInputElement>);
+      }
+      return;
+    }
+
     const handler = setTimeout(() => {
       if (inputValue !== searchTerm) {
         onSearchChange({
           target: { value: inputValue },
         } as React.ChangeEvent<HTMLInputElement>);
       }
-    }, DEBOUNCE_MS);
+    }, debounceMs);
     return () => clearTimeout(handler);
-  }, [inputValue]);
+  }, [debounceMs, inputValue, onSearchChange, searchTerm]);
 
   const [showMobileSearch, setShowMobileSearch] = useState(forceOpenSearch);
 
@@ -87,7 +96,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       {isPortraitMobile ? (
         <TextField
           variant={variantType}
-          placeholder={t('Search') || 'Search'}
+          placeholder={placeholder}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
@@ -105,7 +114,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         showMobileSearch ? (
           <TextField
             variant={variantType}
-            placeholder={t('Search') || 'Search'}
+            placeholder={placeholder}
             onChange={(e) => setInputValue(e.target.value)}
             value={inputValue}
             className="search-input-SearchAndFilter"
@@ -139,7 +148,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       ) : (
         <TextField
           variant={variantType}
-          placeholder={t('Search') || 'Search'}
+          placeholder={placeholder}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
@@ -153,7 +162,9 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         />
       )}
 
-      {showfilter &&
+      {beforeFilter}
+
+      {showFilter &&
         (isMobile ? (
           <IconButton
             aria-label="Open Filters"

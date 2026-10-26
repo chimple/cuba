@@ -1,5 +1,7 @@
 import { t } from 'i18next';
+import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { useIonToast } from '@ionic/react';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { ApiHandler } from '../../../services/api/ApiHandler';
 import {
@@ -9,7 +11,6 @@ import {
 import {
   fetchParentWhatsappMsg91Report,
   ParentWhatsappAnalysisResult,
-  ParentWhatsappApiError,
   ParentWhatsappSendFailure,
   ParentWhatsappSmsSendResult,
   processParentWhatsappUdiseCodes,
@@ -17,150 +18,42 @@ import {
   sendParentWhatsappTemplateMessage,
   uploadParentWhatsappMedia,
 } from './ParentWhatsappInvitationPageService';
-
-// Standard alert payload used across this page.
-export type Feedback = {
-  severity: 'success' | 'error' | 'info' | 'warning';
-  text: string;
-};
-
-// Parsed manual phone input split into valid, duplicate, and invalid buckets.
-export type ManualPhoneValidation = {
-  normalizedPhones: string[];
-  duplicates: string[];
-  invalid: string[];
-};
-
-// Final WhatsApp send run summary shown in UI.
-export type ManualSendSummary = {
-  attempted: number;
-  successCount: number;
-  failed: ParentWhatsappSendFailure[];
-};
-
+import {
+  Feedback,
+  getTodayDateValue,
+  getWhatsappMediaType,
+  ManualPhoneValidation,
+  ManualSendSummary,
+  toApiError,
+} from './ParentWhatsappInvitationPageHelpers';
+import {
+  showOpsFailureToast,
+  showOpsSuccessToast,
+  showOpsWarningToast,
+} from '../../OpsUtility/OpsToastUtil';
 const MIN_WHATSAPP_PHONE_LIMIT = 1;
 const DEFAULT_WHATSAPP_PHONE_LIMIT = 1000;
-
+const INVITE_LANGUAGE_CODES = new Set(['hi', 'kn']);
 const normalizeWhatsappPhoneLimit = (rawLimit: number): number => {
   if (!Number.isFinite(rawLimit)) {
     return DEFAULT_WHATSAPP_PHONE_LIMIT;
   }
-
   return Math.max(MIN_WHATSAPP_PHONE_LIMIT, Math.floor(rawLimit));
 };
-
-// Returns today's date in YYYY-MM-DD for HTML date inputs.
-export const getTodayDateValue = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = `${today.getMonth() + 1}`.padStart(2, '0');
-  const day = `${today.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Normalizes unknown thrown values into the common API error shape.
-export const toApiError = (
-  error: unknown,
-  fallbackMessage: string,
-): ParentWhatsappApiError => {
-  if (error && typeof error === 'object') {
-    const candidate = error as ParentWhatsappApiError & Error;
-    return {
-      message: candidate.message || fallbackMessage,
-      statusCode: candidate.statusCode,
-      responseText: candidate.responseText,
-      exceptionMessage: candidate.exceptionMessage || candidate.message,
-    };
-  }
-
-  return {
-    message: fallbackMessage,
-    exceptionMessage: String(error ?? ''),
-  };
-};
-
-// Validates uploaded media and maps it to WhatsApp header media type.
-export const getWhatsappMediaType = (
-  file: File | null,
-): { mediaType: 'image' | 'video' | null; error?: string } => {
-  if (!file) {
-    return { mediaType: null };
-  }
-
-  const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
-
-  if (
-    ['png', 'jpeg', 'jpg'].includes(extension) &&
-    file.size <= 5 * 1024 * 1024
-  ) {
-    return { mediaType: 'image' };
-  }
-
-  if (['mp4', '3gp'].includes(extension) && file.size <= 16 * 1024 * 1024) {
-    return { mediaType: 'video' };
-  }
-
-  return {
-    mediaType: null,
-    error: String(
-      t(
-        'Only PNG/JPEG up to 5 MB or MP4/3GP up to 16 MB are allowed for WhatsApp media.',
-      ),
-    ),
-  };
-};
-
-// Formats mixed table values into display-safe strings.
-export const formatCellValue = (value: unknown): string => {
-  if (value == null || value === '') return t('-');
-  if (Array.isArray(value))
-    return value.map((item) => formatCellValue(item)).join(', ');
-  if (typeof value === 'boolean') return value ? t('Yes') : t('No');
-  if (typeof value === 'object') return JSON.stringify(value);
-  return String(value);
-};
-
-// Converts raw field keys to readable title-cased table headers.
-export const formatHeaderLabel = (label: string): string => {
-  const withSpaces = label
-    .replace(/[_-]+/g, ' ')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  if (!withSpaces) {
-    return label;
-  }
-
-  return withSpaces
-    .toLowerCase()
-    .replace(/\b\w/g, (character) => character.toUpperCase());
-};
-
-// Converts byte size into B/KB/MB text for file display.
-export const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
-
-// Renders processed UDISE list as fixed-width rows (5 per line).
-export const formatProcessedUdiseRows = (udiseCodes: string[]): string => {
-  if (!udiseCodes.length) {
-    return t('-');
-  }
-
-  const rowSize = 5;
-  const rows: string[] = [];
-
-  for (let index = 0; index < udiseCodes.length; index += rowSize) {
-    rows.push(udiseCodes.slice(index, index + rowSize).join('   '));
-  }
-
-  return rows.join('\n');
-};
-
-// Contract of all state values and handlers consumed by the page component.
+export type {
+  Feedback,
+  ManualPhoneValidation,
+  ManualSendSummary,
+} from './ParentWhatsappInvitationPageHelpers';
+export {
+  formatCellValue,
+  formatFileSize,
+  formatHeaderLabel,
+  formatProcessedUdiseRows,
+  getTodayDateValue,
+  getWhatsappMediaType,
+  toApiError,
+} from './ParentWhatsappInvitationPageHelpers';
 export type ParentWhatsappInvitationPageLogic = {
   uploadInputRef: React.MutableRefObject<HTMLInputElement | null>;
   isWhatsappMode: boolean;
@@ -179,6 +72,9 @@ export type ParentWhatsappInvitationPageLogic = {
   isSendingSms: boolean;
   smsFeedback: Feedback | null;
   smsResult: ParentWhatsappSmsSendResult | null;
+  inviteLanguages: { code: string; name: string }[];
+  selectedInviteLanguageCode: string;
+  setSelectedInviteLanguageCode: React.Dispatch<React.SetStateAction<string>>;
   startDate: string;
   setStartDate: React.Dispatch<React.SetStateAction<string>>;
   endDate: string;
@@ -212,17 +108,15 @@ export type ParentWhatsappInvitationPageLogic = {
   handleFileSelect: (fileList: FileList | null) => void;
   handleSendWhatsapp: () => Promise<void>;
 };
-
 // Main page hook that drives analysis, report, invite send, and WhatsApp flows.
 export const useParentWhatsappInvitationPageLogic =
   (): ParentWhatsappInvitationPageLogic => {
     const api: ApiHandler | null = ServiceConfig.getI()?.apiHandler ?? null;
+    const [presentToast] = useIonToast();
     const uploadInputRef = useRef<HTMLInputElement | null>(null);
-
     const [isWhatsappMode, setIsWhatsappMode] = useState(false);
     const [showMsg91Report, setShowMsg91Report] = useState(false);
     const [isDraggingFile, setIsDraggingFile] = useState(false);
-
     const [udiseInput, setUdiseInput] = useState('');
     const [limit, setLimit] = useState(300);
     const [analysisResult, setAnalysisResult] =
@@ -231,18 +125,20 @@ export const useParentWhatsappInvitationPageLogic =
       null,
     );
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-
     const [isSendingSms, setIsSendingSms] = useState(false);
     const [smsFeedback, setSmsFeedback] = useState<Feedback | null>(null);
     const [smsResult, setSmsResult] =
       useState<ParentWhatsappSmsSendResult | null>(null);
-
+    const [inviteLanguages, setInviteLanguages] = useState<
+      { code: string; name: string }[]
+    >([]);
+    const [selectedInviteLanguageCode, setSelectedInviteLanguageCode] =
+      useState('');
     const [startDate, setStartDate] = useState(getTodayDateValue());
     const [endDate, setEndDate] = useState(getTodayDateValue());
     const [reportRows, setReportRows] = useState<Record<string, unknown>[]>([]);
     const [reportFeedback, setReportFeedback] = useState<Feedback | null>(null);
     const [isLoadingReport, setIsLoadingReport] = useState(false);
-
     const [phoneInput, setPhoneInput] = useState('');
     const [whatsappPhoneLimit, setWhatsappPhoneLimit] = useState(
       String(DEFAULT_WHATSAPP_PHONE_LIMIT),
@@ -268,10 +164,38 @@ export const useParentWhatsappInvitationPageLogic =
     const [whatsappProgress, setWhatsappProgress] = useState(0);
     const [manualSendSummary, setManualSendSummary] =
       useState<ManualSendSummary | null>(null);
-
     useEffect(() => {
       setManualValidation(parseIndianPhoneInput(phoneInput));
     }, [phoneInput]);
+    useEffect(() => {
+      if (!api) return;
+      const loadInviteLanguages = async (): Promise<void> => {
+        try {
+          const languages = (await api.getAllLanguages())
+            .filter(
+              (language) =>
+                Boolean(language.code?.trim()) &&
+                Boolean(language.name?.trim()) &&
+                INVITE_LANGUAGE_CODES.has(language.code!.trim().toLowerCase()),
+            )
+            .map((language) => ({
+              code: language.code!.trim().toLowerCase(),
+              name: language.name!.trim(),
+            }))
+            .sort((left, right) => left.name.localeCompare(right.name));
+          setInviteLanguages(languages);
+          setSelectedInviteLanguageCode(
+            (currentCode) => currentCode || languages[0]?.code || '',
+          );
+        } catch (error) {
+          setAnalysisFeedback({
+            severity: 'error',
+            text: toApiError(error, t('Failed to load languages.')).message,
+          });
+        }
+      };
+      void loadInviteLanguages();
+    }, [api]);
     const parsedWhatsappPhoneLimit = Number.parseInt(whatsappPhoneLimit, 10);
     const isWhatsappPhoneLimitValueInvalid =
       !whatsappPhoneLimit.trim() ||
@@ -281,7 +205,6 @@ export const useParentWhatsappInvitationPageLogic =
       isWhatsappPhoneLimitTouched &&
       !isWhatsappPhoneLimitFocused &&
       isWhatsappPhoneLimitValueInvalid;
-
     const handleAnalyze = async (): Promise<void> => {
       const parsedUdiseCodes = udiseInput
         .replace(/,/g, '\n')
@@ -289,7 +212,6 @@ export const useParentWhatsappInvitationPageLogic =
         .map((value) => value.trim())
         .filter(Boolean);
       const udiseCodes = Array.from(new Set(parsedUdiseCodes));
-
       if (!api) {
         setAnalysisFeedback({
           severity: 'error',
@@ -297,7 +219,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       if (udiseCodes.length === 0) {
         setAnalysisFeedback({
           severity: 'warning',
@@ -305,7 +226,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       try {
         setIsAnalyzing(true);
         setSmsResult(null);
@@ -332,7 +252,6 @@ export const useParentWhatsappInvitationPageLogic =
         setIsAnalyzing(false);
       }
     };
-
     const handleSendSmsInvites = async (): Promise<void> => {
       if (!api) {
         setSmsFeedback({
@@ -341,7 +260,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       if (!analysisResult?.inviteList?.length) {
         setSmsFeedback({
           severity: 'warning',
@@ -349,14 +267,34 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
+      if (!selectedInviteLanguageCode) {
+        setSmsFeedback({
+          severity: 'warning',
+          text: t('Select Language'),
+        });
+        return;
+      }
       try {
         setIsSendingSms(true);
         const result = await sendParentWhatsappMsg91Invites(
           api,
           analysisResult.inviteList,
+          selectedInviteLanguageCode,
         );
         setSmsResult(result);
+        const firstFailureMessage = result.failedBatches[0]?.error?.message;
+        if (result.failedBatches.length === 0) {
+          await showOpsSuccessToast(
+            presentToast,
+            t('WhatsApp group invitations sent successfully.'),
+          );
+        } else {
+          await showOpsFailureToast(
+            presentToast,
+            firstFailureMessage?.trim() ||
+              t('Failed to send WhatsApp group invitations. Please try again.'),
+          );
+        }
         setSmsFeedback({
           severity: result.failedBatches.length > 0 ? 'warning' : 'success',
           text:
@@ -374,6 +312,11 @@ export const useParentWhatsappInvitationPageLogic =
         });
       } catch (error) {
         const apiError = toApiError(error, t('Failed to send MSG91 invites.'));
+        await showOpsFailureToast(
+          presentToast,
+          apiError.message?.trim() ||
+            t('Failed to send WhatsApp group invitations. Please try again.'),
+        );
         setSmsFeedback({
           severity: 'error',
           text: apiError.message,
@@ -382,7 +325,6 @@ export const useParentWhatsappInvitationPageLogic =
         setIsSendingSms(false);
       }
     };
-
     const handleFetchReport = async (): Promise<void> => {
       if (!api) {
         setReportFeedback({
@@ -391,7 +333,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       if (!startDate || !endDate) {
         setReportFeedback({
           severity: 'warning',
@@ -399,7 +340,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       try {
         setIsLoadingReport(true);
         const rows = await fetchParentWhatsappMsg91Report({
@@ -424,24 +364,19 @@ export const useParentWhatsappInvitationPageLogic =
         setIsLoadingReport(false);
       }
     };
-
     const handleFileSelect = (fileList: FileList | null): void => {
       setUploadedMedia(fileList?.[0] ?? null);
     };
-
     const handleWhatsappPhoneLimitChange = (rawValue: string): void => {
       setWhatsappPhoneLimit(rawValue);
     };
-
     const handleWhatsappPhoneLimitFocus = (): void => {
       setIsWhatsappPhoneLimitFocused(true);
     };
-
     const handleWhatsappPhoneLimitBlur = (): void => {
       setIsWhatsappPhoneLimitFocused(false);
       setIsWhatsappPhoneLimitTouched(true);
     };
-
     const handleSendWhatsapp = async (): Promise<void> => {
       if (isSendingWhatsapp) return;
       if (!api) {
@@ -451,10 +386,8 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       const parsedPhones = parseIndianPhoneInput(phoneInput);
       setManualValidation(parsedPhones);
-
       if (!templateName.trim() || !templateLang.trim()) {
         setManualFeedback({
           severity: 'warning',
@@ -462,7 +395,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       if (parsedPhones.normalizedPhones.length === 0) {
         setManualFeedback({
           severity: 'warning',
@@ -470,9 +402,7 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       const phoneLimit = normalizeWhatsappPhoneLimit(parsedWhatsappPhoneLimit);
-
       if (parsedPhones.normalizedPhones.length > phoneLimit) {
         setManualFeedback({
           severity: 'warning',
@@ -485,7 +415,6 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       const mediaValidation = getWhatsappMediaType(uploadedMedia);
       if (mediaValidation.error) {
         setManualFeedback({
@@ -494,24 +423,18 @@ export const useParentWhatsappInvitationPageLogic =
         });
         return;
       }
-
       let mediaId: string | null = null;
-
       try {
         setIsSendingWhatsapp(true);
         setWhatsappProgress(0);
         setManualSendSummary(null);
-
         if (uploadedMedia) {
           mediaId = await uploadParentWhatsappMedia(api, uploadedMedia);
         }
-
         const failures: ParentWhatsappSendFailure[] = [];
         let successCount = 0;
-
         for (const [index, phone] of parsedPhones.normalizedPhones.entries()) {
           const outboundPhone = formatSmsReadyIndianPhone(phone);
-
           if (!outboundPhone) {
             failures.push({
               mobile: phone,
@@ -521,7 +444,6 @@ export const useParentWhatsappInvitationPageLogic =
             });
             continue;
           }
-
           try {
             await sendParentWhatsappTemplateMessage(api, {
               to: outboundPhone,
@@ -550,13 +472,36 @@ export const useParentWhatsappInvitationPageLogic =
             );
           }
         }
-
         setManualSendSummary({
           attempted: parsedPhones.normalizedPhones.length,
           successCount,
           failed: failures,
         });
-
+        if (failures.length > 0 && successCount === 0) {
+          await showOpsFailureToast(
+            presentToast,
+            failures[0]?.error.message?.trim() ||
+              t('Failed to send WhatsApp group invitations. Please try again.'),
+          );
+        } else if (failures.length > 0) {
+          await showOpsWarningToast(
+            presentToast,
+            t(
+              '{{successCount}} invitation(s) sent successfully. {{failureCount}} invitation(s) failed.',
+              { successCount, failureCount: failures.length },
+            ),
+          );
+        } else if (parsedPhones.invalid.length > 0) {
+          await showOpsWarningToast(
+            presentToast,
+            t('Invitations sent successfully, invalid numbers were skipped.'),
+          );
+        } else {
+          await showOpsSuccessToast(
+            presentToast,
+            t('WhatsApp group invitations sent successfully.'),
+          );
+        }
         setManualFeedback({
           severity:
             failures.length > 0 || parsedPhones.invalid.length > 0
@@ -583,6 +528,11 @@ export const useParentWhatsappInvitationPageLogic =
           error,
           t('WhatsApp media upload failed before sending started.'),
         );
+        await showOpsFailureToast(
+          presentToast,
+          apiError.message?.trim() ||
+            t('Failed to send WhatsApp group invitations. Please try again.'),
+        );
         setManualFeedback({
           severity: 'error',
           text: apiError.message,
@@ -591,7 +541,6 @@ export const useParentWhatsappInvitationPageLogic =
         setIsSendingWhatsapp(false);
       }
     };
-
     return {
       uploadInputRef,
       isWhatsappMode,
@@ -610,6 +559,9 @@ export const useParentWhatsappInvitationPageLogic =
       isSendingSms,
       smsFeedback,
       smsResult,
+      inviteLanguages,
+      selectedInviteLanguageCode,
+      setSelectedInviteLanguageCode,
       startDate,
       setStartDate,
       endDate,

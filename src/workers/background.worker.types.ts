@@ -119,6 +119,21 @@ export type DownloadRemoteAudioResult = {
   base64Data: string;
 };
 
+export type PredictiveLessonZip = {
+  lessonId: string;
+  dbVersion: number;
+  arrayBuffer: ArrayBuffer;
+};
+
+export type StreamPredictiveLessonZipsPayload = {
+  concurrency: 1;
+  lessons: Array<{
+    lessonId: string;
+    zipUrls: string[];
+    dbVersion: number;
+  }>;
+};
+
 export type StreamSyncBatchesPayload = {
   tables: Record<string, SyncRow[]>;
   tableColumns: Record<string, string[]>;
@@ -154,7 +169,21 @@ export type WorkerTaskResultMap = {
 
 export type BackgroundWorkerTask = keyof WorkerTaskPayloadMap;
 
-export type WorkerStreamTask = 'STREAM_SYNC_BATCHES';
+export type WorkerStreamTask =
+  | 'STREAM_SYNC_BATCHES'
+  | 'STREAM_PREDICTIVE_LESSON_ZIPS';
+
+export type PredictiveLessonZipReadyMessage = {
+  id: string;
+  type: 'PREDICTIVE_ZIP_READY';
+  lesson: PredictiveLessonZip;
+};
+
+export type WorkerLessonZipStreamRequest = {
+  id: string;
+  type: 'STREAM_PREDICTIVE_LESSON_ZIPS';
+  payload: StreamPredictiveLessonZipsPayload;
+};
 
 export type WorkerRequest<
   T extends BackgroundWorkerTask = BackgroundWorkerTask,
@@ -166,7 +195,7 @@ export type WorkerRequest<
 
 export type WorkerStreamRequest = {
   id: string;
-  type: WorkerStreamTask;
+  type: 'STREAM_SYNC_BATCHES';
   payload: StreamSyncBatchesPayload;
 };
 
@@ -212,4 +241,7 @@ export type WorkerStreamEventMessage =
   | WorkerBatchReadyMessage
   | WorkerDoneMessage
   | WorkerStreamErrorMessage;
-export type WorkerIncomingMessage = WorkerResponse | WorkerStreamEventMessage;
+export type WorkerIncomingMessage =
+  | WorkerResponse
+  | WorkerStreamEventMessage
+  | PredictiveLessonZipReadyMessage;

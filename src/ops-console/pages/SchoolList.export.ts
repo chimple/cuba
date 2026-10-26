@@ -1,9 +1,9 @@
 import { type SchoolListSourceRow } from './SchoolList.fetcher';
 import {
-  buildSchoolUdiseLocationLabel,
   formatCompactNumber,
   formatPercent,
   getSchoolListExportColumns,
+  getSchoolCoordinatorList,
   pickFirstNumber,
   resolvePerformanceStatus,
 } from './SchoolList.helpers';
@@ -49,17 +49,27 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
   const activatedStudents = pickFirstNumber(school.activated_students);
   const activeStudents = pickFirstNumber(school.active_students);
   const activeTeachers = pickFirstNumber(school.active_teachers);
+  const activatedTeachers = pickFirstNumber(school.activated_teachers);
   const completionAssignments = pickFirstNumber(
     school.avg_assignments_completed,
   );
   const completionActivities = pickFirstNumber(school.avg_activities_completed);
-  const udiseLocation = buildSchoolUdiseLocationLabel(school);
   const performanceStatus = resolvePerformanceStatus(school) || '--';
   const metricTextByKey: Record<string, ExportMetricText> = {
     name: {
-      valueText: udiseLocation
-        ? `${school.school_name}\n${udiseLocation}`
-        : school.school_name,
+      valueText: school.school_name,
+      percentText: '--',
+    },
+    udise: {
+      valueText: school.udise ? String(school.udise).trim() : '--',
+      percentText: '--',
+    },
+    fieldCoordinators: {
+      valueText: getSchoolCoordinatorList(school).join(', ') || '--',
+      percentText: '--',
+    },
+    block: {
+      valueText: school.block ? String(school.block).trim() : '--',
       percentText: '--',
     },
     schoolPerformance: {
@@ -90,7 +100,11 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     ),
     activeTeachers: buildMetricWithPercentExportText(
       activeTeachers,
-      activeTeachers && activeTeachers > 0 ? 100 : null,
+      activeTeachers != undefined && activatedTeachers != undefined
+        ? activatedTeachers > 0
+          ? (activeTeachers / activatedTeachers) * 100
+          : 0
+        : null,
     ),
     activitiesAssigned: buildMetricExportText(
       pickFirstNumber(
@@ -106,6 +120,9 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     avgActivitiesCompleted: buildMetricExportText(completionActivities),
     phoneCallsStudentsParents: buildMetricExportText(
       pickFirstNumber(school.phone_calls_students_parents),
+    ),
+    inpersonStudentsParents: buildMetricExportText(
+      pickFirstNumber(school.inperson_students_parents),
     ),
     phoneCallsTeachersHms: buildMetricExportText(
       pickFirstNumber(school.phone_calls_teachers_hms),

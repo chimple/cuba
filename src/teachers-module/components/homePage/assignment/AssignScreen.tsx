@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { t } from 'i18next';
-import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
+import InlineSvg from '../../../../components/InlineSvg';
+import AssignScreenArrowIcon from '../../../assets/icons/assign-screen-arrow.svg?raw';
 import './AssignScreen.css';
 import { useHistory } from 'react-router-dom';
 import {
@@ -11,6 +12,7 @@ import { PAGES } from '../../../../common/constants';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
 import logger from '../../../../utility/logger';
+import { parsePath } from 'history';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -60,10 +62,13 @@ const AssignScreen: FC<AssignScreenProps> = ({
         return;
       }
       // ✅ Success → Navigate
-      history.replace(PAGES.QR_ASSIGNMENTS, {
-        chapterId: response.chapter_id,
-        courseId: response.course_id,
-        fromPage: PAGES.HOME_PAGE,
+      history.replace({
+        ...parsePath(PAGES.QR_ASSIGNMENTS),
+        state: {
+          chapterId: response.chapter_id,
+          courseId: response.course_id,
+          fromPage: PAGES.HOME_PAGE,
+        },
       });
     } catch (error) {
       logger.error('Scan failed:', error);
@@ -117,11 +122,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <InlineSvg
+                    svg={AssignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    aria-hidden="true"
-                    focusable="false"
+                    ariaHidden
+                    focusable={false}
                   />
                 </span>
               </div>
@@ -163,11 +169,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <InlineSvg
+                    svg={AssignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    aria-hidden="true"
-                    focusable="false"
+                    ariaHidden
+                    focusable={false}
                   />
                 </span>
               </div>
@@ -207,11 +214,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <InlineSvg
+                    svg={AssignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    aria-hidden="true"
-                    focusable="false"
+                    ariaHidden
+                    focusable={false}
                   />
                 </span>
               </div>

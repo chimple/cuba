@@ -1062,12 +1062,17 @@ describe('StickerBookPreviewModal', () => {
       }),
     );
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');
-    expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
-      stickerBookId: 'book-complete',
-      svgRaw: expect.stringContaining('<svg'),
-      svgUrl: 'https://example.com/completed.svg',
-      artworkTitle: 'Completed Book',
-      returnTo: '/',
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: PAGES.COLORING_BOARD,
+      search: '',
+      hash: '',
+      state: {
+        stickerBookId: 'book-complete',
+        svgRaw: expect.stringContaining('<svg'),
+        svgUrl: 'https://example.com/completed.svg',
+        artworkTitle: 'Completed Book',
+        returnTo: '/',
+      },
     });
   });
 

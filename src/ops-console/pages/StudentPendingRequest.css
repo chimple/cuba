@@ -50,14 +50,17 @@ html {
   margin-bottom: 2rem;
   font-size: 1.07rem;
 }
-/* .student-pending-request-details-link {
-  color: #3799fd;
+.student-pending-request-details-link {
+  color: #1a71f6 !important;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7rem;
-} */
+}
+.student-pending-request-details-separator {
+  color: #000;
+}
 .student-pending-request-details-active {
-  color: #232323;
+  color: #888;
   font-weight: 600;
   margin-left: 0.7rem;
 }

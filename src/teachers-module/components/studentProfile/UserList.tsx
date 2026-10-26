@@ -2,6 +2,7 @@ import { IonAlert, IonIcon } from '@ionic/react';
 import { t } from 'i18next';
 import { trashOutline } from 'ionicons/icons';
 import React, { useEffect, useMemo, useState } from 'react';
+import CommonDialogBox from '../../../common/CommonDialogBox';
 import { CLASS_USERS, OPS_ROLES, TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
@@ -22,9 +23,13 @@ const UserList: React.FC<{
   const [allStudents, setAllStudents] = useState<TableTypes<'user'>[]>();
   const [allTeachers, setAllTeachers] = useState<TableTypes<'user'>[]>();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSelfDeleteError, setShowSelfDeleteError] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
     null,
   );
+  const currentUser = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  ).user;
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -55,6 +60,10 @@ const UserList: React.FC<{
   };
 
   const handleDeleteClick = (user: TableTypes<'user'>) => {
+    if (user.id === currentUser?.id) {
+      setShowSelfDeleteError(true);
+      return;
+    }
     setSelectedUser(user);
     setShowConfirm(true);
   };
@@ -120,7 +129,7 @@ const UserList: React.FC<{
 
                 {!isExternalUser && !isTeacherSchoolMode && (
                   <div
-                    className="delete-button" //////
+                    className="delete-button"
                     onClick={() => handleDeleteClick(student)}
                   >
                     <IonIcon icon={trashOutline} className="trash-icon" />
@@ -180,6 +189,13 @@ const UserList: React.FC<{
             handler: () => setShowConfirm(false),
           },
         ]}
+      />
+      <CommonDialogBox
+        showConfirmFlag={showSelfDeleteError}
+        onDidDismiss={() => setShowSelfDeleteError(false)}
+        message="You cannot delete yourself."
+        rightButtonText="OK"
+        rightButtonHandler={() => setShowSelfDeleteError(false)}
       />
     </div>
   );

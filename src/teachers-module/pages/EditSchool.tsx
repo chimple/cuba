@@ -12,6 +12,8 @@ import { RoleType } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
 import ProfileDetails from '../components/library/ProfileDetails';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
+
 interface LocationState {
   school?: SchoolWithRole['school'];
   role?: RoleType;
@@ -134,17 +136,19 @@ const EditSchool: React.FC = () => {
   };
 
   const onBackButtonClick = () => {
-    history.replace(
-      prevOrigin === PAGES.DISPLAY_SCHOOLS
-        ? PAGES.DISPLAY_SCHOOLS
-        : isEditMode && !navigationState
-          ? PAGES.SCHOOL_PROFILE
-          : PAGES.MANAGE_SCHOOL,
-      {
+    history.replace({
+      ...parsePath(
+        prevOrigin === PAGES.DISPLAY_SCHOOLS
+          ? PAGES.DISPLAY_SCHOOLS
+          : isEditMode && !navigationState
+            ? PAGES.SCHOOL_PROFILE
+            : PAGES.MANAGE_SCHOOL,
+      ),
+      state: {
         school: school,
         role: role,
       },
-    );
+    });
   };
 
   const [profilePic, setProfilePic] = useState<File | null>(null);

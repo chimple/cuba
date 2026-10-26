@@ -3,7 +3,7 @@ import './ParentLogout.css';
 import { ImSwitch } from 'react-icons/im';
 import { useState } from 'react';
 import DialogBoxButtons from './DialogBoxButtons';
-import { ServiceConfig } from '../../services/ServiceConfig';
+import { APIMode, ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {
   CLASS,
@@ -16,8 +16,10 @@ import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import { ClearCacheData } from './DataClear';
 import { logAuthDebug } from '../../utility/authDebug';
+import { getAppPathname } from '../../utility/routerLocation';
+import logger from '../../utility/logger';
 
-const ParentLogout: React.FC<{}> = ({}) => {
+const ParentLogout: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const history = useHistory();
   const onSignOut = async () => {
@@ -26,6 +28,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
       source: 'ParentLogout.onSignOut',
       reason: 'parent_logout_button',
     });
+    await Util.setCurrentStudent(null, undefined, false, false);
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(SCHOOL);
@@ -36,7 +39,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     logAuthDebug('Navigating to login after parent logout.', {
       source: 'ParentLogout.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);
@@ -63,6 +66,11 @@ const ParentLogout: React.FC<{}> = ({}) => {
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
+          localStorage.setItem('isRespectMode', 'false');
+          ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(
+            APIMode.SUPABASE,
+          );
+          logger.info('Switched to Supabase mode on logout');
         }}
         onNoButtonClicked={onSignOut}
       />

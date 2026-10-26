@@ -22,7 +22,13 @@ const OpsModulePage: React.FC = () => {
   const userRoles = roles || [];
   const hasModuleAccess = userRoles.some(
     (role) =>
-      role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR,
+      role === RoleType.SUPER_ADMIN ||
+      role === RoleType.OPERATIONAL_DIRECTOR ||
+      role === RoleType.PROGRAM_MANAGER ||
+      role === RoleType.FIELD_COORDINATOR,
+  );
+  const visibleModules = MODULE_CARD_DEFINITIONS.filter((module) =>
+    userRoles.some((role) => module.allowedRoles.includes(role as RoleType)),
   );
 
   if (!hasModuleAccess) {
@@ -54,7 +60,7 @@ const OpsModulePage: React.FC = () => {
             )}
           </p>
           <div id="ops-module-page-points" className="ops-module-page-points">
-            {MODULE_CARD_DEFINITIONS.map((module) => (
+            {visibleModules.map((module) => (
               <p
                 key={module.title}
                 id="ops-module-page-point"
@@ -83,7 +89,7 @@ const OpsModulePage: React.FC = () => {
         </div>
 
         <div id="ops-module-page-cards" className="ops-module-page-cards">
-          {MODULE_CARD_DEFINITIONS.map((button) => {
+          {visibleModules.map((button) => {
             const route = getModuleCardRoute(button.title, button.route);
 
             return (

@@ -4,11 +4,17 @@ type GrowthBookMockState = {
   flags: Record<string, boolean>;
 };
 
-const state: GrowthBookMockState = {
-  attributes: {},
-  features: {},
-  flags: {},
+const growthBookMockGlobal = globalThis as typeof globalThis & {
+  __growthBookMockState__?: GrowthBookMockState;
 };
+
+const state =
+  growthBookMockGlobal.__growthBookMockState__ ??
+  (growthBookMockGlobal.__growthBookMockState__ = {
+    attributes: {},
+    features: {},
+    flags: {},
+  });
 
 export const __resetGrowthBookMock = () => {
   state.attributes = {};
@@ -24,7 +30,7 @@ export const __setGrowthBookMock = (partial: Partial<GrowthBookMockState>) => {
 
 export const __getGrowthBookMock = () => state;
 
-export const useGrowthBook = () => ({
+export const useGrowthBook = jest.fn(() => ({
   setAttributes: jest.fn((attributes: Record<string, unknown>) => {
     state.attributes = attributes;
   }),
@@ -33,11 +39,14 @@ export const useGrowthBook = () => ({
       ? state.features[key]
       : fallback,
   getAttributes: () => state.attributes,
-});
+}));
 
-export const useFeatureIsOn = (key: string) => Boolean(state.flags[key]);
+export const useFeatureIsOn = jest.fn((key: string) =>
+  Boolean(state.flags[key]),
+);
 
-export const useFeatureValue = (key: string, fallback: unknown) =>
+export const useFeatureValue = jest.fn((key: string, fallback: unknown) =>
   Object.prototype.hasOwnProperty.call(state.features, key)
     ? state.features[key]
-    : fallback;
+    : fallback,
+);

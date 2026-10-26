@@ -115,6 +115,9 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
                 )
               }
               size="small"
+              MenuProps={{
+                PaperProps: { className: 'campaign-setup-dropdown-menu' },
+              }}
             >
               <MenuItem value="" disabled>
                 Select Campaign Manager

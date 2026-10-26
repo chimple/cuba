@@ -138,9 +138,13 @@ describe('TeacherRecommendedAssignments – full coverage', () => {
     await userEvent.click(screen.getByTestId('assign-btn'));
 
     expect(historyReplace).toHaveBeenCalledWith(
-      PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
       expect.objectContaining({
-        selectedAssignments: expect.any(Object),
+        pathname: PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
+        search: '',
+        hash: '',
+        state: expect.objectContaining({
+          selectedAssignments: expect.any(Object),
+        }),
       }),
     );
   });

@@ -1,46 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Grid,
   Typography,
-  Button,
   CircularProgress,
   IconButton,
 } from '@mui/material';
-import InfoCard from '../components/InfoCard';
 import { useHistory } from 'react-router-dom';
 import './ProgramDetailsPage.css';
 import Breadcrumb from '../components/Breadcrumb';
-import ContactCard from '../components/ContactCard';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 import { t } from 'i18next';
-import { PAGES, PROGRAM_TAB_LABELS } from '../../common/constants';
+import { PROGRAM_TAB_LABELS } from '../../common/constants';
 import { BsFillBellFill } from 'react-icons/bs';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import EditProgramFieldCoordinatorsDialog from '../components/EditProgramFieldCoordinatorsDialog';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import {
+  ProgramContactsColumn,
+  ProgramContact,
+  ProgramData,
+  ProgramInfoColumn,
+  ProgramStatisticsColumn,
+  ProgramStats,
+} from './ProgramDetailsSections';
 
 interface ProgramDetailComponentProps {
   id: string;
-}
-
-interface ProgramStats {
-  total_students: number;
-  total_teachers: number;
-  total_schools: number;
-  active_student_percentage: number;
-  active_teacher_percentage: number;
-  avg_weekly_time_minutes: number;
-}
-
-interface ProgramData {
-  programDetails: { label: string; value: string }[];
-  locationDetails: { label: string; value: string }[];
-  partnerDetails: { label: string; value: string }[];
-  programManagers: {
-    name: string;
-    role: string;
-    phone: string;
-    email: string;
-  }[];
 }
 
 const formatProgramModel = (value: string) => {
@@ -71,7 +59,20 @@ const formatProgramDate = (value: string) => {
 const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const roles = useAppSelector((state) => state.auth.roles) ?? [];
+  const canEditFieldCoordinators = roles.some((role) =>
+    [
+      RoleType.PROGRAM_MANAGER,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.SUPER_ADMIN,
+    ].includes(role as RoleType),
+  );
 
+  const [isEditFieldCoordinatorsOpen, setIsEditFieldCoordinatorsOpen] =
+    useState(false);
+  const [fieldCoordinators, setFieldCoordinators] = useState<ProgramContact[]>(
+    [],
+  );
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ProgramStats>({
@@ -84,6 +85,23 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   });
   const [renderDetails, setRenderDetails] = useState(false);
 
+  const loadFieldCoordinators = useCallback(async () => {
+    const response = await api.getFieldCoordinatorsByProgram(id);
+    setFieldCoordinators(
+      response.data.map((coordinator) => ({
+        id: coordinator.id,
+        name:
+          coordinator.name ||
+          coordinator.email ||
+          coordinator.phone ||
+          coordinator.id,
+        role: t('Field Coordinator'),
+        phone: coordinator.phone || '',
+        email: coordinator.email || '',
+      })),
+    );
+  }, [api, id]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -95,6 +113,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
         return;
       }
       const result = await api.program_activity_stats(id);
+      await loadFieldCoordinators();
       const countStats = Array.isArray(result) ? result[0] : result;
 
       setStats({
@@ -117,8 +136,12 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
       setLoading(false);
     };
 
-    fetchData();
-  }, [id]);
+    fetchData().catch((error) => {
+      logger.error('Error loading program details:', error);
+      setData(null);
+      setLoading(false);
+    });
+  }, [api, id, loadFieldCoordinators]);
 
   if (renderDetails) {
     return <ProgramConnectedSchoolPage id={id} />;
@@ -172,142 +195,25 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
         />
 
         <Grid container spacing={2}>
-          {/* Column 1 */}
-          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 2, md: 1 }}>
-            <Box className="program-detail-page-column-container">
-              <InfoCard
-                title={t('Program Details')}
-                items={data.programDetails}
-              />
-              <InfoCard
-                title={t('Partner Details')}
-                items={data.partnerDetails}
-              />
-            </Box>
-          </Grid>
-
-          {/* Column 2 */}
-          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 3, md: 2 }}>
-            <Box className="program-detail-page-column-container">
-              <InfoCard
-                title={t('Location Details')}
-                children={
-                  <Box className="program-detail-page-location-details-grid">
-                    {data.locationDetails.map((item, idx) => (
-                      <Box
-                        key={idx}
-                        className="program-detail-page-location-details-item"
-                      >
-                        <Typography className="program-detail-page-location-details-label">
-                          {item.label}
-                        </Typography>
-                        <Typography className="program-detail-page-location-details-value">
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                }
-              />
-              <InfoCard
-                title={t('Program Managers')}
-                children={
-                  <Box className="program-detail-page-managers-list">
-                    {data.programManagers.map((manager, idx) => (
-                      <ContactCard
-                        key={idx}
-                        name={manager.name}
-                        role={manager.role}
-                        phone={manager.phone || manager.email || ''}
-                      />
-                    ))}
-                  </Box>
-                }
-              />
-            </Box>
-          </Grid>
-
-          {/* Column 3 */}
-          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 1, md: 3 }}>
-            <Box className="program-detail-page-column-container">
-              <InfoCard title={t('Program Performance')} items={[]}>
-                <Box
-                  className="program-performance-card"
-                  sx={{
-                    p: 2,
-                  }}
-                >
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t('Active Students')}</Typography>
-                    <Typography fontWeight="bold">
-                      {`${stats.active_student_percentage.toFixed(2)}%`}
-                    </Typography>
-                  </Box>
-
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t('Avg week time in mins')}</Typography>
-                    <Typography fontWeight="bold">
-                      {`${stats.avg_weekly_time_minutes.toFixed(2)}`}
-                    </Typography>
-                  </Box>
-
-                  <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography>{t('Active Teachers')}</Typography>
-                    <Typography fontWeight="bold">
-                      {`${stats.active_teacher_percentage.toFixed(2)}%`}
-                    </Typography>
-                  </Box>
-
-                  <Button variant="contained" fullWidth>
-                    {t('View Detailed Analytics')}
-                  </Button>
-                </Box>
-              </InfoCard>
-              <InfoCard title={t('Program Statistics')} items={[]}>
-                <Box
-                  className="program-detail-page-stats"
-                  sx={{
-                    p: 2,
-                    mb: 2,
-                  }}
-                >
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t('No. of Schools')}</Typography>
-                    <Typography fontWeight="bold">
-                      {stats.total_schools}
-                    </Typography>
-                  </Box>
-
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t('No. of Students')}</Typography>
-                    <Typography fontWeight="bold">
-                      {stats.total_students}
-                    </Typography>
-                  </Box>
-
-                  <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography>{t('No. of Teachers')}</Typography>
-                    <Typography fontWeight="bold">
-                      {stats.total_teachers}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() =>
-                      history.push(
-                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/${id}`,
-                      )
-                    }
-                  >
-                    {t('View Details')}
-                  </Button>
-                </Box>
-              </InfoCard>
-            </Box>
-          </Grid>
+          <ProgramInfoColumn data={data} />
+          <ProgramContactsColumn
+            data={data}
+            fieldCoordinators={fieldCoordinators}
+            canEditFieldCoordinators={canEditFieldCoordinators}
+            onEditFieldCoordinators={() => setIsEditFieldCoordinatorsOpen(true)}
+          />
+          <ProgramStatisticsColumn history={history} id={id} stats={stats} />
         </Grid>
       </Box>
+
+      {canEditFieldCoordinators && (
+        <EditProgramFieldCoordinatorsDialog
+          open={isEditFieldCoordinatorsOpen}
+          programId={id}
+          onClose={() => setIsEditFieldCoordinatorsOpen(false)}
+          onSaved={loadFieldCoordinators}
+        />
+      )}
     </div>
   );
 };

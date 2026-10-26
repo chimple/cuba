@@ -1,10 +1,11 @@
 import {
   CampaignAssignmentChapterOption,
   CampaignAssignmentSubjectOption,
+  CampaignFrequency,
 } from '../../../services/api/ServiceApi';
 import { CampaignSetupFormState } from './types';
 
-export type Frequency = 'daily' | 'alternate_days' | 'alternate_week';
+export type Frequency = CampaignFrequency;
 
 export type AssignmentRow = {
   rowId: string;
@@ -151,13 +152,18 @@ const getScheduleDates = (
   return dates;
 };
 
+export const buildFrequencyTimelineDates = (
+  startDate: string,
+  endDate: string,
+  frequency: Frequency,
+): string[] =>
+  getScheduleDates(startDate, endDate, frequency, Number.MAX_SAFE_INTEGER);
+
 export const getRequiredAssignmentCount = (
   startDate: string,
   endDate: string,
   frequency: Frequency,
-) =>
-  getScheduleDates(startDate, endDate, frequency, Number.MAX_SAFE_INTEGER)
-    .length;
+) => buildFrequencyTimelineDates(startDate, endDate, frequency).length;
 
 const distributeDatesAcrossAssignments = (
   dates: string[],

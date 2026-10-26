@@ -146,7 +146,7 @@ const getFFmpeg = async (): Promise<FFmpeg> => {
         await ffmpeg.load({ coreURL, wasmURL, workerURL });
       };
 
-      const localBase = (process.env.PUBLIC_URL ?? '').replace(/\/$/, '');
+      const localBase = import.meta.env.BASE_URL.replace(/\/$/, '');
       if (supportsMultiThread) {
         try {
           await loadCore(localBase, true);

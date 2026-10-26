@@ -70,7 +70,7 @@ export const useCampaignSetupForm = () => {
   const [savedGroups, setSavedGroups] = useState<CampaignSavedAudienceGroup[]>(
     [],
   );
-  const [saveGroup, setSaveGroup] = useState(true);
+  const [saveGroup, setSaveGroup] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting] = useState(false);
@@ -94,6 +94,13 @@ export const useCampaignSetupForm = () => {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
+  const assignmentFrequency = useMemo(
+    () =>
+      assignmentConfigs[activeAssignmentGradeId]?.frequency ??
+      Object.values(assignmentConfigs)[0]?.frequency ??
+      DEFAULT_FREQUENCY,
+    [activeAssignmentGradeId, assignmentConfigs],
+  );
 
   const audience = useCampaignAudienceSelection({
     api,
@@ -211,11 +218,14 @@ export const useCampaignSetupForm = () => {
 
     const loadAssignmentOptions = async () => {
       if (
+        activeStep !== 1 ||
+        form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ||
         !form.programId ||
         selectedAssignmentSchoolIds.length === 0 ||
         audience.selectedGrades.length === 0 ||
         assignmentOptionsCacheRef.current[assignmentOptionsCacheKey]
       ) {
+        setLoadingAssignmentOptions(false);
         return;
       }
 
@@ -247,8 +257,10 @@ export const useCampaignSetupForm = () => {
     };
   }, [
     api,
+    activeStep,
     assignmentOptionsCacheKey,
     audience.selectedGrades,
+    form.objective,
     form.programId,
     selectedAssignmentSchoolIds,
   ]);
@@ -350,6 +362,10 @@ export const useCampaignSetupForm = () => {
     () => getCampaignRewardsValidationErrors(form),
     [form],
   );
+  const canSaveGroup =
+    saveGroup &&
+    form.programId.trim().length > 0 &&
+    form.groupName.trim().length > 0;
 
   const isFormValid = Object.keys(validationErrors).length === 0;
   const areRewardsValid = Object.keys(rewardValidationErrors).length === 0;
@@ -431,6 +447,7 @@ export const useCampaignSetupForm = () => {
     assignmentOptions,
     areRewardsValid,
     assignmentConfigs,
+    assignmentFrequency,
     assignmentDrafts,
     campaignRewards,
     createdCampaignId,
@@ -464,5 +481,6 @@ export const useCampaignSetupForm = () => {
     updateRewardRank,
     rewardFieldError,
     ...audience,
+    canSaveGroup,
   };
 };

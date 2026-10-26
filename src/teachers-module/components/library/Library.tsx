@@ -6,6 +6,8 @@ import { PAGES, TableTypes } from '../../../common/constants';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { Util } from '../../../utility/util';
 import { t } from 'i18next';
+import { parsePath } from 'history';
+import { UtilFileStorage } from '../../../utility/util.fileStorage';
 
 const Library: React.FC = () => {
   const [courses, setCourses] = useState<TableTypes<'course'>[]>([]);
@@ -48,7 +50,17 @@ const Library: React.FC = () => {
               course={course}
               gradeName={gradeName}
               handleCourseCLick={() => {
-                history.replace(PAGES.SHOW_CHAPTERS, { course, gradeName });
+                void UtilFileStorage.setCurrentCourse(
+                  Util.getCurrentClass()?.id,
+                  course,
+                );
+                history.push({
+                  ...parsePath(PAGES.SHOW_CHAPTERS),
+                  state: {
+                    course,
+                    gradeName,
+                  },
+                });
               }}
             />
           );
