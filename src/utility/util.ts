@@ -476,9 +476,9 @@ export class Util {
     const gameUrl = localStorage.getItem(GAME_URL)?.trim();
     const candidates = [
       gameUrl
-        ? gameUrl + (gameUrl.endsWith("/") ? "" : "/") + lessonId + ".zip"
+        ? gameUrl + (gameUrl.endsWith('/') ? '' : '/') + lessonId + '.zip'
         : null,
-      LOCAL_LESSON_BUNDLES_PATH + lessonId + ".zip",
+      LOCAL_LESSON_BUNDLES_PATH + lessonId + '.zip',
     ].filter(
       (path, index, paths): path is string =>
         Boolean(path) && paths.indexOf(path) === index,
@@ -488,11 +488,19 @@ export class Util {
       try {
         const response = await fetch(zipPath);
         if (response.ok) {
-          logger.info("[LessonBundle] Local ZIP resolved", { lessonId, zipPath, gameUrl });
+          logger.info('[LessonBundle] Local ZIP resolved', {
+            lessonId,
+            zipPath,
+            gameUrl,
+          });
           return zipPath;
         }
       } catch (error) {
-        logger.debug("[LessonBundle] Local ZIP not found", { lessonId, zipPath, error });
+        logger.debug('[LessonBundle] Local ZIP not found', {
+          lessonId,
+          zipPath,
+          error,
+        });
       }
     }
 
@@ -621,7 +629,6 @@ export class Util {
                   `[LessonDownloader] Local bundle not found, downloading...`,
                 );
               }
-
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
               const fallbackBundleZipUrls =
@@ -1526,29 +1533,43 @@ export class Util {
     history.replace(PAGES.SIDEBAR_PAGE);
   }
 
+  private static ensureStudentPortugueseLanguage = async (
+    student: TableTypes<'user'> | null,
+  ): Promise<TableTypes<'user'> | null> => {
+    if (!student) return null;
+
+    const api = ServiceConfig.getI().apiHandler;
+    const portuguese = (await api.getAllLanguages()).find(
+      (language) => language.code === LANG.PORTUGUESE,
+    );
+
+    if (!portuguese?.id || student.language_id === portuguese.id) {
+      return student;
+    }
+
+    await api.updateLanguage(student.id, portuguese.id);
+    return { ...student, language_id: portuguese.id };
+  };
+
   public static setCurrentStudent = async (
     student: TableTypes<'user'> | null,
-    languageCode?: string,
+    _languageCode?: string,
     langFlag: boolean = true,
     isStudent: boolean = true,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
-    api.currentStudent = student !== null ? student : undefined;
+    const resolvedStudent = await this.ensureStudentPortugueseLanguage(student);
+    api.currentStudent = resolvedStudent ?? undefined;
 
-    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(resolvedStudent));
     window.dispatchEvent(
-      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
+      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, {
+        detail: resolvedStudent,
+      }),
     );
 
-    if (!languageCode && !!student?.language_id) {
-      const langDoc = await api.getLanguageWithId(student.language_id);
-      if (langDoc) {
-        languageCode = langDoc.code ?? undefined;
-      }
-    }
-    const tempLangCode = languageCode ?? LANG.ENGLISH;
-    if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
-    if (!!isStudent) await i18n.changeLanguage(tempLangCode);
+    if (!!langFlag) localStorage.setItem(LANGUAGE, LANG.PORTUGUESE);
+    if (!!isStudent) await i18n.changeLanguage(LANG.PORTUGUESE);
   };
 
   public static randomBetween(min: number, max: number): number {
@@ -4430,9 +4451,7 @@ export class Util {
     });
 
     if (
-      !document.querySelector(
-        'script[data-lido-code-folder-nomodule="true"]',
-      )
+      !document.querySelector('script[data-lido-code-folder-nomodule="true"]')
     ) {
       const nomoduleScript = document.createElement('script');
       nomoduleScript.src = versionPath + '/lido-player.js';

@@ -31,8 +31,8 @@ import {
   PAGES,
   LOGIN_TYPES,
   TC_HTML_URL,
+  LANG,
 } from '../common/constants';
-import { APP_LANGUAGES } from '../common/constants';
 import './LoginScreen.css';
 import { Util } from '../utility/util';
 import i18n from '../i18n';
@@ -65,6 +65,10 @@ const WEB_LOADING_ANIMATIONS = [
   '/assets/hw-book.gif',
   '/assets/profiles-grid.gif',
   '/assets/subjects-book.gif',
+];
+
+const PORTUGUESE_LANGUAGE_OPTIONS: LanguageOption[] = [
+  { id: LANG.PORTUGUESE, displayName: 'Português' },
 ];
 
 const LoginScreen: React.FC = () => {
@@ -101,9 +105,7 @@ const LoginScreen: React.FC = () => {
   const [studentPassword, setStudentPassword] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [currentLang, setCurrentLang] = useState<string>(
-    Object.keys(APP_LANGUAGES)[0],
-  );
+  const [currentLang, setCurrentLang] = useState<string>(LANG.PORTUGUESE);
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   const PortPlugin = registerPlugin<any>('Port');
   const phoneNumberErrorRef = useRef<any>(null);
@@ -165,15 +167,10 @@ const LoginScreen: React.FC = () => {
         }
 
         // language
-        const appLang = localStorage.getItem(LANGUAGE);
-        if (!appLang) {
-          localStorage.setItem(LANGUAGE, 'en');
-          setCurrentLang('en');
-          await i18n.changeLanguage('en');
-        } else {
-          setCurrentLang(appLang);
-          await i18n.changeLanguage(appLang);
-        }
+        // This app build is Portuguese-only. Override any old saved app language.
+        localStorage.setItem(LANGUAGE, LANG.PORTUGUESE);
+        setCurrentLang(LANG.PORTUGUESE);
+        await i18n.changeLanguage(LANG.PORTUGUESE);
 
         const authHandler = ServiceConfig.getI().authHandler;
         let isLoggedIn = await authHandler.isUserLoggedIn();
@@ -636,19 +633,6 @@ const LoginScreen: React.FC = () => {
     }
   };
 
-  // Language dropdown options
-  const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
-    ([id, displayName]) => ({ id, displayName }),
-  );
-
-  // Handle language change
-  const handleLanguageChange = async (selectedLang: string) => {
-    if (!selectedLang) return;
-    localStorage.setItem(LANGUAGE, selectedLang);
-    await i18n.changeLanguage(selectedLang);
-    setCurrentLang(selectedLang);
-  };
-
   // Handler for student credentials login
   const handleStudentLogin = async () => {
     setStudentCredentialLogin(false);
@@ -983,9 +967,9 @@ const LoginScreen: React.FC = () => {
               <div></div>
             )}
             <LanguageDropdown
-              options={langOptions}
-              value={currentLang}
-              onChange={handleLanguageChange}
+              options={PORTUGUESE_LANGUAGE_OPTIONS}
+              value={LANG.PORTUGUESE}
+              onChange={() => undefined}
             />
           </div>
           {loginType !== LOGIN_TYPES.OTP ? (

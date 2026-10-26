@@ -2,20 +2,20 @@ import { IonPage } from '@ionic/react';
 import { useEffect, useState } from 'react';
 import './AppLangSelection.css';
 import { useHistory } from 'react-router-dom';
-import { LANGUAGE, LANG, PAGES, APP_LANGUAGES } from '../common/constants';
+import { LANGUAGE, LANG, PAGES } from '../common/constants';
 import Loading from '../components/Loading';
 import i18n from '../i18n';
 import NextButton from '../components/common/NextButton';
 import DropDown from '../components/DropDown';
 import { logAuthDebug } from '../utility/authDebug';
 
+const PORTUGUESE_LANGUAGE_OPTIONS = [
+  { id: LANG.PORTUGUESE, displayName: 'Português' },
+];
+
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [langList, setLangList] = useState<
-    { id: string; displayName: string }[]
-  >([]);
-  const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
     getLangList();
@@ -23,29 +23,15 @@ const AppLangSelection: React.FC = () => {
 
   async function getLangList() {
     setIsLoading(true);
-    const appLanguages = APP_LANGUAGES as Record<string, string>;
-    const languages = Object.keys(APP_LANGUAGES).map((key) => ({
-      id: key,
-      displayName: appLanguages[key],
-    }));
-
-    const currLang = localStorage.getItem(LANGUAGE);
-    if (!!currLang) {
-      await i18n.changeLanguage(currLang);
-      setCurrentAppLang(currLang);
-    }
-
-    setLangList(languages);
+    // This app build is Portuguese-only. Override any old saved app language.
+    localStorage.setItem(LANGUAGE, LANG.PORTUGUESE);
+    await i18n.changeLanguage(LANG.PORTUGUESE);
     setIsLoading(false);
   }
 
   const handleNextClick = async () => {
-    const appLang = localStorage.getItem(LANGUAGE);
-    if (!appLang) {
-      const tempLangCode = LANG.PORTUGUESE;
-      localStorage.setItem(LANGUAGE, tempLangCode);
-      await i18n.changeLanguage(tempLangCode);
-    }
+    localStorage.setItem(LANGUAGE, LANG.PORTUGUESE);
+    await i18n.changeLanguage(LANG.PORTUGUESE);
     logAuthDebug('Navigating to login from language selection screen.', {
       source: 'AppLangSelection.handleNextClick',
       reason: 'language_selected_continue_to_login',
@@ -74,14 +60,12 @@ const AppLangSelection: React.FC = () => {
               <p id="app-lang-text">{i18n.t('Choose your language')}</p>
               <DropDown
                 placeholder=""
-                optionList={langList}
-                currentValue={currentAppLang || langList[0]?.id}
+                optionList={PORTUGUESE_LANGUAGE_OPTIONS}
+                currentValue={LANG.PORTUGUESE}
                 width="26vw"
-                onValueChange={async (selectedLang: string) => {
-                  if (!selectedLang) return;
-                  localStorage.setItem(LANGUAGE, selectedLang);
-                  await i18n.changeLanguage(selectedLang);
-                  setCurrentAppLang(selectedLang);
+                onValueChange={async () => {
+                  localStorage.setItem(LANGUAGE, LANG.PORTUGUESE);
+                  await i18n.changeLanguage(LANG.PORTUGUESE);
                 }}
               />
             </div>
