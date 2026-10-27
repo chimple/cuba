@@ -283,6 +283,19 @@ export type CampaignRewardsPayload = {
   rules: CampaignRewardRulePayload[];
 };
 
+/** Incremental campaign configuration row returned by the student RPC. */
+export type CampaignActiveChange =
+  Database['public']['Functions']['get_active_campaigns']['Returns'][number];
+
+/** Reward outcome written after local campaign evaluation. */
+export type CampaignStudentRewardPayload = {
+  campaignId: string;
+  studentId: string;
+  rankAchieved: number | null;
+  status: 'won' | 'missed' | 'in_progress';
+  evaluatedAt?: string;
+};
+
 export type CampaignLaunchAssignmentPayload = {
   gradeId: string;
   schoolIds: string[];
