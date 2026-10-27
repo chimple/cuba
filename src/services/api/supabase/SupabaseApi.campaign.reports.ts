@@ -4,6 +4,7 @@ import {
   type CampaignMessagingProviderSource,
 } from '../../../ops-console/components/campaignsOverview/CampaignReports_Messages/CampaignMessageReport.helpers';
 import logger from '../../../utility/logger';
+import { Database } from '../../database';
 import {
   CampaignAssignmentsReportParams,
   CampaignAssignmentsReportResponse,
