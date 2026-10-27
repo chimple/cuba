@@ -2,8 +2,11 @@ import { Capacitor } from '@capacitor/core';
 import Auth from '../../models/Auth';
 import { TABLES } from './schema';
 
-export const SCREEN_WIDTH = window.innerWidth;
-export const SCREEN_HEIGHT = window.innerHeight;
+// This module is also imported by the background sync worker, where the
+// browser `window` global does not exist.
+const runtimeWindow = typeof window !== 'undefined' ? window : undefined;
+export const SCREEN_WIDTH = runtimeWindow?.innerWidth ?? 0;
+export const SCREEN_HEIGHT = runtimeWindow?.innerHeight ?? 0;
 
 export const LESSONS_PLAYED_COUNT = 'lessonsPlayedCount';
 export const LESSON_END = 'lessonEnd';

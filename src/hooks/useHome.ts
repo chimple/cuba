@@ -1,4 +1,4 @@
-import { IonPage, IonHeader, useIonViewWillEnter } from '@ionic/react';
+import { IonPage, IonHeader } from '@ionic/react';
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   HOMEHEADERLIST,
@@ -21,9 +21,7 @@ import {
 } from '../common/constants';
 import HomeHeader from '../components/HomeHeader';
 import { useHistory, useLocation } from 'react-router';
-// Default theme
 import '@splidejs/react-splide/css';
-// or only core styles
 import '@splidejs/react-splide/css/core';
 import { Util } from '../utility/util';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -83,6 +81,7 @@ export const useHome = () => {
   const [isLoading, setIsLoading] = useState<boolean>(
     !isReturnFromSwitchProfileReturn,
   );
+  const homeRefreshPromise = useRef<Promise<void> | null>(null);
   if (isRewardFeatureOn === true) {
     localStorage.setItem(IS_REWARD_FEATURE_ON, 'true');
   } else if (isRewardFeatureOn === false) {
@@ -111,6 +110,7 @@ export const useHome = () => {
   });
   const appStateChange = (isActive: boolean) => {
     Util.onAppStateChange({ isActive });
+    if (isActive) void refreshHomeData();
   };
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
@@ -164,13 +164,13 @@ export const useHome = () => {
     }
     if (isReturnFromLidoOrSwitchProfile) {
       setIsLoading(false);
+      void refreshHomeData();
       return;
     }
     const studentDetails = student;
     let parent;
     (async () => {
       let updatedStudentDetails = { ...studentDetails };
-      // Get Parent Info
       if (!(updatedStudentDetails as any).parent_id) {
         parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
         (updatedStudentDetails as any).parent_id = parent?.id;
@@ -186,7 +186,7 @@ export const useHome = () => {
     })();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'true');
     Util.checkDownloadedLessonsFromLocal();
-    initData();
+    void refreshHomeData();
     setSubTab(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
@@ -204,7 +204,7 @@ export const useHome = () => {
       window.removeEventListener('PathwayCreated', handlePathwayCreated);
     };
   }, []);
-
+  useEffect(() => Util.subscribeToPageRefresh(refreshHomeData), []);
   useEffect(() => {
     setCurrentHeader(
       currentHeader === HOMEHEADERLIST.PROFILE
@@ -314,6 +314,8 @@ export const useHome = () => {
       else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
     }
   };
+  const refreshHomeData = () =>
+    Util.refreshLearnerPageData(homeRefreshPromise, () => initData());
 
   function sortPlayedLessonDocByDate(playedLessonData: TableTypes<'result'>[]) {
     const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];

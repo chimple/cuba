@@ -46,6 +46,9 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
     status?: RESULT_STATUS | null,
     source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
+    const normalizedTimeSpent = Number.isFinite(timeSpent)
+      ? Math.round(timeSpent)
+      : 0;
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -67,7 +70,7 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       school_id: schoolId ?? null,
       score: score,
       student_id: student.id,
-      time_spent: timeSpent,
+      time_spent: normalizedTimeSpent,
       wrong_moves: wrongMoves,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

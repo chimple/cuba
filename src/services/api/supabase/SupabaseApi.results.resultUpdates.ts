@@ -59,6 +59,9 @@ export class SupabaseApiResultsResultUpdates extends SupabaseApiCourseMedia {
   ): Promise<TableTypes<'result'>> {
     if (!this.supabase) return {} as TableTypes<'result'>;
 
+    const normalizedTimeSpent = Number.isFinite(timeSpent)
+      ? Math.round(timeSpent)
+      : 0;
     const resultId = uuidv4();
     const now = new Date().toISOString();
 
@@ -70,7 +73,7 @@ export class SupabaseApiResultsResultUpdates extends SupabaseApiCourseMedia {
       school_id: schoolId ?? null,
       score,
       student_id: student.id,
-      time_spent: timeSpent,
+      time_spent: normalizedTimeSpent,
       wrong_moves: wrongMoves,
       created_at: now,
       updated_at: now,
