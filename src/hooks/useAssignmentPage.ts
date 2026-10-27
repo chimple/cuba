@@ -86,6 +86,7 @@ export const useAssignmentPage = ({
   // used to avoid re-evaluating for same student repeatedly
   const lastEvaluatedStudentId = useRef<string | null>(null);
   const [assignmentSyncDone, setAssignmentSyncDone] = useState(false);
+  const assignmentRefreshPromise = useRef<Promise<void> | null>(null);
 
   const updateLessonChapterAndCourseMaps = useCallback(
     async (assignments: TableTypes<'assignment'>[]) => {
@@ -162,6 +163,15 @@ export const useAssignmentPage = ({
       }
 
       setShowActivationLessonBanner(!hasStudentResult && !playedNow);
+      // Refresh the score map together with assignments. The sync updates the
+      // local result table, but the old score map can otherwise remain in
+      // memory until a profile switch recreates this hook.
+      const studentResult =
+        typeof api.getStudentResultInMap === 'function'
+          ? await api.getStudentResultInMap(student.id)
+          : {};
+      setLessonResultMap(studentResult ?? {});
+
       const linkedData = await api.getStudentClassesAndSchools(student.id);
       if (!linkedData?.classes.length) {
         setIsLinked(false);
@@ -287,9 +297,7 @@ export const useAssignmentPage = ({
         if (!isActive || !isMounted.current) return;
 
         try {
-          await api.syncDB([TABLES.Assignment]);
-          setAssignmentRefreshToken((prev) => prev + 1);
-          await init(false, true);
+          await refreshAssignmentData();
         } catch {
           // Ignore resume sync failures and let the next refresh retry.
         }
@@ -376,18 +384,20 @@ export const useAssignmentPage = ({
 
   useEffect(() => {
     Util.loadBackgroundImage();
-    init(false, true);
-
-    api
-      .syncDB([TABLES.Assignment])
-      .then(() => {
-        setAssignmentSyncDone(true);
-        init(false, false);
-      })
-      .catch((error) => {
-        logger.error('Error syncing assignments:', error);
-      });
+    void refreshAssignmentData();
   }, []);
+
+  const refreshAssignmentData = () =>
+    Util.refreshLearnerPageData(
+      assignmentRefreshPromise,
+      async (syncResult) => {
+        setAssignmentSyncDone(syncResult);
+        setAssignmentRefreshToken((prev) => prev + 1);
+        await init(false, true);
+      },
+    ).catch((error) => logger.error('Error refreshing assignments:', error));
+
+  useEffect(() => Util.subscribeToPageRefresh(refreshAssignmentData), []);
 
   useEffect(() => {
     checkAllHomeworkDownloaded();

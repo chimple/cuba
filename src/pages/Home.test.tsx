@@ -145,6 +145,11 @@ describe('Home page (Home tab)', () => {
     (Util.loadBackgroundImage as jest.Mock).mockImplementation(() => {});
     (Util.getAllUnlockedRewards as jest.Mock).mockResolvedValue([]);
     (Util.updateSchStdAttb as jest.Mock).mockResolvedValue(undefined);
+    (Util.refreshLearnerData as jest.Mock).mockResolvedValue(true);
+    (Util.refreshLearnerPageData as jest.Mock).mockImplementation(
+      async (_refreshRef, loadPageData) => loadPageData(true),
+    );
+    (Util.subscribeToPageRefresh as jest.Mock).mockReturnValue(jest.fn());
 
     mockApi.getLanguageWithId.mockResolvedValue({ id: 'lang-1', code: 'en' });
     mockApi.getStudentResultInMap.mockResolvedValue({});

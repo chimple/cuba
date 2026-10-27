@@ -218,36 +218,49 @@ export class SqliteApiCoreFoundation {
     }
     await this._initPromise;
   }
-
   protected isRecoverableInitError(error: unknown): boolean {
     return isRecoverableStorageError(error);
   }
 
   protected resetDbHandles(): void {
     this._db = undefined;
+    this._sqlite = undefined;
   }
-
+  protected async releaseFailedDbHandles(): Promise<void> {
+    const db = this._db;
+    const sqlite = this._sqlite;
+    try {
+      await db?.close();
+    } catch (error) {
+      logger.warn('SqliteApi failed to close database after init error.', {
+        error,
+      });
+    }
+    try {
+      await sqlite?.closeConnection(this.DB_NAME, false);
+    } catch (error) {
+      logger.warn('SqliteApi failed to release connection after init error.', {
+        error,
+      });
+    }
+    this.resetDbHandles();
+  }
   protected async initializeWithRetry(
     attempts = 3,
     delayMs = 400,
   ): Promise<void> {
     let lastError: unknown;
-
     for (let attempt = 1; attempt <= attempts; attempt++) {
       try {
         await this.init();
         return;
       } catch (error) {
         lastError = error;
-        this.resetDbHandles();
-
+        await this.releaseFailedDbHandles();
         if (!this.isRecoverableInitError(error) || attempt === attempts) {
           this._initPromise = null;
           throw error;
         }
-
-        // Resume can briefly race with an in-flight native SQLite connection,
-        // so retry a couple of times before surfacing the failure as real.
         logger.warn(
           'SqliteApi init failed during recoverable resume window. Retrying.',
           {
@@ -259,11 +272,9 @@ export class SqliteApiCoreFoundation {
         await new Promise((resolve) => window.setTimeout(resolve, delayMs));
       }
     }
-
     this._initPromise = null;
     throw lastError;
   }
-
   protected async init(): Promise<void> {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();

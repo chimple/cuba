@@ -9,6 +9,7 @@ import {
   MODES,
   CONTINUE,
   CURRENT_STUDENT_CHANGED_EVENT,
+  TABLES,
 } from '../common/constants';
 import { APIMode, ServiceConfig } from '../services/ServiceConfig';
 import i18n from '../i18n';
@@ -40,6 +41,95 @@ export interface HotUpdateState {
 }
 export class UtilNotifications extends UtilLessonProgress {
   static [key: string]: any;
+
+  private static learnerRefreshPromise: Promise<boolean> | null = null;
+  private static learnerRefreshCompletedAt = 0;
+
+  public static async refreshLearnerData(): Promise<boolean> {
+    const now = Date.now();
+    if (
+      now - this.learnerRefreshCompletedAt < 1000 &&
+      !this.learnerRefreshPromise
+    ) {
+      return true;
+    }
+    if (this.learnerRefreshPromise) return this.learnerRefreshPromise;
+
+    const refreshTables = [
+      TABLES.User,
+      TABLES.Result,
+      TABLES.Assignment,
+      TABLES.Assignment_user,
+    ];
+    const api = ServiceConfig.getI().apiHandler;
+    const refresh = (async () => {
+      try {
+        const syncResult = await api.syncDB(refreshTables, refreshTables);
+        const timeoutAt = Date.now() + 60000;
+
+        // syncDB can queue a refresh when another sync is already active.
+        // Wait for both the active sync and its queued refresh to settle.
+        while (Date.now() < timeoutAt) {
+          if (!api.isSyncInProgress()) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            if (!api.isSyncInProgress()) {
+              this.learnerRefreshCompletedAt = Date.now();
+              return syncResult;
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        logger.warn('[LearnerRefresh] sync timed out', {
+          syncResult,
+          stillSyncing: api.isSyncInProgress(),
+        });
+        return false;
+      } catch (error) {
+        logger.warn('[LearnerRefresh] sync failed', error);
+        return false;
+      }
+    })();
+
+    this.learnerRefreshPromise = refresh;
+    try {
+      return await refresh;
+    } finally {
+      if (this.learnerRefreshPromise === refresh) {
+        this.learnerRefreshPromise = null;
+      }
+    }
+  }
+
+  public static async refreshLearnerPageData(
+    refreshRef: { current: Promise<void> | null },
+    loadPageData: (syncResult: boolean) => Promise<void>,
+  ): Promise<void> {
+    if (refreshRef.current) return refreshRef.current;
+    const refresh = (async () => {
+      const syncResult = await this.refreshLearnerData();
+      await loadPageData(syncResult);
+    })();
+    refreshRef.current = refresh;
+    try {
+      await refresh;
+    } finally {
+      if (refreshRef.current === refresh) refreshRef.current = null;
+    }
+  }
+
+  public static subscribeToPageRefresh(refresh: () => void): () => void {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    window.addEventListener('pageshow', refreshWhenVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.removeEventListener('pageshow', refreshWhenVisible);
+    };
+  }
+
   public static setPathToBackButton(path: string, history: any) {
     const url = getAppSearchParams();
     if (url.get(CONTINUE)) {

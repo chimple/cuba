@@ -73,6 +73,9 @@ jest.mock('../utility/util', () => ({
   Util: {
     getCurrentStudent: jest.fn(),
     setCurrentClass: jest.fn(),
+    refreshLearnerData: jest.fn(),
+    refreshLearnerPageData: jest.fn(),
+    subscribeToPageRefresh: jest.fn(() => jest.fn()),
     loadBackgroundImage: jest.fn(),
     getStoredLessonIds: jest.fn(),
     downloadZipBundle: jest.fn(),
@@ -176,6 +179,11 @@ beforeEach(() => {
   } as any);
 
   mockApi.syncDB.mockResolvedValue(true);
+  (Util.refreshLearnerData as jest.Mock).mockResolvedValue(true);
+  (Util.refreshLearnerPageData as jest.Mock).mockImplementation(
+    async (_refreshRef, loadPageData) =>
+      loadPageData(await Util.refreshLearnerData()),
+  );
   mockApi.getChaptersByIds.mockResolvedValue([]);
   mockApi.getLessonsBylessonIds.mockImplementation(
     async (lessonIds: string[]) => {
@@ -461,7 +469,7 @@ describe('AssignmentPage', () => {
       await flush();
     });
 
-    expect(mockApi.syncDB).toHaveBeenCalledWith([TABLES.Assignment]);
+    expect(Util.refreshLearnerData).toHaveBeenCalled();
     expect(mockApi.getPendingAssignments).toHaveBeenCalled();
   });
 });

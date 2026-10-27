@@ -58,6 +58,7 @@ const getWorker = (): Worker => {
   }
   workerInstance = new Worker(
     new URL('./background.worker.ts', import.meta.url),
+    { type: 'module' },
   );
 
   workerInstance.onmessage = (event: MessageEvent<WorkerIncomingMessage>) => {

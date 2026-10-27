@@ -25,6 +25,15 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
     if (res && res.length) {
       for (const data of res) {
         const newData = JSON.parse(data.data);
+        // Supabase stores result.time_spent as an integer number of seconds.
+        // Older local rows may contain fractional seconds, so normalize them
+        // before retrying their queued upload.
+        if (data.table_name === TABLES.Result && newData.time_spent != null) {
+          const timeSpent = Number(newData.time_spent);
+          if (Number.isFinite(timeSpent)) {
+            newData.time_spent = Math.round(timeSpent);
+          }
+        }
         const mutate = await this._serverApi.mutate(
           data.change_type,
           data.table_name,
