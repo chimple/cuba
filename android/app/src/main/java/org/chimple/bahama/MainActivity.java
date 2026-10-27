@@ -37,6 +37,9 @@ import org.json.JSONObject;
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
     private static final String TAG = "RespectLauncher";
+    private static final String APP_PREFERENCES = "AppPreferences";
+    private static final String INSTALL_REFERRER_CONSUMED_KEY =
+            "respectInstallReferrerConsumed";
 
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
@@ -47,7 +50,10 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
-            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences(
+                    APP_PREFERENCES,
+                    MODE_PRIVATE
+            );
             String userId = sharedPreferences.getString("userId", null);
             if(userId !=null){
                 FirebaseCrashlytics.getInstance().setUserId(userId);
@@ -65,7 +71,9 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
-        PortPlugin.checkInstallReferrerOnLaunch();
+        if (shouldCheckInstallReferrer(getIntent())) {
+            PortPlugin.checkInstallReferrerOnLaunch();
+        }
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -187,22 +195,45 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     }
 
     private static boolean setRespectLaunchData(Uri data) {
-        if (data == null) {
+        String activityId = data == null ? null : data.getQueryParameter("activity_id");
+        if (activityId == null || activityId.isEmpty()) {
             return false;
         }
 
         try {
+            JSONObject launchData = new JSONObject();
             for (String key : data.getQueryParameterNames()) {
-                if (key.equals("activity_id")) {
-                    activity_id = data.getQueryParameter(key);
-                }
-                deepLinkData.put(key, data.getQueryParameter(key));
+                launchData.put(key, data.getQueryParameter(key));
             }
+            activity_id = activityId;
+            deepLinkData = launchData;
         } catch (Exception e) {
             return false;
         }
 
-        return !activity_id.isEmpty();
+        return true;
+    }
+
+    static void markInstallReferrerConsumed(Context context) {
+        if (context == null) {
+            return;
+        }
+
+        context.getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
+                .edit()
+                .putBoolean(INSTALL_REFERRER_CONSUMED_KEY, true)
+                .apply();
+    }
+
+    private boolean shouldCheckInstallReferrer(Intent intent) {
+        String activityId = intent == null || intent.getData() == null
+                ? null : intent.getData().getQueryParameter("activity_id");
+        if (activityId != null && !activityId.isEmpty()) {
+            return false;
+        }
+
+        return !getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
+                .getBoolean(INSTALL_REFERRER_CONSUMED_KEY, false);
     }
 
 

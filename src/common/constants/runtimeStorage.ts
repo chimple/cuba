@@ -101,7 +101,7 @@ export interface PortPlugin {
     lessonName: string;
     xapiIpcPackage: string;
   }>;
-  returnDataToRespect(): Promise<void>;
+  returnToLauncher(): Promise<void>;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
