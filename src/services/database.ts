@@ -972,6 +972,58 @@ export type Database = {
           },
         ];
       };
+      // Cached Supabase outcome for each student/campaign pair.
+      campaign_student_rewards: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          student_id: string;
+          rank_achieved: number | null;
+          status: Database['public']['Enums']['campaign_reward_status'];
+          evaluated_at: string;
+          created_at: string;
+          updated_at: string;
+          is_deleted: boolean;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          student_id: string;
+          rank_achieved?: number | null;
+          status: Database['public']['Enums']['campaign_reward_status'];
+          evaluated_at?: string;
+          created_at?: string;
+          updated_at?: string;
+          is_deleted?: boolean;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          student_id?: string;
+          rank_achieved?: number | null;
+          status?: Database['public']['Enums']['campaign_reward_status'];
+          evaluated_at?: string;
+          created_at?: string;
+          updated_at?: string;
+          is_deleted?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_student_rewards_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_student_rewards_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_target_audience: {
         Row: {
           created_at: string | null;
@@ -6450,6 +6502,24 @@ export type Database = {
           upserted_rows: number;
         }[];
       };
+      // Incremental campaign configuration RPC used by the offline sync service.
+      get_active_campaigns: {
+        Args: {
+          p_last_fetch_timestamp?: string | null;
+          p_student_id: string;
+        };
+        Returns: {
+          change_type: string;
+          campaign_id: string;
+          campaign_name: string;
+          rules_json: Json;
+          start_date: string;
+          end_date: string;
+          campaign_status: string;
+          created_at: string | null;
+          updated_at: string | null;
+        }[];
+      };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -8283,6 +8353,7 @@ export type Database = {
     Enums: {
       assignment_source: 'manual' | 'recommended' | 'qr_code' | 'chatbot';
       campaign_status: 'active' | 'inactive';
+      campaign_reward_status: 'won' | 'missed' | 'in_progress';
       fc_call_result: 'call_picked' | 'call_later' | 'call_not_reachable';
       fc_contact_method: 'call' | 'in_person';
       fc_engagement_target:
@@ -8499,6 +8570,7 @@ export const Constants = {
     Enums: {
       assignment_source: ['manual', 'recommended', 'qr_code', 'chatbot'],
       campaign_status: ['active', 'inactive'],
+      campaign_reward_status: ['won', 'missed', 'in_progress'],
       fc_call_result: ['call_picked', 'call_later', 'call_not_reachable'],
       fc_contact_method: ['call', 'in_person'],
       fc_engagement_target: [

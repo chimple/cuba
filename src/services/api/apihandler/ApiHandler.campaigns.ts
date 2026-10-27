@@ -30,11 +30,28 @@ import type {
   CampaignWhatsappLabelData,
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
+  CampaignActiveChange,
+  CampaignStudentRewardPayload,
 } from '../ServiceApi';
 import type { CampaignNotificationPayload } from '../ServiceApi';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 
 export class ApiHandlerCampaigns extends ApiHandlerPrograms {
+  /** Exposes the student-scoped campaign sync RPC to application callers. */
+  async getActiveCampaigns(
+    studentId: string,
+    lastFetchTimestamp?: string | null,
+  ): Promise<CampaignActiveChange[]> {
+    return await this.s.getActiveCampaigns(studentId, lastFetchTimestamp);
+  }
+
+  /** Exposes reward upsert so evaluated outcomes are visible in Supabase/Ops. */
+  async upsertCampaignStudentReward(
+    payload: CampaignStudentRewardPayload,
+  ): Promise<void> {
+    return await this.s.upsertCampaignStudentReward(payload);
+  }
+
   async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
     return await this.s.getCampaignSetupOptions();
   }
