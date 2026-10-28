@@ -1,84 +1,43 @@
 import type { WhatsappProviderStatusRow } from '../serviceapi/ServiceApi.whatsapp';
 
-const getEnv = (key: keyof ImportMetaEnv): string =>
-  import.meta.env[key]?.trim() ?? '';
+type InvokeFunction = (body: { provider_only: true }) => Promise<{
+  data: { success?: boolean; statuses?: WhatsappProviderStatusRow[] } | null;
+  error: unknown;
+}>;
 
-const getPeriskopeStatus = async (
-  checkedAt: string,
-): Promise<WhatsappProviderStatusRow> => {
-  const apiKey = getEnv('VITE_PERISKOPE_API_KEY');
-  const phone = getEnv('VITE_PERISKOPE_PHONE_NUMBER');
-
-  if (!apiKey || !phone) {
-    return { checked_at: checkedAt, provider: 'periskope', status: 'ERROR' };
-  }
-
-  try {
-    const baseUrl =
-      getEnv('VITE_PERISKOPE_API_BASE_URL') || 'https://api.periskope.app/v1';
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/phones`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'x-phone': phone,
-      },
-    });
-    if (!response.ok) throw new Error('Periskope status request failed.');
-
-    const data = (await response.json()) as { wa_state?: string };
-    return {
-      checked_at: checkedAt,
-      provider: 'periskope',
-      status:
-        data.wa_state?.toUpperCase() === 'CONNECTED'
-          ? 'CONNECTED'
-          : 'DISCONNECTED',
-    };
-  } catch {
-    return { checked_at: checkedAt, provider: 'periskope', status: 'ERROR' };
-  }
+type SupabaseClientLike = {
+  functions: {
+    invoke: (
+      functionName: string,
+      options?: { body?: { provider_only: true } },
+    ) => Promise<{
+      data: {
+        success?: boolean;
+        statuses?: WhatsappProviderStatusRow[];
+      } | null;
+      error: unknown;
+    }>;
+  };
 };
 
-const getMaytapiStatus = async (
-  checkedAt: string,
-): Promise<WhatsappProviderStatusRow> => {
-  const apiKey = getEnv('VITE_MAYTAPI_API_KEY');
-  const productId = getEnv('VITE_MAYTAPI_PRODUCT_ID');
-  const phoneId = getEnv('VITE_MAYTAPI_PHONE_ID');
-
-  if (!apiKey || !productId || !phoneId) {
-    return { checked_at: checkedAt, provider: 'maytapi', status: 'ERROR' };
+export const checkWhatsappProviderStatus = async (
+  invoke: InvokeFunction,
+): Promise<WhatsappProviderStatusRow[]> => {
+  const { data, error } = await invoke({ provider_only: true });
+  if (error) throw error;
+  if (!data?.success || !Array.isArray(data.statuses)) {
+    throw new Error('Failed to fetch WhatsApp provider status.');
   }
-
-  try {
-    const baseUrl =
-      getEnv('VITE_MAYTAPI_API_BASE_URL') || 'https://api.maytapi.com/api';
-    const response = await fetch(
-      `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(
-        productId,
-      )}/${encodeURIComponent(phoneId)}/status`,
-      { headers: { 'x-maytapi-key': apiKey } },
-    );
-    if (!response.ok) throw new Error('Maytapi status request failed.');
-
-    const data = (await response.json()) as {
-      status?: { loggedIn?: boolean };
-    };
-    return {
-      checked_at: checkedAt,
-      provider: 'maytapi',
-      status: data.status?.loggedIn ? 'CONNECTED' : 'DISCONNECTED',
-    };
-  } catch {
-    return { checked_at: checkedAt, provider: 'maytapi', status: 'ERROR' };
-  }
+  return data.statuses;
 };
 
-export const checkWhatsappProviderStatus = async (): Promise<
-  WhatsappProviderStatusRow[]
-> => {
-  const checkedAt = new Date().toISOString();
-  return Promise.all([
-    getPeriskopeStatus(checkedAt),
-    getMaytapiStatus(checkedAt),
-  ]);
+export const fetchWhatsappProviderStatus = async (
+  supabase: SupabaseClientLike | null | undefined,
+): Promise<WhatsappProviderStatusRow[]> => {
+  if (!supabase) {
+    throw new Error('Supabase client is not initialized.');
+  }
+  return checkWhatsappProviderStatus((body) =>
+    supabase.functions.invoke('get-whatsapp-integration-status', { body }),
+  );
 };

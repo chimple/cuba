@@ -533,13 +533,14 @@ export type CampaignMessageReportSummary = {
   whatsappGroups: number;
   totalMembersReachable: number;
   messagesSent: number;
+  interactions: number;
   deliveredMessages: number;
   readMessages: number;
   deliveredPollMessages: number;
   pollResponses: number;
-  deliveryRate: number;
-  readRate: number;
-  pollParticipationRate: number;
+  deliveryRate: number | null;
+  readRate: number | null;
+  pollParticipationRate: number | null;
 };
 
 export type CampaignMessageReportRow = {
@@ -547,11 +548,11 @@ export type CampaignMessageReportRow = {
   date: string;
   messageType: 'daily_message' | 'poll';
   messagesSent: number;
-  delivered: number;
-  read: number;
+  delivered: number | null;
+  read: number | null;
   pollResponses: number;
-  deliveryRate: number;
-  readRate: number;
+  deliveryRate: number | null;
+  readRate: number | null;
   pollParticipationRate: number | null;
 };
 

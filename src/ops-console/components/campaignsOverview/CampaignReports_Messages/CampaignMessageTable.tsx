@@ -9,7 +9,6 @@ import DataTablePagination from '../../DataTablePagination';
 import {
   formatReportDate,
   formatReportInteger,
-  formatReportPercent,
 } from './CampaignMessageReport.helpers';
 
 interface Props {
@@ -25,14 +24,7 @@ interface Props {
 const isCampaignMessageReportSortKey = (
   key: string,
 ): key is CampaignMessageReportSortKey =>
-  key === 'date' ||
-  key === 'messageType' ||
-  key === 'messagesSent' ||
-  key === 'delivered' ||
-  key === 'read' ||
-  key === 'deliveryRate' ||
-  key === 'readRate' ||
-  key === 'pollParticipationRate';
+  key === 'date' || key === 'messageType' || key === 'messagesSent';
 
 const CampaignMessageTable: React.FC<Props> = ({
   loading,
@@ -68,51 +60,8 @@ const CampaignMessageTable: React.FC<Props> = ({
         label: t('Messages Sent').toUpperCase(),
         align: 'center',
         headerAlign: 'center',
-        width: '14%',
+        width: '25%',
         render: (row) => formatReportInteger(row.messagesSent),
-      },
-      {
-        key: 'delivered',
-        label: t('Delivered').toUpperCase(),
-        align: 'center',
-        headerAlign: 'center',
-        width: '12%',
-        render: (row) => formatReportInteger(row.delivered),
-      },
-      {
-        key: 'read',
-        label: t('Read').toUpperCase(),
-        align: 'center',
-        headerAlign: 'center',
-        width: '8%',
-        render: (row) => formatReportInteger(row.read),
-      },
-      {
-        key: 'deliveryRate',
-        label: t('Delivery %').toUpperCase(),
-        align: 'center',
-        headerAlign: 'center',
-        width: '13%',
-        render: (row) => formatReportPercent(row.deliveryRate),
-      },
-      {
-        key: 'readRate',
-        label: t('Read %').toUpperCase(),
-        align: 'center',
-        headerAlign: 'center',
-        width: '13%',
-        render: (row) => formatReportPercent(row.readRate),
-      },
-      {
-        key: 'pollParticipationRate',
-        label: t('Poll %').toUpperCase(),
-        align: 'center',
-        headerAlign: 'center',
-        width: '10%',
-        render: (row) =>
-          row.pollParticipationRate === null
-            ? '—'
-            : formatReportPercent(row.pollParticipationRate),
       },
     ],
     [],
@@ -137,7 +86,7 @@ const CampaignMessageTable: React.FC<Props> = ({
           }}
           loading={loading}
           disableRowNavigation
-          tableMinWidth={760}
+          tableMinWidth={480}
           tableWidth="100%"
           headerNoEllipsis
         />
