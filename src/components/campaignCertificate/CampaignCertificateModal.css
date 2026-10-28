@@ -1,0 +1,356 @@
+.campaign-certificate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.campaign-certificate-confetti {
+  position: fixed !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.campaign-certificate-dialog {
+  --control-size: clamp(2.7rem, 7vh, 3.6rem);
+  position: relative;
+  z-index: 1;
+  width: min(466px, calc(100vw - 8rem));
+  padding-bottom: clamp(3.7rem, 11vh, 4.7rem);
+  border-radius: 0 0 18px 18px;
+  background: #fffdee;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+  isolation: isolate;
+  animation: campaign-certificate-enter 2200ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+/* Match BadgeCelebrationModal's pale side pockets behind the controls. */
+.campaign-certificate-dialog::before,
+.campaign-certificate-dialog::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  z-index: -1;
+  width: calc(var(--control-size) * 1.5 + 20px);
+  height: calc(var(--control-size) * 1.35);
+  border-radius: 50%;
+  background: #fffdee;
+}
+
+.campaign-certificate-dialog::before {
+  right: calc(100% - 20px);
+  border-radius: 999px 1.125rem 0 999px;
+}
+
+.campaign-certificate-dialog::after {
+  left: calc(100% - 20px);
+  border-radius: 1.125rem 999px 999px 0;
+}
+
+@keyframes campaign-certificate-enter {
+  from {
+    transform: translateY(-100vh);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.campaign-certificate-artwork {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 466 / 360;
+  overflow: hidden;
+  background: #fff9d9;
+  color: #665800;
+}
+
+.campaign-certificate-border {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.campaign-certificate-copy {
+  position: absolute;
+  /* Lower the heading, rank artwork, and message block within the certificate. */
+  inset: 12% 8% 5.5%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.campaign-certificate-copy h1,
+.campaign-certificate-copy h2,
+.campaign-certificate-copy p {
+  margin: 0;
+  line-height: 1.1;
+}
+
+.campaign-certificate-copy h1 {
+  color: #665800;
+  font-size: clamp(13px, 3.58vw, 16.667px);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.campaign-certificate-copy h2 {
+  max-width: 86%;
+  margin-top: 0.15rem;
+  overflow: hidden;
+  color: #665800;
+  font-size: clamp(13px, 3.58vw, 16.667px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 0.95;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.campaign-certificate-rank {
+  width: clamp(123px, 32%, 151px);
+  height: clamp(123px, 32%, 151px);
+  min-height: 0;
+  margin: 0.3rem 0;
+  object-fit: contain;
+  /* Match the raised badge card and its visible lower-right shadow. */
+  filter: drop-shadow(2px 2px 0 #565656);
+}
+
+.campaign-certificate-congratulations {
+  position: relative;
+  padding-bottom: 0.22rem;
+  color: #665800;
+  font-size: clamp(11px, 3vw, 14px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.campaign-certificate-congratulations::after,
+.campaign-certificate-encouragement::after,
+.campaign-certificate-footer time::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: #dadada;
+  content: '';
+  transform: translateX(-50%);
+}
+
+.campaign-certificate-encouragement {
+  position: relative;
+  margin-top: 0.18rem !important;
+  padding-bottom: 0.35rem;
+  font-size: clamp(11px, 3vw, 14px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  color: #665800;
+}
+
+.campaign-certificate-footer {
+  display: flex;
+  /* width: 72%; */
+  margin-top: auto;
+  align-items: center;
+  gap: 10vw;
+  color: #665800;
+  font-size: clamp(15px, 2vw, 20px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  transform: translateY(-2.35rem);
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.campaign-certificate-footer img {
+  width: 137.999px;
+  height: 21.667px;
+  max-width: 48%;
+  max-height: none;
+}
+
+.campaign-certificate-footer time {
+  position: relative;
+  padding-bottom: 0.2rem;
+}
+
+.campaign-certificate-audio,
+.campaign-certificate-close {
+  position: absolute;
+  top: 0.55rem;
+  z-index: 4;
+  width: var(--control-size);
+  height: var(--control-size);
+}
+
+.campaign-certificate-audio {
+  right: calc(100% + 0.8rem);
+}
+
+.campaign-certificate-audio .audio-button,
+.campaign-certificate-audio .audio-button__icon {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+}
+
+.campaign-certificate-close {
+  left: calc(100% + 0.8rem);
+  padding: 0;
+  border: 2px solid #f34d08;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.campaign-certificate-close::before,
+.campaign-certificate-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 55%;
+  height: 3px;
+  border-radius: 999px;
+  background: #f34d08;
+}
+
+.campaign-certificate-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.campaign-certificate-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.campaign-certificate-share {
+  /* Keep the certificate share control identical to BadgeCelebrationModal. */
+  position: absolute;
+  bottom: 0.35rem;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  min-width: 100px;
+  max-width: calc(100% - 1rem);
+  height: 64px;
+  min-height: 60px;
+  padding: 2.188px clamp(0.75rem, 4vw, 22.636px) 2.992px;
+  box-sizing: border-box;
+  flex: 0 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  transform: translateX(-50%);
+  border: none;
+  border-bottom: 5.455px solid #300d37;
+  border-radius: 12px;
+  background: #c094ef;
+  color: #2d1644;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.campaign-certificate-share:active:not(:disabled) {
+  transform: translate(-50%, 0.2rem);
+  box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+}
+
+.campaign-certificate-share:disabled {
+  cursor: default;
+}
+
+.campaign-certificate-share img {
+  width: clamp(15.7px, 4vw, 21.421px);
+  height: clamp(18.421px, 4.7vw, 22.6px);
+}
+
+.campaign-certificate-share-star {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0) rotate(var(--star-rotate, 0deg));
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.4s ease-out;
+}
+
+.campaign-certificate-share-star--visible {
+  opacity: 1;
+  transform: scale(1) rotate(var(--star-rotate, 0deg));
+  transition:
+    opacity 0.35s ease-in,
+    transform 0.35s ease-in;
+}
+
+.campaign-certificate-share-star-left {
+  width: 62px;
+  height: 54px;
+  top: 18px;
+  left: -58px;
+}
+
+.campaign-certificate-share-star-right {
+  width: 88px;
+  height: 76px;
+  top: 35%;
+  right: -80px;
+  --star-rotate: 60deg;
+}
+
+@media (max-height: 500px) {
+  .campaign-certificate-dialog {
+    width: min(400px, calc(100vw - 8rem));
+    padding-bottom: 3.4rem;
+  }
+  .campaign-certificate-rank {
+    width: 20%;
+    margin: 0.15rem 0;
+  }
+  .campaign-certificate-share {
+    height: 62px;
+    min-height: 58px;
+  }
+}
+
+@media (max-width: 560px) {
+  .campaign-certificate-dialog {
+    width: calc(100vw - 6rem);
+  }
+  .campaign-certificate-audio {
+    right: calc(100% + 0.35rem);
+  }
+  .campaign-certificate-close {
+    left: calc(100% + 0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-certificate-dialog,
+  .campaign-certificate-share-star {
+    animation: none;
+    transition: none;
+  }
+}

@@ -14,6 +14,7 @@ import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiCourseMedia } from './SqliteApi.course.media';
+import { SqliteApi } from '../SqliteApi';
 
 export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
   [key: string]: any;
@@ -218,6 +219,17 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       );
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    // Evaluate locally after each lesson so certificates work offline and appear immediately.
+    // Use the root SQLite API singleton because the result-update branch does
+    // not inherit the campaign-management methods directly.
+    void SqliteApi.getInstance()
+      .then((api) => api.syncCampaignRewards(student.id))
+      .then(() =>
+        SqliteApi.getI().evaluateCampaignRewardsAfterLesson(student.id),
+      )
+      .catch((error: unknown) =>
+        logger.error('Campaign reward evaluation failed:', error),
+      );
     const pushData: any = {
       id: student.id,
       stars: updatedStudent?.stars,

@@ -262,5 +262,14 @@
     "statements": [
       "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
+  },
+  "20": {
+    "toVersion": 20,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS local_campaigns (id TEXT PRIMARY KEY, name TEXT NOT NULL, rules_json TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL, is_deleted INTEGER NOT NULL DEFAULT 0);",
+      "CREATE INDEX IF NOT EXISTS idx_local_campaigns_status_dates ON local_campaigns(status, start_date, end_date);",
+      "CREATE TABLE IF NOT EXISTS user_campaign_rewards (campaign_id TEXT NOT NULL, student_id TEXT NOT NULL, rank_achieved INTEGER, status TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress')), evaluated_at TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT (datetime('now')), is_deleted INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (campaign_id, student_id));",
+      "CREATE INDEX IF NOT EXISTS idx_user_campaign_rewards_student_status ON user_campaign_rewards(student_id, status);"
+    ]
   }
 }

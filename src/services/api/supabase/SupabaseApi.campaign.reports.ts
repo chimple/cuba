@@ -31,6 +31,7 @@ import {
   type OpenwaCampaignReport,
 } from './SupabaseApi.campaign.reports.openwa';
 import type { CampaignMessagingProviderSource } from '../../../ops-console/components/campaignsOverview/CampaignReports_Messages/CampaignMessageReport.helpers';
+import { SupabaseApiCampaignRewards } from './SupabaseApi.campaign.rewards';
 
 export interface SupabaseApiCampaignReports {}
 
@@ -43,7 +44,7 @@ const buildCampaignSchoolMetricWindow = (
   metricWindow: '7d' | 'campaign_days',
 ) => (metricWindow === '7d' ? metricWindow : campaignId);
 
-export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
+export class SupabaseApiCampaignReports extends SupabaseApiCampaignRewards {
   async getCampaignListingMetrics(
     campaignIds: string[],
   ): Promise<Map<string, CampaignDashboardMetric>> {

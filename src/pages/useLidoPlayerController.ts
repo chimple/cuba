@@ -43,7 +43,7 @@ import {
 import { initializeLidoPlayer } from './LidoPlayer.init';
 import { createLidoPlayerControllerHelpers } from './LidoPlayer.controllerHelpers';
 import {
-  returnToRespectIfNeeded,
+  returnToLauncherIfNeeded,
   wasRespectLessonLaunchReceived,
 } from '../services/respect/RespectLessonLaunchService';
 import { getPreparedRespectLessonLaunchState } from '../services/respect/RespectLaunchCache';
@@ -199,7 +199,7 @@ export const useLidoPlayerController = () => {
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
 
-    if (await returnToRespectIfNeeded()) {
+    if (await returnToLauncherIfNeeded()) {
       setIsLoading(false);
       setTimeout(() => {
         isExitingRef.current = false;

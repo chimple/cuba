@@ -59,7 +59,9 @@ public class PortPlugin extends Plugin {
     }
     private static final String TAG = "Logger001";
     private static final String INSTALL_REFERRER_TAG = "REFERRER";
-    private static final String RESPECT_PACKAGE = "world.respect.app";
+    private static final String DEFAULT_LAUNCHER_PACKAGE = "world.respect.app";
+    private static final String XAPI_IPC_ACTION = "org.openeel.action.xapioveripc";
+    private static final String XAPI_IPC_PACKAGE_KEY = "xapiIpcPackage";
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -307,7 +309,7 @@ public class PortPlugin extends Plugin {
         String registration = deepLinkData.optString("registration", "");
         String chimpleLessonId = deepLinkData.optString("chimple_lesson_id", "");
         String lessonName = deepLinkData.optString("lesson_name", "");
-        String xapiIpcPackage = deepLinkData.optString("xapiIpcPackage", "");
+        String xapiIpcPackage = deepLinkData.optString(XAPI_IPC_PACKAGE_KEY, "");
 
         Log.d(TAG, "Received activity_id: " + activity_id);
         result.put("endpoint", endpoint);
@@ -342,6 +344,9 @@ public class PortPlugin extends Plugin {
                     try {
                         ReferrerDetails details = referrerClient.getInstallReferrer();
                         String installReferrer = details.getInstallReferrer();
+                        // Play returns the original install payload on later reads, so
+                        // consume it once before allowing RESPECT App Links to take over.
+                        MainActivity.markInstallReferrerConsumed(getContext());
                         if (installReferrer != null && !installReferrer.isEmpty()) {
                             Log.d(
                                     INSTALL_REFERRER_TAG,
@@ -605,24 +610,51 @@ public class PortPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void returnToLauncher(PluginCall call) {
+        returnToLaunchSource(call);
+    }
+
+    @PluginMethod
     public void returnDataToRespect(PluginCall call) {
+        returnToLaunchSource(call);
+    }
+
+    private void returnToLaunchSource(PluginCall call) {
         Activity activity = getActivity();
-        if (activity != null) {
-            Intent respectIntent = activity.getPackageManager()
-                    .getLaunchIntentForPackage(RESPECT_PACKAGE);
-            if (respectIntent != null) {
-                respectIntent.addFlags(
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP
-                );
-                activity.startActivity(respectIntent);
-            }
-            // Clear deeplink state only after the RESPECT task is foregrounded.
-            activity_id = "";
-            deepLinkData = new JSONObject();
-            activity.finish();
-            call.resolve();
-        } else {
+        if (activity == null) {
             call.reject("Activity not found");
+            return;
         }
+
+        String launcherPackage = deepLinkData.optString(
+                XAPI_IPC_PACKAGE_KEY,
+                DEFAULT_LAUNCHER_PACKAGE
+        );
+        if (launcherPackage.isEmpty()) {
+            launcherPackage = DEFAULT_LAUNCHER_PACKAGE;
+        }
+
+        Intent xapiIntent = new Intent(XAPI_IPC_ACTION).setPackage(launcherPackage);
+        if (activity.getPackageManager().queryIntentServices(xapiIntent, 0).isEmpty()) {
+            call.reject("Launch source is unavailable");
+            return;
+        }
+
+        Intent launcherIntent = activity.getPackageManager()
+                .getLaunchIntentForPackage(launcherPackage);
+        if (launcherIntent == null) {
+            call.reject("Launch source is unavailable");
+            return;
+        }
+
+        launcherIntent.addFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+        activity.startActivity(launcherIntent);
+        // Clear launch state only after returning to the launcher that started the lesson.
+        activity_id = "";
+        deepLinkData = new JSONObject();
+        activity.finish();
+        call.resolve();
     }
 }
