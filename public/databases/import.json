@@ -1,6 +1,6 @@
 {
   "database": "db_issue10",
-  "version": 18,
+  "version": 21,
   "encrypted": false,
   "mode": "full",
   "tables": [
@@ -491151,6 +491151,7 @@
         ["reward", "2026-06-14T11:33:34.373+00:00"],
         ["class", "2024-01-01 01:01:01"],
         ["user", "2024-01-01 01:01:01"],
+        ["teacher_leaderboard", "2024-01-01 01:01:01"],
         ["class_invite_code", "2024-05-29 05:07:39"],
         ["class_user", "2024-01-01 01:01:01"],
         ["favorite_lesson", "2024-01-01 01:01:01"],
@@ -531533,6 +531534,36 @@
         { "column": "created_at", "value": "TEXT DEFAULT (datetime ('now'))" },
         { "column": "updated_at", "value": "TEXT DEFAULT (datetime ('now'))" },
         { "column": "id", "value": "TEXT PRIMARY KEY" }
+      ]
+    },
+    {
+      "name": "teacher_leaderboard",
+      "schema": [
+        { "column": "teacher_id", "value": "TEXT PRIMARY KEY" },
+        { "column": "block_name", "value": "TEXT" },
+        { "column": "final_score", "value": "REAL NOT NULL DEFAULT 0" },
+        { "column": "homework_count", "value": "INTEGER NOT NULL DEFAULT 0" },
+        { "column": "last_homework_at", "value": "TEXT" },
+        { "column": "score_date", "value": "TEXT" },
+        { "column": "score_updated_at", "value": "TEXT" },
+        {
+          "column": "total_teachers_in_block",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "active_teachers_in_block",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "inactive_teachers_in_block",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        { "column": "tier", "value": "TEXT NOT NULL DEFAULT 'locked'" },
+        {
+          "column": "updated_at",
+          "value": "TEXT NOT NULL DEFAULT (datetime ('now'))"
+        },
+        { "column": "is_deleted", "value": "BOOLEAN NOT NULL DEFAULT 0" }
       ]
     },
     {

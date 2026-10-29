@@ -1,4 +1,8 @@
-import { LeaderboardDropdownList } from '../../../common/constants';
+import {
+  LeaderboardDropdownList,
+  TABLES,
+  TableTypes,
+} from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { LeaderboardInfo, StudentLeaderboardInfo } from '../ServiceApi';
 import { SupabaseApiUserClassManagement } from './SupabaseApi.user.classManagement';
@@ -51,6 +55,31 @@ export interface SupabaseApiUserLeaderboards {
   [key: string]: any;
 }
 export class SupabaseApiUserLeaderboards extends SupabaseApiUserClassManagement {
+  /**
+   * Fetches the active leaderboard row for a teacher from Supabase.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  async getTeacherLeaderboard(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined> {
+    if (!this.supabase || !teacherId) return undefined;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.TeacherLeaderboard)
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching teacher leaderboard:', error);
+      return undefined;
+    }
+
+    return data ?? undefined;
+  }
+
   async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList,

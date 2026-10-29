@@ -1,0 +1,167 @@
+.teacher-leaderboard {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 22px 32px;
+  box-sizing: border-box;
+  color: #4e4e52;
+  text-align: left;
+}
+.teacher-leaderboard h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+}
+.teacher-leaderboard-count {
+  margin: 10px 0 26px;
+  font-size: 19px;
+  font-weight: 700;
+}
+.teacher-leaderboard-score {
+  position: absolute;
+  top: -30px;
+  width: 31%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.teacher-leaderboard-score > span:last-child {
+  color: #fa7900;
+  font-weight: 700;
+}
+.teacher-leaderboard-person {
+  width: 18px;
+  height: 18px;
+  color: #ff7d13;
+}
+.teacher-leaderboard-tiers {
+  position: relative;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 13px;
+}
+.teacher-leaderboard-score--silver {
+  left: 0;
+}
+.teacher-leaderboard-score--gold {
+  left: 34.5%;
+}
+.teacher-leaderboard-score--bronze {
+  right: 0;
+}
+.teacher-leaderboard-tier {
+  position: relative;
+  transform: translateY(50px);
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  width: 31%;
+  height: 105px;
+  padding-bottom: 27px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  border: 0;
+  box-shadow: 6px 6px 0 #999999;
+  background: #e7e5e5;
+  font-size: 21px;
+  font-weight: 700;
+}
+.teacher-leaderboard-tier--gold {
+  height: 143px;
+  transform: translateY(50px);
+  background: #fef9dc;
+  color: #4e4e52;
+  box-shadow: 6px 6px 0 #ffc00c;
+}
+.teacher-leaderboard-tier--bronze {
+  height: 77px;
+  background: #ffeedc;
+  color: #4e4e52;
+  box-shadow: 6px 6px 0 #f27c08;
+}
+
+.teacher-leaderboard-hand {
+  position: absolute;
+  z-index: 2;
+  /* Each hand is positioned relative to its own bar, so it sits above the
+     active bar regardless of whether Gold, Silver, or Bronze is selected. */
+  top: -32px;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  transform: translateX(-50%);
+  animation: teacher-leaderboard-point 900ms ease-in-out infinite alternate;
+}
+.teacher-leaderboard-tier--gold .teacher-leaderboard-hand {
+  z-index: 3;
+}
+@keyframes teacher-leaderboard-point {
+  from {
+    margin-top: 0;
+  }
+  to {
+    margin-top: 10px;
+  }
+}
+.teacher-leaderboard-congratulations,
+.teacher-leaderboard-lock-message {
+  margin: 0 auto;
+  padding: 13px 11px;
+  border-radius: 10px;
+  background: #f0e6ff;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.22;
+}
+.teacher-leaderboard-congratulations {
+  max-width: 280px;
+  font-size: 12px;
+  line-height: 1.1;
+  margin-top: 74px;
+}
+.teacher-leaderboard-assign {
+  display: block;
+  width: 88%;
+  margin: 16px auto 0;
+  border: 0;
+  border-radius: 4px;
+  background: #7e5cb3;
+  color: #fff;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 50px;
+}
+.teacher-leaderboard-lock-message {
+  margin-top: 56px;
+  font-size: 20px;
+}
+.teacher-leaderboard-lock {
+  display: block;
+  width: 78px;
+  height: 78px;
+  margin: 22px auto 14px;
+}
+.teacher-leaderboard-lock-title,
+.teacher-leaderboard-lock-subtitle {
+  text-align: center;
+  margin: 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.teacher-leaderboard-lock-subtitle {
+  margin-top: 0;
+}
+.teacher-leaderboard:has(.teacher-leaderboard-lock)
+  .teacher-leaderboard-assign {
+  margin-top: 40px;
+}
+.teacher-leaderboard-loading {
+  flex: 1;
+  background: #fff;
+}
