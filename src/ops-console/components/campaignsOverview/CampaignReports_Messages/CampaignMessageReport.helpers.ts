@@ -30,6 +30,7 @@ export const EMPTY_CAMPAIGN_MESSAGE_SUMMARY: CampaignMessageReportSummary = {
   whatsappGroups: 0,
   totalMembersReachable: 0,
   messagesSent: 0,
+  interactions: 0,
   deliveredMessages: 0,
   readMessages: 0,
   deliveredPollMessages: 0,
@@ -49,10 +50,10 @@ export const EMPTY_CAMPAIGN_MESSAGE_REPORT: CampaignMessageReportResponse = {
   },
   filters: { fromDate: null, toDate: null },
 };
-export const formatReportInteger = (value: number): string =>
-  Math.max(0, value).toLocaleString();
-export const formatReportPercent = (value: number): string =>
-  `${Number(Math.max(0, value).toFixed(2))}%`;
+export const formatReportInteger = (value: number | null): string =>
+  value === null ? '—' : Math.max(0, value).toLocaleString();
+export const formatReportPercent = (value: number | null): string =>
+  value === null ? '—' : `${Number(Math.max(0, value).toFixed(2))}%`;
 export const formatReportDate = (value: string): string => {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return value;
@@ -108,27 +109,11 @@ export const getCampaignMessageExportFileName = (
 const buildCampaignMessageExportRows = (
   rows: CampaignMessageReportRow[],
 ): CampaignMessageExportCell[][] => [
-  [
-    String(t('Date')),
-    String(t('Message Type')),
-    String(t('Messages Sent')),
-    String(t('Delivered')),
-    String(t('Read')),
-    String(t('Delivery %')),
-    String(t('Read %')),
-    String(t('Poll %')),
-  ],
+  [String(t('Date')), String(t('Message Type')), String(t('Messages Sent'))],
   ...rows.map((row) => [
     formatReportDate(row.date),
     String(t(row.messageType === 'poll' ? 'Poll' : 'Daily Message')),
     row.messagesSent,
-    row.delivered,
-    row.read,
-    Number(row.deliveryRate.toFixed(2)),
-    Number(row.readRate.toFixed(2)),
-    row.pollParticipationRate === null
-      ? '—'
-      : Number(row.pollParticipationRate.toFixed(2)),
   ]),
 ];
 
@@ -334,6 +319,7 @@ export const buildCampaignMessageReport = (
       whatsappGroups,
       totalMembersReachable,
       messagesSent,
+      interactions: 0,
       deliveredMessages,
       readMessages,
       deliveredPollMessages,
@@ -545,7 +531,7 @@ const percentage = (numerator: number, denominator: number): number =>
 const sum = (
   rows: CampaignMessageReportRow[],
   key: 'messagesSent' | 'delivered' | 'read' | 'pollResponses',
-): number => rows.reduce((total, row) => total + row[key], 0);
+): number => rows.reduce((total, row) => total + (row[key] ?? 0), 0);
 const sortRows = (
   rows: CampaignMessageReportRow[],
   key: keyof CampaignMessageReportRow,

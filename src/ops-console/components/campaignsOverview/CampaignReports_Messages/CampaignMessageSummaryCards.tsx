@@ -2,10 +2,7 @@ import { t } from 'i18next';
 import React from 'react';
 import type { CampaignMessageReportSummary } from '../../../../services/api/ServiceApi';
 import CampaignsOverviewInfoTooltip from '../CampaignsOverviewInfoTooltip';
-import {
-  formatReportInteger,
-  formatReportPercent,
-} from './CampaignMessageReport.helpers';
+import { formatReportInteger } from './CampaignMessageReport.helpers';
 
 interface Props {
   loading: boolean;
@@ -29,19 +26,19 @@ const CampaignMessageSummaryCards: React.FC<Props> = ({ loading, summary }) => {
       'Total number of campaign messages sent during the selected period, including daily messages and polls.',
     ],
     [
-      'Delivery Rate %',
-      formatReportPercent(summary.deliveryRate),
-      'Percentage of sent messages that were successfully delivered.',
+      'Interactions',
+      formatReportInteger(summary.interactions),
+      'Overall interactions reported by OpenWA during the selected period.',
     ],
     [
-      'Read Rate %',
-      formatReportPercent(summary.readRate),
-      'Percentage of delivered messages that were read by recipients.',
+      'Delivered Recipients',
+      formatReportInteger(summary.deliveredMessages),
+      'Total recipients reported by OpenWA as having received campaign messages across the selected period.',
     ],
     [
-      'Poll Participation Rate %',
-      formatReportPercent(summary.pollParticipationRate),
-      'Percentage of recipients who responded to campaign polls during the selected period.',
+      'Read Recipients',
+      formatReportInteger(summary.readMessages),
+      'Total recipients reported by OpenWA as having read campaign messages across the selected period.',
     ],
   ] as const;
   return (

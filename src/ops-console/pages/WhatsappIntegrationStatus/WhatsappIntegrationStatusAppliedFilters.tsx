@@ -6,20 +6,20 @@ import type { WhatsappIntegrationStatus } from '../../../services/api/serviceapi
 type WhatsappIntegrationStatusAppliedFiltersProps = {
   maytapiStatus: WhatsappIntegrationStatus | null;
   onDeleteFilter: (filterKey: string) => void;
-  periskopeStatus: WhatsappIntegrationStatus | null;
+  openwaStatus: WhatsappIntegrationStatus | null;
 };
 
 const WhatsappIntegrationStatusAppliedFilters: FC<
   WhatsappIntegrationStatusAppliedFiltersProps
-> = ({ maytapiStatus, onDeleteFilter, periskopeStatus }) => {
+> = ({ maytapiStatus, onDeleteFilter, openwaStatus }) => {
   const { t } = useTranslation();
   const extraFilters = [
-    ...(periskopeStatus
+    ...(openwaStatus
       ? [
           {
-            key: 'periskope_status',
-            value: periskopeStatus,
-            label: `${t('Periskope')} : ${periskopeStatus}`,
+            key: 'openwa_status',
+            value: openwaStatus,
+            label: `${t('OpenWA')} : ${openwaStatus}`,
           },
         ]
       : []),

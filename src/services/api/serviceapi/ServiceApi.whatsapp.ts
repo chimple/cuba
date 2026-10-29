@@ -11,7 +11,7 @@ export type WhatsappIntegrationStatusRow = {
   school_name: string;
   class_name: string | null;
   group_id: string | null;
-  periskope_status: WhatsappIntegrationStatus;
+  openwa_status: WhatsappIntegrationStatus;
   maytapi_status: WhatsappIntegrationStatus;
 };
 
@@ -29,12 +29,12 @@ export type WhatsappIntegrationStatusParams = {
   page?: number;
   page_size?: number;
   search?: string;
-  periskope_status?: WhatsappIntegrationStatus;
+  openwa_status?: WhatsappIntegrationStatus;
   maytapi_status?: WhatsappIntegrationStatus;
 };
 
 export type WhatsappProviderStatusRow = {
-  provider: 'periskope' | 'maytapi';
+  provider: 'openwa' | 'openwa_api';
   checked_at: string;
   status: 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
 };
