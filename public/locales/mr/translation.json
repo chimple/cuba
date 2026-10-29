@@ -1132,6 +1132,7 @@
     "{{count}} lessons complete!": "{{count}} धडे पूर्ण!",
     "Keep learning and exploring!": "शिकत रहा, शोधत रहा!",
     "Sharing...": "शेअर करत आहे...",
+    "Achievements": "कामगिरी",
     "Competitions": "स्पर्धा",
     "Non-rank holders": "",
     "A visual indicator (=) showing no change compared to the last 7 days.": "",
@@ -1969,7 +1970,7 @@
     "Longest, Tallest, Shortest": "",
     "Average Assignments Completed": "",
     "Success Count": "",
-    "Poll question...": ""
+    "Poll question...": "",
     "Start the Day!": "दिवसाची सुरुवात करा!",
     "START THE DAY!": "दिवसाची सुरुवात करा!"
 }

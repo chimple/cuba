@@ -1673,6 +1673,7 @@
     "{{count}} lessons complete!": "{{count}} पाठ पूरे!",
     "Keep learning and exploring!": "सीखते रहें, खोजते रहें!",
     "Sharing...": "शेयर किया जा रहा है..।",
+    "Achievements": "उपलब्धियाँ",
     "Competitions": "प्रतियोगिताएँ",
     "Non-rank holders": "",
     "Save this group for reuse": "",
@@ -1999,7 +2000,7 @@
     "Class Summary": "",
     "Not Active for last 7 days": "",
     "A maximum of {{limit}} unique phone numbers can be sent in one run.": "",
-    "Average time spent by active students in the last 7 days.": ""
+    "Average time spent by active students in the last 7 days.": "",
     "Start the Day!": "दिन की शुरुआत करें!",
     "START THE DAY!": "दिन की शुरुआत करें!"
 }
