@@ -100,6 +100,7 @@ export enum TABLES {
   Reward = 'reward',
   Class = 'class',
   User = 'user',
+  TeacherLeaderboard = 'teacher_leaderboard',
   ClassInvite_code = 'class_invite_code',
   ClassUser = 'class_user',
   FavoriteLesson = 'favorite_lesson',

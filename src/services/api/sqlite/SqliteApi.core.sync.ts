@@ -16,17 +16,14 @@ import type { SqlStatement } from '../../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../../workers/backgroundWorkerClient';
 import { ServiceConfig } from '../../ServiceConfig';
 import { hasLocalLessonAsset, preserveLessonAssetIds } from './lessonAssetSync';
-
 export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
   [key: string]: any;
-
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;
   }): Promise<string> {
     return this._serverApi.uploadSchoolVisitMediaFile(params);
   }
-
   async addProfileImages(
     id: string,
     file: File,
@@ -72,7 +69,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       }
       this._tablesNeedingFullSync.clear();
     }
-
     // ensure USER table syncs first (single-row, heavy JSON)
     const orderedTableNames = tableNames.includes(TABLES.User)
       ? [TABLES.User, ...tableNames.filter((t) => t !== TABLES.User)]
@@ -320,11 +316,24 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
         ],
       });
     }
-
     try {
       await beginSyncWriteTransaction();
       if (lessonAssetIdStatements.length > 0) {
         await writeSyncBatch(lessonAssetIdStatements);
+      }
+      const teacherLeaderboardRows = tablesForWorker[TABLES.TeacherLeaderboard];
+      if (teacherLeaderboardRows?.length) {
+        const columns = tableColumnsByName[TABLES.TeacherLeaderboard] ?? [];
+        for (const row of teacherLeaderboardRows) {
+          const fields = columns.filter((column) => Object.hasOwn(row, column));
+          await writeSyncBatch([
+            {
+              statement: `INSERT OR REPLACE INTO ${TABLES.TeacherLeaderboard} (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`,
+              values: fields.map((field) => row[field]),
+            },
+          ]);
+        }
+        delete tablesForWorker[TABLES.TeacherLeaderboard];
       }
       try {
         await runBackgroundWorkerStreamingSync(

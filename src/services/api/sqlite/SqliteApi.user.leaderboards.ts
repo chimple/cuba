@@ -2,6 +2,7 @@ import {
   LIDO_ASSESSMENT,
   LeaderboardDropdownList,
   TABLES,
+  TableTypes,
 } from '../../../common/constants';
 import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
@@ -10,6 +11,37 @@ import { SqliteApiUserClassManagement } from './SqliteApi.user.classManagement';
 
 export class SqliteApiUserLeaderboards extends SqliteApiUserClassManagement {
   [key: string]: any;
+  /**
+   * Fetches the active leaderboard row for a teacher from local SQLite.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  async getTeacherLeaderboard(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined> {
+    await this.ensureInitialized();
+    if (!this._db || !teacherId) return undefined;
+
+    try {
+      const result = await this._db.query(
+        `SELECT * FROM ${TABLES.TeacherLeaderboard}
+         WHERE teacher_id = ? AND COALESCE(is_deleted, 0) = 0
+         LIMIT 1`,
+        [teacherId],
+      );
+      const localResult = result.values?.[0] as
+        | TableTypes<'teacher_leaderboard'>
+        | undefined;
+      return localResult;
+    } catch (error) {
+      logger.error(
+        '[TeacherLeaderboard] Error fetching SQLite leaderboard:',
+        error,
+      );
+      return undefined;
+    }
+  }
+
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {

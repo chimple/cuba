@@ -5288,6 +5288,62 @@ export type Database = {
           },
         ];
       };
+      teacher_leaderboard: {
+        Row: {
+          active_teachers_in_block: number;
+          block_name: string | null;
+          final_score: number;
+          homework_count: number;
+          inactive_teachers_in_block: number;
+          is_deleted: boolean;
+          last_homework_at: string | null;
+          score_date: string | null;
+          score_updated_at: string | null;
+          teacher_id: string;
+          tier: string;
+          total_teachers_in_block: number;
+          updated_at: string;
+        };
+        Insert: {
+          active_teachers_in_block?: number;
+          block_name?: string | null;
+          final_score?: number;
+          homework_count?: number;
+          inactive_teachers_in_block?: number;
+          is_deleted?: boolean;
+          last_homework_at?: string | null;
+          score_date?: string | null;
+          score_updated_at?: string | null;
+          teacher_id: string;
+          tier?: string;
+          total_teachers_in_block?: number;
+          updated_at?: string;
+        };
+        Update: {
+          active_teachers_in_block?: number;
+          block_name?: string | null;
+          final_score?: number;
+          homework_count?: number;
+          inactive_teachers_in_block?: number;
+          is_deleted?: boolean;
+          last_homework_at?: string | null;
+          score_date?: string | null;
+          score_updated_at?: string | null;
+          teacher_id?: string;
+          tier?: string;
+          total_teachers_in_block?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'teacher_leaderboard_teacher_id_fkey';
+            columns: ['teacher_id'];
+            isOneToOne: true;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       user: {
         Row: {
           age: number | null;

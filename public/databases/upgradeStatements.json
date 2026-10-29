@@ -271,5 +271,11 @@
       "CREATE TABLE IF NOT EXISTS user_campaign_rewards (campaign_id TEXT NOT NULL, student_id TEXT NOT NULL, rank_achieved INTEGER, status TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress')), evaluated_at TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT (datetime('now')), is_deleted INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (campaign_id, student_id));",
       "CREATE INDEX IF NOT EXISTS idx_user_campaign_rewards_student_status ON user_campaign_rewards(student_id, status);"
     ]
+  },
+  "21": {
+    "toVersion": 21,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS teacher_leaderboard (teacher_id TEXT PRIMARY KEY, block_name TEXT, final_score REAL NOT NULL DEFAULT 0, homework_count INTEGER NOT NULL DEFAULT 0, last_homework_at TEXT, score_date TEXT, score_updated_at TEXT, total_teachers_in_block INTEGER NOT NULL DEFAULT 0, active_teachers_in_block INTEGER NOT NULL DEFAULT 0, inactive_teachers_in_block INTEGER NOT NULL DEFAULT 0, tier TEXT NOT NULL DEFAULT 'locked', updated_at TEXT NOT NULL DEFAULT (datetime('now')), is_deleted BOOLEAN NOT NULL DEFAULT 0);"
+    ]
   }
 }
