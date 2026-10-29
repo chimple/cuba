@@ -37,6 +37,9 @@ import org.json.JSONObject;
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
     private static final String TAG = "RespectLauncher";
+    private static final String APP_PREFERENCES = "AppPreferences";
+    private static final String INSTALL_REFERRER_CONSUMED_KEY =
+            "respectInstallReferrerConsumed";
 
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
@@ -47,7 +50,10 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
-            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences(
+                    APP_PREFERENCES,
+                    MODE_PRIVATE
+            );
             String userId = sharedPreferences.getString("userId", null);
             if(userId !=null){
                 FirebaseCrashlytics.getInstance().setUserId(userId);
@@ -65,6 +71,9 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
+        if (shouldCheckInstallReferrer(getIntent())) {
+            PortPlugin.checkInstallReferrerOnLaunch();
+        }
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -133,26 +142,98 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             return;
         }
 
-        Uri data = intent.getData();
-        try {
-            for (String key : data.getQueryParameterNames()) {
-                if (key.equals("activity_id")) {
-                    Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
-                    activity_id = data.getQueryParameter(key);
-                    // RESPECT launches a full-screen Lido activity. Lock here,
-                    // before the web player initializes, to prevent portrait UI.
-                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                }
-                deepLinkData.put(key, data.getQueryParameter(key));
-            }
-        } catch (Exception e) {
+        if (!setRespectLaunchData(intent.getData())) {
             return;
         }
+
+        // RESPECT launches a full-screen Lido activity. Lock here,
+        // before the web player initializes, to prevent portrait UI.
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // The web app independently retries launch preparation until its data is ready.
         // Do not delay this event: a warm Cuba activity otherwise briefly shows the
         // previous student-selection screen before the RESPECT lesson is opened.
         PortPlugin.sendLaunch();
+    }
+
+    static void handleInstallReferrer(String installReferrer) {
+        try {
+            String decodedReferrer = Uri.decode(installReferrer);
+            Uri referrerData;
+            if (decodedReferrer.startsWith("intent://")
+                    || decodedReferrer.startsWith("https://")
+                    || decodedReferrer.startsWith("http://")) {
+                Intent referrerIntent = Intent.parseUri(
+                        decodedReferrer, Intent.URI_INTENT_SCHEME
+                );
+                referrerData = referrerIntent.getData();
+            } else {
+                // Play referrers are query strings; retain nested encoded values.
+                referrerData = new Uri.Builder()
+                        .scheme("https")
+                        .authority("play-referrer")
+                        .encodedQuery(installReferrer)
+                        .build();
+            }
+            boolean hasActivityId = referrerData != null
+                    && referrerData.getQueryParameter("activity_id") != null;
+            boolean hasChimpleLessonId = referrerData != null
+                    && referrerData.getQueryParameter("chimple_lesson_id") != null;
+            String activityId = hasActivityId
+                    ? referrerData.getQueryParameter("activity_id") : "";
+            String chimpleLessonId = hasChimpleLessonId
+                    ? referrerData.getQueryParameter("chimple_lesson_id") : "";
+            // Play delivers a deferred RESPECT launch as referrer text rather than an intent.
+            if (setRespectLaunchData(referrerData)) {
+                PortPlugin.sendLaunch();
+            } else {
+                Log.d(TAG, "Install referrer lesson handoff=false");
+            }
+        } catch (Exception exception) {
+            Log.w(TAG, "Unable to read the install referrer launch data", exception);
+        }
+    }
+
+    private static boolean setRespectLaunchData(Uri data) {
+        String activityId = data == null ? null : data.getQueryParameter("activity_id");
+        if (activityId == null || activityId.isEmpty()) {
+            return false;
+        }
+
+        try {
+            JSONObject launchData = new JSONObject();
+            for (String key : data.getQueryParameterNames()) {
+                launchData.put(key, data.getQueryParameter(key));
+            }
+            activity_id = activityId;
+            deepLinkData = launchData;
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    static void markInstallReferrerConsumed(Context context) {
+        if (context == null) {
+            return;
+        }
+
+        context.getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
+                .edit()
+                .putBoolean(INSTALL_REFERRER_CONSUMED_KEY, true)
+                .apply();
+    }
+
+    private boolean shouldCheckInstallReferrer(Intent intent) {
+        String activityId = intent == null || intent.getData() == null
+                ? null : intent.getData().getQueryParameter("activity_id");
+        if (activityId != null && !activityId.isEmpty()) {
+            return false;
+        }
+
+        return !getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
+                .getBoolean(INSTALL_REFERRER_CONSUMED_KEY, false);
     }
 
 

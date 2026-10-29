@@ -250,5 +250,11 @@
       "ALTER TABLE lesson ADD COLUMN previous_lido_lesson_id TEXT;",
       "ALTER TABLE lesson ADD COLUMN previous_cocos_lesson_id TEXT;"
     ]
+  },
+  "18": {
+    "toVersion": 18,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS live_quiz_room (id TEXT PRIMARY KEY, assignment_id TEXT NOT NULL, class_id TEXT NOT NULL, course_id TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, lesson_id TEXT NOT NULL, participants TEXT, results TEXT, school_id TEXT NOT NULL, starts_at TEXT NOT NULL, updated_at TEXT DEFAULT (datetime('now')));"
+    ]
   }
 }
