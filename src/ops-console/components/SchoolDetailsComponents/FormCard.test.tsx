@@ -10,7 +10,7 @@ jest.mock('i18next', () => ({
 type MockPhoneInputProps = {
   defaultCountry?: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, meta?: { country?: { dialCode?: string } }) => void;
   disabled?: boolean;
   className?: string;
   inputClassName?: string;
@@ -30,7 +30,9 @@ jest.mock('react-international-phone', () => ({
     <input
       data-testid="mock-phone-input"
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) =>
+        onChange(e.target.value, { country: { dialCode: '91' } })
+      }
       disabled={disabled}
       className={`${className ?? ''} ${inputClassName ?? ''}`.trim()}
       {...inputProps}
@@ -209,6 +211,44 @@ describe('FormCard', () => {
     expect(
       screen.queryByText('Select Class And Section'),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toHaveValue('class-1');
+    expect(screen.getByText('Class A')).toBeInTheDocument();
+  });
+
+  it('requires 10 phone digits excluding the country dial code', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FormCard
+        open={true}
+        title="Edit Student Details"
+        submitLabel="Save Changes"
+        fields={[
+          {
+            name: 'phone',
+            label: 'Phone Number',
+            kind: 'phone',
+            required: true,
+            nationalPhoneDigits: 10,
+          },
+        ]}
+        initialValues={{ phone: '' }}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    const phoneInput = screen.getByLabelText(/Phone Number/i);
+    fireEvent.change(phoneInput, { target: { value: '+9112345678' } });
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(
+      screen.getByText('Phone number must be 10 digits.'),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(phoneInput, { target: { value: '9198765432' } });
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({ phone: '9198765432' });
   });
 });

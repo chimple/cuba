@@ -33,6 +33,7 @@ type UseSchoolFormChangesProps = {
   address: Record<string, string>;
   selectedCourseIds: string[];
   initialSelectedCourseIds: string[] | null;
+  isFieldCoordinatorReady: boolean;
 };
 
 export const useSchoolFormChanges = ({
@@ -46,6 +47,7 @@ export const useSchoolFormChanges = ({
   address,
   selectedCourseIds,
   initialSelectedCourseIds,
+  isFieldCoordinatorReady,
 }: UseSchoolFormChangesProps) => {
   const [initialData, setInitialData] = useState<Record<
     string,
@@ -53,7 +55,9 @@ export const useSchoolFormChanges = ({
   > | null>(null);
 
   useEffect(() => {
-    if (!editData || !program || fieldCoordinator === null || initialData) {
+    // Wait for the FC lookup, but allow its resolved value to be null so a
+    // newly selected coordinator is detected as an edit.
+    if (!editData || !program || !isFieldCoordinatorReady || initialData) {
       return;
     }
 
@@ -76,7 +80,14 @@ export const useSchoolFormChanges = ({
         contact.fields.map((field) => field.value || ''),
       ),
     });
-  }, [editData, program, fieldCoordinator, initialData, contacts]);
+  }, [
+    editData,
+    program,
+    fieldCoordinator,
+    initialData,
+    contacts,
+    isFieldCoordinatorReady,
+  ]);
 
   const hasChanges = () => {
     if (!initialData || !initialSelectedCourseIds) return false;
