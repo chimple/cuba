@@ -9,7 +9,7 @@ import type {
   WhatsappIntegrationStatusRow,
 } from '../../../services/api/serviceapi/ServiceApi.whatsapp';
 
-export type WhatsappStatusFilterColumn = 'periskope_status' | 'maytapi_status';
+export type WhatsappStatusFilterColumn = 'openwa_status' | 'maytapi_status';
 
 export const useWhatsappIntegrationStatusFilters = (
   onFilterChange: () => void,
@@ -17,7 +17,7 @@ export const useWhatsappIntegrationStatusFilters = (
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [column, setColumn] = useState<WhatsappStatusFilterColumn | null>(null);
-  const [periskopeStatus, setPeriskopeStatus] =
+  const [openwaStatus, setOpenwaStatus] =
     useState<WhatsappIntegrationStatus | null>(null);
   const [maytapiStatus, setMaytapiStatus] =
     useState<WhatsappIntegrationStatus | null>(null);
@@ -38,8 +38,8 @@ export const useWhatsappIntegrationStatusFilters = (
   }, []);
   const handleSelect = useCallback(
     (status: WhatsappIntegrationStatus) => {
-      if (column === 'periskope_status') {
-        setPeriskopeStatus((current) => (current === status ? null : status));
+      if (column === 'openwa_status') {
+        setOpenwaStatus((current) => (current === status ? null : status));
       }
       if (column === 'maytapi_status') {
         setMaytapiStatus((current) => (current === status ? null : status));
@@ -51,8 +51,8 @@ export const useWhatsappIntegrationStatusFilters = (
   );
   const handleDeleteFilter = useCallback(
     (filterKey: string) => {
-      if (filterKey === 'periskope_status') {
-        setPeriskopeStatus(null);
+      if (filterKey === 'openwa_status') {
+        setOpenwaStatus(null);
       } else if (filterKey === 'maytapi_status') {
         setMaytapiStatus(null);
       } else {
@@ -67,11 +67,11 @@ export const useWhatsappIntegrationStatusFilters = (
       const filterColumn = String(
         tableColumn.key,
       ) as WhatsappStatusFilterColumn;
-      if (!['periskope_status', 'maytapi_status'].includes(filterColumn)) {
+      if (!['openwa_status', 'maytapi_status'].includes(filterColumn)) {
         return null;
       }
       const selected =
-        filterColumn === 'periskope_status' ? periskopeStatus : maytapiStatus;
+        filterColumn === 'openwa_status' ? openwaStatus : maytapiStatus;
 
       return (
         <IconButton
@@ -79,7 +79,7 @@ export const useWhatsappIntegrationStatusFilters = (
           size="small"
           aria-label={String(
             t(
-              `Filter ${filterColumn === 'periskope_status' ? 'Periskope' : 'Maytapi'}`,
+              `Filter ${filterColumn === 'openwa_status' ? 'OpenWA' : 'Maytapi'}`,
             ),
           )}
           className={`whatsapp-integration-status-filter-button${
@@ -93,7 +93,7 @@ export const useWhatsappIntegrationStatusFilters = (
         </IconButton>
       );
     },
-    [handleOpen, maytapiStatus, periskopeStatus, t],
+    [handleOpen, maytapiStatus, openwaStatus, t],
   );
 
   return {
@@ -103,7 +103,7 @@ export const useWhatsappIntegrationStatusFilters = (
     handleClose,
     handleSelect,
     maytapiStatus,
-    periskopeStatus,
+    openwaStatus,
     renderHeaderActions,
   };
 };
