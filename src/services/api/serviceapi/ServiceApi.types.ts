@@ -291,7 +291,7 @@ export type CampaignLaunchAssignmentPayload = {
   lessonId: string;
   startsAt: string;
   endsAt: string | null;
-  type: 'homework';
+  type: 'assignment';
   source: 'campaign';
   setNumber: number;
 };
