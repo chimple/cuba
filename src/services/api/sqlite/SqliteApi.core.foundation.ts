@@ -226,25 +226,6 @@ export class SqliteApiCoreFoundation {
     this._db = undefined;
     this._sqlite = undefined;
   }
-  protected async releaseFailedDbHandles(): Promise<void> {
-    const db = this._db;
-    const sqlite = this._sqlite;
-    try {
-      await db?.close();
-    } catch (error) {
-      logger.warn('SqliteApi failed to close database after init error.', {
-        error,
-      });
-    }
-    try {
-      await sqlite?.closeConnection(this.DB_NAME, false);
-    } catch (error) {
-      logger.warn('SqliteApi failed to release connection after init error.', {
-        error,
-      });
-    }
-    this.resetDbHandles();
-  }
   protected async initializeWithRetry(
     attempts = 3,
     delayMs = 400,
@@ -256,7 +237,7 @@ export class SqliteApiCoreFoundation {
         return;
       } catch (error) {
         lastError = error;
-        await this.releaseFailedDbHandles();
+        this.resetDbHandles();
         if (!this.isRecoverableInitError(error) || attempt === attempts) {
           this._initPromise = null;
           throw error;

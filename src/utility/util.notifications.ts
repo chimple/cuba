@@ -64,7 +64,9 @@ export class UtilNotifications extends UtilLessonProgress {
     const api = ServiceConfig.getI().apiHandler;
     const refresh = (async () => {
       try {
-        const syncResult = await api.syncDB(refreshTables, refreshTables);
+        // Pull only changes since the last successful sync. Passing the
+        // tables as the second argument would force a historical refresh.
+        const syncResult = await api.syncDB(refreshTables);
         const timeoutAt = Date.now() + 60000;
 
         // syncDB can queue a refresh when another sync is already active.
