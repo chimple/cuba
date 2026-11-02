@@ -30,7 +30,7 @@ export type CampaignAssignmentDraft = {
   subjectName: string;
   startsAt: string;
   endsAt: string | null;
-  type: 'homework';
+  type: 'assignment';
   source: 'campaign';
   setNumber: number;
 };
@@ -274,7 +274,7 @@ export const buildAssignmentDrafts = (
         subjectName: row.subjectName,
         startsAt: row.date,
         endsAt: getAssignmentEndDate(row.date),
-        type: 'homework',
+        type: 'assignment',
         source: 'campaign',
         setNumber: index + 1,
       })),
