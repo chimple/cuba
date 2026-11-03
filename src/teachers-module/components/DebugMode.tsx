@@ -1,4 +1,5 @@
 import './DebugMode.css';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import { useDebugMode } from '../hooks/useDebugMode';
 
 const DebugPage = () => {
@@ -27,18 +28,23 @@ const DebugPage = () => {
             className="debug-btn debug-sync-btn"
             onClick={handleSyncNow}
             disabled={isSyncing}
+            {...getTrackableProps(TRACKABLE_IDS.LEADERBOARD_DEBUG_SYNC_NOW)}
           >
             {isSyncing ? 'Syncing...' : 'Sync Now'}
           </button>
           <button
             className="debug-btn debug-clear-btn"
             onClick={handleClearLessons}
+            {...getTrackableProps(
+              TRACKABLE_IDS.LEADERBOARD_DEBUG_CLEAR_LESSONS,
+            )}
           >
             Clear Downloaded Lessons
           </button>
           <button
             className="debug-btn debug-screenshot-btn"
             onClick={handleCaptureScreenshot}
+            {...getTrackableProps(TRACKABLE_IDS.LEADERBOARD_DEBUG_SCREENSHOT)}
           >
             Capture & Share Screenshot
           </button>
@@ -46,6 +52,7 @@ const DebugPage = () => {
             className="debug-btn debugmode-debug-hotupdate-btn"
             onClick={handleManualHotUpdate}
             disabled={isHotUpdating || !hotUpdateMeta.isUpdateAvailable}
+            {...getTrackableProps(TRACKABLE_IDS.LEADERBOARD_DEBUG_HOT_UPDATE)}
           >
             {isHotUpdating ? 'Updating App...' : 'Manual Hot Update'}
           </button>

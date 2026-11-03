@@ -86,3 +86,6 @@ export enum School_Creation_Stages {
   CREATE_CLASS = 'create_class',
   CLASS_COURSE = 'class_course',
 }
+
+export const SCHOOL_ALREADY_EXISTS_ERROR =
+  'This school already exists. You cannot submit a duplicate school creation request.';

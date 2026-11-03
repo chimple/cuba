@@ -1,8 +1,4 @@
 import { TABLES } from '../../../common/constants';
-import {
-  buildCampaignMessageReport,
-  type CampaignMessagingProviderSource,
-} from '../../../ops-console/components/campaignsOverview/CampaignReports_Messages/CampaignMessageReport.helpers';
 import logger from '../../../utility/logger';
 import { Database } from '../../database';
 import {
@@ -29,6 +25,13 @@ import {
   type CampaignWhatsappGroupTarget,
 } from './SupabaseApi.campaign.helpers';
 import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
+import {
+  buildOpenwaCampaignMessageReport,
+  reportDays,
+  type OpenwaCampaignReport,
+} from './SupabaseApi.campaign.reports.openwa';
+import type { CampaignMessagingProviderSource } from '../../../ops-console/components/campaignsOverview/CampaignReports_Messages/CampaignMessageReport.helpers';
+import { SupabaseApiCampaignRewards } from './SupabaseApi.campaign.rewards';
 
 export interface SupabaseApiCampaignReports {}
 
@@ -41,7 +44,7 @@ const buildCampaignSchoolMetricWindow = (
   metricWindow: '7d' | 'campaign_days',
 ) => (metricWindow === '7d' ? metricWindow : campaignId);
 
-export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
+export class SupabaseApiCampaignReports extends SupabaseApiCampaignRewards {
   async getCampaignListingMetrics(
     campaignIds: string[],
   ): Promise<Map<string, CampaignDashboardMetric>> {
@@ -188,8 +191,13 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
     const normalizedCampaignId = campaignId.trim();
     const context =
       await this.getCampaignWhatsappReportContext(normalizedCampaignId);
-    const [providerData, metricsResult, messagingResult] = await Promise.all([
-      fetchCampaignProviderData(normalizedCampaignId, context.groupTargets),
+    const [openwaResult, metricsResult, messagingResult] = await Promise.all([
+      this.supabase.functions.invoke('get-campaign-whatsapp-report', {
+        body: {
+          group_ids: context.groupTargets.map(({ groupId }) => groupId),
+          days: reportDays(params.fromDate, params.toDate),
+        },
+      }),
       this.supabase
         .from(TABLES.SchoolMetrics)
         .select('parents_in_group')
@@ -206,6 +214,14 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
 
     if (metricsResult.error) throw metricsResult.error;
     if (messagingResult.error) throw messagingResult.error;
+    if (openwaResult.error) throw openwaResult.error;
+    const openwaData = openwaResult.data as {
+      success?: boolean;
+      data?: OpenwaCampaignReport;
+    } | null;
+    if (!openwaData?.success || !openwaData.data) {
+      throw new Error('Failed to fetch OpenWA campaign report.');
+    }
 
     const whatsappGroups = context.groupTargets.length;
     const totalMembersReachable = (metricsResult.data ?? []).reduce(
@@ -222,12 +238,12 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
       pollTime: row.poll_time,
     }));
 
-    return buildCampaignMessageReport(
-      providerData,
+    return buildOpenwaCampaignMessageReport(
+      openwaData.data,
       messagingRows,
+      params,
       whatsappGroups,
       totalMembersReachable,
-      params,
     );
   }
 

@@ -4,6 +4,17 @@ import { TableTypes, LeaderboardDropdownList } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 
 export class ApiHandlerClassroom extends ApiHandlerStudentProgress {
+  /**
+   * Fetches the teacher's leaderboard row by teacher ID.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  async getTeacherLeaderboard(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined> {
+    return await this.s.getTeacherLeaderboard?.(teacherId);
+  }
+
   async getPendingAssignments(
     classId: string,
     studentId: string,

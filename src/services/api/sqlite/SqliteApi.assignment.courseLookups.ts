@@ -15,6 +15,9 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
     JOIN ${TABLES.ChapterLesson} cl ON cl.chapter_id = c.id
     JOIN ${TABLES.Lesson} l ON l.id = cl.lesson_id
     WHERE c.course_id = '${courseId}'
+      AND c.is_deleted = 0
+      AND cl.is_deleted = 0
+      AND l.is_deleted = 0
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -61,7 +64,12 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
     JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
     JOIN ${TABLES.Course} co ON co.id = c.course_id
-    WHERE c.id='${chapterId}' and c.is_deleted = 0 and l.id = '${lessonId}' and l.is_deleted = 0
+    WHERE c.id='${chapterId}'
+      AND c.is_deleted = 0
+      AND cl.is_deleted = 0
+      AND l.id = '${lessonId}'
+      AND l.is_deleted = 0
+      AND co.is_deleted = 0
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return data;
@@ -95,7 +103,7 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
   async getAllCourses(): Promise<TableTypes<'course'>[]> {
     await this.ensureInitialized();
     const res = await this._db?.query(
-      `select * from ${TABLES.Course} ORDER BY sort_index ASC`,
+      `select * from ${TABLES.Course} WHERE is_deleted = 0 ORDER BY sort_index ASC`,
     );
     return res?.values ?? [];
   }
@@ -113,7 +121,11 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
     JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
     JOIN ${TABLES.Course} co ON co.id = c.course_id
-    WHERE l.id = '${lessonId} and l.is_deleted = 0'
+    WHERE l.id = '${lessonId}'
+      AND l.is_deleted = 0
+      AND cl.is_deleted = 0
+      AND c.is_deleted = 0
+      AND co.is_deleted = 0
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];

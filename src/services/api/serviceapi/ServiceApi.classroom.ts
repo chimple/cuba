@@ -6,6 +6,15 @@ import type {
 } from './ServiceApi.types';
 
 export interface ServiceApiClassroom {
+  /**
+   * Fetches a teacher leaderboard row for the supplied teacher ID.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  getTeacherLeaderboard?(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined>;
+
   getPendingAssignments(
     classId: string,
     studentId: string,

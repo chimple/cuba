@@ -14,6 +14,8 @@ interface TabBarProps {
   onChange: (newValue: string) => void;
   handleBackButton: () => void;
   customStyle?: boolean;
+  defaultTabTrackableId?: TrackableId;
+  backTrackableId?: TrackableId;
 }
 
 const parentTabTrackableIds: Record<string, TrackableId> = {
@@ -29,6 +31,8 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   onChange,
   handleBackButton,
   customStyle,
+  defaultTabTrackableId,
+  backTrackableId = TRACKABLE_IDS.PARENT_RETURN_PROFILE_SWITCHER,
 }) => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     onChange(newValue);
@@ -41,7 +45,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({
         <span className="hidden-text">Back</span>
         <BackButton
           onClicked={handleBackButton}
-          trackableId={TRACKABLE_IDS.PARENT_RETURN_PROFILE_SWITCHER}
+          trackableId={backTrackableId}
         />
       </div>
       <AppBar
@@ -91,8 +95,11 @@ const CustomAppBar: React.FC<TabBarProps> = ({
                 value={tabId}
                 label={tabName}
                 id="custom-app-bar"
-                {...(parentTabTrackableIds[tabId]
-                  ? getTrackableProps(parentTabTrackableIds[tabId])
+                {...((parentTabTrackableIds[tabId] ?? defaultTabTrackableId)
+                  ? getTrackableProps(
+                      (parentTabTrackableIds[tabId] ??
+                        defaultTabTrackableId) as TrackableId,
+                    )
                   : {})}
               />
             ))}

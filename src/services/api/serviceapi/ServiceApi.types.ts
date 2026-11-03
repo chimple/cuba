@@ -283,6 +283,19 @@ export type CampaignRewardsPayload = {
   rules: CampaignRewardRulePayload[];
 };
 
+/** Incremental campaign configuration row returned by the student RPC. */
+export type CampaignActiveChange =
+  Database['public']['Functions']['get_active_campaigns']['Returns'][number];
+
+/** Reward outcome written after local campaign evaluation. */
+export type CampaignStudentRewardPayload = {
+  campaignId: string;
+  studentId: string;
+  rankAchieved: number | null;
+  status: 'won' | 'missed' | 'in_progress';
+  evaluatedAt?: string;
+};
+
 export type CampaignLaunchAssignmentPayload = {
   gradeId: string;
   schoolIds: string[];
@@ -291,7 +304,7 @@ export type CampaignLaunchAssignmentPayload = {
   lessonId: string;
   startsAt: string;
   endsAt: string | null;
-  type: 'homework';
+  type: 'assignment';
   source: 'campaign';
   setNumber: number;
 };
@@ -533,13 +546,14 @@ export type CampaignMessageReportSummary = {
   whatsappGroups: number;
   totalMembersReachable: number;
   messagesSent: number;
+  interactions: number;
   deliveredMessages: number;
   readMessages: number;
   deliveredPollMessages: number;
   pollResponses: number;
-  deliveryRate: number;
-  readRate: number;
-  pollParticipationRate: number;
+  deliveryRate: number | null;
+  readRate: number | null;
+  pollParticipationRate: number | null;
 };
 
 export type CampaignMessageReportRow = {
@@ -547,11 +561,11 @@ export type CampaignMessageReportRow = {
   date: string;
   messageType: 'daily_message' | 'poll';
   messagesSent: number;
-  delivered: number;
-  read: number;
+  delivered: number | null;
+  read: number | null;
   pollResponses: number;
-  deliveryRate: number;
-  readRate: number;
+  deliveryRate: number | null;
+  readRate: number | null;
   pollParticipationRate: number | null;
 };
 

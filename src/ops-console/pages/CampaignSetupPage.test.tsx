@@ -97,7 +97,7 @@ jest.mock('../components/CampaignSetupSections', () => {
                   subjectName: 'Math',
                   startsAt: '2099-05-01',
                   endsAt: null,
-                  type: 'homework',
+                  type: 'assignment',
                   source: 'campaign',
                   setNumber: 1,
                 },

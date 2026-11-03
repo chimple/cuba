@@ -35,6 +35,7 @@ import { Util } from '../../utility/util';
 import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
 import ClassSummaryInfoPopup from '../components/homePage/ClassSummaryInfoPopup';
 import Header from '../components/homePage/Header';
+import ScoreCalculationPopup from '../components/leaderboard/ScoreCalculationPopup';
 import { format, subDays } from 'date-fns';
 import { parsePath } from 'history';
 
@@ -65,11 +66,13 @@ export const useHomePage = () => {
   const [autoStartScan, setAutoStartScan] = useState(false);
   const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
   const [isHomeInfoOpen, setIsHomeInfoOpen] = useState(false);
+  const [isScoreCalculationOpen, setIsScoreCalculationOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
   const currentSchool = Util.getCurrentSchool();
-  const [refresh, setRefresh] = useState(false);
+  // Only the setter is needed to trigger a reload after the selected class changes.
+  const [, setRefresh] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [renderKey, setRenderKey] = useState(0);
@@ -247,6 +250,7 @@ export const useHomePage = () => {
     BottomNavigation,
     BottomNavigationAction,
     ClassSummaryInfoPopup,
+    ScoreCalculationPopup,
     Header,
     PAGES,
     autoStartScan,
@@ -260,6 +264,7 @@ export const useHomePage = () => {
     history,
     isExternalUser,
     isHomeInfoOpen,
+    isScoreCalculationOpen,
     isLibraryTab,
     isOpsUser,
     isTeacherSchoolMode,
@@ -267,6 +272,7 @@ export const useHomePage = () => {
     renderKey,
     setAutoStartScan,
     setIsHomeInfoOpen,
+    setIsScoreCalculationOpen,
     setShowAssignOptionsScreen,
     setShowUnavailableQrAlert,
     setTabValue,

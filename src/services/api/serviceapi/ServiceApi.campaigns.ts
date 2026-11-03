@@ -31,10 +31,23 @@ import type {
   CampaignWhatsappLabelData,
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
+  CampaignActiveChange,
+  CampaignStudentRewardPayload,
 } from './ServiceApi.types';
 import type { CampaignNotificationPayload } from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
+  /** Fetches campaign configuration changes targeted to a student. */
+  getActiveCampaigns(
+    studentId: string,
+    lastFetchTimestamp?: string | null,
+  ): Promise<CampaignActiveChange[]>;
+
+  /** Persists the locally evaluated reward outcome for Ops reporting. */
+  upsertCampaignStudentReward(
+    payload: CampaignStudentRewardPayload,
+  ): Promise<void>;
+
   getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
 
   /**

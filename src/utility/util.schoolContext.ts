@@ -47,6 +47,10 @@ export class UtilSchoolContext extends UtilSessionContext {
       logger.warn('Ignoring invalid app URL', event.url);
       return;
     }
+    // RESPECT lesson URLs are handled by the native launch hook, not Cuba's
+    // general deep-link navigation.
+    if (url.searchParams.has('activity_id')) return;
+
     const teacherTarget = resolveTeacherDeepLink(url);
     if (teacherTarget) {
       const serialized = JSON.stringify(teacherTarget);

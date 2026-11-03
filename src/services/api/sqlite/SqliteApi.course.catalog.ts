@@ -261,7 +261,9 @@ export class SqliteApiCourseCatalog extends SqliteApiUserLeaderboards {
     SELECT *
     FROM ${TABLES.UserCourse} AS uc
     JOIN ${TABLES.Course} AS course ON uc.course_id= course.id
-    WHERE uc.user_id = "${studentId}" AND uc.is_deleted = 0;
+    WHERE uc.user_id = "${studentId}"
+      AND uc.is_deleted = 0
+      AND course.is_deleted = 0;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -275,7 +277,9 @@ export class SqliteApiCourseCatalog extends SqliteApiUserLeaderboards {
     SELECT c.*
     FROM ${TABLES.Course} c
     LEFT JOIN user_course uc ON c.id = uc.course_id AND uc.user_id = "${studentId}"
-    WHERE uc.course_id IS NULL;
+    WHERE uc.course_id IS NULL
+      AND c.is_deleted = 0
+      AND (uc.is_deleted = 0 OR uc.is_deleted IS NULL);
     `);
     return res?.values ?? [];
   }
@@ -288,7 +292,9 @@ export class SqliteApiCourseCatalog extends SqliteApiUserLeaderboards {
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
       JOIN ${TABLES.Course} AS course ON cc.course_id = course.id
-      WHERE cc.class_id = ? AND cc.is_deleted = 0
+      WHERE cc.class_id = ?
+        AND cc.is_deleted = 0
+        AND course.is_deleted = 0
       ORDER BY course.sort_index ASC;
     `;
     const res = await this._db?.query(query, [classId]);
@@ -337,6 +343,7 @@ export class SqliteApiCourseCatalog extends SqliteApiUserLeaderboards {
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
     WHERE cl.chapter_id = "${chapterId}"
     AND cl.is_deleted = 0
+    AND lesson.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
       ${
