@@ -59,9 +59,19 @@ public class PortPlugin extends Plugin {
     }
     private static final String TAG = "Logger001";
     private static final String INSTALL_REFERRER_TAG = "REFERRER";
-    private static final String DEFAULT_LAUNCHER_PACKAGE = "world.respect.app";
+    private static final String DEFAULT_LAUNCHER_PACKAGE = RespectHttpClient.RESPECT_PACKAGE_NAME;
     private static final String XAPI_IPC_ACTION = "org.openeel.action.xapioveripc";
     private static final String XAPI_IPC_PACKAGE_KEY = "xapiIpcPackage";
+
+    static String getLauncherPackageName() {
+        return resolveLauncherPackageName(deepLinkData.optString(XAPI_IPC_PACKAGE_KEY, ""));
+    }
+
+    static String resolveLauncherPackageName(String packageName) {
+        return RespectHttpClient.OPEN_EEL_PACKAGE_NAME.equals(packageName)
+                ? RespectHttpClient.OPEN_EEL_PACKAGE_NAME
+                : DEFAULT_LAUNCHER_PACKAGE;
+    }
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -309,7 +319,7 @@ public class PortPlugin extends Plugin {
         String registration = deepLinkData.optString("registration", "");
         String chimpleLessonId = deepLinkData.optString("chimple_lesson_id", "");
         String lessonName = deepLinkData.optString("lesson_name", "");
-        String xapiIpcPackage = deepLinkData.optString(XAPI_IPC_PACKAGE_KEY, "");
+        String xapiIpcPackage = getLauncherPackageName();
 
         Log.d(TAG, "Received activity_id: " + activity_id);
         result.put("endpoint", endpoint);
@@ -626,13 +636,7 @@ public class PortPlugin extends Plugin {
             return;
         }
 
-        String launcherPackage = deepLinkData.optString(
-                XAPI_IPC_PACKAGE_KEY,
-                DEFAULT_LAUNCHER_PACKAGE
-        );
-        if (launcherPackage.isEmpty()) {
-            launcherPackage = DEFAULT_LAUNCHER_PACKAGE;
-        }
+        String launcherPackage = getLauncherPackageName();
 
         Intent xapiIntent = new Intent(XAPI_IPC_ACTION).setPackage(launcherPackage);
         if (activity.getPackageManager().queryIntentServices(xapiIntent, 0).isEmpty()) {
