@@ -130,6 +130,10 @@ export type JoinClassInviteLookupResult = {
   classData?: TableTypes<'class'>;
   schoolData?: TableTypes<'school'>;
 };
+export type TeacherLeaderboardScoreHistory = {
+  date: string;
+  score: number;
+};
 
 export type CampaignMessagingRow = TableTypes<'campaign_messaging'>;
 

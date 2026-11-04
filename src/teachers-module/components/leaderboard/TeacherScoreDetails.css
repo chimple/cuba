@@ -1,0 +1,87 @@
+.teacher-score-details-backdrop {
+  position: fixed;
+  z-index: 1300;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.42);
+}
+.teacher-score-details {
+  width: min(100%, 400px);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.28);
+  color: #4e4e52;
+}
+.teacher-score-details__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 9px 24px;
+}
+.teacher-score-details__header h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.teacher-score-details__close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 3px solid #000;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+}
+.teacher-score-details__chart-card {
+  margin: 0 24px;
+  overflow: hidden;
+  border-radius: 9px;
+  border-bottom: 2px solid #b178ff;
+  background: #f7f2ff;
+  text-align: center;
+}
+.teacher-score-details__chart-card > strong {
+  display: block;
+  padding: 13px 8px;
+  background: #f1e7ff;
+  font-size: 16px;
+}
+.teacher-score-details__chart {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  padding: 10px 2px 18px;
+  box-sizing: border-box;
+}
+.teacher-score-details__chart text {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
+.teacher-score-details__up {
+  fill: #167f20;
+}
+.teacher-score-details__down {
+  fill: #c91430;
+}
+.teacher-score-details__value {
+  fill: #4e4e52;
+  font-size: 11px !important;
+}
+.teacher-score-details__date {
+  fill: #666;
+  font-size: 8px !important;
+}
+.teacher-score-details__weekday {
+  fill: #fa7900;
+  font-size: 8px !important;
+}
+.teacher-score-details__message {
+  margin: 12px 26px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.28;
+}

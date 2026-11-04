@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import PersonIcon from '@mui/icons-material/Person';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { TableTypes } from '../../../common/constants';
+import { TeacherLeaderboardScoreHistory } from '../../../services/api/ServiceApi';
 import './TeacherLeaderboard.css';
+import TeacherScoreDetails from './TeacherScoreDetails';
 
 interface TeacherLeaderboardProps {
   onAssign: () => void;
@@ -17,6 +19,10 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
     TableTypes<'teacher_leaderboard'> | undefined
   >();
   const [isLoading, setIsLoading] = useState(true);
+  const [showScoreDetails, setShowScoreDetails] = useState(false);
+  const [scoreHistory, setScoreHistory] = useState<
+    TeacherLeaderboardScoreHistory[]
+  >([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -24,13 +30,18 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
     const loadLeaderboard = async () => {
       const config = ServiceConfig.getI();
       const user = await config.authHandler.getCurrentUser();
-      const data = user?.id
-        ? await config.apiHandler.getTeacherLeaderboard(user.id)
-        : undefined;
+      const [data, history] = user?.id
+        ? await Promise.all([
+            config.apiHandler.getTeacherLeaderboard(user.id),
+            config.apiHandler.getTeacherLeaderboardScoreHistory?.(user.id) ??
+              Promise.resolve([]),
+          ])
+        : [undefined, []];
       if (isMounted) {
         // Local UI preview fixture (disabled; use backend data below):
         // const developmentPreview = { tier: 'gold', final_score: 125 };
         setLeaderboard(data);
+        setScoreHistory(history);
         setIsLoading(false);
         if (!data && retryCount < 5 && isMounted) {
           retryCount += 1;
@@ -53,7 +64,6 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
           'Keep more students engaged and improve longer to climb the leaderboard! Lower engagement may move you down.',
         )
       : t('Congratulations! You are in the top 20% teachers. Keep it up!');
-
   return (
     <section className="teacher-leaderboard" aria-live="polite">
       <h2>{t('{{blockName}} Block Leaderboard', { blockName })}</h2>
@@ -87,6 +97,12 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
           <div className="teacher-leaderboard-tiers">
             <div
               className={`teacher-leaderboard-score teacher-leaderboard-score--${leaderboard.tier}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowScoreDetails(true)}
+              onKeyDown={(event) =>
+                event.key === 'Enter' && setShowScoreDetails(true)
+              }
             >
               <PersonIcon
                 className="teacher-leaderboard-person"
@@ -107,6 +123,21 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
                     ? 'teacher-leaderboard-tier--current'
                     : ''
                 }`}
+                role={
+                  leaderboard.tier === tier.toLowerCase() ? 'button' : undefined
+                }
+                tabIndex={
+                  leaderboard.tier === tier.toLowerCase() ? 0 : undefined
+                }
+                onClick={() =>
+                  leaderboard.tier === tier.toLowerCase() &&
+                  setShowScoreDetails(true)
+                }
+                onKeyDown={(event) =>
+                  event.key === 'Enter' &&
+                  leaderboard.tier === tier.toLowerCase() &&
+                  setShowScoreDetails(true)
+                }
               >
                 {leaderboard.tier === tier.toLowerCase() && (
                   <>
@@ -123,6 +154,13 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
             ))}
           </div>
           <p className="teacher-leaderboard-congratulations">{tierMessage}</p>
+          {showScoreDetails && (
+            <TeacherScoreDetails
+              currentScore={Number(leaderboard.final_score)}
+              scoreHistory={scoreHistory}
+              onClose={() => setShowScoreDetails(false)}
+            />
+          )}
         </>
       )}
       <button
