@@ -1,4 +1,5 @@
-import { IonModal } from '@ionic/react';
+import { createAnimation, IonModal } from '@ionic/react';
+import type { AnimationBuilder } from '@ionic/react';
 import { t } from 'i18next';
 import './ScoreCalculationPopup.css';
 
@@ -6,6 +7,72 @@ interface ScoreCalculationPopupProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const createModalAnimation =
+  (isEntering: boolean): AnimationBuilder =>
+  (baseElement: HTMLElement) => {
+    const styles = getComputedStyle(baseElement);
+    const cssValue = (property: string, fallback: string) =>
+      styles.getPropertyValue(property).trim() || fallback;
+    const phase = isEntering ? 'enter' : 'leave';
+    const offscreen = cssValue(
+      '--score-calculation-offscreen-transform',
+      'translate3d(100vw, 0, 0)',
+    );
+    const centered = cssValue(
+      '--score-calculation-centered-transform',
+      'translate3d(0, 0, 0)',
+    );
+    const duration = Number.parseFloat(
+      cssValue(
+        `--score-calculation-${phase}-duration`,
+        isEntering ? '650ms' : '350ms',
+      ),
+    );
+    const wrapper =
+      baseElement.shadowRoot?.querySelector<HTMLElement>('.modal-wrapper') ??
+      baseElement;
+    const animations = [
+      createAnimation()
+        .addElement(wrapper)
+        .beforeStyles({ opacity: 1 })
+        .fromTo(
+          'transform',
+          isEntering ? offscreen : centered,
+          isEntering ? centered : offscreen,
+        )
+        .fromTo('opacity', '1', '1'),
+    ];
+    const backdrop =
+      baseElement.shadowRoot?.querySelector<HTMLElement>('ion-backdrop');
+
+    if (backdrop) {
+      const visibleOpacity = cssValue('--backdrop-opacity', '0.32');
+      animations.push(
+        createAnimation()
+          .addElement(backdrop)
+          .fromTo(
+            'opacity',
+            isEntering ? '0' : visibleOpacity,
+            isEntering ? visibleOpacity : '0',
+          ),
+      );
+    }
+
+    return createAnimation()
+      .addElement(baseElement)
+      .duration(duration)
+      .easing(
+        cssValue(
+          `--score-calculation-${phase}-easing`,
+          isEntering ? 'cubic-bezier(0.22, 1, 0.36, 1)' : 'ease-in',
+        ),
+      )
+      .addAnimation(animations);
+  };
+
+const scoreCalculationEnterAnimation = createModalAnimation(true);
+const scoreCalculationLeaveAnimation = createModalAnimation(false);
 
 const ZONES = [
   ['Silver', 'Middle 60%'],
@@ -43,6 +110,8 @@ const ScoreCalculationPopup = ({
       isOpen={isOpen}
       onDidDismiss={onClose}
       backdropDismiss
+      enterAnimation={scoreCalculationEnterAnimation}
+      leaveAnimation={scoreCalculationLeaveAnimation}
       className="score-calculation-popup-modal"
     >
       <div className="score-calculation-popup-overlay" onClick={onClose}>

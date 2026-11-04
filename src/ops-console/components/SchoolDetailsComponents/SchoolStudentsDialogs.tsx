@@ -21,7 +21,10 @@ import FcInteractPopUp from '../fcInteractComponents/FcInteractPopUp';
 import OpsGenericPopup from '../../common/OpsGenericPopup';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import CardListModal from './CardListModal';
-import { getStudentContactValues } from '../../utils/studentContactNumbers';
+import {
+  formatIndianStudentPhone,
+  getStudentContactEntries,
+} from '../../utils/studentContactNumbers';
 import type { DisplayStudent } from './SchoolStudents.types';
 
 type PopupState = {
@@ -144,7 +147,13 @@ export const SchoolStudentsDialogs = ({
         ageGroup: String(editStudentData?.user?.age ?? ''),
         studentID: editStudentData?.user?.student_id ?? '',
         classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
-        phone: getStudentContactValues(editStudentData).join(' / '),
+        phone: getStudentContactEntries(editStudentData)
+          .map((contact) =>
+            contact.type === 'phone'
+              ? formatIndianStudentPhone(contact.value)
+              : contact.value,
+          )
+          .join(' / '),
       }}
       onClose={() => {
         setIsEditStudentModalOpen(false);

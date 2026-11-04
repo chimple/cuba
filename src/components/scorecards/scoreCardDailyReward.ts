@@ -23,8 +23,13 @@ const parseDailyRewardSnapshot = (
   }
 };
 
-export const getDailyRewardDay = (timestamp?: string | null) =>
-  timestamp ? new Date(timestamp).toISOString().split('T')[0] : null;
+export const getDailyRewardDay = (timestamp?: string | null) => {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  return Number.isFinite(date.getTime())
+    ? date.toISOString().split('T')[0]
+    : null;
+};
 
 const getDailyRewardAnimationKey = (
   studentId: string | undefined,
@@ -74,15 +79,27 @@ export const shouldAnimateDailyRewardRow = (
   return shouldAnimateOnce(storageKey);
 };
 
+export const hasDailyRewardEarnedToday = (
+  student: TableTypes<'user'> | undefined,
+): boolean => {
+  const reward = parseDailyRewardSnapshot(student?.reward);
+  return Boolean(
+    reward?.reward_id &&
+      getDailyRewardDay(reward.timestamp) ===
+        new Date().toISOString().split('T')[0],
+  );
+};
+
 export const buildDailyRewardRow = (
+  earned: boolean,
   animateCompletion = false,
 ): ScoreCardProgressRowData => ({
   id: DAILY_REWARD_ROW_ID,
   label: DAILY_REWARD_LABEL,
-  current: 1,
+  current: earned ? 1 : 0,
   total: 1,
   iconSrc: DAILY_REWARD_ICON_SRC,
   iconAlt: DAILY_REWARD_ICON_ALT,
-  completed: true,
-  animateCompletion,
+  completed: earned,
+  animateCompletion: earned && animateCompletion,
 });

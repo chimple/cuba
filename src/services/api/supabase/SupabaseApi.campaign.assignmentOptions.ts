@@ -431,19 +431,23 @@ export class SupabaseApiCampaignAssignmentOptions extends SupabaseApiCampaignAud
   private async deleteCampaignTargetAudience(targetAudienceId: string) {
     if (!this.supabase) return;
 
+    const deletedAt = new Date().toISOString();
     const cleanupSteps = [
       this.supabase
         .from('campaign_target_audience_school')
-        .delete()
-        .eq('target_audience_id', targetAudienceId),
+        .update({ is_deleted: true })
+        .eq('target_audience_id', targetAudienceId)
+        .eq('is_deleted', false),
       this.supabase
         .from('campaign_target_audience_grade')
-        .delete()
-        .eq('target_audience_id', targetAudienceId),
+        .update({ is_deleted: true })
+        .eq('target_audience_id', targetAudienceId)
+        .eq('is_deleted', false),
       this.supabase
         .from('campaign_target_audience')
-        .delete()
-        .eq('id', targetAudienceId),
+        .update({ is_deleted: true, updated_at: deletedAt })
+        .eq('id', targetAudienceId)
+        .eq('is_deleted', false),
     ];
 
     for (const cleanupStep of cleanupSteps) {

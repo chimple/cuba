@@ -1,4 +1,5 @@
 import {
+  formatIndianStudentPhone,
   formatStudentContactList,
   formatStudentPhoneList,
   getStudentContactValues,
@@ -8,6 +9,11 @@ import {
 } from './studentContactNumbers';
 
 describe('studentContactNumbers', () => {
+  it('formats Indian student phone numbers with the +91 prefix', () => {
+    expect(formatIndianStudentPhone('9876543210')).toBe('+91 9876543210');
+    expect(formatIndianStudentPhone('+91 98765 43210')).toBe('+91 9876543210');
+  });
+
   it('returns all unique parent and student phone numbers in display order', () => {
     expect(
       getStudentPhoneNumbers({

@@ -99,6 +99,7 @@ export const useSchoolStudentFields = ({
         label: 'Phone Number',
         kind: 'phone',
         required: true,
+        nationalPhoneDigits: 10,
         placeholder: 'Enter phone number',
         column: 2,
       });
@@ -162,6 +163,7 @@ export const useSchoolStudentFields = ({
       kind: !isAtSchool && !hasContact ? 'phone' : 'chips',
       column: 2,
       required: !hasContact,
+      nationalPhoneDigits: !isAtSchool && !hasContact ? 10 : undefined,
     },
   ];
 

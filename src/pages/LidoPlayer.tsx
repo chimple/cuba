@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useRef, useState } from 'react';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
-import { TableTypes } from '../common/constants';
+import type { TableTypes } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
 import { useLidoPlayerController } from './useLidoPlayerController';
@@ -26,7 +26,9 @@ interface LidoPlayerViewProps {
   setIsLoading: (isLoading: boolean) => void;
   setShowDialogBox: (show: boolean) => void;
   shouldShowDailyRewardProgressRow: boolean;
+  shouldShowPathwayProgressRows: boolean;
   shouldShowScoreCardProgressRows: boolean;
+  source: string;
   showDialogBox: boolean;
   state: any;
   xmlPath?: string;
@@ -53,7 +55,9 @@ const LidoPlayer: FC = () => {
     setIsLoading,
     setShowDialogBox,
     shouldShowDailyRewardProgressRow,
+    shouldShowPathwayProgressRows,
     shouldShowScoreCardProgressRows,
+    source,
     showDialogBox,
     state,
     xmlPath,
@@ -112,30 +116,30 @@ const LidoPlayer: FC = () => {
             setIsLoading(true);
             push();
           }}
-          progressContext={
-            shouldShowScoreCardProgressRows
-              ? {
-                  completedCourseId: courseDetail?.id ?? courseDocId,
-                  completedLessonId: lessonDetail?.id ?? lessonId ?? undefined,
-                  completedHomeworkIndex:
-                    state?.isHomework &&
-                    typeof state?.homeworkIndex === 'number'
-                      ? state.homeworkIndex
-                      : undefined,
-                  animateDailyReward: Boolean(state?.reward),
-                  showDailyReward: shouldShowDailyRewardProgressRow,
-                  showStickerProgress: !isActivationLesson,
-                  countCompletedLessonTowardStickerProgress:
-                    !scoreCardProgressState.isFullPathwayTerminated,
-                  allowZeroStickerProgress:
-                    scoreCardProgressState.isFullPathwayTerminated,
-                  stickerProgressCurrentOverride:
-                    scoreCardProgressState.isFullPathwayTerminated
-                      ? 0
-                      : undefined,
-                }
-              : undefined
-          }
+          progressContext={{
+            completedCourseId: courseDetail?.id ?? courseDocId,
+            completedLessonId: lessonDetail?.id ?? lessonId ?? undefined,
+            completedAssignmentId:
+              state?.homeworkAssignmentId ?? state?.assessmentId,
+            completedHomeworkIndex:
+              state?.isHomework && typeof state?.homeworkIndex === 'number'
+                ? state.homeworkIndex
+                : undefined,
+            pathwayAssignments: state?.pathwayAssignments,
+            animateDailyReward: Boolean(state?.reward),
+            showDailyReward: shouldShowDailyRewardProgressRow,
+            showStickerProgress:
+              shouldShowPathwayProgressRows &&
+              !isActivationLesson &&
+              state?.isDefaultLesson !== true,
+            countCompletedLessonTowardStickerProgress:
+              !scoreCardProgressState.isFullPathwayTerminated,
+            allowZeroStickerProgress:
+              scoreCardProgressState.isFullPathwayTerminated,
+            stickerProgressCurrentOverride:
+              scoreCardProgressState.isFullPathwayTerminated ? 0 : undefined,
+            source,
+          }}
           courseId={courseDetail?.id ?? courseDocId}
           lessonId={lessonDetail?.id ?? lessonId ?? undefined}
           showProgressRows={shouldShowScoreCardProgressRows}

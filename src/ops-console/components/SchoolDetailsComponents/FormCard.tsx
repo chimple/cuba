@@ -18,6 +18,7 @@ export interface FieldConfig {
   column?: FieldColumn;
   multi?: boolean;
   disabled?: boolean;
+  nationalPhoneDigits?: number;
 }
 
 export type MessageType = 'error' | 'warning' | 'info' | 'success';
@@ -52,6 +53,10 @@ const FormCard: React.FC<EntityModalProps> = ({
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
+  const [phoneDialCodes, setPhoneDialCodes] = useState<Record<string, string>>(
+    {},
+  );
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [initialSnapshot, setInitialSnapshot] = useState<
     Record<string, string>
   >({});
@@ -82,17 +87,62 @@ const FormCard: React.FC<EntityModalProps> = ({
       setInitialSnapshot({});
     }
     setOpenSelect(null);
-  }, [open, fields, initialValues]);
+    setPhoneDialCodes({});
+    setFieldErrors({});
+  }, [open, fields, initialValues, isEditMode]);
 
   if (!open) return null;
 
-  const handleChange = (name: string, value: string) => {
+  const handleChange = (name: string, value: string, dialCode?: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
+    if (dialCode !== undefined) {
+      setPhoneDialCodes((prev) => ({ ...prev, [name]: dialCode }));
+    }
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const getNationalPhoneDigits = (
+    name: string,
+    value: string,
+    expectedDigits: number,
+  ) => {
+    const digits = value.replace(/\D/g, '');
+    const dialCode = phoneDialCodes[name] ?? '';
+    // PhoneInput includes the selected dial code; it must not count toward the
+    // configured national-number length.
+    const includesDialCode =
+      dialCode &&
+      digits.startsWith(dialCode) &&
+      (value.trim().startsWith('+') || digits.length > expectedDigits);
+    return includesDialCode ? digits.slice(dialCode.length) : digits;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (disabled) {
+      return;
+    }
+    const errors = fields.reduce<Record<string, string>>((result, field) => {
+      if (field.kind !== 'phone' || !field.nationalPhoneDigits) return result;
+
+      const nationalDigits = getNationalPhoneDigits(
+        field.name,
+        values[field.name] ?? '',
+        field.nationalPhoneDigits,
+      );
+      if (nationalDigits.length !== field.nationalPhoneDigits) {
+        result[field.name] =
+          `Phone number must be ${field.nationalPhoneDigits} digits.`;
+      }
+      return result;
+    }, {});
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
     onSubmit(values);
@@ -121,6 +171,8 @@ const FormCard: React.FC<EntityModalProps> = ({
       </div>
     );
   };
+
+  const firstFieldError = Object.values(fieldErrors)[0];
 
   return (
     <div className="formcard-modal-backdrop">
@@ -155,6 +207,16 @@ const FormCard: React.FC<EntityModalProps> = ({
               </div>
             ))}
           </div>
+          {firstFieldError && (
+            <div className="formcard-message-wrapper">
+              <div
+                className="formcard-message formcard-message-error"
+                role="alert"
+              >
+                {t(firstFieldError)}
+              </div>
+            </div>
+          )}
           {renderMessage()}
           <div className="formcard-modal-footer">
             <button

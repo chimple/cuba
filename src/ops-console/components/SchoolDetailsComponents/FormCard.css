@@ -472,6 +472,33 @@
   color: #1967d2;
 }
 
+.formcard-short-select-option:hover,
+.formcard-short-select-option.selected {
+  background-color: #1a73e8;
+  color: #ffffff;
+}
+
+.formcard-short-select {
+  max-height: none;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+  border-color: #767676;
+  box-shadow: none;
+}
+
+.formcard-short-select-option {
+  min-height: 38px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.formcard-short-select:has(.formcard-short-select-option:hover)
+  .formcard-short-select-option.selected:not(:hover) {
+  background-color: #ffffff;
+  color: #000000;
+}
+
 .formcard-multiselect-checkbox {
   margin-right: 8px;
   width: 16px;

@@ -55,6 +55,7 @@ export const TRACKABLE_IDS = {
   REWARDS_POPUP_CLOSE: 'close_reward_popup',
   REWARDS_POPUP_PLAY: 'play_from_reward_popup',
   REWARDS_BADGE_SHARE: 'share_reward_badge',
+  CAMPAIGN_CERTIFICATE_SHARE: 'share_campaign_certificate',
   REWARDS_BACK_HOME: 'return_to_home',
   LEADERBOARD_SWITCH_PROFILE: 'switch_profile_from_leaderboard',
   LEADERBOARD_PERIOD_DROPDOWN: 'open_leaderboard_period_dropdown',

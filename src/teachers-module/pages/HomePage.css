@@ -30,7 +30,7 @@
   flex-direction: column;
   height: 100vh;
   margin: 0;
-  background-color: #7c5db0;
+  background-color: #fff;
 }
 
 .container-footer {
@@ -49,6 +49,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
 .footerIcons {

@@ -285,6 +285,10 @@ export class SupabaseApiProgramDiscovery extends SupabaseApiProgramRequestReview
       updated_at: new Date().toISOString(),
     };
 
+    if (schoolStatus === STATUS.REJECTED) {
+      updatePayload.is_deleted = true;
+    }
+
     if (address?.state !== undefined) updatePayload.group1 = address.state;
     if (address?.district !== undefined)
       updatePayload.group2 = address.district;

@@ -179,6 +179,36 @@ it('shows the affected class and blocks profile changes until the selection is c
   expect(mockHistory.push).toHaveBeenCalled();
 });
 
+it('enables save after assigning an FC to a school whose FC was deleted', async () => {
+  mockLocation.state = {
+    schoolData: {
+      id: 'school-1',
+      name: 'School',
+      udise: '12345678901',
+      model: 'at_home',
+      group1: 'State',
+      group2: 'District',
+      key_contacts: [{ name: 'Contact', phone: '9876543210' }],
+    },
+    programData: program,
+  };
+  mockApi.getFieldCoordinatorsForSchools.mockResolvedValueOnce([{ users: [] }]);
+
+  const { result } = renderHook(() => useAddSchoolPage());
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+  await waitFor(() =>
+    expect(result.current.isFieldCoordinatorReady).toBe(true),
+  );
+  expect(result.current.fieldCoordinator).toBeNull();
+
+  expect(result.current.isSaveDisabled()).toBe(true);
+
+  act(() => result.current.setFieldCoordinator(coordinator));
+
+  expect(result.current.isSaveDisabled()).toBe(false);
+});
+
 describe('immediate protection of courses required by classes', () => {
   beforeEach(() => {
     mockLocation.state = {

@@ -8,86 +8,16 @@ import logger from '../../utility/logger';
 import { SchoolCourseRemovalError } from '../../utility/schoolCourseRemoval';
 import { useSchoolCourseSelection } from './useSchoolCourseSelection';
 import { useSchoolFormChanges } from './useSchoolFormChanges';
+import {
+  getSchoolModelOptionsForProgram,
+  isSchoolModelAllowedForProgram,
+} from './schoolModelOptions';
 
 const DEFAULT_COUNTRY = 'INDIA';
 const UDISE_LENGTH = 11;
 const INVALID_UDISE_MESSAGE = t(
   'Please enter a valid 11-digit UDISE code (use leading zeros if required).',
 );
-const SCHOOL_MODEL_VALUES = ['at_home', 'at_school', 'hybrid'] as const;
-
-type SchoolModelValue = (typeof SCHOOL_MODEL_VALUES)[number];
-type SchoolModelOption = { label: string; value: SchoolModelValue };
-
-const isSchoolModelValue = (value: string): value is SchoolModelValue =>
-  (SCHOOL_MODEL_VALUES as readonly string[]).includes(value);
-
-const getSchoolModelLabel = (value: SchoolModelValue) => {
-  if (value === 'at_home') return t('At Home');
-  if (value === 'at_school') return t('At School');
-  return t('Hybrid');
-};
-
-const normalizeModelList = (value: unknown): string[] => {
-  if (!value) return [];
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item).trim().toLowerCase())
-      .filter(Boolean);
-  }
-
-  if (typeof value !== 'string') return [];
-
-  const trimmed = value.trim();
-  if (!trimmed) return [];
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .map((item) => String(item).trim().toLowerCase())
-        .filter(Boolean);
-    }
-    if (typeof parsed === 'string') {
-      const normalized = parsed.trim().toLowerCase();
-      return normalized ? [normalized] : [];
-    }
-  } catch {
-    // Fall back to simple string parsing below.
-  }
-
-  return trimmed
-    .replace(/^\[/, '')
-    .replace(/\]$/, '')
-    .split(',')
-    .map((item) => item.replace(/['"]/g, '').trim().toLowerCase())
-    .filter(Boolean);
-};
-
-const getSchoolModelValuesForProgram = (
-  programModel: unknown,
-): SchoolModelValue[] => {
-  const parsed = normalizeModelList(programModel);
-  const uniqueValues = Array.from(new Set(parsed));
-  return uniqueValues.filter(isSchoolModelValue);
-};
-
-const getSchoolModelOptionsForProgram = (
-  programModel: unknown,
-): SchoolModelOption[] =>
-  getSchoolModelValuesForProgram(programModel).map((value) => ({
-    label: getSchoolModelLabel(value),
-    value,
-  }));
-
-const isSchoolModelAllowedForProgram = (
-  programModel: unknown,
-  schoolModel: string,
-) =>
-  getSchoolModelValuesForProgram(programModel).includes(
-    schoolModel.toLowerCase() as SchoolModelValue,
-  );
-
 const initialAddress = {
   state: '',
   district: '',
@@ -143,6 +73,8 @@ export const useAddSchoolPage = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [fieldCoordinator, setFieldCoordinator] = useState<any>(null);
   const [fieldCoordinators, setFieldCoordinators] = useState<any[]>([]);
+  const [isFieldCoordinatorReady, setIsFieldCoordinatorReady] =
+    useState(!editData);
   const [errorMessage, setErrorMessage] = useState('');
   const [lockDropdowns, setLockDropdowns] = useState(false);
   const [states, setStates] = useState<string[]>([]);
@@ -165,6 +97,7 @@ export const useAddSchoolPage = () => {
     address,
     selectedCourseIds,
     initialSelectedCourseIds,
+    isFieldCoordinatorReady,
   });
   const schoolModelOptions = useMemo(
     () => getSchoolModelOptionsForProgram(program?.model),
@@ -229,14 +162,22 @@ export const useAddSchoolPage = () => {
     setProgram(editData.programData);
 
     async function fetch() {
-      const fcs = await api.getFieldCoordinatorsForSchools([school.id]);
-      const fc = fcs[0]?.users[0] || null;
-      setFieldCoordinator(fc);
-      if (editData.programData && fc) {
-        setLockDropdowns(true);
+      // A completed lookup with no FC is valid initial state and differs from
+      // an FC lookup that is still in flight.
+      setIsFieldCoordinatorReady(false);
+      try {
+        const fcs = await api.getFieldCoordinatorsForSchools([school.id]);
+        const fc = fcs[0]?.users[0] || null;
+        setFieldCoordinator(fc);
+        setLockDropdowns(Boolean(editData.programData && fc));
+      } catch {
+        setFieldCoordinator(null);
+        setLockDropdowns(false);
+      } finally {
+        setIsFieldCoordinatorReady(true);
       }
     }
-    fetch();
+    void fetch();
   }, [editData, api]);
 
   useEffect(() => {
@@ -477,7 +418,7 @@ export const useAddSchoolPage = () => {
           address.link,
           keyContacts,
         );
-        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
+        if (schoolModel === 'at_school' || schoolModel === 'hybrid') {
           await api.createAtSchoolUser(
             editData.schoolData.id,
             schoolName,
@@ -517,7 +458,7 @@ export const useAddSchoolPage = () => {
           keyContacts,
         );
         await api.updateSchoolCourseSelection(school.id, selectedCourseIds);
-        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
+        if (schoolModel === 'at_school' || schoolModel === 'hybrid') {
           await api.createAtSchoolUser(
             school.id,
             schoolName,
@@ -569,6 +510,7 @@ export const useAddSchoolPage = () => {
     isBlocksLoading,
     isCoursesLoading,
     isDistrictsLoading,
+    isFieldCoordinatorReady,
     isSaveDisabled,
     isSaving,
     isStatesLoading,

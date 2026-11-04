@@ -25,14 +25,14 @@ const portPlugin = registerPlugin<PortPlugin>('Port');
 let receivedRespectLessonLaunch = false;
 
 /**
- * A RESPECT launch owns the surrounding navigation. Finishing Chimple returns
- * the learner to the lesson list that launched it instead of Cuba's home page.
+ * A launcher-owned lesson returns to the app that started it instead of Cuba's
+ * home page.
  */
-export const returnToRespectIfNeeded = async (): Promise<boolean> => {
+export const returnToLauncherIfNeeded = async (): Promise<boolean> => {
   if (!Util.isRespectMode) return false;
 
   try {
-    await portPlugin.returnDataToRespect();
+    await portPlugin.returnToLauncher();
     return true;
   } catch {
     return false;

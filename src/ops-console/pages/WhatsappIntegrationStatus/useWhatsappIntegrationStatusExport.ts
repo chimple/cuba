@@ -15,7 +15,7 @@ const CSV_FILE_NAME = 'whatsapp-integration-status.csv';
 export const useWhatsappIntegrationStatusExport = (
   rows: WhatsappIntegrationStatusRow[],
   search: string,
-  periskopeStatus: WhatsappIntegrationStatus | null,
+  openwaStatus: WhatsappIntegrationStatus | null,
   maytapiStatus: WhatsappIntegrationStatus | null,
 ) => {
   const { t } = useTranslation();
@@ -31,7 +31,7 @@ export const useWhatsappIntegrationStatusExport = (
         page: 1,
         page_size: 100,
         search,
-        periskope_status: periskopeStatus ?? undefined,
+        openwa_status: openwaStatus ?? undefined,
         maytapi_status: maytapiStatus ?? undefined,
       });
       const allRows = [...firstPage.data];
@@ -41,7 +41,7 @@ export const useWhatsappIntegrationStatusExport = (
           page,
           page_size: 100,
           search,
-          periskope_status: periskopeStatus ?? undefined,
+          openwa_status: openwaStatus ?? undefined,
           maytapi_status: maytapiStatus ?? undefined,
         });
         allRows.push(...response.data);
@@ -51,7 +51,7 @@ export const useWhatsappIntegrationStatusExport = (
         t('School Name'),
         t('Class'),
         t('Group ID'),
-        t('Periskope'),
+        t('OpenWA'),
         t('Maytapi'),
       ];
       const blob = new Blob(

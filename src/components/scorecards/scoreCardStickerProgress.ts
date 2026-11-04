@@ -413,11 +413,13 @@ export const buildStickerRow = async ({
   studentId,
   completedCourseId,
   completedLessonId,
+  completedAssignmentId,
   completedHomeworkIndex,
   showStickerProgress = true,
   countCompletedLessonTowardStickerProgress = true,
   allowZeroStickerProgress = false,
   stickerProgressCurrentOverride,
+  pathwayAssignments,
 }: BuildScoreCardProgressRowsParams): Promise<ScoreCardProgressRowData | null> => {
   if (!showStickerProgress) return null;
 
@@ -425,10 +427,12 @@ export const buildStickerRow = async ({
     student,
     completedCourseId,
     completedLessonId,
+    completedAssignmentId,
     completedHomeworkIndex,
     countCompletedLessonTowardStickerProgress,
     allowZeroStickerProgress,
     stickerProgressCurrentOverride,
+    pathwayAssignments,
   });
 
   if (!studentId) {
@@ -459,11 +463,12 @@ export const buildStickerRow = async ({
       pendingAwardedSticker: stickerRowContext.pendingAwardedSticker,
       shouldShowAwardedSticker: stickerRowContext.shouldShowAwardedSticker,
     });
+    // Keep the confirmed book goal visible if loading its art fails.
     const { iconSrc, iconAlt } = await resolveStickerRowIcon({
       api,
       stickerId,
       stickerBookSvgUrl,
-    });
+    }).catch(() => ({ iconSrc: undefined, iconAlt: STICKER_ICON_ALT }));
 
     const displayedProgress = resolveStickerBookProgressCounts(
       stickerRowContext,
