@@ -192,6 +192,7 @@ export type Database = {
       assignment: {
         Row: {
           batch_id: string | null;
+          campaign_id: string | null;
           chapter_id: string | null;
           class_id: string;
           course_id: string | null;
@@ -213,6 +214,7 @@ export type Database = {
         };
         Insert: {
           batch_id?: string | null;
+          campaign_id?: string | null;
           chapter_id?: string | null;
           class_id: string;
           course_id?: string | null;
@@ -234,6 +236,7 @@ export type Database = {
         };
         Update: {
           batch_id?: string | null;
+          campaign_id?: string | null;
           chapter_id?: string | null;
           class_id?: string;
           course_id?: string | null;
@@ -254,6 +257,13 @@ export type Database = {
           updated_at?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'assignment_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'assignment_chapter_id_fkey';
             columns: ['chapter_id'];

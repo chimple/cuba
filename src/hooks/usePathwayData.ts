@@ -418,6 +418,18 @@ export const usePathwayData = () => {
               skillId: pathItem?.skill_id,
               is_assessment: isAssessment,
               assessmentId,
+              // Preserve the assigned path IDs for local campaign progress after the lesson updates it.
+              pathwayAssignments: course.path.flatMap(
+                (node: LessonNode) =>
+                  node.assignment_id
+                    ? [
+                        {
+                          assignmentId: node.assignment_id,
+                          lessonId: node.lesson_id,
+                        },
+                      ]
+                    : [],
+              ),
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
           });

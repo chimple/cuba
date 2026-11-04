@@ -37,7 +37,7 @@ import type {
 import type { CampaignNotificationPayload } from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
-  /** Fetches campaign configuration changes targeted to a student. */
+  /** Fetches campaign configuration changes for existing campaign-sync callers. */
   getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
