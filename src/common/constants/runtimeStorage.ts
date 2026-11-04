@@ -2,8 +2,13 @@ import { Capacitor } from '@capacitor/core';
 import Auth from '../../models/Auth';
 import { TABLES } from './schema';
 
-export const SCREEN_WIDTH = window.innerWidth;
-export const SCREEN_HEIGHT = window.innerHeight;
+// Web Workers do not have access to the browser `window` object. Keep these
+// values undefined there because viewport dimensions are only meaningful on
+// the UI thread.
+export const SCREEN_WIDTH =
+  typeof window !== 'undefined' ? window.innerWidth : undefined;
+export const SCREEN_HEIGHT =
+  typeof window !== 'undefined' ? window.innerHeight : undefined;
 
 export const LESSONS_PLAYED_COUNT = 'lessonsPlayedCount';
 export const LESSON_END = 'lessonEnd';
