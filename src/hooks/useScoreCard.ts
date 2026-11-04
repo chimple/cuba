@@ -6,27 +6,26 @@ import {
   useState,
 } from 'react';
 import { Dialog, DialogContentText } from '@mui/material';
+import { t } from 'i18next';
+import ScoreCardProgressRows from '../components/scorecards/ScoreCardProgressRows';
+import type { ScoreCardProgressContext, ScoreCardProgressRowData } from '../components/scorecards/scoreCardTypes';
 import ScoreCardStarIcons from '../components/scorecards/ScoreCardStarIcons';
 import ScoreCardTitle from '../components/scorecards/ScoreCardTitle';
-import ScoreCardProgressRows, {
-  type ScoreCardProgressRowData,
-} from '../components/scorecards/ScoreCardProgressRows';
-import i18n from '../i18n';
-import { t } from 'i18next';
-import { AudioUtil } from '../utility/AudioUtil';
 import { EVENTS, TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
+import { AudioUtil } from '../utility/AudioUtil';
 import { Util } from '../utility/util';
-import { buildScoreCardProgressRows } from '../components/scorecards/scoreCardLogic';
-import { PENDING_BADGE_MILESTONE_KEY } from '../common/Badges/badgeProgress';
-import { logBadgeEvent } from '../common/Badges/badgeAnalytics';
-import type { BadgeAnalyticsProgress } from '../common/Badges/badgeAnalytics';
-import logger from '../utility/logger';
-import { store } from '../redux/store';
-import { setBadgeProgress } from '../redux/slices/badgeProgress/badgeProgressSlice';
+import i18n from '../i18n';
+import { usePostLessonGoals } from './usePostLessonGoals';
 
 const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
-const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
+const EMPTY_GOALS: ScoreCardProgressRowData[] = [];
+const GOAL_ANALYTICS_IDS: Record<ScoreCardProgressRowData['id'], string> = {
+  dailyReward: 'daily_reward',
+  sticker: 'sticker',
+  badge: 'badge',
+  campaign: 'campaign',
+};
 
 const resolveScoreCardStudentContext = async (): Promise<{
   student: TableTypes<'user'> | undefined;
@@ -36,7 +35,6 @@ const resolveScoreCardStudentContext = async (): Promise<{
   const authHandler = ServiceConfig.getI()?.authHandler;
   const currentUser = await authHandler?.getCurrentUser();
   const student = Util.getCurrentStudent() ?? currentUser;
-
   return {
     student,
     studentId: student?.id ?? currentUser?.id,
@@ -69,36 +67,32 @@ export const useScoreCard = ({
   courseId?: string;
   lessonId?: string;
   progressRows?: ScoreCardProgressRowData[];
-  progressContext?: {
-    completedCourseId?: string;
-    completedLessonId?: string;
-    completedHomeworkIndex?: number;
-    animateDailyReward?: boolean;
-    showDailyReward?: boolean;
-    showStickerProgress?: boolean;
-    countCompletedLessonTowardStickerProgress?: boolean;
-    allowZeroStickerProgress?: boolean;
-    stickerProgressCurrentOverride?: number;
-  };
+  progressContext?: ScoreCardProgressContext;
   showProgressRows?: boolean;
   variant?: 'default' | 'progress';
   handleClose: (event: object) => void;
   onContinueButtonClicked: MouseEventHandler<HTMLButtonElement>;
 }) => {
-  const [resolvedProgressRows, setResolvedProgressRows] = useState<
-    ScoreCardProgressRowData[]
-  >(progressRows ?? EMPTY_PROGRESS_ROWS);
-  const [isLoadingRows, setIsLoadingRows] = useState(false);
-  const loadedProgressRowsKeyRef = useRef<string | null>(null);
-  const hasProvidedProgressRows = Boolean(progressRows?.length);
-  const displayedProgressRows = showProgressRows
-    ? hasProvidedProgressRows
-      ? (progressRows ?? EMPTY_PROGRESS_ROWS)
-      : resolvedProgressRows
-    : EMPTY_PROGRESS_ROWS;
+  const hasProvidedGoals = Boolean(progressRows?.length);
+  const shouldLoadGoals =
+    showDialogBox &&
+    variant === 'progress' &&
+    showProgressRows &&
+    !hasProvidedGoals;
+  const {
+    goals,
+    isLoadingRows,
+    isPending,
+    nonPathwayOverride,
+  } = usePostLessonGoals({
+    shouldLoad: shouldLoadGoals,
+    progressRows,
+    progressContext,
+  });
+  const displayedProgressRows = showProgressRows ? goals : EMPTY_GOALS;
   const hasProgressRows = displayedProgressRows.length > 0;
   const useProgressLayout = variant === 'progress' || hasProgressRows;
-  const progressNoRowsClass = !showProgressRows ? '--progress-no-rows' : '';
+  const progressNoRowsClass = hasProgressRows ? '' : '--progress-no-rows';
   const dialogClassName = useProgressLayout
     ? `score-card-dialog score-card-dialog--progress${progressNoRowsClass ? ' score-card-dialog' + progressNoRowsClass : ''}`
     : 'score-card-dialog';
@@ -117,41 +111,15 @@ export const useScoreCard = ({
         }`,
     )
     .join('|');
-  const shouldWaitForProgressRowsAnimation =
-    useProgressLayout && displayedProgressRows.length > 0;
-  const [
-    areProgressRowsAnimationComplete,
-    setAreProgressRowsAnimationComplete,
-  ] = useState(true);
+  const [areProgressRowsAnimationComplete, setAreProgressRowsAnimationComplete] =
+    useState(true);
   const progressContinueStateClass = useProgressLayout
     ? areProgressRowsAnimationComplete
       ? 'score-card-continue--ready'
       : 'score-card-continue--pending'
     : '';
-  const progressLookupKey = [
-    progressContext?.completedCourseId ?? '',
-    progressContext?.completedLessonId ?? '',
-    progressContext?.completedHomeworkIndex ?? '',
-    progressContext?.animateDailyReward ? '1' : '0',
-    progressContext?.showDailyReward ? '1' : '0',
-    progressContext?.showStickerProgress === false ? '0' : '1',
-    progressContext?.countCompletedLessonTowardStickerProgress === false
-      ? '0'
-      : '1',
-    progressContext?.allowZeroStickerProgress ? '1' : '0',
-    progressContext?.stickerProgressCurrentOverride ?? '',
-  ].join('|');
-  const shouldLoadProgressRows =
-    showDialogBox &&
-    variant === 'progress' &&
-    showProgressRows &&
-    !hasProvidedProgressRows;
-  const isProgressRowsPending =
-    shouldLoadProgressRows &&
-    loadedProgressRowsKeyRef.current !== progressLookupKey;
-  const shouldRenderDialog = showDialogBox && !isProgressRowsPending;
+  const shouldRenderDialog = showDialogBox && !isPending;
   const hasLoggedGoalProgressRef = useRef(false);
-  const badgeCompletionKeyRef = useRef<string | null>(null);
 
   const logGoalProgressShown = useCallback(async () => {
     const { student, studentId, parentId } =
@@ -167,13 +135,22 @@ export const useScoreCard = ({
       lesson_id: lessonId ?? progressContext?.completedLessonId ?? 'null',
       lesson_name: lessonName ?? 'null',
     });
+    void Util.logEvent(EVENTS.POST_LESSON_GOALS_VIEWED, {
+      goals_rendered: JSON.stringify(
+        displayedProgressRows.map((row) => GOAL_ANALYTICS_IDS[row.id]),
+      ),
+      non_pathway_override: nonPathwayOverride,
+      source: progressContext?.source ?? 'unknown',
+    });
   }, [
-    displayedProgressRows.length,
     courseId,
+    displayedProgressRows,
     lessonId,
+    lessonName,
+    nonPathwayOverride,
     progressContext?.completedCourseId,
     progressContext?.completedLessonId,
-    lessonName,
+    progressContext?.source,
     score,
   ]);
 
@@ -192,9 +169,9 @@ export const useScoreCard = ({
       lesson_name: lessonName ?? 'null',
     });
   }, [
-    lessonName,
     courseId,
     lessonId,
+    lessonName,
     progressContext?.completedCourseId,
     progressContext?.completedLessonId,
   ]);
@@ -205,103 +182,23 @@ export const useScoreCard = ({
     onContinueButtonClicked(event);
   };
 
-  const handleProgressRowsAnimationComplete = useCallback(() => {
-    setAreProgressRowsAnimationComplete(true);
-  }, []);
-
   useEffect(() => {
-    if (!shouldRenderDialog) {
+    if (!shouldRenderDialog || !useProgressLayout || !hasProgressRows) {
       setAreProgressRowsAnimationComplete(true);
       return;
     }
 
-    const needsProgressRowsAnimationWait = shouldWaitForProgressRowsAnimation;
-    setAreProgressRowsAnimationComplete(!needsProgressRowsAnimationWait);
-
-    if (!needsProgressRowsAnimationWait) return;
-
-    const fallbackTimerId = window.setTimeout(() => {
-      setAreProgressRowsAnimationComplete(true);
-    }, 8000);
-
-    return () => window.clearTimeout(fallbackTimerId);
+    setAreProgressRowsAnimationComplete(false);
+    const continueTimerId = window.setTimeout(
+      () => setAreProgressRowsAnimationComplete(true),
+      4000,
+    );
+    return () => window.clearTimeout(continueTimerId);
   }, [
+    hasProgressRows,
     progressRowsAnimationKey,
     shouldRenderDialog,
-    shouldWaitForProgressRowsAnimation,
-  ]);
-
-  useEffect(() => {
-    if (progressRows) setResolvedProgressRows(progressRows);
-  }, [progressRows]);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadProgressRows = async () => {
-      if (
-        !shouldLoadProgressRows ||
-        loadedProgressRowsKeyRef.current === progressLookupKey
-      ) {
-        return;
-      }
-
-      setIsLoadingRows(true);
-      try {
-        const { student, studentId } = await resolveScoreCardStudentContext();
-        const apiHandler = ServiceConfig.getI()?.apiHandler;
-        if (!apiHandler) return;
-
-        const progressRowsForScoreCard = await buildScoreCardProgressRows({
-          api: apiHandler,
-          student,
-          studentId,
-          completedCourseId: progressContext?.completedCourseId,
-          completedLessonId: progressContext?.completedLessonId,
-          completedHomeworkIndex: progressContext?.completedHomeworkIndex,
-          animateDailyReward: progressContext?.animateDailyReward,
-          showDailyReward: progressContext?.showDailyReward,
-          showStickerProgress: progressContext?.showStickerProgress,
-          countCompletedLessonTowardStickerProgress:
-            progressContext?.countCompletedLessonTowardStickerProgress,
-          allowZeroStickerProgress: progressContext?.allowZeroStickerProgress,
-          stickerProgressCurrentOverride:
-            progressContext?.stickerProgressCurrentOverride,
-        });
-
-        if (!isCancelled) {
-          setResolvedProgressRows(progressRowsForScoreCard);
-        }
-      } catch {
-        // Keep the scorecard actionable even if progress lookup fails.
-      } finally {
-        if (!isCancelled) {
-          loadedProgressRowsKeyRef.current = progressLookupKey;
-          setIsLoadingRows(false);
-        }
-      }
-    };
-
-    void loadProgressRows();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    hasProvidedProgressRows,
-    progressLookupKey,
-    shouldLoadProgressRows,
-    progressContext?.animateDailyReward,
-    progressContext?.completedCourseId,
-    progressContext?.completedLessonId,
-    progressContext?.completedHomeworkIndex,
-    progressContext?.showDailyReward,
-    progressContext?.showStickerProgress,
-    progressContext?.countCompletedLessonTowardStickerProgress,
-    progressContext?.allowZeroStickerProgress,
-    progressContext?.stickerProgressCurrentOverride,
-    showDialogBox,
-    variant,
+    useProgressLayout,
   ]);
 
   useEffect(() => {
@@ -311,15 +208,8 @@ export const useScoreCard = ({
       return;
     }
 
-    void AudioUtil.playAudioOrTts({
-      audioUrl,
-      delayMs: 300,
-      loop: false,
-    });
-
-    return () => {
-      void AudioUtil.stopAudioUrlOrTtsPlayback();
-    };
+    void AudioUtil.playAudioOrTts({ audioUrl, delayMs: 300, loop: false });
+    return () => void AudioUtil.stopAudioUrlOrTtsPlayback();
   }, [audioUrl, lessonName, message, shouldRenderDialog]);
 
   useEffect(() => {
@@ -330,62 +220,9 @@ export const useScoreCard = ({
     ) {
       return;
     }
-
     hasLoggedGoalProgressRef.current = true;
     void logGoalProgressShown();
   }, [isLoadingRows, logGoalProgressShown, shouldRenderDialog]);
-
-  useEffect(() => {
-    const completedLessonId = progressContext?.completedLessonId;
-    const api = ServiceConfig.getI()?.apiHandler;
-    if (
-      !shouldRenderDialog ||
-      !progressContext?.showStickerProgress ||
-      !completedLessonId ||
-      !api?.recordBadgeLessonCompletion
-    ) {
-      return;
-    }
-
-    const completionKey = `${completedLessonId}:${progressContext.completedHomeworkIndex ?? ''}`;
-    if (badgeCompletionKeyRef.current === completionKey) return;
-
-    void (async () => {
-      const { studentId } = await resolveScoreCardStudentContext();
-      if (!studentId) return;
-      badgeCompletionKeyRef.current = completionKey;
-      try {
-        const result = await api.recordBadgeLessonCompletion(studentId);
-        // Redux updates the menu indicator immediately after the badge is awarded.
-        store.dispatch(
-          setBadgeProgress({
-            studentId,
-            hasUnseenBadge: Boolean(result.progress.has_unseen_badge),
-          }),
-        );
-        if (result.milestoneReached !== null) {
-          // Carry the exact local progress snapshot to Home for popup analytics and display.
-          const badgeProgress = result.progress as BadgeAnalyticsProgress;
-          void logBadgeEvent(
-            EVENTS.BADGE_MILESTONE_REACHED,
-            studentId,
-            badgeProgress,
-            { milestone_awarded: result.milestoneReached },
-          );
-          sessionStorage.setItem(
-            PENDING_BADGE_MILESTONE_KEY,
-            JSON.stringify({
-              milestone: result.milestoneReached,
-              studentId,
-              progress: badgeProgress,
-            }),
-          );
-        }
-      } catch (error) {
-        logger.warn('Badge progress update skipped:', error);
-      }
-    })();
-  }, [progressContext, shouldRenderDialog]);
 
   return {
     Dialog,
@@ -397,7 +234,6 @@ export const useScoreCard = ({
     displayedProgressRows,
     handleClose,
     handleContinueClick,
-    handleProgressRowsAnimationComplete,
     i18n,
     isLoadingRows,
     lessonName,

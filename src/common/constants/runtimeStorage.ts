@@ -271,6 +271,7 @@ export enum EVENTS {
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
   GOAL_PROGRESS = 'Goal_Progress',
+  POST_LESSON_GOALS_VIEWED = 'post_lesson_goals_viewed',
   CLICKS_ANALYTICS = 'clicks_analytics',
   CLICK_ANALYTICS = 'click_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',

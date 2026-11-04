@@ -1,0 +1,165 @@
+.score-card-dialog--progress .score-card-goal-progress-list {
+  box-sizing: border-box;
+  width: min(663px, calc(100vw - 32px));
+  max-width: 663px;
+  height: 176px;
+  min-height: 176px;
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.score-card-dialog--progress .score-card-goal-progress-list:has(
+    .score-card-progress-row--group-1
+  ) {
+  padding-bottom: 4px;
+}
+
+.score-card-dialog--progress .score-card-progress-row-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40.88px;
+  min-height: 82px;
+}
+
+.score-card-dialog--progress .score-card-progress-row-group--single {
+  display: flex;
+  justify-content: center;
+}
+
+.score-card-dialog--progress .score-card-progress-row-group--placeholder {
+  visibility: hidden;
+}
+
+.score-card-dialog--progress .score-card-progress-row {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 310.475px;
+  min-width: 0;
+  height: 82px;
+  min-height: 82px;
+  padding: 8px 10px 6px 14px;
+  border: 0.9px solid transparent;
+  border-radius: 16.479px;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: minmax(0, 235px) 40px;
+  grid-template-rows: 30px 36px;
+  grid-template-areas: 'label label' 'track icon';
+  column-gap: 9px;
+  row-gap: 0;
+}
+
+.score-card-dialog--progress .score-card-progress-row--daily-reward,
+.score-card-dialog--progress .score-card-progress-row--badge {
+  border-color: #88ffff;
+  background: #f3ffff;
+}
+
+.score-card-dialog--progress .score-card-progress-row--sticker,
+.score-card-dialog--progress .score-card-progress-row--campaign {
+  border-color: #ffed68;
+  background: #fffdee;
+}
+
+.score-card-dialog--progress .score-card-progress-label {
+  grid-area: label;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.score-card-dialog--progress .score-card-progress-icon-wrap {
+  grid-area: icon;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  overflow: hidden;
+}
+
+.score-card-dialog--progress .score-card-progress-row--sticker .score-card-progress-icon-wrap {
+  box-sizing: border-box;
+  width: 39.6px;
+  height: 29.55px;
+  align-self: start;
+  padding: 2px;
+  border: 1.276px solid #f55376;
+  border-radius: 6.382px;
+  background: #fffdee;
+}
+
+.score-card-dialog--progress .score-card-progress-icon {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.score-card-dialog--progress .score-card-progress-badge-fallback {
+  width: 40px;
+  height: 36px;
+  overflow: hidden;
+}
+
+.score-card-dialog--progress .score-card-progress-badge-fallback > * {
+  transform: scale(0.24);
+  transform-origin: top left;
+}
+
+.score-card-dialog--progress .score-card-progress-track {
+  grid-area: track;
+  position: relative;
+  align-self: center;
+  width: 100%;
+  max-width: 235px;
+  height: 20px;
+  overflow: hidden;
+  border-radius: 8.241px;
+  background: #d7d7d7;
+}
+
+.score-card-dialog--progress .score-card-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+}
+
+.score-card-dialog--progress .score-card-progress-fill rect {
+  fill: #81c127;
+}
+
+.score-card-dialog--progress .score-card-progress-count {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #182a4f;
+  font-size: 11.537px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-card-dialog--progress .score-card-progress-check {
+  position: absolute;
+  top: 7px;
+  right: 20px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+}
+
+.score-card-dialog--progress .score-card-progress-check-icon {
+  width: 13px;
+  height: 13px;
+}

@@ -1,5 +1,7 @@
 import {
   CAMPAIGN_REWARD_LOG_KEYWORD,
+  RESULT_STATUS,
+  AssignmentSource,
   TabType,
 } from '../../../common/constants';
 import { CampaignSetupOptions } from '../ServiceApi';
@@ -45,11 +47,15 @@ import {
   CampaignWhatsappLabelData,
 } from '../ServiceApi';
 import type { CampaignNotificationPayload } from '../ServiceApi';
+import type {
+  CampaignActiveChange,
+  CampaignGoalProgress,
+} from '../ServiceApi';
 import logger from '../../../utility/logger';
 import { showCampaignCertificate } from '../../../components/campaignCertificate';
 import type { CampaignCertificateRank } from '../../../components/campaignCertificate';
 
-// Keep campaign configuration fetches lightweight by limiting them to once per day.
+// Keep campaign settings cached between explicit syncs; goal rendering itself never calls this sync.
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -79,15 +85,89 @@ const parseCampaignRules = (value: string): CampaignRewardRule[] => {
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
 
-  /** Delegates incremental campaign configuration fetching to Supabase. */
+  /** Keeps the existing campaign-config API intact for non-scorecard callers. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
-  ) {
+  ): Promise<CampaignActiveChange[]> {
     return await this._serverApi.getActiveCampaigns(
       studentId,
       lastFetchTimestamp,
     );
+  }
+
+  /** Counts the supplied homework path's active campaign assignments and results locally. */
+  async getActiveCampaignGoalProgress(
+    studentId = this.currentStudent?.id,
+    courseId?: string,
+    assignmentIds: string[] = [],
+  ): Promise<CampaignGoalProgress | null> {
+    if (!studentId || !courseId || !assignmentIds.length) return null;
+    await this.ensureInitialized();
+    const now = new Date().toISOString();
+    const assignmentPlaceholders = assignmentIds.map(() => '?').join(', ');
+    try {
+      // Count only the campaign assignments shown in this homework pathway.
+      const result = await this.executeQuery(
+        `WITH current_course AS (
+           SELECT id FROM course
+           WHERE id = ? AND COALESCE(is_deleted, 0) = 0
+         )
+         SELECT a.campaign_id,
+           COUNT(DISTINCT a.id) AS total,
+           COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.id END) AS current
+         FROM assignment a
+         JOIN current_course course ON a.course_id = course.id
+         LEFT JOIN result r
+           ON r.assignment_id = a.id AND r.student_id = ? AND r.is_deleted = 0
+          AND COALESCE(r.status, '') <> ?
+         WHERE a.campaign_id IS NOT NULL
+           AND a.source = ? AND COALESCE(a.is_deleted, 0) = 0
+           AND a.id IN (${assignmentPlaceholders})
+           AND a.starts_at <= ? AND (a.ends_at IS NULL OR a.ends_at >= ?)
+           AND (
+             (a.is_class_wise = 1 AND EXISTS (
+               SELECT 1 FROM class_user cu
+               WHERE cu.class_id = a.class_id AND cu.user_id = ? AND cu.is_deleted = 0
+             ))
+             OR EXISTS (
+               SELECT 1 FROM assignment_user au
+               WHERE au.assignment_id = a.id AND au.user_id = ? AND au.is_deleted = 0
+             )
+           )
+         GROUP BY a.campaign_id
+         ORDER BY MIN(COALESCE(a.ends_at, '9999-12-31T23:59:59.999Z')), a.campaign_id
+         LIMIT 1`,
+        [
+          courseId,
+          studentId,
+          RESULT_STATUS.SYSTEM_EXIT,
+          AssignmentSource.CAMPAIGN,
+          ...assignmentIds,
+          now,
+          now,
+          studentId,
+          studentId,
+        ],
+      );
+      const row = result?.values?.[0] as {
+        campaign_id: string;
+        current: number | string;
+        total: number | string;
+      } | undefined;
+      if (!row) return null;
+      const current = Number(row.current);
+      const total = Number(row.total);
+      return Number.isFinite(current) && Number.isFinite(total) && total > 0
+        ? { campaignId: row.campaign_id, current, total }
+        : null;
+    } catch (error) {
+      logger.warn(
+        `${CAMPAIGN_REWARD_LOG_KEYWORD} local assignment progress unavailable`,
+        error,
+      );
+      return null;
+    }
   }
 
   /** Delegates reward outcome persistence to Supabase while retaining local evaluation. */
@@ -282,7 +362,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     );
   }
 
-  // Pull campaign changes, persist them locally, then rebuild cached outcomes after reinstall.
+  /** Retains the existing campaign-settings sync for explicit callers outside the scorecard flow. */
   async syncCampaignRewards(
     studentId = this.currentStudent?.id,
   ): Promise<void> {
@@ -297,10 +377,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     });
 
     if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
-      const changes = await this._serverApi.getActiveCampaigns(
-        studentId,
-        lastFetch,
-      );
+      const changes = await this.getActiveCampaigns(studentId, lastFetch);
       logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} changes received`, {
         studentId,
         count: changes?.length ?? 0,
@@ -321,7 +398,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           );
           continue;
         }
-        // Upsert the server configuration so evaluation remains fully offline between fetches.
+        // Keep the campaign rules in SQLite so goal calculations can read them offline.
         await this.executeQuery(
           `INSERT OR REPLACE INTO local_campaigns
             (id, name, rules_json, start_date, end_date, status, updated_at, is_deleted)

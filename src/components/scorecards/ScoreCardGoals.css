@@ -1,0 +1,78 @@
+.score-card-dialog__paper--progress {
+  height: min(360px, 100vh) !important;
+  min-height: min(360px, 100vh) !important;
+  padding: 8px 20px !important;
+  gap: 8px;
+  justify-content: flex-start !important;
+}
+
+.score-card-dialog__paper--progress:has(.score-card-progress-row-group--placeholder) {
+  gap: 8px;
+}
+
+.score-card-dialog__paper--progress-no-rows {
+  justify-content: center !important;
+  gap: 20px;
+}
+
+.score-card-dialog--progress .score-card-goal-progress-content-box {
+  box-sizing: border-box;
+  width: min(417px, calc(100vw - 32px));
+  height: 100px;
+  flex: 0 0 100px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 8.485px;
+  background: #fffdee;
+  box-shadow:
+    0 1px 0 #7d7d7d,
+    0 5.221px 13.053px -2.611px rgba(0, 0, 0, 0.1);
+}
+
+.score-card-dialog--progress .dialog-content-text {
+  gap: 24px !important;
+}
+
+.score-card-dialog--progress .score-card-icons {
+  width: 95.29px !important;
+  margin-top: 0;
+}
+
+.score-card-dialog--progress .image-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.score-card-dialog--progress .star-images-component {
+  width: 95.29px;
+}
+
+.score-card-dialog--progress .star-icon-image {
+  gap: 7px;
+}
+
+.score-card-dialog--progress .score-card-first-star,
+.score-card-dialog--progress .score-card-middle-star {
+  width: 26px;
+  height: 26px;
+}
+
+.score-card-dialog--progress .score-card-middle-star {
+  transform: translateY(6px);
+}
+
+.score-card-dialog--progress .title-scoreCard span {
+  font-size: 16.317px;
+}
+
+.score-card-dialog--progress .score-card-text-column {
+  gap: 6px !important;
+}
+
+.score-card-dialog--progress .score-card-content-message {
+  font-size: 15.664px;
+}
+
+.score-card-dialog--progress .score-card-content-lesson-name {
+  font-size: 14.359px;
+}

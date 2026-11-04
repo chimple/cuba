@@ -491007,7 +491007,8 @@
         { "column": "firebase_id", "value": "TEXT" },
         { "column": "is_firebase", "value": "BOOLEAN" },
         { "column": "source", "value": "TEXT" },
-        { "column": "set_number", "value": "INTEGER" }
+        { "column": "set_number", "value": "INTEGER" },
+        { "column": "campaign_id", "value": "TEXT" }
       ],
       "indexes": [
         { "name": "idx_assignment_lesson_id", "value": "lesson_id" },
