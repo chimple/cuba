@@ -1,5 +1,8 @@
 import { ApiHandlerStudentProgress } from './ApiHandler.studentProgress';
-import type { LeaderboardInfo } from '../ServiceApi';
+import type {
+  LeaderboardInfo,
+  TeacherLeaderboardScoreHistory,
+} from '../ServiceApi';
 import { TableTypes, LeaderboardDropdownList } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 
@@ -13,6 +16,17 @@ export class ApiHandlerClassroom extends ApiHandlerStudentProgress {
     teacherId: string,
   ): Promise<TableTypes<'teacher_leaderboard'> | undefined> {
     return await this.s.getTeacherLeaderboard?.(teacherId);
+  }
+
+  /**
+   * Delegates score-history retrieval to the active local or Supabase API.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Seven rolling daily scores, or an empty list when unsupported.
+   */
+  async getTeacherLeaderboardScoreHistory(
+    teacherId: string,
+  ): Promise<TeacherLeaderboardScoreHistory[]> {
+    return (await this.s.getTeacherLeaderboardScoreHistory?.(teacherId)) ?? [];
   }
 
   async getPendingAssignments(
