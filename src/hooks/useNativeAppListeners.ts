@@ -91,7 +91,10 @@ export const useNativeAppListeners = () => {
     });
 
     const onPathwayActivityChanged = () => {
-      void DailyRewardsNotificationScheduler.schedule();
+      // Android checks SQLite when the alarm fires; iOS still schedules from activity.
+      if (Capacitor.getPlatform() !== 'android') {
+        void DailyRewardsNotificationScheduler.schedule();
+      }
     };
     window.addEventListener(
       DAILY_REWARDS_ACTIVITY_CHANGED,

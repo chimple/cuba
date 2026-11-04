@@ -70,10 +70,12 @@ export class DailyRewardsNotificationScheduler {
   private static async scheduleOnce(): Promise<void> {
     try {
       const now = new Date();
-      const history = this.history().filter(
-        (entry) => new Date(entry.sentAt).getTime() <= now.getTime(),
-      );
-      await this.clearScheduled();
+      const isAndroid = Capacitor.getPlatform() === 'android';
+      const history = isAndroid
+        ? []
+        : this.history().filter(
+            (entry) => new Date(entry.sentAt).getTime() <= now.getTime(),
+          );
       const api = ServiceConfig.getI().apiHandler;
       const students = await api.getParentStudentProfiles();
       const candidates = (
@@ -101,7 +103,8 @@ export class DailyRewardsNotificationScheduler {
         )
       ).filter(({ config }) => config.global_enable);
       if (!candidates.length) {
-        this.saveHistory(history);
+        await this.clearScheduled();
+        if (!isAndroid) this.saveHistory(history);
         return;
       }
       const { student, language, config } =
@@ -122,9 +125,9 @@ export class DailyRewardsNotificationScheduler {
           }),
         ),
       );
-      const playedDatesByStudent = await this.getPlayedDatesByStudent([
-        student,
-      ]);
+      const playedDatesByStudent = isAndroid
+        ? new Map<string, StudentActivity>()
+        : await this.getPlayedDatesByStudent([student]);
       const rewardsByStudent = await this.getDailyRewardsByStudent([student]);
       const notifications = [] as Parameters<
         typeof LocalNotifications.schedule
@@ -141,6 +144,7 @@ export class DailyRewardsNotificationScheduler {
           const at = this.toTriggerDate(date, campaign.trigger_time);
           if (at <= now) continue;
           if (
+            !isAndroid &&
             !matchesCampaign(
               campaign,
               date,
@@ -154,12 +158,14 @@ export class DailyRewardsNotificationScheduler {
             )
           )
             continue;
-          const template = this.pickTemplate(
-            campaign,
-            campaign.cooldown_days ?? config.anti_spam_cooldown_days,
-            at,
-            selectedHistory,
-          );
+          const template = isAndroid
+            ? campaign.templates[0]
+            : this.pickTemplate(
+                campaign,
+                campaign.cooldown_days ?? config.anti_spam_cooldown_days,
+                at,
+                selectedHistory,
+              );
           if (!template) continue;
           const copy = this.resolveTemplateCopy(template, language);
           const childName = student.name?.trim() || copy.fallbackChildName;
@@ -199,18 +205,65 @@ export class DailyRewardsNotificationScheduler {
                   : `${PAGES.HOME}?tab=${HOMEHEADERLIST.HOME}`,
               template_id: copy.id,
               campaign_id: campaign.id,
+              guard: isAndroid
+                ? {
+                    trigger: campaign.trigger,
+                    eligibility: campaign.eligibility,
+                    activity_sources: campaign.activity_sources,
+                    template_id: template.id,
+                    cooldown_days:
+                      campaign.cooldown_days ?? config.anti_spam_cooldown_days,
+                    variants: campaign.templates.map((candidate) => {
+                      const candidateCopy = this.resolveTemplateCopy(
+                        candidate,
+                        language,
+                      );
+                      const candidateName =
+                        student.name?.trim() || candidateCopy.fallbackChildName;
+                      const candidateLink =
+                        candidate.deep_links[
+                          Math.floor(
+                            Math.random() * candidate.deep_links.length,
+                          )
+                        ] ?? 'home';
+                      const candidateImage = this.imageUrl(config, candidate);
+                      return {
+                        template_id: candidate.id,
+                        copy_id: candidateCopy.id,
+                        weight: candidate.weight,
+                        title: interpolate(
+                          candidateCopy.title,
+                          candidateName,
+                          rewardsByStudent.get(student.id) ?? 'daily reward',
+                        ),
+                        body: interpolate(
+                          candidateCopy.body,
+                          candidateName,
+                          rewardsByStudent.get(student.id) ?? 'daily reward',
+                        ),
+                        image_id: candidateImage
+                          ? this.imageCacheKey(candidate, candidateImage)
+                          : undefined,
+                        deep_link:
+                          candidateLink === 'homework'
+                            ? `${PAGES.HOME}?tab=${HOMEHEADERLIST.ASSIGNMENT}`
+                            : `${PAGES.HOME}?tab=${HOMEHEADERLIST.HOME}`,
+                      };
+                    }),
+                  }
+                : undefined,
             },
           });
-          selectedHistory.push({
-            templateId: template.id,
-            sentAt: at.toISOString(),
-          });
+          if (!isAndroid) {
+            selectedHistory.push({
+              templateId: template.id,
+              sentAt: at.toISOString(),
+            });
+          }
         }
       }
-      if (notifications.length) {
-        await this.sendNotifications(config, notifications);
-      }
-      this.saveHistory(selectedHistory);
+      await this.sendNotifications(config, notifications);
+      if (!isAndroid) this.saveHistory(selectedHistory);
     } catch (error) {
       logger.error('Failed to schedule daily reward notifications', error);
     }
@@ -399,8 +452,7 @@ export class DailyRewardsNotificationScheduler {
     template: DailyRewardsNotificationCampaign['templates'][number],
     imageUrl?: string,
   ): string {
-    if (template.image_id) return template.image_id;
-    return 'url_' + this.hash(imageUrl ?? '');
+    return `${template.image_id ?? 'url'}_${this.hash(imageUrl ?? '')}`;
   }
 
   private static hash(value: string): string {
@@ -416,23 +468,32 @@ export class DailyRewardsNotificationScheduler {
     notifications: LocalNotification[],
   ): Promise<void> {
     if (Capacitor.getPlatform() !== 'android') {
-      await LocalNotifications.schedule({ notifications });
+      await this.clearScheduled();
+      if (notifications.length) {
+        await LocalNotifications.schedule({ notifications });
+      }
       return;
     }
     await richLocalNotifications.schedule({
-      notifications: notifications.map((notification) => ({
-        id: notification.id,
-        title: notification.title,
-        body: notification.body,
-        channelId: notification.channelId,
-        at: notification.schedule?.at?.getTime() ?? 0,
-        imageId: notification.attachments?.[0]?.id,
-        extra: notification.extra,
-      })),
+      notifications: notifications.map(this.toNativeNotification),
     });
     void this.prefetchImages(config).catch((error) =>
       logger.warn('[Daily Rewards] image prefetch failed', error),
     );
+  }
+
+  private static toNativeNotification(
+    notification: LocalNotification,
+  ): Record<string, unknown> {
+    return {
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      channelId: notification.channelId,
+      at: notification.schedule?.at?.getTime() ?? 0,
+      imageId: notification.attachments?.[0]?.id,
+      extra: notification.extra,
+    };
   }
 
   private static async clearScheduled(): Promise<void> {

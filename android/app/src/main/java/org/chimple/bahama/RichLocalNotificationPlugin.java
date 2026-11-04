@@ -22,6 +22,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,15 +73,30 @@ public class RichLocalNotificationPlugin extends Plugin {
             call.resolve();
             return;
         }
-        clearScheduled(getContext());
+        JSONArray previous;
+        try {
+            previous = new JSONArray(preferences(getContext()).getString("scheduled", "[]"));
+        } catch (Exception ignored) {
+            previous = new JSONArray();
+        }
         JSONArray saved = new JSONArray();
+        Set<Integer> newIds = new HashSet<>();
         for (int index = 0; index < notifications.length(); index++) {
             JSONObject item = notifications.optJSONObject(index);
             if (item == null || item.optInt("id", 0) <= 0 || item.optLong("at", 0) <= 0) continue;
             scheduleItem(getContext(), item);
             saved.put(item);
+            newIds.add(item.optInt("id"));
         }
-        preferences(getContext()).edit().putString("scheduled", saved.toString()).apply();
+        if (!preferences(getContext()).edit().putString("scheduled", saved.toString()).commit()) {
+            call.reject("Unable to save scheduled notifications");
+            return;
+        }
+        for (int index = 0; index < previous.length(); index++) {
+            JSONObject item = previous.optJSONObject(index);
+            if (item == null || newIds.contains(item.optInt("id"))) continue;
+            cancelItem(getContext(), item.optInt("id"));
+        }
         call.resolve();
     }
 
@@ -126,23 +143,27 @@ public class RichLocalNotificationPlugin extends Plugin {
     }
 
     private static void clearScheduled(Context context) {
-        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         try {
             JSONArray saved = new JSONArray(preferences(context).getString("scheduled", "[]"));
             for (int index = 0; index < saved.length(); index++) {
                 JSONObject item = saved.optJSONObject(index);
-                if (item == null || alarms == null) continue;
-                int id = item.optInt("id", 0);
-                PendingIntent pending = PendingIntent.getBroadcast(context, id,
-                        new Intent(context, RichLocalNotificationReceiver.class),
-                        PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
-                if (pending != null) {
-                    alarms.cancel(pending);
-                    pending.cancel();
-                }
+                if (item == null) continue;
+                cancelItem(context, item.optInt("id", 0));
             }
         } catch (Exception ignored) { }
         preferences(context).edit().remove("scheduled").apply();
+    }
+
+    private static void cancelItem(Context context, int id) {
+        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null || id <= 0) return;
+        PendingIntent pending = PendingIntent.getBroadcast(context, id,
+                new Intent(context, RichLocalNotificationReceiver.class),
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
+        if (pending != null) {
+            alarms.cancel(pending);
+            pending.cancel();
+        }
     }
 
     private static void scheduleItem(Context context, JSONObject item) {
@@ -151,6 +172,7 @@ public class RichLocalNotificationPlugin extends Plugin {
         int id = item.optInt("id", 0);
         Intent intent = new Intent(context, RichLocalNotificationReceiver.class)
                 .putExtra("id", id)
+                .putExtra("at", item.optLong("at", 0))
                 .putExtra("channelId", item.optString("channelId", "general_notifications"))
                 .putExtra("title", item.optString("title", "Chimple"))
                 .putExtra("body", item.optString("body", ""))

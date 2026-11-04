@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useFeatureValue, useGrowthBook } from '@growthbook/growthbook-react';
 import {
   BUNDLE_ZIP_URLS,
@@ -91,8 +92,15 @@ export const useGrowthBookFeatureCache = () => {
       ).catch((error) =>
         logger.warn('[Daily Rewards] image prefetch failed', error),
       );
+      if (
+        Capacitor.getPlatform() === 'android' &&
+        (dailyRewardsNotificationsConfig.global_enable ||
+          !!Object.keys(growthbook?.getFeatures() ?? {}).length)
+      ) {
+        void DailyRewardsNotificationScheduler.schedule();
+      }
     }
-  }, [dailyRewardsNotificationsConfig]);
+  }, [dailyRewardsNotificationsConfig, growthbook]);
 
   useEffect(() => {
     if (
