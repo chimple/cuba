@@ -37,19 +37,6 @@ import {
   clearWebGoogleLoginPending,
   isWebGoogleLoginPending,
 } from './services/auth/webGoogleLoginLoading';
-
-const lidoPlayerFontStyle = document.createElement('style');
-lidoPlayerFontStyle.textContent = `
-  @font-face {
-    font-family: 'Baloo Bhai 2';
-    src: url('/assets/offline-assets/fonts/Baloo-Bhai-2/Baloo-Bhai-2-Variable.woff2') format('woff2');
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-  }
-`;
-document.head.appendChild(lidoPlayerFontStyle);
-
 initializeErrorReporting();
 initializePlatformSetup();
 
