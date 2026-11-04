@@ -89,7 +89,7 @@ const TeacherScoreDetails = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label={t('Close score details')}
+            aria-label={String(t('Close score details'))}
             className="teacher-score-details__close"
           >
             <CloseIcon />
@@ -105,7 +105,7 @@ const TeacherScoreDetails = ({
             className="teacher-score-details__chart"
             viewBox="0 0 298 164"
             role="img"
-            aria-label={t('Your score over the last 7 days')}
+            aria-label={String(t('Your score over the last 7 days'))}
           >
             <polyline
               points={days
