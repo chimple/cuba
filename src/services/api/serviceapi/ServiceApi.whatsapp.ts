@@ -34,7 +34,7 @@ export type WhatsappIntegrationStatusParams = {
 };
 
 export type WhatsappProviderStatusRow = {
-  provider: 'openwa' | 'openwa_api';
+  provider: 'openwa' | 'openwa_api' | 'maytapi';
   checked_at: string;
   status: 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
 };

@@ -11,21 +11,17 @@ import {
   CAMPAIGN_MESSAGE_PAGE_SIZE,
   EMPTY_CAMPAIGN_MESSAGE_REPORT,
   exportCampaignMessageRows,
-  getCampaignMessageReportDateInputValue,
   getCampaignMessageExportFileName,
-  getCampaignMessageReportToday,
+  getCampaignMessageReportDateRange,
   isInvalidCampaignMessageDateRange,
 } from './CampaignMessageReport.helpers';
 
 export const useCampaignMessageReport = (
   campaignId: string | undefined,
   campaignName: string,
-  campaignStartDate: string | undefined,
 ) => {
-  const defaultFromDate =
-    getCampaignMessageReportDateInputValue(campaignStartDate);
-  const [fromDate, setFromDate] = useState(defaultFromDate);
-  const [toDate, setToDate] = useState(getCampaignMessageReportToday);
+  const [reportDays, setReportDays] = useState<1 | 3 | 7>(7);
+  const { fromDate, toDate } = getCampaignMessageReportDateRange(reportDays);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<CampaignMessageReportSortKey>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -75,13 +71,6 @@ export const useCampaignMessageReport = (
     toDate,
   ]);
 
-  const clearFilters = useCallback((): void => {
-    setFromDate(defaultFromDate);
-    setToDate(getCampaignMessageReportToday());
-    setPage(1);
-    setSortBy('date');
-    setSortOrder('desc');
-  }, [defaultFromDate]);
   const handleSort = useCallback(
     (nextKey: CampaignMessageReportSortKey): void => {
       setSortOrder((current) =>
@@ -128,7 +117,6 @@ export const useCampaignMessageReport = (
     toDate,
   ]);
   return {
-    clearFilters,
     error,
     exportReport,
     fromDate,
@@ -139,15 +127,12 @@ export const useCampaignMessageReport = (
     page,
     report,
     retry: () => setRetryKey((value) => value + 1),
-    setFromDate: (value: string) => {
-      setFromDate(value);
+    reportDays,
+    setReportDays: (value: 1 | 3 | 7) => {
+      setReportDays(value);
       setPage(1);
     },
     setPage,
-    setToDate: (value: string) => {
-      setToDate(value);
-      setPage(1);
-    },
     sortBy,
     sortOrder,
     toDate,
