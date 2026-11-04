@@ -92,6 +92,14 @@ export const getCampaignMessageReportToday = (): string => {
   const year = parts.find((part) => part.type === 'year')?.value ?? '';
   return `${year}-${month}-${day}`;
 };
+export const getCampaignMessageReportDateRange = (
+  days: 1 | 3 | 7,
+): { fromDate: string; toDate: string } => {
+  const toDate = getCampaignMessageReportToday();
+  const end = new Date(`${toDate}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() - (days - 1));
+  return { fromDate: end.toISOString().slice(0, 10), toDate };
+};
 export const getCampaignMessageExportFileName = (
   campaignName: string,
   fromDate: string,

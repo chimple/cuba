@@ -364,24 +364,24 @@ describe('CampaignReports_Messages module', () => {
     ).toBeInTheDocument();
   });
 
-  it('wires header clear and export actions', () => {
-    const onClear = jest.fn();
+  it('wires header range and export actions', () => {
+    const onReportDaysChange = jest.fn();
     const onExport = jest.fn();
     render(
       React.createElement(CampaignMessageReportHeader, {
         fromDate: '2026-07-01',
         toDate: '2026-07-21',
+        reportDays: 7,
         isExporting: false,
         invalidDateRange: false,
-        onClear,
+        onReportDaysChange,
         onExport,
-        onFromDateChange: jest.fn(),
-        onToDateChange: jest.fn(),
       }),
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Date Range' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Last 3 days' }));
     fireEvent.click(screen.getByRole('button', { name: 'Export' }));
-    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(onReportDaysChange).toHaveBeenCalledWith(3);
     expect(onExport).toHaveBeenCalledTimes(1);
   });
 
