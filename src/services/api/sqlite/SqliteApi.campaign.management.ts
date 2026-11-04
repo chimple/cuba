@@ -47,15 +47,11 @@ import {
   CampaignWhatsappLabelData,
 } from '../ServiceApi';
 import type { CampaignNotificationPayload } from '../ServiceApi';
-import type {
-  CampaignActiveChange,
-  CampaignGoalProgress,
-} from '../ServiceApi';
+import type { CampaignActiveChange, CampaignGoalProgress } from '../ServiceApi';
 import logger from '../../../utility/logger';
 import { showCampaignCertificate } from '../../../components/campaignCertificate';
 import type { CampaignCertificateRank } from '../../../components/campaignCertificate';
 
-// Keep campaign settings cached between explicit syncs; goal rendering itself never calls this sync.
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -63,6 +59,8 @@ type LocalCampaignRow = {
   id: string;
   name: string;
   rules_json: string;
+  objective: string;
+  target_value: number | null;
   start_date: string;
   end_date: string;
   status: string;
@@ -72,7 +70,6 @@ type LocalCampaignRow = {
 
 type CampaignRewardRule = { rank: 1 | 2 | 3; min: number; reward?: string };
 
-// Parse the stored campaign rules defensively so malformed admin data cannot break lesson completion.
 const parseCampaignRules = (value: string): CampaignRewardRule[] => {
   try {
     const parsed = JSON.parse(value) as { rules?: CampaignRewardRule[] };
@@ -85,7 +82,6 @@ const parseCampaignRules = (value: string): CampaignRewardRule[] => {
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
 
-  /** Keeps the existing campaign-config API intact for non-scorecard callers. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
@@ -96,7 +92,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     );
   }
 
-  /** Counts the supplied homework path's active campaign assignments and results locally. */
   async getActiveCampaignGoalProgress(
     studentId = this.currentStudent?.id,
     courseId?: string,
@@ -107,7 +102,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const now = new Date().toISOString();
     const assignmentPlaceholders = assignmentIds.map(() => '?').join(', ');
     try {
-      // Count only the campaign assignments shown in this homework pathway.
       const result = await this.executeQuery(
         `WITH current_course AS (
            SELECT id FROM course
@@ -150,11 +144,13 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           studentId,
         ],
       );
-      const row = result?.values?.[0] as {
-        campaign_id: string;
-        current: number | string;
-        total: number | string;
-      } | undefined;
+      const row = result?.values?.[0] as
+        | {
+            campaign_id: string;
+            current: number | string;
+            total: number | string;
+          }
+        | undefined;
       if (!row) return null;
       const current = Number(row.current);
       const total = Number(row.total);
@@ -170,7 +166,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
   }
 
-  /** Delegates reward outcome persistence to Supabase while retaining local evaluation. */
   async upsertCampaignStudentReward(payload: {
     campaignId: string;
     studentId: string;
@@ -362,7 +357,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     );
   }
 
-  /** Retains the existing campaign-settings sync for explicit callers outside the scorecard flow. */
   async syncCampaignRewards(
     studentId = this.currentStudent?.id,
   ): Promise<void> {
@@ -384,7 +378,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       });
       for (const change of changes ?? []) {
         if (change.change_type === 'delete') {
-          // Soft-delete locally so old reward history remains available to the Rewards page.
           await this.executeQuery(
             'UPDATE local_campaigns SET is_deleted = 1, status = ? WHERE id = ?',
             ['inactive', change.campaign_id],
@@ -398,15 +391,17 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           );
           continue;
         }
-        // Keep the campaign rules in SQLite so goal calculations can read them offline.
         await this.executeQuery(
           `INSERT OR REPLACE INTO local_campaigns
-            (id, name, rules_json, start_date, end_date, status, updated_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+            (id, name, rules_json, objective, target_value, start_date, end_date,
+             status, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
           [
             change.campaign_id,
             change.campaign_name,
-            JSON.stringify(change.rules_json ?? {}),
+            JSON.stringify(change.rules_json ?? change.rewards ?? {}),
+            change.objective ?? 'homework_campaign',
+            change.target_value ?? null,
             change.start_date,
             change.end_date,
             change.campaign_status,
@@ -426,7 +421,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync completed`, { studentId });
   }
 
-  // Hydrate every campaign against local results; this is the reinstall/recovery path.
   async hydrateCampaignRewards(
     studentId = this.currentStudent?.id,
   ): Promise<void> {
@@ -440,7 +434,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
   }
 
-  // Evaluate only active campaigns after a lesson so a newly earned certificate appears immediately.
   async evaluateCampaignRewardsAfterLesson(
     studentId = this.currentStudent?.id,
   ): Promise<void> {
@@ -458,7 +451,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
   }
 
-  // Rewards UI reads this cache instead of running campaign aggregation queries during render.
   async getCachedCampaignRewards(studentId = this.currentStudent?.id) {
     if (!studentId) return [];
     await this.ensureInitialized();
@@ -471,28 +463,46 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     return result?.values ?? [];
   }
 
-  // Evaluate completion, persist the outcome, sync it to Supabase, and emit a certificate event once.
   private async evaluateCampaignReward(
     campaign: LocalCampaignRow,
     studentId: string,
     showCertificate: boolean,
   ): Promise<void> {
     const now = new Date();
-    const metricsResult = await this.executeQuery(
-      `SELECT
-         COUNT(DISTINCT a.lesson_id) AS total_lessons,
-         COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.lesson_id END) AS completed_lessons
-       FROM assignment a
-       LEFT JOIN result r
-         ON r.assignment_id = a.id
-        AND r.student_id = ?
-        AND r.is_deleted = 0
-        AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
-       WHERE a.campaign_id = ? AND a.is_deleted = 0`,
-      [studentId, campaign.id],
-    );
+    const isHomepageCampaign =
+      campaign.objective === 'homepage_learning_pathway_campaign';
+    const metricsResult = isHomepageCampaign
+      ? await this.executeQuery(
+          `SELECT COUNT(DISTINCT r.lesson_id) AS completed_lessons
+           FROM result r
+           WHERE r.student_id = ?
+             AND r.is_deleted = 0
+             AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+             AND r.source IN (
+               'learning_pathway_home_no_pal',
+               'learning_pathway_home_pal'
+             )
+             AND date(r.created_at) >= date(?)
+             AND date(r.created_at) <= date(?)`,
+          [studentId, campaign.start_date, campaign.end_date],
+        )
+      : await this.executeQuery(
+          `SELECT
+             COUNT(DISTINCT a.lesson_id) AS total_lessons,
+             COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.lesson_id END) AS completed_lessons
+           FROM assignment a
+           LEFT JOIN result r
+             ON r.assignment_id = a.id
+            AND r.student_id = ?
+            AND r.is_deleted = 0
+            AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+           WHERE a.campaign_id = ? AND a.is_deleted = 0`,
+          [studentId, campaign.id],
+        );
     const metrics = metricsResult?.values?.[0] ?? {};
-    const totalLessons = Number(metrics.total_lessons ?? 0);
+    const totalLessons = isHomepageCampaign
+      ? Number(campaign.target_value ?? 0) * 5
+      : Number(metrics.total_lessons ?? 0);
     const completedLessons = Number(metrics.completed_lessons ?? 0);
     const completion = totalLessons
       ? (completedLessons / totalLessons) * 100
@@ -500,7 +510,10 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const rules = parseCampaignRules(campaign.rules_json).sort(
       (a, b) => b.min - a.min,
     );
-    const winningRule = rules.find((rule) => completion >= Number(rule.min));
+    const progressValue = isHomepageCampaign
+      ? completedLessons / 5
+      : completion;
+    const winningRule = rules.find((rule) => progressValue >= Number(rule.min));
     const status = winningRule
       ? 'won'
       : now > new Date(campaign.end_date)
@@ -529,9 +542,22 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
 
     await this.executeQuery(
       `INSERT OR REPLACE INTO user_campaign_rewards
-        (campaign_id, student_id, rank_achieved, status, evaluated_at, updated_at, is_deleted)
-       VALUES (?, ?, ?, ?, ?, ?, 0)`,
-      [campaign.id, studentId, rank, status, evaluatedAt, evaluatedAt],
+        (campaign_id, student_id, lessons_completed_count, lessons_target_count,
+         completion_percentage, rank_achieved, status, certificate_available,
+         evaluated_at, updated_at, is_deleted)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      [
+        campaign.id,
+        studentId,
+        completedLessons,
+        totalLessons,
+        Math.round(completion),
+        rank,
+        status,
+        status === 'won' ? 1 : 0,
+        evaluatedAt,
+        evaluatedAt,
+      ],
     );
 
     if (existing?.status !== status || existing?.rank_achieved !== rank) {
@@ -544,7 +570,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           evaluatedAt,
         });
       } catch (error) {
-        // Keep the local result when offline; the next sync can retry the Supabase write.
         logger.error(
           `${CAMPAIGN_REWARD_LOG_KEYWORD} reward sync deferred; keeping local result`,
           error,
@@ -553,7 +578,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
 
     if (showCertificate && isNewWin) {
-      // The host renders the existing certificate modal and handles confetti, audio, and sharing.
       logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} certificate event emitted`, {
         campaignId: campaign.id,
         studentId,
@@ -562,7 +586,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       showCampaignCertificate({
         campaignId: campaign.id,
         campaignName: campaign.name,
-        // Pass the active child name for analytics/share context while keeping the artwork clean.
         studentName: this.currentStudent?.name ?? '',
         schoolId: this.currentSchool?.id,
         rank: rank as CampaignCertificateRank,

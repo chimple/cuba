@@ -8,6 +8,7 @@ import LeaderboardBonus from './LeaderboardBonus';
 import LeaderboardSticker from './LeaderboardSticker';
 import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { SqliteApi } from '../../services/api/SqliteApi';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { REWARDS_TABS } from '../../common/constants/rewardsPathway';
@@ -126,6 +127,19 @@ const LeaderboardRewards: FC = () => {
     progress,
     student?.id,
   ]);
+
+  useEffect(() => {
+    if (!student?.id || activeTab !== REWARDS_TABS.COMPETITIONS) return;
+
+    void SqliteApi.getI()
+      .getCachedCampaignRewards(student.id)
+      .then((rewards) => {
+        logger.info('Competition rewards loaded:', rewards);
+      })
+      .catch((error) => {
+        logger.error('Failed to load competition rewards:', error);
+      });
+  }, [activeTab, student?.id]);
 
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);
