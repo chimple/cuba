@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:name=".RespectHttpClient"
         android:allowBackup="false"
@@ -154,7 +156,12 @@
                 <action android:name="org.chimple.bali.SHARE_FOLDER" />
             </intent-filter>
         </receiver>
-
+        <receiver android:name=".RichLocalNotificationReceiver" android:exported="false" />
+        <receiver android:name=".RichLocalNotificationBootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->

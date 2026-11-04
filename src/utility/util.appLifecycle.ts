@@ -3,9 +3,11 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   LAST_PERMISSION_CHECKED,
   LAST_UPDATE_CHECKED,
+  EVENTS,
   PAGES,
   PortPlugin,
   IS_MIGRATION_CHECKED,
+  LANGUAGE,
   MODES,
   HOMEHEADERLIST,
   ASSIGNMENT_TYPE,
@@ -128,6 +130,39 @@ export class UtilAppLifecycle extends UtilNotifications {
   public static async navigateTabByNotificationData(data: any) {
     const currentStudent = this.getCurrentStudent();
     const api = ServiceConfig.getI().apiHandler;
+    if (data?.notificationType === 'daily_reward_local') {
+      const targetStudentId = data.target_student_id;
+      if (targetStudentId && currentStudent?.id !== targetStudentId) {
+        const students = await api.getParentStudentProfiles();
+        const targetStudent = students.find(
+          (student) => student.id === targetStudentId,
+        );
+        if (targetStudent)
+          await this.setCurrentStudent(targetStudent, undefined, true);
+      }
+      let targetSchoolId = 'unknown';
+      if (targetStudentId) {
+        try {
+          const linked = await api.getStudentClassesAndSchools(targetStudentId);
+          targetSchoolId = linked.schools[0]?.id ?? 'unknown';
+        } catch (error) {
+          logger.warn('Unable to read notification target school', error);
+        }
+      }
+      void this.logEvent(EVENTS.LOCAL_NOTIFICATION_OPENED, {
+        student_id: targetStudentId ?? currentStudent?.id ?? 'unknown',
+        school_id: targetSchoolId,
+        language: localStorage.getItem(LANGUAGE) || 'en',
+        template_id: data.template_id ?? '',
+        campaign_id: data.campaign_id ?? '',
+        deep_link: data.deep_link ?? '',
+        target_student_id: targetStudentId ?? '',
+      });
+      if (data.deep_link) {
+        replaceWithNavigationTarget(data.deep_link);
+      }
+      return;
+    }
     if (data && data.notificationType === ASSIGNMENT_TYPE.REWARD) {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)

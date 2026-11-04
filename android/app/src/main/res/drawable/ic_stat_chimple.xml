@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <!-- Monochrome version of the Chimple monkey mark for Android's small notification icon. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.5,23.1C7.7,28.5 12.1,32.9 17.6,32.9C23.1,32.9 27.5,28.5 27.7,23.1C20.9,27.7 14.2,27.7 7.5,23.1Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.6,19.3C8,22.5 12.2,25.5 17.6,25.5C23,25.5 27.2,22.5 27.6,19.3Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M7.1,10.5H28.3C30.7,10.5 32.6,12.5 32.6,14.9C32.6,17.3 30.7,19.3 28.3,19.3H7.1C4.7,19.3 2.8,17.3 2.8,14.9C2.8,12.5 4.7,10.5 7.1,10.5ZM13.1,12.1A3,3 0,1 0,13.1 18.1A3,3 0,1 0,13.1 12.1ZM22.4,12.1A3,3 0,1 0,22.4 18.1A3,3 0,1 0,22.4 12.1Z" />
+</vector>

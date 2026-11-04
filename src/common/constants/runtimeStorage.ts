@@ -275,6 +275,7 @@ export enum EVENTS {
   CLICKS_ANALYTICS = 'clicks_analytics',
   CLICK_ANALYTICS = 'click_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
+  LOCAL_NOTIFICATION_OPENED = 'local_notification_opened',
   PATHWAY_CREATED = 'pathway_created',
   PATHWAY_COMPLETED = 'pathway_completed',
   PATHWAY_LESSON_END = 'pathway_lesson_end',
