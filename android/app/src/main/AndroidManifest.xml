@@ -175,6 +175,7 @@
 
     <queries>
         <package android:name="world.respect.app" />
+        <package android:name="org.openeel.app" />
         <intent>
             <action android:name="oneroster" />
         </intent>
