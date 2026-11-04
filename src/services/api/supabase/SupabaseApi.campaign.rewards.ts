@@ -6,7 +6,7 @@ import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
 
 /** Supabase operations supporting offline campaign reward evaluation. */
 export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
-  /** Fetches incremental campaign configuration changes for one student. */
+  /** Preserves the existing RPC for campaign-config sync callers outside goal rendering. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,

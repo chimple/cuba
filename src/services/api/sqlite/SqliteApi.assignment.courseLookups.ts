@@ -141,8 +141,8 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
       if (assignmet) {
         await this.executeQuery(
           `
-          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id,source,batch_id,set_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id,source,batch_id,set_number,campaign_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
           [
             assignmet.id,
@@ -162,6 +162,7 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
             assignmet.source,
             assignmet.batch_id,
             assignmet.set_number,
+            assignmet.campaign_id,
           ],
         );
         onDataChange(assignmet);
@@ -279,7 +280,8 @@ export class SqliteApiAssignmentCourseLookups extends SqliteApiSchoolReferenceDa
       SELECT *
       FROM ${TABLES.Assignment}
       WHERE id IN (${idslst})
-        AND is_deleted = 0;
+        -- Older local assignment rows can have NULL instead of false here.
+        AND COALESCE(is_deleted, 0) = 0;
     `;
 
     const res = await this._db?.query(query, ids);

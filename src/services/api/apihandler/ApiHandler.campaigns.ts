@@ -37,7 +37,7 @@ import type { CampaignNotificationPayload } from '../ServiceApi';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 
 export class ApiHandlerCampaigns extends ApiHandlerPrograms {
-  /** Exposes the student-scoped campaign sync RPC to application callers. */
+  /** Keeps the existing campaign-configuration API available to its callers. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,

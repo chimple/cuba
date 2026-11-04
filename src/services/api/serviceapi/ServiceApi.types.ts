@@ -287,9 +287,16 @@ export type CampaignRewardsPayload = {
   rules: CampaignRewardRulePayload[];
 };
 
-/** Incremental campaign configuration row returned by the student RPC. */
+/** Existing campaign-configuration change returned by getActiveCampaigns. */
 export type CampaignActiveChange =
   Database['public']['Functions']['get_active_campaigns']['Returns'][number];
+
+/** Assignment counts for one active campaign in the currently played subject. */
+export type CampaignGoalProgress = {
+  campaignId: string;
+  current: number;
+  total: number;
+};
 
 /** Reward outcome written after local campaign evaluation. */
 export type CampaignStudentRewardPayload = {

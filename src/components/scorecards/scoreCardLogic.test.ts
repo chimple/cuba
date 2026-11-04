@@ -1,6 +1,7 @@
 import { buildScoreCardProgressRows } from './scoreCardLogic';
 import { Util } from '../../utility/util';
 import type { TableTypes } from '../../common/constants';
+import { DAILY_REWARD_ANIMATION_RECENCY_MS } from '../../common/constants';
 
 jest.mock('../../utility/util', () => ({
   Util: {
@@ -50,6 +51,16 @@ describe('buildScoreCardProgressRows', () => {
 
   test('marks daily reward row animated only once for a collected reward', async () => {
     mockApi.getCurrentStickerBookWithProgress.mockResolvedValue(null);
+    const todayStart = new Date(
+      `${new Date().toISOString().split('T')[0]}T00:00:00.000Z`,
+    );
+    if (Date.now() - todayStart.getTime() <= DAILY_REWARD_ANIMATION_RECENCY_MS) {
+      todayStart.setUTCHours(12, 0, 0, 0);
+    }
+    const staticReward = JSON.stringify({
+      reward_id: 'reward-today',
+      timestamp: todayStart.toISOString(),
+    });
     const reward = JSON.stringify({
       reward_id: 'reward-today',
       timestamp: new Date().toISOString(),
@@ -57,7 +68,7 @@ describe('buildScoreCardProgressRows', () => {
 
     const staticRows = await buildScoreCardProgressRows({
       api: mockApi,
-      student: makeStudent(),
+      student: makeStudent({ reward: staticReward }),
       studentId: 'student-1',
     });
     const animatedRows = await buildScoreCardProgressRows({

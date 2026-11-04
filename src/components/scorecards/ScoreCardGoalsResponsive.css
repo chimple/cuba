@@ -1,0 +1,179 @@
+@media (max-width: 720px) {
+  .score-card-dialog__paper--progress {
+    padding: 8px 16px !important;
+    gap: 8px;
+  }
+
+  .score-card-dialog--progress .score-card-goal-progress-list {
+    width: calc(100vw - 32px);
+    max-width: none;
+  }
+
+  .score-card-dialog--progress .dialog-content-text {
+    gap: 16px !important;
+  }
+
+  .score-card-dialog--progress .score-card-icons {
+    width: 76px !important;
+  }
+
+  .score-card-dialog--progress .image-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .score-card-dialog--progress .star-images-component {
+    width: 76px;
+  }
+
+  .score-card-dialog--progress .star-icon-image {
+    gap: 5px;
+  }
+
+  .score-card-dialog--progress .score-card-first-star,
+  .score-card-dialog--progress .score-card-middle-star {
+    width: 22px;
+    height: 22px;
+  }
+
+  .score-card-dialog--progress .score-card-middle-star {
+    transform: translateY(5px);
+  }
+
+  .score-card-dialog--progress .score-card-progress-row-group {
+    gap: 16px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-row {
+    grid-template-columns: minmax(0, 1fr) 36px;
+    column-gap: 8px;
+    padding: 8px 8px 6px 10px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-icon-wrap,
+  .score-card-dialog--progress .score-card-progress-icon {
+    width: 36px;
+    max-width: 36px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-row--sticker .score-card-progress-icon-wrap {
+    width: 36px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-badge-fallback {
+    width: 36px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-badge-fallback > * {
+    transform: scale(0.21);
+  }
+
+  .score-card-dialog--progress .score-card-progress-label {
+    font-size: 12px;
+    white-space: normal;
+    text-overflow: clip;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .score-card-dialog--progress .score-card-progress-check {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .score-card-dialog--progress .score-card-goal-progress-content-box {
+    padding: 10px;
+  }
+
+  .score-card-dialog--progress .dialog-content-text {
+    gap: 10px !important;
+  }
+
+  .score-card-dialog--progress .score-card-icons,
+  .score-card-dialog--progress .star-images-component {
+    width: 60px !important;
+  }
+
+  .score-card-dialog--progress .image-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .score-card-dialog--progress .score-card-first-star,
+  .score-card-dialog--progress .score-card-middle-star {
+    width: 17px;
+    height: 17px;
+  }
+
+  .score-card-dialog--progress .score-card-middle-star {
+    transform: translateY(3px);
+  }
+
+  .score-card-dialog--progress .star-icon-image {
+    gap: 4px;
+  }
+
+  .score-card-dialog--progress .title-scoreCard span {
+    font-size: 14px;
+  }
+
+  .score-card-dialog--progress .score-card-content-message,
+  .score-card-dialog--progress .score-card-content-lesson-name {
+    font-size: 12px;
+  }
+
+  .score-card-dialog--progress .score-card-goal-progress-list {
+    width: calc(100vw - 24px);
+  }
+
+  .score-card-dialog--progress .score-card-progress-row-group {
+    gap: 8px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-row {
+    grid-template-columns: minmax(0, 1fr) 32px;
+    column-gap: 6px;
+    padding: 8px 7px 6px 9px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-label {
+    font-size: 11px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-count {
+    font-size: 10px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-icon-wrap,
+  .score-card-dialog--progress .score-card-progress-icon,
+  .score-card-dialog--progress .score-card-progress-badge-fallback {
+    width: 32px;
+    max-width: 32px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-row--sticker .score-card-progress-icon-wrap {
+    height: 25px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-badge-fallback > * {
+    transform: scale(0.19);
+  }
+
+  .score-card-dialog--progress .score-card-progress-row--sticker .score-card-progress-icon-wrap {
+    height: 25px;
+  }
+}
+
+@media (max-height: 420px) {
+  .score-card-dialog__paper--progress {
+    padding: 8px 16px !important;
+    gap: 8px;
+  }
+
+  .score-card-dialog--progress .score-card-progress-continue-wrapper {
+    min-height: 43.2px;
+  }
+}

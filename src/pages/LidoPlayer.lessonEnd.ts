@@ -152,7 +152,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     }
     // const currentStudent = api.currentStudent;
     const data = lessonData;
-    let assignmentId = assignment ? assignment.id : null;
+    let assignmentId = state?.homeworkAssignmentId ?? assignment?.id ?? null;
     const scoresList = getStoredLidoScores();
     let booleanOutcomes: boolean[] = [];
     let activitiesScoresStr = '';

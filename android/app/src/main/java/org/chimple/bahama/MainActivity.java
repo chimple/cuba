@@ -63,6 +63,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         // Register plugins
         registerPlugin(PortPlugin.class);
         registerPlugin(RespectXapiPlugin.class);
+        registerPlugin(RichLocalNotificationPlugin.class);
 //        super.onCreate(savedInstanceState);
 //        var respectClientManager = RespectClientManager();
 //        respectClientManager.bindService(this);

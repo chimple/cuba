@@ -219,11 +219,11 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       );
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
-    // Evaluate locally after each lesson so certificates work offline and appear immediately.
+    // Evaluate cached campaign data locally after a lesson; assignment progress stays in SQLite.
     // Use the root SQLite API singleton because the result-update branch does
     // not inherit the campaign-management methods directly.
     void SqliteApi.getInstance()
-      .then((api) => api.syncCampaignRewards(student.id))
+      .then((api) => api.hydrateCampaignRewards(student.id))
       .then(() =>
         SqliteApi.getI().evaluateCampaignRewardsAfterLesson(student.id),
       )
@@ -273,6 +273,10 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
     } catch (e) {
       logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
+    if (newResult.status === RESULT_STATUS.COMPLETED) {
+      window.dispatchEvent(new Event('daily-rewards-pathway-activity-changed'));
     }
 
     return newResult;

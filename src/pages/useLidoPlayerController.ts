@@ -34,6 +34,8 @@ import {
   resolveLessonZipUrl,
   waitForLearningPathAssessmentFinalizationSettle,
 } from './LidoPlayer.helpers';
+import { hasDailyRewardEarnedToday } from '../components/scorecards/scoreCardDailyReward';
+import { Util } from '../utility/util';
 import { processLidoStoredResults } from './LidoPlayer.results';
 import { handleLidoLessonEnd } from './LidoPlayer.lessonEnd';
 import {
@@ -47,6 +49,7 @@ import {
   wasRespectLessonLaunchReceived,
 } from '../services/respect/RespectLessonLaunchService';
 import { getPreparedRespectLessonLaunchState } from '../services/respect/RespectLaunchCache';
+import type { PathwayGoalAssignment } from '../components/scorecards/scoreCardTypes';
 
 interface LidoPlayerRouteState {
   courseDocId?: string;
@@ -54,6 +57,8 @@ interface LidoPlayerRouteState {
   lessonId?: string;
   source?: string;
   isHomework?: boolean;
+  homeworkAssignmentId?: string;
+  pathwayAssignments?: PathwayGoalAssignment[];
   learning_path?: boolean;
   is_assessment?: boolean;
   isDefaultLesson?: boolean;
@@ -88,13 +93,16 @@ export const useLidoPlayerController = () => {
           : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
         : SOURCE.SUBJECT_PAGE);
   const shouldShowDailyRewardProgressRow =
-    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
-  const shouldShowScoreCardProgressRows = [
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true' ||
+    hasDailyRewardEarnedToday(Util.getCurrentStudent());
+  const shouldShowPathwayProgressRows = [
     SOURCE.LEARNING_PATHWAY_HOMEWORK,
     SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
     SOURCE.LEARNING_PATHWAY_HOME_PAL,
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
+  const shouldShowScoreCardProgressRows =
+    shouldShowPathwayProgressRows || shouldShowDailyRewardProgressRow;
   const urlSearchParams = getAppSearchParams();
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
@@ -139,7 +147,6 @@ export const useLidoPlayerController = () => {
   const lessonDetail: TableTypes<'lesson'> = state?.lesson
     ? JSON.parse(state.lesson)
     : undefined;
-
   const api = isRespectLidoLaunch
     ? ServiceConfig.getInstance(APIMode.ONEROSTER).apiHandler
     : ServiceConfig.getI().apiHandler;
@@ -433,7 +440,9 @@ export const useLidoPlayerController = () => {
     setIsLoading,
     setShowDialogBox,
     shouldShowDailyRewardProgressRow,
+    shouldShowPathwayProgressRows,
     shouldShowScoreCardProgressRows,
+    source,
     showDialogBox,
     state,
     xmlPath,
