@@ -7,12 +7,18 @@ import {
 } from '../common/constants';
 import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
+  DAILY_REWARDS_NOTIFICATIONS_CONFIG,
+  DAILY_REWARDS_NOTIFICATIONS_DEFAULT,
+  DailyRewardsNotificationsConfig,
+} from '../services/notifications/dailyRewardsNotificationsConfig';
+import {
   getBundleZipUrlsForEnv,
   getLidoBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
   REMOTE_CONFIG_DEFAULTS,
 } from '../services/RemoteConfig';
 import { logger } from '../utility/logger';
+import { DailyRewardsNotificationScheduler } from '../services/notifications/dailyRewardsNotificationScheduler';
 
 type GrowthBookJsonConfig = Record<string, unknown>;
 type GrowthBookStorageLimitConfig = {
@@ -26,6 +32,13 @@ type GrowthBookFeatureDebugResult<T> = {
 
 export const useGrowthBookFeatureCache = () => {
   const growthbook = useGrowthBook();
+  useEffect(() => {
+    DailyRewardsNotificationScheduler.setGrowthBookClient(
+      growthbook ?? undefined,
+    );
+    return () =>
+      DailyRewardsNotificationScheduler.setGrowthBookClient(undefined);
+  }, [growthbook]);
   const bundleZipUrlsFallbackRef = useRef(getBundleZipUrlsForEnv());
   const lidoBundleZipUrlsFallbackRef = useRef(getLidoBundleZipUrlsForEnv());
 
@@ -33,6 +46,11 @@ export const useGrowthBookFeatureCache = () => {
     PAL_LEARNING_RATES_CONFIG,
     {},
   );
+  const dailyRewardsNotificationsConfig =
+    useFeatureValue<DailyRewardsNotificationsConfig>(
+      DAILY_REWARDS_NOTIFICATIONS_CONFIG,
+      DAILY_REWARDS_NOTIFICATIONS_DEFAULT,
+    );
   const maxAssetStorageMb = useFeatureValue<GrowthBookStorageLimitConfig>(
     REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
     REMOTE_CONFIG_DEFAULTS[REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW],
@@ -58,6 +76,23 @@ export const useGrowthBookFeatureCache = () => {
       );
     }
   }, [palLearningRatesConfig]);
+
+  useEffect(() => {
+    if (
+      dailyRewardsNotificationsConfig &&
+      typeof dailyRewardsNotificationsConfig === 'object'
+    ) {
+      setCachedGrowthBookFeatureValue(
+        DAILY_REWARDS_NOTIFICATIONS_CONFIG,
+        dailyRewardsNotificationsConfig,
+      );
+      void DailyRewardsNotificationScheduler.prefetchImages(
+        dailyRewardsNotificationsConfig,
+      ).catch((error) =>
+        logger.warn('[Daily Rewards] image prefetch failed', error),
+      );
+    }
+  }, [dailyRewardsNotificationsConfig]);
 
   useEffect(() => {
     if (

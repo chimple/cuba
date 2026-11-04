@@ -263,6 +263,10 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       logger.error('Failed to set studentResult in sessionStorage', e);
     }
 
+    if (newResult.status === RESULT_STATUS.COMPLETED) {
+      window.dispatchEvent(new Event('daily-rewards-pathway-activity-changed'));
+    }
+
     return newResult;
   }
 

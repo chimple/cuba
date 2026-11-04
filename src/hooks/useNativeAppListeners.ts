@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import {
   CACHE_IMAGE,
@@ -10,6 +11,10 @@ import {
   PortPlugin,
 } from '../common/constants';
 import { Util } from '../utility/util';
+import {
+  DAILY_REWARDS_ACTIVITY_CHANGED,
+  DailyRewardsNotificationScheduler,
+} from '../services/notifications/dailyRewardsNotificationScheduler';
 import { logger } from '../utility/logger';
 
 interface ExtraData {
@@ -25,6 +30,14 @@ type NotificationPortPlugin = PortPlugin & {
     eventName: 'notificationOpened',
     listenerFunc: (data: ExtraData | undefined) => void,
   ) => PluginListenerHandle | Promise<PluginListenerHandle>;
+};
+
+type RichLocalNotificationsPlugin = {
+  addListener(
+    eventName: 'notificationActionPerformed',
+    listenerFunc: () => void,
+  ): Promise<PluginListenerHandle>;
+  getPendingAction(): Promise<ExtraData | undefined>;
 };
 
 const processNotificationData = (data: ExtraData | undefined) => {
@@ -65,24 +78,73 @@ export const useNativeAppListeners = () => {
     let appStateListener: PluginListenerHandle | undefined;
     let appUrlOpenListener: PluginListenerHandle | undefined;
     let notificationOpenedListener: PluginListenerHandle | undefined;
+    let localNotificationActionListener: PluginListenerHandle | undefined;
+    let richLocalNotificationActionListener: PluginListenerHandle | undefined;
 
     void Promise.resolve(
-      CapApp.addListener?.('appStateChange', Util.onAppStateChange),
+      CapApp.addListener?.('appStateChange', (state) => {
+        Util.onAppStateChange(state);
+        if (!state.isActive) void DailyRewardsNotificationScheduler.schedule();
+      }),
     ).then((listener) => {
       appStateListener = listener;
     });
+
+    const onPathwayActivityChanged = () => {
+      void DailyRewardsNotificationScheduler.schedule();
+    };
+    window.addEventListener(
+      DAILY_REWARDS_ACTIVITY_CHANGED,
+      onPathwayActivityChanged,
+    );
 
     if (Capacitor.isNativePlatform()) {
       const portPlugin = registerPlugin<NotificationPortPlugin>('Port');
       void Promise.resolve(
         portPlugin.addListener?.('notificationOpened', (data) => {
-          if (data) {
-            processNotificationData(data);
-          }
+          if (data) processNotificationData(data);
         }),
       ).then((listener) => {
         notificationOpenedListener = listener;
       });
+
+      void LocalNotifications.addListener(
+        'localNotificationActionPerformed',
+        (event) => {
+          const data = event.notification.extra as ExtraData;
+          if (data?.notificationType === 'daily_reward_local') {
+            processNotificationData(data);
+          }
+        },
+      ).then((listener) => {
+        localNotificationActionListener = listener;
+      });
+
+      if (Capacitor.getPlatform() === 'android') {
+        const richLocalNotifications =
+          registerPlugin<RichLocalNotificationsPlugin>(
+            'RichLocalNotifications',
+          );
+        const consumePendingRichLocalNotification = () => {
+          void richLocalNotifications
+            .getPendingAction()
+            .then((data) => {
+              if (data) processNotificationData(data);
+            })
+            .catch((error) =>
+              logger.error('Error retrieving rich notification action:', error),
+            );
+        };
+        void richLocalNotifications
+          .addListener(
+            'notificationActionPerformed',
+            consumePendingRichLocalNotification,
+          )
+          .then((listener) => {
+            richLocalNotificationActionListener = listener;
+          });
+        consumePendingRichLocalNotification();
+      }
 
       void Promise.resolve(
         CapApp.addListener?.('appUrlOpen', Util.onAppUrlOpen),
@@ -112,6 +174,12 @@ export const useNativeAppListeners = () => {
       appStateListener?.remove();
       appUrlOpenListener?.remove();
       notificationOpenedListener?.remove();
+      localNotificationActionListener?.remove();
+      richLocalNotificationActionListener?.remove();
+      window.removeEventListener(
+        DAILY_REWARDS_ACTIVITY_CHANGED,
+        onPathwayActivityChanged,
+      );
     };
   }, []);
 };

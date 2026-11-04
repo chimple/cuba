@@ -182,6 +182,10 @@ export class SupabaseApiResultsResultUpdates extends SupabaseApiCourseMedia {
       });
     }
 
+    if (newResult.status === RESULT_STATUS.COMPLETED) {
+      window.dispatchEvent(new Event('daily-rewards-pathway-activity-changed'));
+    }
+
     return newResult;
   }
 }
