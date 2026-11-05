@@ -267,6 +267,8 @@ export const useLidoPlayerController = () => {
   const onActivityEnd = (e: any) =>
     handleLidoActivityEnd(
       {
+        chapterDetail,
+        courseDetail,
         courseDocId,
         exitLidoGame,
         getAssessmentProgressKey,
@@ -274,6 +276,8 @@ export const useLidoPlayerController = () => {
         getStoredLidoScores,
         isAssessmentLesson,
         lesson,
+        lessonDetail,
+        lessonId,
         parseNumericValue,
         playedFrom,
         resolveStudentContext,

@@ -62,6 +62,7 @@ public class PortPlugin extends Plugin {
     private static final String DEFAULT_LAUNCHER_PACKAGE = RespectHttpClient.RESPECT_PACKAGE_NAME;
     private static final String XAPI_IPC_ACTION = "org.openeel.action.xapioveripc";
     private static final String XAPI_IPC_PACKAGE_KEY = "xapiIpcPackage";
+    private static final String ZIP_URL_KEY = "zipUrl";
 
     static String getLauncherPackageName() {
         return resolveLauncherPackageName(deepLinkData.optString(XAPI_IPC_PACKAGE_KEY, ""));
@@ -319,6 +320,7 @@ public class PortPlugin extends Plugin {
         String registration = deepLinkData.optString("registration", "");
         String chimpleLessonId = deepLinkData.optString("chimple_lesson_id", "");
         String lessonName = deepLinkData.optString("lesson_name", "");
+        String zipUrl = deepLinkData.optString(ZIP_URL_KEY, "");
         String xapiIpcPackage = getLauncherPackageName();
 
         Log.d(TAG, "Received activity_id: " + activity_id);
@@ -329,6 +331,7 @@ public class PortPlugin extends Plugin {
         result.put("lessonId", activity_id);
         result.put("chimpleLessonId", chimpleLessonId);
         result.put("lessonName", lessonName);
+        result.put("zipUrl", zipUrl);
         result.put("xapiIpcPackage", xapiIpcPackage);
         call.resolve(result);
     }

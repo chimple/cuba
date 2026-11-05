@@ -14,10 +14,18 @@ import { Util } from '../utility/util';
 import { AvatarObj } from '../components/animation/Avatar';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
+import { getCachedXapiLaunchAnalyticsContext } from '../tincan';
 import {
   HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
   PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
 } from './LidoPlayer.helpers';
+
+interface StoredActivityScore {
+  result: 0 | 1;
+  score: number;
+  timeSpent?: number;
+}
+
 export const handleLidoLessonEnd = async (ctx: any, e: any) => {
   const {
     assessmentLessonEndSettlingRef,
@@ -58,6 +66,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     setIsLoading(true);
   }
   const lessonData = (e?.detail ?? {}) as any;
+  const launchContext = getCachedXapiLaunchAnalyticsContext();
   const {
     student: currentStudent,
     studentId,
@@ -152,16 +161,24 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     }
     // const currentStudent = api.currentStudent;
     const data = lessonData;
-    let assignmentId = assignment ? assignment.id : null;
-    const scoresList = getStoredLidoScores();
+    let assignmentId = state?.homeworkAssignmentId ?? assignment?.id ?? null;
+    const scoresList = getStoredLidoScores() as StoredActivityScore[];
+    const averageActivityScore =
+      scoresList.length > 0
+        ? Math.floor(
+            scoresList.reduce((total, item) => total + item.score, 0) /
+              scoresList.length,
+          )
+        : undefined;
+    const finalScore = launchContext
+      ? (parseNumericValue(data.finalScore) ?? averageActivityScore)
+      : data.finalScore;
     let booleanOutcomes: boolean[] = [];
     let activitiesScoresStr = '';
 
     if (scoresList.length > 0) {
-      booleanOutcomes = scoresList.map((item: any) => item.result === 1);
-      activitiesScoresStr = scoresList
-        .map((item: any) => item.result)
-        .join(',');
+      booleanOutcomes = scoresList.map((item) => item.result === 1);
+      activitiesScoresStr = scoresList.map((item) => item.result).join(',');
     }
 
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -199,7 +216,19 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     const learning_path: boolean = state?.learning_path ?? false;
     const is_homework: boolean = state?.isHomework ?? false;
     const homeworkIndex: number | undefined = state?.homeworkIndex;
-    const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
+    const storedLessonTime = scoresList.reduce(
+      (total, item) => total + (item.timeSpent ?? 0),
+      0,
+    );
+    const lessonTimeSpent =
+      parseNumericValue(data.timeSpendForLesson) ??
+      (launchContext ? storedLessonTime : 0);
+    const totalMoves = launchContext
+      ? (parseNumericValue(data.totalMoves) ?? correctMoves + wrongMoves)
+      : data.totalMoves;
+    const totalGames = launchContext
+      ? (parseNumericValue(data.totalGames) ?? scoresList.length)
+      : data.totalGames;
     // ?? PRE-CHECK: figure out *before* updating path if this is the last homework lesson
     let shouldGiveHomeworkBonus = false;
     if (is_homework) {
@@ -278,7 +307,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       currentStudent,
       courseDocId,
       lesson.id,
-      Math.round(data.finalScore ?? 0),
+      Math.round(finalScore ?? 0),
       correctMoves,
       wrongMoves,
       lessonTimeSpent,
@@ -367,20 +396,43 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       student_id: studentId,
       result_id: result?.id ?? null,
       // assignment_id: lesson.assignment?.id,
-      chapter_id: data.chapterId,
-      // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-      lesson_id: data.lessonId,
-      // lesson_name: lesson.name,
-      lesson_type: data.lessonType,
+      chapter_id: launchContext
+        ? data.chapterId || chapterDetail?.id || chapter_id?.toString()
+        : data.chapterId,
+      lesson_id: launchContext
+        ? data.lessonId ||
+          lessonId ||
+          lessonDetail?.lido_lesson_id ||
+          lessonDetail?.id ||
+          lesson.lido_lesson_id ||
+          lesson.id
+        : data.lessonId,
+      lesson_type: launchContext
+        ? data.lessonType || lessonDetail?.plugin_type
+        : data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: courseDetail?.name ?? '',
+      course_id: launchContext
+        ? data.courseId || courseDetail?.id || courseDocId
+        : data.courseId,
+      course_name: launchContext
+        ? data.courseName || courseDetail?.name
+        : (courseDetail?.name ?? ''),
+      ...(launchContext
+        ? {
+            lesson_name:
+              data.lessonName ||
+              lessonDetail?.name ||
+              lesson.name ||
+              launchContext.lessonName,
+            chapter_name: data.chapterName || chapterDetail?.name,
+          }
+        : {}),
       time_spent: lessonTimeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
+      total_moves: totalMoves,
+      total_games: totalGames,
       correct_moves: correctMoves,
       wrong_moves: wrongMoves,
       game_score: data.gameScore,
@@ -389,7 +441,7 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
       quiz_completed: data.quizCompleted,
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
-      score: data.finalScore,
+      score: finalScore,
       played_from: playedFrom,
       assignment_type: assignmentType,
       source,
