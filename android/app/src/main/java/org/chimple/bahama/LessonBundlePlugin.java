@@ -44,13 +44,16 @@ public class LessonBundlePlugin extends Plugin {
     private static final int BUFFER_SIZE = 8192;
     private static final int CONNECT_TIMEOUT_MS = 10000;
     private static final int READ_TIMEOUT_MS = 10000;
-    private static final long RESPECT_CACHE_TIMEOUT_SECONDS = 5;
+    private static final long LAUNCHER_CACHE_TIMEOUT_SECONDS = 5;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @PluginMethod
     public void downloadAndExtract(PluginCall call) {
         String lessonId = call.getString("lessonId");
         JSArray zipUrls = call.getArray("zipUrls");
+        String requestedZipUrl = call.getString("zipUrl");
+        String zipUrl = requestedZipUrl == null || requestedZipUrl.trim().isEmpty()
+                ? null : requestedZipUrl.trim();
         Integer dbVersion = call.getInt("dbVersion");
 
         if (lessonId == null || lessonId.trim().isEmpty()) {
@@ -58,8 +61,13 @@ public class LessonBundlePlugin extends Plugin {
             return;
         }
 
-        if (zipUrls == null || zipUrls.length() == 0) {
-            call.reject("zipUrls is required");
+        if (zipUrl == null && (zipUrls == null || zipUrls.length() == 0)) {
+            call.reject("zipUrl or zipUrls is required");
+            return;
+        }
+
+        if (zipUrl != null && !isValidExactZipUrl(zipUrl, lessonId)) {
+            call.reject("zipUrl must be an HTTPS URL for the requested lesson ZIP");
             return;
         }
 
@@ -69,7 +77,9 @@ public class LessonBundlePlugin extends Plugin {
             try {
                 File rootDir = getExternalRootDirectory(getContext());
                 zipFile = File.createTempFile(lessonId, ".zip", rootDir);
-                DownloadResult downloadResult = downloadFirstAvailableZip(zipUrls, lessonId, zipFile);
+                DownloadResult downloadResult = zipUrl == null
+                        ? downloadFirstAvailableZip(zipUrls, lessonId, zipFile)
+                        : downloadZip(zipUrl, zipFile);
 
                 File extractDir = new File(rootDir, lessonId + "_temp");
                 deleteRecursively(extractDir);
@@ -95,6 +105,20 @@ public class LessonBundlePlugin extends Plugin {
     private File getExternalRootDirectory(Context context) {
         File externalDir = context.getExternalFilesDir(null);
         return externalDir == null ? context.getFilesDir() : externalDir;
+    }
+
+    private boolean isValidExactZipUrl(String zipUrl, String lessonId) {
+        try {
+            URL url = new URL(zipUrl);
+            return "https".equals(url.getProtocol())
+                    && url.getHost() != null
+                    && !url.getHost().isEmpty()
+                    && url.getUserInfo() == null
+                    && url.getRef() == null
+                    && url.getPath().endsWith("/" + lessonId + ".zip");
+        } catch (Exception exception) {
+            return false;
+        }
     }
 
     private DownloadResult downloadFirstAvailableZip(
@@ -130,15 +154,15 @@ public class LessonBundlePlugin extends Plugin {
         if (!MainActivity.activity_id.isEmpty()
                 && RespectHttpClient.getHttpIpcClient() != null) {
             try {
-                return downloadZipThroughRespectCache(zipUrl, destination);
+                return downloadZipThroughLauncherCache(zipUrl, destination);
             } catch (IOException exception) {
                 if (!hasValidatedInternetConnection()) {
-                    Log.w(TAG, "RESPECT cache unavailable while offline");
+                    Log.w(TAG, getLauncherCacheName() + " cache unavailable while offline");
                     throw exception;
                 }
 
-                // A stalled RESPECT cache must not block an online launch forever.
-                Log.w(TAG, "RESPECT cache download failed; using direct download");
+                // A stalled launcher cache must not block an online launch forever.
+                Log.w(TAG, getLauncherCacheName() + " cache download failed; using direct download");
             }
         }
 
@@ -176,7 +200,7 @@ public class LessonBundlePlugin extends Plugin {
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
             connection.disconnect();
-            throw new IOException("Unexpected response " + responseCode + " for " + zipUrl);
+            throw new IOException("Unexpected response " + responseCode + " for lesson bundle");
         }
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -201,33 +225,38 @@ public class LessonBundlePlugin extends Plugin {
         return new DownloadResult(byteLength, bytesToHex(digest.digest()));
     }
 
-    private DownloadResult downloadZipThroughRespectCache(String zipUrl, File destination)
+    private String getLauncherCacheName() {
+        return RespectHttpClient.OPEN_EEL_PACKAGE_NAME.equals(PortPlugin.getLauncherPackageName())
+                ? "OpenEEL" : "RESPECT";
+    }
+
+    private DownloadResult downloadZipThroughLauncherCache(String zipUrl, File destination)
             throws IOException {
         Request request = new Request.Builder()
                 .url(zipUrl)
                 .build();
         Call cacheCall = RespectHttpClient.getHttpIpcClient().newCall(request);
         File cacheDestination = File.createTempFile(
-                "respect-cache-",
+                "launcher-cache-",
                 ".zip",
                 destination.getParentFile()
         );
         ExecutorService cacheExecutor = Executors.newSingleThreadExecutor();
         Future<DownloadResult> cacheTask = cacheExecutor.submit(
-                () -> downloadZipFromRespectCache(cacheCall, cacheDestination)
+                () -> downloadZipFromLauncherCache(cacheCall, cacheDestination)
         );
 
         try {
             DownloadResult result = getWithinDeadline(
                     cacheTask,
-                    RESPECT_CACHE_TIMEOUT_SECONDS,
+                    LAUNCHER_CACHE_TIMEOUT_SECONDS,
                     TimeUnit.SECONDS
             );
             if (destination.exists() && !destination.delete()) {
                 throw new IOException("Failed to replace lesson bundle download");
             }
             if (!cacheDestination.renameTo(destination)) {
-                throw new IOException("Failed to save RESPECT cache download");
+                throw new IOException("Failed to save launcher cache download");
             }
             return result;
         } catch (IOException exception) {
@@ -254,19 +283,19 @@ public class LessonBundlePlugin extends Plugin {
             return future.get(timeout, timeUnit);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new IOException("RESPECT cache request was interrupted", exception);
+            throw new IOException("Launcher cache request was interrupted", exception);
         } catch (TimeoutException exception) {
-            throw new IOException("RESPECT cache request timed out", exception);
+            throw new IOException("Launcher cache request timed out", exception);
         } catch (ExecutionException exception) {
             Throwable cause = exception.getCause();
             if (cause instanceof IOException) {
                 throw (IOException) cause;
             }
-            throw new IOException("RESPECT cache request failed", cause);
+            throw new IOException("Launcher cache request failed", cause);
         }
     }
 
-    private DownloadResult downloadZipFromRespectCache(Call cacheCall, File destination)
+    private DownloadResult downloadZipFromLauncherCache(Call cacheCall, File destination)
             throws IOException, NoSuchAlgorithmException {
         try (Response response = cacheCall.execute()) {
             if (!response.isSuccessful() || response.body() == null) {
