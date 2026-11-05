@@ -3,7 +3,7 @@ import { CURRENT_MODE, CURRENT_STUDENT, MODES } from './constants';
 import { RootState, store } from '../redux/store';
 import { schoolUtil } from '../utility/schoolUtil';
 
-const UNKNOWN_CONTEXT_VALUE = 'unknown';
+export const UNKNOWN_CONTEXT_VALUE = 'unknown';
 const USER_ROLES_SEPARATOR = ',';
 
 export interface GlobalEventBaseContext {
@@ -34,7 +34,12 @@ export const buildGlobalEventBaseContext = (): GlobalEventBaseContext => {
   const state: RootState = store.getState();
   const userId = state.auth.user?.id ?? state.auth.authUser?.id;
   const roles = state.auth.roles ?? [];
-  const schoolId = schoolUtil.getCurrentSchool()?.id;
+  let schoolId = UNKNOWN_CONTEXT_VALUE;
+  try {
+    schoolId = schoolUtil.getCurrentSchool()?.id ?? UNKNOWN_CONTEXT_VALUE;
+  } catch {
+    // School is optional metadata and must not block analytics events.
+  }
   let studentId = UNKNOWN_CONTEXT_VALUE;
   try {
     const storedStudent = localStorage.getItem(CURRENT_STUDENT);
