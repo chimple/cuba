@@ -455,9 +455,11 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     if (!studentId) return [];
     await this.ensureInitialized();
     const result = await this.executeQuery(
-      `SELECT * FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0
-       ORDER BY evaluated_at DESC`,
+      `SELECT r.*, c.name AS campaign_name, c.objective, c.start_date, c.end_date
+       FROM user_campaign_rewards r
+       LEFT JOIN local_campaigns c ON c.id = r.campaign_id
+       WHERE r.student_id = ? AND r.is_deleted = 0
+       ORDER BY r.evaluated_at DESC`,
       [studentId],
     );
     return result?.values ?? [];

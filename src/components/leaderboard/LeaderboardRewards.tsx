@@ -3,9 +3,9 @@ import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
 import './LeaderboardRewards.css';
 import LessonCompletionRewards from './LessonCompletionRewards';
-import LeaderboardBadges from './LeaderboardBadges';
-import LeaderboardBonus from './LeaderboardBonus';
-import LeaderboardSticker from './LeaderboardSticker';
+import CompetitionRewardCards, {
+  CompetitionReward,
+} from './CompetitionRewardCards';
 import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { SqliteApi } from '../../services/api/SqliteApi';
@@ -37,6 +37,9 @@ const LeaderboardRewards: FC = () => {
       state.badgeProgress?.hasUnseenBadge === true,
   );
   const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
+  const [competitionRewards, setCompetitionRewards] = useState<
+    CompetitionReward[]
+  >([]);
   const [isProgressLoading, setIsProgressLoading] = useState(
     Boolean(student?.id),
   );
@@ -134,9 +137,11 @@ const LeaderboardRewards: FC = () => {
     void SqliteApi.getI()
       .getCachedCampaignRewards(student.id)
       .then((rewards) => {
+        setCompetitionRewards(rewards as CompetitionReward[]);
         logger.info('Competition rewards loaded:', rewards);
       })
       .catch((error) => {
+        setCompetitionRewards([]);
         logger.error('Failed to load competition rewards:', error);
       });
   }, [activeTab, student?.id]);
@@ -194,11 +199,7 @@ const LeaderboardRewards: FC = () => {
       ) : activeTab === REWARDS_TABS.LESSON_COMPLETION ? (
         <LessonCompletionRewards studentId={student?.id} progress={progress} />
       ) : (
-        <div className="competition-rewards-content">
-          <LeaderboardSticker />
-          <LeaderboardBadges />
-          <LeaderboardBonus />
-        </div>
+        <CompetitionRewardCards rewards={competitionRewards} />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import logger from '../../utility/logger';
 
 const mockGetUserBadgeProgress = jest.fn();
 const mockMarkUserBadgeSeen = jest.fn();
+const mockGetCachedCampaignRewards = jest.fn();
 const mockDispatch = jest.fn();
 let mockHasUnseenBadge = false;
 
@@ -37,7 +38,14 @@ jest.mock('../../common/Badges/badgeAnalytics', () => ({
 }));
 jest.mock('../../utility/logger', () => ({
   __esModule: true,
-  default: { error: jest.fn() },
+  default: { error: jest.fn(), info: jest.fn() },
+}));
+jest.mock('../../services/api/SqliteApi', () => ({
+  SqliteApi: {
+    getI: () => ({
+      getCachedCampaignRewards: mockGetCachedCampaignRewards,
+    }),
+  },
 }));
 jest.mock('./LessonCompletionRewards', () => ({
   __esModule: true,
@@ -68,6 +76,7 @@ describe('LeaderboardRewards', () => {
     });
     mockGetUserBadgeProgress.mockResolvedValue(progress);
     mockMarkUserBadgeSeen.mockResolvedValue(undefined);
+    mockGetCachedCampaignRewards.mockResolvedValue([]);
   });
 
   it('records the page view and both tab selections', async () => {
