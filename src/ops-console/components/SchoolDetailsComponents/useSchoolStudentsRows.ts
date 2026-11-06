@@ -85,6 +85,7 @@ export const useSchoolStudentsRows = ({
           studentPerformanceMap.get(`${rowClassId}:${sApi.user.id}`) ??
           OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED,
         whatsappGroupStatus: getWhatsappGroupStatus(sApi),
+        studentConnectivity: sApi.user.student_connectivity,
       };
     });
     if (performanceFilter !== PerformanceLevel.ALL) {

@@ -4,3 +4,4 @@ export * from './constants/opsSchoolModels';
 export * from './constants/runtimeStorage';
 export * from './constants/rewardsPathway';
 export * from './constants/opsCampaigns';
+export * from './constants/studentConnectivity';

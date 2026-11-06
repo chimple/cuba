@@ -193,6 +193,15 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
       await this._db.query(`ALTER TABLE ${TABLES.User} ADD COLUMN reward TEXT`);
     }
 
+    const hasStudentConnectivityColumn = (userColumns.values ?? []).some(
+      (row: { name?: unknown }) => row.name === 'student_connectivity',
+    );
+    if (!hasStudentConnectivityColumn) {
+      await this._db.query(
+        `ALTER TABLE ${TABLES.User} ADD COLUMN student_connectivity TEXT`,
+      );
+    }
+
     this._tableColumnsCache.delete(TABLES.User);
     this._tableColumnsCache.delete(TABLES.RiveReward);
   }
