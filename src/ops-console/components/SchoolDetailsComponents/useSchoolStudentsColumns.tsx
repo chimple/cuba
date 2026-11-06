@@ -11,11 +11,13 @@ import {
 import { t } from 'i18next';
 import {
   OPS_PERFORMANCE_BANDS,
+  STUDENT_CONNECTIVITY_LABELS,
   WHATSAPP_GROUP_STATUS,
   WHATSAPP_GROUP_STATUS_KEYS,
   WHATSAPP_GROUP_TICK_ICON,
+  type StudentInfo,
+  type StudentConnectivity,
 } from '../../../common/constants';
-import type { StudentInfo } from '../../../common/constants';
 import type { Column } from '../DataTableBody';
 import ActionMenu from './ActionMenu';
 import type {
@@ -26,7 +28,6 @@ import {
   getPerformanceChipClass,
   getWhatsappChipClass,
 } from './SchoolStudents.utils';
-
 const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
   const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
   return (
@@ -54,6 +55,8 @@ const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
   );
 };
 
+const renderStudentConnectivity = (value?: StudentConnectivity | null) =>
+  value ? STUDENT_CONNECTIVITY_LABELS[value] : '—';
 type UseSchoolStudentsColumnsParams = {
   getDeleteTargetStudent: (student: DisplayStudent) => StudentInfo;
   getStudentInfoById: (id: string) => StudentInfo | null;
@@ -257,12 +260,19 @@ export const useSchoolStudentsColumns = ({
       sortable: false,
       render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
     };
+    const studentConnectivityColumn: Column<DisplayStudent> = {
+      key: 'studentConnectivity',
+      label: t('Student Connectivity'),
+      sortable: false,
+      render: (s) => renderStudentConnectivity(s.studentConnectivity),
+    };
     if (!issTotal) {
       return [
         ...commonColumns,
         genderColumn,
         performanceColumn,
         whatsappGroupColumn,
+        studentConnectivityColumn,
         ...actionColumn,
       ];
     }
@@ -272,6 +282,7 @@ export const useSchoolStudentsColumns = ({
       performanceColumn,
       { key: 'class', label: t('Class') },
       whatsappGroupColumn,
+      studentConnectivityColumn,
       ...actionColumn,
     ];
   }, [

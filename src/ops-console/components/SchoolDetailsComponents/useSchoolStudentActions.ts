@@ -15,6 +15,10 @@ import ErrorIcon from '../../assets/icons/erroricon.svg';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import type { MessageConfig } from './FormCard';
 import type { DisplayStudent } from './SchoolStudents.types';
+import {
+  formatIndianStudentPhone,
+  getStudentContactEntries,
+} from '../../utils/studentContactNumbers';
 
 type UseSchoolStudentActionsParams = {
   api: any;
@@ -105,6 +109,21 @@ export const useSchoolStudentActions = ({
 
     const user = editStudentData.user;
     const selectedClassId = String(values.classAndSection ?? '').trim();
+    const selectedConnectivity = values.studentConnectivity || null;
+    const currentContacts = getStudentContactEntries(editStudentData)
+      .map((contact) =>
+        contact.type === 'phone'
+          ? formatIndianStudentPhone(contact.value)
+          : contact.value,
+      )
+      .join(' / ');
+    const connectivityOnly =
+      selectedConnectivity !== (user.student_connectivity ?? null) &&
+      values.studentName === (user.name ?? '') &&
+      Number(values.ageGroup) === (user.age ?? 0) &&
+      values.gender === (user.gender ?? '') &&
+      selectedClassId === String(editStudentData.classWithidname?.id ?? '') &&
+      String(values.phone ?? '') === currentContacts;
     const avatarToSend =
       user.avatar && user.avatar.trim() !== ''
         ? user.avatar
@@ -132,6 +151,8 @@ export const useSchoolStudentActions = ({
       user.student_id || user.student_id!,
       selectedClassId,
       normalizePhone10(values.phone),
+      selectedConnectivity,
+      connectivityOnly,
     );
 
     setIsEditStudentModalOpen(false);

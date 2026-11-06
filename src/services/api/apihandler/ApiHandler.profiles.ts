@@ -121,6 +121,8 @@ export class ApiHandlerUserProfiles {
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    studentConnectivity?: TableTypes<'user'>['student_connectivity'],
+    connectivityOnly?: boolean,
   ): Promise<TableTypes<'user'>> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -135,6 +137,8 @@ export class ApiHandlerUserProfiles {
       student_id,
       newClassId,
       phoneNumber,
+      studentConnectivity,
+      connectivityOnly,
     );
   }
 
