@@ -161,7 +161,12 @@ export const handleLidoLessonEnd = async (ctx: any, e: any) => {
     }
     // const currentStudent = api.currentStudent;
     const data = lessonData;
-    let assignmentId = state?.homeworkAssignmentId ?? assignment?.id ?? null;
+    // Assessment launches carry the assignment ID directly, so save results against that row.
+    let assignmentId =
+      state?.homeworkAssignmentId ??
+      state?.assessmentId ??
+      assignment?.id ??
+      null;
     const scoresList = getStoredLidoScores() as StoredActivityScore[];
     const averageActivityScore =
       scoresList.length > 0
