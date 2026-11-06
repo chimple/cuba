@@ -56,6 +56,7 @@ const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
       >
         <div
           id="ScoreCard-Content"
+          data-progress-source={props.progressContext?.source}
           className={
             useProgressLayout
               ? 'score-card-goal-progress-content-box'
