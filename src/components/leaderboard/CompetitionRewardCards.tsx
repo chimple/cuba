@@ -48,6 +48,13 @@ const isOngoingReward = (reward: CompetitionReward) => {
 const isCompletedReward = (reward: CompetitionReward) =>
   !isOngoingReward(reward);
 
+const hasCompletedLessons = (reward: CompetitionReward) =>
+  toNumber(
+    reward.lessons_completed_count ??
+      reward.homework_lessons_completed_count ??
+      reward.homepage_lessons_completed_count,
+  ) > 0;
+
 // Every ended campaign has a certificate. Ranked campaigns use their rank
 // artwork; campaigns without a rank use the participation artwork.
 const canShareCertificate = (reward: CompetitionReward) =>
@@ -107,7 +114,9 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
     useState<CompetitionReward | null>(null);
   const student = Util.getCurrentStudent();
   const ongoingRewards = rewards.filter(isOngoingReward);
-  const completedRewards = rewards.filter(isCompletedReward);
+  const completedRewards = rewards.filter(
+    (reward) => isCompletedReward(reward) && hasCompletedLessons(reward),
+  );
 
   const renderCard = (reward: CompetitionReward) => (
     <article className={getCardClass(reward)} key={reward.campaign_id}>

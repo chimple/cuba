@@ -3,9 +3,8 @@ import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
 import './LeaderboardRewards.css';
 import LessonCompletionRewards from './LessonCompletionRewards';
-import CompetitionRewardCards, {
-  CompetitionReward,
-} from './CompetitionRewardCards';
+import CompetitionRewardCards from './CompetitionRewardCards';
+import type { CompetitionReward } from './CompetitionRewardCards';
 import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { SqliteApi } from '../../services/api/SqliteApi';

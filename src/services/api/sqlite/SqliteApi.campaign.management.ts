@@ -502,8 +502,21 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           [studentId, campaign.id],
         );
     const metrics = metricsResult?.values?.[0] ?? {};
-    const totalLessons = Number(metrics.total_lessons ?? 0);
-    const completedLessons = Number(metrics.completed_lessons ?? 0);
+    let totalLessons = Number(metrics.total_lessons ?? 0);
+    let completedLessons = Number(metrics.completed_lessons ?? 0);
+    if (isHomepageCampaign && totalLessons === 0) {
+      const fallbackResult = await this.executeQuery(
+        `SELECT COUNT(DISTINCT r.lesson_id) AS total_lessons, COUNT(DISTINCT r.lesson_id) AS completed_lessons
+         FROM result r WHERE r.student_id = ? AND r.is_deleted = 0
+           AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+           AND r.source IN ('learning_pathway_home_no_pal', 'learning_pathway_home_pal')
+           AND r.created_at >= ? AND r.created_at <= ?`,
+        [studentId, campaign.start_date, campaign.end_date],
+      );
+      const fallback = fallbackResult?.values?.[0] ?? {};
+      totalLessons = Number(fallback.total_lessons ?? 0);
+      completedLessons = Number(fallback.completed_lessons ?? 0);
+    }
     const completion = totalLessons
       ? (completedLessons / totalLessons) * 100
       : 0;
@@ -527,7 +540,11 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const existing = existingResult?.values?.[0] as
       | { status?: string; rank_achieved?: number | null }
       | undefined;
-    const isNewWin = status === 'won' && existing?.status !== 'won';
+    const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${rank}`;
+    const shouldEmitCertificate =
+      showCertificate &&
+      status === 'won' &&
+      !localStorage.getItem(certificateShownKey);
 
     await this.executeQuery(
       `INSERT OR REPLACE INTO user_campaign_rewards
@@ -566,7 +583,8 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       }
     }
 
-    if (showCertificate && isNewWin) {
+    if (shouldEmitCertificate) {
+      localStorage.setItem(certificateShownKey, evaluatedAt);
       showCampaignCertificate({
         campaignId: campaign.id,
         campaignName: campaign.name,
