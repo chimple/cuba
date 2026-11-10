@@ -11,6 +11,8 @@ if (typeof i18n.use === 'function') {
     .use(initReactI18next) // passes i18n down to react-i18next
     .init({
       fallbackLng: 'en',
+      load: 'languageOnly',
+      supportedLngs: ['en', 'hi', 'kn', 'mr', 'pt'],
       debug: false,
       backend: {
         loadPath: BASE_NAME + '/locales/{{lng}}/{{ns}}.json',

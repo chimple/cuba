@@ -13,6 +13,7 @@ import logger from '../../utility/logger';
 const mockGetUserBadgeProgress = jest.fn();
 const mockMarkUserBadgeSeen = jest.fn();
 const mockGetCachedCampaignRewards = jest.fn();
+const mockSyncCampaignRewards = jest.fn();
 const mockDispatch = jest.fn();
 let mockHasUnseenBadge = false;
 
@@ -44,6 +45,7 @@ jest.mock('../../services/api/SqliteApi', () => ({
   SqliteApi: {
     getI: () => ({
       getCachedCampaignRewards: mockGetCachedCampaignRewards,
+      syncCampaignRewards: mockSyncCampaignRewards,
     }),
   },
 }));
@@ -58,6 +60,20 @@ jest.mock('./LessonCompletionRewards', () => ({
     </div>
   ),
 }));
+jest.mock('./CompetitionRewardCards', () => ({
+  __esModule: true,
+  default: ({
+    rewards,
+  }: {
+    rewards: Array<{ campaign_id: string; campaign_name?: string }>;
+  }) => (
+    <div>
+      {rewards.map((reward) => (
+        <div key={reward.campaign_id}>{reward.campaign_name}</div>
+      ))}
+    </div>
+  ),
+}));
 jest.mock('./LeaderboardSticker', () => () => <div>Stickers</div>);
 jest.mock('./LeaderboardBadges', () => () => <div>Badges</div>);
 jest.mock('./LeaderboardBonus', () => () => <div>Bonus</div>);
@@ -69,7 +85,14 @@ describe('LeaderboardRewards', () => {
     has_unseen_badge: false,
   };
 
+  const previousDev = process.env.DEV;
+  afterEach(() => {
+    if (previousDev === undefined) delete process.env.DEV;
+    else process.env.DEV = previousDev;
+  });
+
   beforeEach(() => {
+    delete process.env.DEV;
     mockHasUnseenBadge = false;
     mockDispatch.mockImplementation(() => {
       mockHasUnseenBadge = false;
@@ -77,6 +100,7 @@ describe('LeaderboardRewards', () => {
     mockGetUserBadgeProgress.mockResolvedValue(progress);
     mockMarkUserBadgeSeen.mockResolvedValue(undefined);
     mockGetCachedCampaignRewards.mockResolvedValue([]);
+    mockSyncCampaignRewards.mockResolvedValue(undefined);
   });
 
   it('records the page view and both tab selections', async () => {
@@ -92,6 +116,9 @@ describe('LeaderboardRewards', () => {
 
     const tabs = screen.getAllByRole('tab');
     fireEvent.click(tabs[1]);
+    await waitFor(() =>
+      expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1'),
+    );
     expect(logBadgeEvent).toHaveBeenCalledWith(
       EVENTS.REWARDS_TAB_CLICKED,
       'student-1',
@@ -172,5 +199,32 @@ describe('LeaderboardRewards', () => {
       'data-milestone',
       '150',
     );
+  });
+  it('displays saved rewards loaded after campaign sync', async () => {
+    mockGetCachedCampaignRewards.mockResolvedValue([
+      { campaign_id: 'real-campaign', campaign_name: 'Real saved competition' },
+    ]);
+    render(<LeaderboardRewards />);
+    await screen.findByText('Lesson rewards');
+    fireEvent.click(screen.getAllByRole('tab')[1]);
+    expect(
+      await screen.findByText('Real saved competition'),
+    ).toBeInTheDocument();
+    expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
+  });
+
+  it('displays only saved rewards outside development', async () => {
+    mockGetCachedCampaignRewards.mockResolvedValue([
+      { campaign_id: 'real-campaign', campaign_name: 'Real saved competition' },
+    ]);
+    render(<LeaderboardRewards />);
+    await screen.findByText('Lesson rewards');
+    fireEvent.click(screen.getAllByRole('tab')[1]);
+    expect(
+      await screen.findByText('Real saved competition'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Chimple India Competition'),
+    ).not.toBeInTheDocument();
   });
 });

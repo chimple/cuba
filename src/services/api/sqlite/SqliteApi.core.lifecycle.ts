@@ -7,7 +7,10 @@ import { setGlobalLoading } from '../../../redux/slices/auth/authSlice';
 import { store } from '../../../redux/store';
 import logger from '../../../utility/logger';
 import type { SqlStatement } from '../../../workers/background.worker.types';
-import { DBSQLiteValues } from '@capacitor-community/sqlite';
+import {
+  DBSQLiteValues,
+  SQLiteDBConnection,
+} from '@capacitor-community/sqlite';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { LiveUpdate } from '@capawesome/capacitor-live-update';
@@ -124,6 +127,7 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
 
     await this.ensureLessonAssetColumns();
     await this.ensureRewardSchema();
+    await this.ensureCampaignRewardSchema();
     localStorage.setItem(CURRENT_SQLITE_VERSION, this.DB_VERSION.toString());
 
     await this.checkAndSyncData();
@@ -195,6 +199,48 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
 
     this._tableColumnsCache.delete(TABLES.User);
     this._tableColumnsCache.delete(TABLES.RiveReward);
+  }
+
+  private async ensureCampaignRewardSchema(): Promise<void> {
+    const db: SQLiteDBConnection | undefined = this._db;
+    if (!db) return;
+
+    const campaigns = await db.query('PRAGMA table_info(local_campaigns)');
+    if (!(campaigns.values ?? []).length) {
+      await db.query(
+        `CREATE TABLE IF NOT EXISTS local_campaigns (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          rules_json TEXT NOT NULL,
+          start_date TEXT NOT NULL,
+          end_date TEXT NOT NULL,
+          status TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          is_deleted INTEGER NOT NULL DEFAULT 0,
+          objective TEXT NOT NULL DEFAULT 'homework_campaign',
+          target_value INTEGER
+        )`,
+      );
+      await db.query(
+        'CREATE INDEX IF NOT EXISTS idx_local_campaigns_status_dates ON local_campaigns(status, start_date, end_date)',
+      );
+    } else {
+      const columns = new Set(
+        (campaigns.values ?? [])
+          .map((row: { name?: unknown }) => row.name)
+          .filter((name: unknown): name is string => typeof name === 'string'),
+      );
+      if (!columns.has('objective')) {
+        await db.query(
+          "ALTER TABLE local_campaigns ADD COLUMN objective TEXT NOT NULL DEFAULT 'homework_campaign'",
+        );
+      }
+      if (!columns.has('target_value')) {
+        await db.query(
+          'ALTER TABLE local_campaigns ADD COLUMN target_value INTEGER',
+        );
+      }
+    }
   }
 
   protected async importBundledDataAfterUpgrade(): Promise<void> {

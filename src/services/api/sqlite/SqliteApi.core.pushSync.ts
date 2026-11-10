@@ -125,6 +125,7 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
       await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
+      await this.pushQueuedCampaignRewards();
       const tables = "'" + tableNames.join("', '") + "'";
       // logger.info('logs to check synced tables1', JSON.stringify(tables));
       const currentTimestamp = new Date();
@@ -171,6 +172,62 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
 
     await this.executeQuery(createPullSyncInfoTable);
     await this.executeQuery(createPushSyncInfoTable);
+    await this.executeQuery(
+      `CREATE TABLE IF NOT EXISTS campaign_reward_upload_queue (
+        id TEXT PRIMARY KEY,
+        campaign_id TEXT NOT NULL,
+        student_id TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(campaign_id, student_id)
+      )`,
+    );
+  }
+
+  protected async queueCampaignRewardUpload(payload: {
+    campaignId: string;
+    studentId: string;
+    rankAchieved: number | null;
+    status: string;
+    evaluatedAt: string;
+  }): Promise<void> {
+    await this.ensureInitialized();
+    const now = new Date().toISOString();
+    await this.executeQuery(
+      `INSERT OR REPLACE INTO campaign_reward_upload_queue
+       (id, campaign_id, student_id, payload, created_at, updated_at)
+       VALUES (?, ?, ?, ?, COALESCE((SELECT created_at FROM campaign_reward_upload_queue WHERE campaign_id = ? AND student_id = ?), ?), ?)`,
+      [
+        `${payload.campaignId}:${payload.studentId}`,
+        payload.campaignId,
+        payload.studentId,
+        JSON.stringify(payload),
+        payload.campaignId,
+        payload.studentId,
+        now,
+        now,
+      ],
+    );
+  }
+
+  private async pushQueuedCampaignRewards(): Promise<void> {
+    const result = await this.executeQuery(
+      'SELECT * FROM campaign_reward_upload_queue ORDER BY created_at',
+    );
+    for (const row of result?.values ?? []) {
+      const payload = JSON.parse(String(row.payload));
+      try {
+        await this._serverApi.upsertCampaignStudentReward(payload);
+        await this.executeQuery(
+          'DELETE FROM campaign_reward_upload_queue WHERE id = ?',
+          [row.id],
+        );
+      } catch (error) {
+        logger.warn('Campaign reward upload queued for retry', error);
+        break;
+      }
+    }
   }
 
   protected async updatePushChanges(

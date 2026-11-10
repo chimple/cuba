@@ -1,5 +1,4 @@
 import {
-  CAMPAIGN_REWARD_LOG_KEYWORD,
   RESULT_STATUS,
   AssignmentSource,
   TabType,
@@ -158,10 +157,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         ? { campaignId: row.campaign_id, current, total }
         : null;
     } catch (error) {
-      logger.warn(
-        `${CAMPAIGN_REWARD_LOG_KEYWORD} local assignment progress unavailable`,
-        error,
-      );
+      logger.warn('Local assignment progress unavailable', error);
       return null;
     }
   }
@@ -365,29 +361,13 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
     const lastFetch = localStorage.getItem(storageKey);
     const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync started`, {
-      studentId,
-      lastFetch,
-    });
-
     if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
-      const changes = await this.getActiveCampaigns(studentId, lastFetch);
-      logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} changes received`, {
-        studentId,
-        count: changes?.length ?? 0,
-      });
+      const changes = await this.getActiveCampaigns(studentId, null);
       for (const change of changes ?? []) {
         if (change.change_type === 'delete') {
           await this.executeQuery(
             'UPDATE local_campaigns SET is_deleted = 1, status = ? WHERE id = ?',
             ['inactive', change.campaign_id],
-          );
-          logger.info(
-            `${CAMPAIGN_REWARD_LOG_KEYWORD} campaign marked deleted`,
-            {
-              studentId,
-              campaignId: change.campaign_id,
-            },
           );
           continue;
         }
@@ -398,27 +378,22 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
           [
             change.campaign_id,
-            change.campaign_name,
-            JSON.stringify(change.rules_json ?? change.rewards ?? {}),
+            change.campaign_name ?? `Campaign ${change.campaign_id}`,
+            typeof change.rules_json === 'string'
+              ? change.rules_json
+              : JSON.stringify(change.rules_json ?? change.rewards ?? {}),
             change.objective ?? 'homework_campaign',
             change.target_value ?? null,
-            change.start_date,
-            change.end_date,
-            change.campaign_status,
+            change.start_date ?? new Date().toISOString(),
+            change.end_date ?? new Date().toISOString(),
+            change.campaign_status ?? 'active',
             change.updated_at ?? change.created_at ?? new Date().toISOString(),
           ],
         );
-        logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign stored locally`, {
-          studentId,
-          campaignId: change.campaign_id,
-          status: change.campaign_status,
-        });
       }
       localStorage.setItem(storageKey, new Date().toISOString());
     }
-
     await this.hydrateCampaignRewards(studentId);
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync completed`, { studentId });
   }
 
   async hydrateCampaignRewards(
@@ -475,18 +450,43 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       campaign.objective === 'homepage_learning_pathway_campaign';
     const metricsResult = isHomepageCampaign
       ? await this.executeQuery(
-          `SELECT COUNT(DISTINCT r.lesson_id) AS completed_lessons
-           FROM result r
-           WHERE r.student_id = ?
-             AND r.is_deleted = 0
-             AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
-             AND r.source IN (
+          `SELECT
+             COUNT(DISTINCT a.lesson_id) AS total_lessons,
+             COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.lesson_id END) AS completed_lessons
+           FROM assignment a
+           LEFT JOIN result r
+             ON r.assignment_id = a.id
+            AND r.student_id = ?
+            AND r.is_deleted = 0
+            AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+           WHERE a.is_deleted = 0
+             AND a.source IN (
                'learning_pathway_home_no_pal',
                'learning_pathway_home_pal'
              )
-             AND date(r.created_at) >= date(?)
-             AND date(r.created_at) <= date(?)`,
-          [studentId, campaign.start_date, campaign.end_date],
+             AND a.starts_at >= ?
+             AND a.starts_at <= ?
+             AND (
+               (a.is_class_wise = 1 AND EXISTS (
+                 SELECT 1 FROM class_user cu
+                 WHERE cu.class_id = a.class_id
+                   AND cu.user_id = ?
+                   AND cu.is_deleted = 0
+               ))
+               OR EXISTS (
+                 SELECT 1 FROM assignment_user au
+                 WHERE au.assignment_id = a.id
+                   AND au.user_id = ?
+                   AND au.is_deleted = 0
+               )
+             )`,
+          [
+            studentId,
+            campaign.start_date,
+            campaign.end_date,
+            studentId,
+            studentId,
+          ],
         )
       : await this.executeQuery(
           `SELECT
@@ -502,9 +502,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           [studentId, campaign.id],
         );
     const metrics = metricsResult?.values?.[0] ?? {};
-    const totalLessons = isHomepageCampaign
-      ? Number(campaign.target_value ?? 0) * 5
-      : Number(metrics.total_lessons ?? 0);
+    const totalLessons = Number(metrics.total_lessons ?? 0);
     const completedLessons = Number(metrics.completed_lessons ?? 0);
     const completion = totalLessons
       ? (completedLessons / totalLessons) * 100
@@ -512,9 +510,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const rules = parseCampaignRules(campaign.rules_json).sort(
       (a, b) => b.min - a.min,
     );
-    const progressValue = isHomepageCampaign
-      ? completedLessons / 5
-      : completion;
+    const progressValue = isHomepageCampaign ? completedLessons : completion;
     const winningRule = rules.find((rule) => progressValue >= Number(rule.min));
     const status = winningRule
       ? 'won'
@@ -522,15 +518,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         ? 'missed'
         : 'in_progress';
     const rank = winningRule?.rank ?? null;
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign evaluated`, {
-      campaignId: campaign.id,
-      studentId,
-      totalLessons,
-      completedLessons,
-      completion,
-      rank,
-      status,
-    });
     const evaluatedAt = now.toISOString();
     const existingResult = await this.executeQuery(
       `SELECT status, rank_achieved FROM user_campaign_rewards
@@ -564,7 +551,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
 
     if (existing?.status !== status || existing?.rank_achieved !== rank) {
       try {
-        await this._serverApi.upsertCampaignStudentReward({
+        await this.queueCampaignRewardUpload({
           campaignId: campaign.id,
           studentId,
           rankAchieved: rank,
@@ -573,18 +560,13 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         });
       } catch (error) {
         logger.error(
-          `${CAMPAIGN_REWARD_LOG_KEYWORD} reward sync deferred; keeping local result`,
+          'Campaign reward queue failed; keeping local result',
           error,
         );
       }
     }
 
     if (showCertificate && isNewWin) {
-      logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} certificate event emitted`, {
-        campaignId: campaign.id,
-        studentId,
-        rank,
-      });
       showCampaignCertificate({
         campaignId: campaign.id,
         campaignName: campaign.name,

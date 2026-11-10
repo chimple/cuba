@@ -1,6 +1,12 @@
 import { FC, useState } from 'react';
-import { showCampaignCertificate } from '../campaignCertificate';
+import { useTranslation } from 'react-i18next';
+import { EVENTS } from '../../common/constants';
 import { Util } from '../../utility/util';
+import { buildCampaignAnalyticsContext } from '../campaignCertificate/campaignCertificateAnalytics';
+import CompetitionCertificateModal, {
+  toCompetitionCertificateRank,
+} from './CompetitionCertificateModal';
+import CompetitionRewardInfoModal from './CompetitionRewardInfoModal';
 import './CompetitionRewardCards.css';
 
 export type CompetitionReward = {
@@ -29,6 +35,24 @@ type CompetitionRewardCardsProps = {
 const toNumber = (value: number | string | null | undefined) =>
   Number(value ?? 0);
 
+const isOngoingReward = (reward: CompetitionReward) => {
+  // The campaign timeline is authoritative. An in-progress status must not
+  // keep an expired campaign in the ongoing section after its end date.
+  if (reward.end_date) {
+    const end = new Date(reward.end_date).getTime();
+    if (Number.isFinite(end)) return end >= Date.now();
+  }
+  return reward.status === 'in_progress';
+};
+
+const isCompletedReward = (reward: CompetitionReward) =>
+  !isOngoingReward(reward);
+
+// Every ended campaign has a certificate. Ranked campaigns use their rank
+// artwork; campaigns without a rank use the participation artwork.
+const canShareCertificate = (reward: CompetitionReward) =>
+  !isOngoingReward(reward);
+
 const formatDate = (value?: string | null) => {
   if (!value) return '';
   const date = new Date(value);
@@ -40,6 +64,9 @@ const formatDate = (value?: string | null) => {
 };
 
 const getArtwork = (reward: CompetitionReward) => {
+  if (isOngoingReward(reward)) {
+    return '/assets/campaignCompetition/Campaign progress t.svg';
+  }
   const rank = toNumber(reward.rank_achieved);
   if (reward.status === 'won' && rank === 1) {
     return '/assets/campaignCompetition/Campaign rank1 t2.svg';
@@ -50,127 +77,37 @@ const getArtwork = (reward: CompetitionReward) => {
   if (reward.status === 'won' && rank === 3) {
     return '/assets/campaignCompetition/Campaign rank3 t.svg';
   }
-  if (reward.status === 'completed') {
-    return '/assets/campaignCompetition/Campaign participation t.svg';
-  }
-  return '/assets/campaignCompetition/Campaign progress t.svg';
+  return '/assets/campaignCompetition/Campaign participation t.svg';
 };
 
 const getCardClass = (reward: CompetitionReward) => {
+  if (isOngoingReward(reward)) return 'competition-reward-card ongoing';
   const rank = toNumber(reward.rank_achieved);
-  if (reward.status !== 'won') return 'competition-reward-card ongoing';
   return `competition-reward-card completed rank-${rank || 3}`;
 };
 
-const isWinner = (reward: CompetitionReward) =>
-  reward.status === 'won' && toNumber(reward.rank_achieved) === 1;
-
-const CompetitionRewardInfoModal: FC<{
-  reward: CompetitionReward;
-  onClose: () => void;
-}> = ({ reward, onClose }) => {
-  const completed = toNumber(reward.lessons_completed_count);
-  const target = toNumber(reward.lessons_target_count);
-  const percentage = Math.round(toNumber(reward.completion_percentage));
+const getCompletionMessage = (
+  reward: CompetitionReward,
+  translate: (key: string) => string,
+) => {
   const rank = toNumber(reward.rank_achieved);
-  const progressRows = [
-    {
-      key: 'homework',
-      label: 'HW page lessons Completed',
-      completed: toNumber(reward.homework_lessons_completed_count),
-      target: toNumber(reward.homework_lessons_target_count),
-      icon: '/assets/icons/homework_icon.svg',
-    },
-    {
-      key: 'homepage',
-      label: 'Home page lessons Completed',
-      completed: toNumber(reward.homepage_lessons_completed_count),
-      target: toNumber(reward.homepage_lessons_target_count),
-      icon: '/assets/icons/home_icon.svg',
-    },
-  ].filter((row) => row.target > 0);
-
-  return (
-    <div
-      className="competition-modal-backdrop"
-      role="presentation"
-      onClick={onClose}
-    >
-      <div
-        className="competition-info-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Competition details"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="competition-modal-close"
-          onClick={onClose}
-        >
-          <span aria-hidden="true">×</span>
-        </button>
-        <h2>{reward.campaign_name}</h2>
-        <p className="competition-modal-date">
-          {reward.start_date && reward.end_date
-            ? `${formatDate(reward.start_date)} - ${formatDate(reward.end_date)}`
-            : ''}
-        </p>
-        {progressRows.length > 0 ? (
-          <div className="competition-modal-progress-list">
-            {progressRows.map((row) => {
-              const progress = Math.min(
-                100,
-                row.target > 0 ? (row.completed / row.target) * 100 : 0,
-              );
-
-              return (
-                <div
-                  className={`competition-modal-progress-row ${row.key}`}
-                  key={row.key}
-                >
-                  <img src={row.icon} alt="" />
-                  <div>
-                    <p>{row.label}</p>
-                    <div className="competition-modal-progress-track">
-                      <span style={{ width: `${progress}%` }} />
-                      <strong>
-                        {row.completed} / {row.target}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="competition-modal-progress">
-            {completed} / {target} lessons completed
-          </p>
-        )}
-        <p className="competition-modal-percentage">{percentage}% complete</p>
-        {reward.status && reward.status !== 'in_progress' && (
-          <p className="competition-modal-status">
-            {reward.status === 'won' ? 'Won' : reward.status}
-          </p>
-        )}
-        {rank > 0 && <p className="competition-modal-rank">Rank {rank}</p>}
-      </div>
-    </div>
-  );
+  if (rank === 1) return translate('competition_rank_first');
+  if (rank === 2) return translate('competition_rank_second');
+  if (rank === 3) return translate('competition_rank_third');
+  return translate('competition_great_job');
 };
 
 const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
   rewards,
 }) => {
+  const { t } = useTranslation();
   const [selectedReward, setSelectedReward] =
     useState<CompetitionReward | null>(null);
-  const ongoingRewards = rewards.filter(
-    (reward) => reward.status === 'in_progress',
-  );
-  const completedRewards = rewards.filter(
-    (reward) => reward.status !== 'in_progress',
-  );
+  const [selectedCertificate, setSelectedCertificate] =
+    useState<CompetitionReward | null>(null);
+  const student = Util.getCurrentStudent();
+  const ongoingRewards = rewards.filter(isOngoingReward);
+  const completedRewards = rewards.filter(isCompletedReward);
 
   const renderCard = (reward: CompetitionReward) => (
     <article className={getCardClass(reward)} key={reward.campaign_id}>
@@ -180,9 +117,14 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
           ? `${formatDate(reward.start_date)} - ${formatDate(reward.end_date)}`
           : ''}
       </p>
-      {reward.status === 'in_progress' && (
+      {isOngoingReward(reward) && (
         <p className="competition-reward-description">
-          Play & Win! Competition is ongoing.
+          {t('competition_ongoing')}
+        </p>
+      )}
+      {!isOngoingReward(reward) && (
+        <p className="competition-reward-completion-message">
+          {getCompletionMessage(reward, t)}
         </p>
       )}
       <img
@@ -191,27 +133,35 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
         alt=""
       />
       <div className="competition-reward-footer">
-        {reward.status !== 'in_progress' && (
-          <p>{reward.status === 'won' ? 'Won' : reward.status}</p>
+        {!isOngoingReward(reward) && (
+          <button
+            type="button"
+            className="competition-reward-action-button"
+            aria-label="Competition information"
+            onClick={() => {
+              void Util.logEvent(EVENTS.COMPETITION_INFO_CLICKED, {
+                ...buildCampaignAnalyticsContext(reward.student_id ?? ''),
+                campaign_id: reward.campaign_id,
+                campaign_status: isOngoingReward(reward)
+                  ? 'ongoing'
+                  : 'completed',
+              });
+              setSelectedReward(reward);
+            }}
+          >
+            <img
+              src="/assets/icons/info button icon.svg"
+              alt=""
+              aria-hidden="true"
+            />
+          </button>
         )}
-        {isWinner(reward) ? (
+        {canShareCertificate(reward) ? (
           <button
             type="button"
             className="competition-reward-action-button share"
-            aria-label="Share competition certificate"
-            onClick={() => {
-              const student = Util.getCurrentStudent();
-              showCampaignCertificate({
-                campaignId: reward.campaign_id,
-                campaignName: reward.campaign_name ?? '',
-                studentName: student?.name ?? '',
-                studentId: reward.student_id ?? undefined,
-                rank: 1,
-                awardedAt: reward.updated_at ?? new Date().toISOString(),
-                languageCode: localStorage.getItem('language') ?? 'en',
-                isNewlyEarned: false,
-              });
-            }}
+            aria-label="Share competition reward"
+            onClick={() => setSelectedCertificate(reward)}
           >
             <img
               src="/assets/icons/share button icon.svg"
@@ -224,9 +174,22 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
             type="button"
             className="competition-reward-action-button"
             aria-label="Competition information"
-            onClick={() => setSelectedReward(reward)}
+            onClick={() => {
+              void Util.logEvent(EVENTS.COMPETITION_INFO_CLICKED, {
+                ...buildCampaignAnalyticsContext(reward.student_id ?? ''),
+                campaign_id: reward.campaign_id,
+                campaign_status: isOngoingReward(reward)
+                  ? 'ongoing'
+                  : 'completed',
+              });
+              setSelectedReward(reward);
+            }}
           >
-            <img src="/assets/icons/infoIcon.svg" alt="" aria-hidden="true" />
+            <img
+              src="/assets/icons/info button icon.svg"
+              alt=""
+              aria-hidden="true"
+            />
           </button>
         )}
       </div>
@@ -265,6 +228,26 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
         <CompetitionRewardInfoModal
           reward={selectedReward}
           onClose={() => setSelectedReward(null)}
+        />
+      )}
+      {selectedCertificate && (
+        <CompetitionCertificateModal
+          certificate={{
+            campaignId: selectedCertificate.campaign_id,
+            campaignName: selectedCertificate.campaign_name ?? '',
+            studentName: student?.name ?? '',
+            studentId: selectedCertificate.student_id ?? undefined,
+            rank: toCompetitionCertificateRank(
+              selectedCertificate.rank_achieved,
+              selectedCertificate.status,
+              selectedCertificate.end_date,
+            ),
+            awardedAt:
+              selectedCertificate.updated_at ?? new Date().toISOString(),
+            languageCode: localStorage.getItem('language') ?? 'en',
+            isNewlyEarned: false,
+          }}
+          onClose={() => setSelectedCertificate(null)}
         />
       )}
     </div>

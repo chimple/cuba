@@ -531568,6 +531568,44 @@
       ]
     },
     {
+      "name": "user_campaign_rewards",
+      "schema": [
+        { "column": "campaign_id", "value": "TEXT NOT NULL" },
+        { "column": "student_id", "value": "TEXT NOT NULL" },
+        { "column": "rank_achieved", "value": "INTEGER" },
+        {
+          "column": "status",
+          "value": "TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress'))"
+        },
+        { "column": "evaluated_at", "value": "TEXT NOT NULL" },
+        {
+          "column": "updated_at",
+          "value": "TEXT NOT NULL DEFAULT (datetime ('now'))"
+        },
+        { "column": "is_deleted", "value": "INTEGER NOT NULL DEFAULT 0" },
+        {
+          "column": "lessons_completed_count",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "lessons_target_count",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "completion_percentage",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "certificate_available",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "constraint": "CPK_campaign_student",
+          "value": "PRIMARY KEY (campaign_id, student_id)"
+        }
+      ]
+    },
+    {
       "name": "live_quiz_room",
       "schema": [
         { "column": "id", "value": "TEXT PRIMARY KEY" },

@@ -138,7 +138,6 @@ const LeaderboardRewards: FC = () => {
       .getCachedCampaignRewards(student.id)
       .then((rewards) => {
         setCompetitionRewards(rewards as CompetitionReward[]);
-        logger.info('Competition rewards loaded:', rewards);
       })
       .catch((error) => {
         setCompetitionRewards([]);
@@ -152,8 +151,9 @@ const LeaderboardRewards: FC = () => {
       void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
         target_tab:
           tab === REWARDS_TABS.COMPETITIONS
-            ? 'stickers'
+            ? 'competitions'
             : 'lesson_completion_badges',
+        number_of_competitions: competitionRewards.length,
       });
     }
   };

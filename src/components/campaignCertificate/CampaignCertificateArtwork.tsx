@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import type {
   CampaignCertificateData,
   CampaignCertificateLabels,
@@ -32,21 +32,25 @@ const formatAwardDate = (value: string | Date) => {
 };
 
 const translated = (
+  translate: (key: string, options?: Record<string, unknown>) => string,
   key: string,
   defaultValue: string,
   variables: Record<string, string | number> = {},
-) => String(t(key, { ...variables, defaultValue }) || defaultValue);
+) => String(translate(key, { ...variables, defaultValue }) || defaultValue);
 
 type Props = {
   certificate: CampaignCertificateData;
   labels?: CampaignCertificateLabels;
+  showStudentName?: boolean;
 };
 
 const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
-  ({ certificate, labels = {} }, ref) => {
+  ({ certificate, labels = {}, showStudentName = false }, ref) => {
+    const { t } = useTranslation();
     const congratulations =
       labels.congratulations ??
       translated(
+        t,
         rankMessages[certificate.rank],
         rankMessages[certificate.rank],
       );
@@ -63,15 +67,22 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           <h1>
             {labels.title ??
               translated(
+                t,
                 'Certificate of Recognition',
                 'Certificate of Recognition',
               )}
           </h1>
           <h2>{certificate.campaignName}</h2>
+          {showStudentName && certificate.studentName && (
+            <p className="campaign-certificate-student-name">
+              {certificate.studentName}
+            </p>
+          )}
           <img
             className="campaign-certificate-rank"
             src={rankAssets[certificate.rank]}
             alt={translated(
+              t,
               'Campaign reward: {{rank}}',
               `Campaign reward: ${certificate.rank}`,
               { rank: certificate.rank },
@@ -83,6 +94,7 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           <p className="campaign-certificate-encouragement">
             {labels.encouragement ??
               translated(
+                t,
                 'Keep learning and exploring. We are proud of you!',
                 'Keep learning and exploring. We are proud of you!',
               )}
