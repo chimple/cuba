@@ -3,6 +3,7 @@ import { CLICK_ANALYTICS_CONFIG, EVENTS } from '../common/constants';
 import { Util } from '../utility/util';
 import { RoleType } from '../interface/modelInterfaces';
 import { SupabaseAuth } from '../services/auth/SupabaseAuth';
+import { store } from '../redux/store';
 import { getAppHref, getAppPathname } from '../utility/routerLocation';
 import {
   TRACKABLE_ID_ATTRIBUTE,
@@ -80,7 +81,9 @@ export const logClickAnalytics = async (
   storedStudent.id = student?.id || storedStudent.id || 'null';
   storedStudent.name = student?.name || storedStudent.name || 'null';
   storedStudent.gender = student?.gender || storedStudent.gender || 'null';
-  storedStudent.type = RoleType.STUDENT || 'null';
+  const userRoles = store.getState().auth.roles;
+  // The selected school role is appended after any Ops roles during school selection.
+  storedStudent.type = userRoles[userRoles.length - 1] || RoleType.STUDENT;
 
   const eventData = {
     user_id: storedStudent.id,
