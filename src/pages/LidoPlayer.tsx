@@ -107,7 +107,7 @@ const LidoPlayer: FC = () => {
               ? 100
               : Math.round(gameResult?.finalScore ?? 0)
           }
-          message={t('You Completed the Lesson:')}
+          message={t('You Completed the Lesson :')}
           showDialogBox={showDialogBox}
           lessonName={lessonDetail?.name ?? ''}
           noText={t(isRespectLidoLaunch ? 'Exit' : 'Continue Playing')}

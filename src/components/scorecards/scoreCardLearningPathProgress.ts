@@ -1,5 +1,4 @@
 import {
-  AssignmentSource,
   LATEST_LEARNING_PATH,
   REWARD_LEARNING_PATH,
   STICKER_PROGRESS_TOTAL,
@@ -183,6 +182,7 @@ export const getCurrentPathwayStickerProgress = ({
   pathwayAssignments?: PathwayGoalAssignment[];
 }): { current: number; total: number } => {
   const minProgress = allowZeroStickerProgress ? 0 : 1;
+  // Sticker progress tracks every pathway lesson, including campaign assignments.
 
   if (typeof stickerProgressCurrentOverride === 'number') {
     return {
@@ -198,26 +198,18 @@ export const getCurrentPathwayStickerProgress = ({
     typeof completedHomeworkIndex === 'number' &&
     pathwayAssignments
   ) {
-    // Campaign assignments have their own goal and must not advance sticker progress.
-    const isCampaignAssignment = (assignment: PathwayGoalAssignment) =>
-      assignment.source === AssignmentSource.CAMPAIGN ||
-      Boolean(assignment.campaignId);
-    const normalAssignments = pathwayAssignments.filter(
-      (assignment) =>
-        assignment.assignmentId && !isCampaignAssignment(assignment),
+    const assignments = pathwayAssignments.filter(
+      (assignment) => assignment.assignmentId,
     );
-    const completedNormalAssignments = pathwayAssignments
+    const completedAssignments = pathwayAssignments
       .slice(0, completedHomeworkIndex + 1)
-      .filter(
-        (assignment) =>
-          assignment.assignmentId && !isCampaignAssignment(assignment),
-      ).length;
+      .filter((assignment) => assignment.assignmentId).length;
     const total = Math.min(
-      normalAssignments.length || STICKER_PROGRESS_TOTAL,
+      assignments.length || STICKER_PROGRESS_TOTAL,
       STICKER_PROGRESS_TOTAL,
     );
 
-    return { current: Math.min(completedNormalAssignments, total), total };
+    return { current: Math.min(completedAssignments, total), total };
   }
 
   if (
@@ -254,27 +246,6 @@ export const getCurrentPathwayStickerProgress = ({
 
   if (!student) return { current: minProgress, total: STICKER_PROGRESS_TOTAL };
 
-  const campaignAssignmentIds = new Set(
-    (pathwayAssignments ?? [])
-      .filter(
-        (assignment) =>
-          assignment.source === AssignmentSource.CAMPAIGN ||
-          Boolean(assignment.campaignId),
-      )
-      .map((assignment) => assignment.assignmentId)
-      .filter((id): id is string => Boolean(id)),
-  );
-  const campaignLessonIds = new Set(
-    (pathwayAssignments ?? [])
-      .filter(
-        (assignment) =>
-          assignment.source === AssignmentSource.CAMPAIGN ||
-          Boolean(assignment.campaignId),
-      )
-      .map((assignment) => assignment.lessonId)
-      .filter((id): id is string => Boolean(id)),
-  );
-
   try {
     const learningPath = resolveProgressLearningPath({
       student,
@@ -295,20 +266,15 @@ export const getCurrentPathwayStickerProgress = ({
         ? progressCourse.path
         : [];
     const total = STICKER_PROGRESS_TOTAL;
-    const normalLessons = lessons.filter((lesson) =>
-      lesson?.assignment_id
-        ? !campaignAssignmentIds.has(lesson.assignment_id)
-        : !campaignLessonIds.has(lesson?.lesson_id ?? ''),
-    );
-    const playedCount = normalLessons.filter(
+    const playedCount = lessons.filter(
       (lesson) => lesson?.isPlayed,
     ).length;
     const completedLessonIndex = completedAssignmentId
-      ? normalLessons.findIndex(
+      ? lessons.findIndex(
           (lesson) => lesson?.assignment_id === completedAssignmentId,
         )
       : completedLessonId
-        ? normalLessons.findIndex(
+        ? lessons.findIndex(
             (lesson) => lesson?.lesson_id === completedLessonId,
           )
       : -1;
@@ -327,7 +293,7 @@ export const getCurrentPathwayStickerProgress = ({
     }
 
     const completedLessonStillPending = completedLessonId
-      ? normalLessons.some(
+      ? lessons.some(
           (lesson) =>
             (completedAssignmentId
               ? lesson?.assignment_id === completedAssignmentId
