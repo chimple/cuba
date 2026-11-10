@@ -1,7 +1,6 @@
-import { CURRENT_MODE, MODES, PAGES } from '../common/constants';
-
-export const TRACKABLE_SELECTOR = '[data-trackable="true"]';
-export const TRACKABLE_ATTRIBUTE = 'data-trackable';
+export const TRACKABLE_SELECTOR = '[data-trackable-id]';
+export const CLICKABLE_SELECTOR =
+  'button, a, ion-button, ion-fab-button, [role="button"]';
 export const TRACKABLE_ID_ATTRIBUTE = 'data-trackable-id';
 export const TRACKABLE_PARENT_IGNORE_SELECTOR =
   '[data-trackable-ignore-parent="true"]';
@@ -90,39 +89,18 @@ export const TRACKABLE_IDS = {
   OPEN_FAQ_WEBSITE: 'open_faq_website',
   CONTINUE_AFTER_LESSON: 'continue_after_lesson',
   CONTINUE_TO_CLASS_SELECTION: 'continue_to_class_selection',
+  TEACHER_OPEN_ADD_STUDENT: 'btn_teacher_open_add_student',
+  TEACHER_ADD_STUDENT: 'btn_teacher_add_student',
+  TEACHER_ADD_TEACHER: 'btn_teacher_add_teacher',
+  OPS_CREATE_CAMPAIGN: 'btn_ops_create_campaign',
 } as const;
 
-export type TrackableId = (typeof TRACKABLE_IDS)[keyof typeof TRACKABLE_IDS];
+export type TrackableId = string;
 
 export const getTrackableProps = (id: TrackableId) => ({
-  [TRACKABLE_ATTRIBUTE]: 'true',
   [TRACKABLE_ID_ATTRIBUTE]: id,
 });
 
 export const getTrackableParentIgnoreProps = () => ({
   [TRACKABLE_PARENT_IGNORE_ATTRIBUTE]: 'true',
 });
-
-const KIDS_APP_CLICK_ANALYTICS_PATHS = new Set<string>([
-  PAGES.HOME,
-  PAGES.ASSIGNMENT,
-  PAGES.DISPLAY_SUBJECTS,
-  PAGES.ADD_SUBJECTS,
-  PAGES.DISPLAY_CHAPTERS,
-  PAGES.DISPLAY_STUDENT,
-  PAGES.PARENT,
-  PAGES.STUDENT_PROGRESS,
-  PAGES.LEADERBOARD,
-  PAGES.LIDO_PLAYER,
-]);
-
-export const isKidsAppClickAnalyticsPath = (pathname: string) => {
-  if (pathname !== PAGES.SELECT_MODE) {
-    return KIDS_APP_CLICK_ANALYTICS_PATHS.has(pathname);
-  }
-
-  return (
-    typeof window !== 'undefined' &&
-    window.localStorage.getItem(CURRENT_MODE) === MODES.SCHOOL
-  );
-};

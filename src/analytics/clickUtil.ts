@@ -1,23 +1,25 @@
+import type { GrowthBook } from '@growthbook/growthbook-react';
+import { CLICK_ANALYTICS_CONFIG, EVENTS } from '../common/constants';
 import { Util } from '../utility/util';
-import { EVENTS } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { SupabaseAuth } from '../services/auth/SupabaseAuth';
 import { getAppHref, getAppPathname } from '../utility/routerLocation';
 import {
   TRACKABLE_ID_ATTRIBUTE,
-  TRACKABLE_IDS,
   type TrackableId,
+  CLICKABLE_SELECTOR,
   TRACKABLE_PARENT_IGNORE_SELECTOR,
   TRACKABLE_SELECTOR,
-  isKidsAppClickAnalyticsPath,
 } from './trackable';
 
-const REWARD_MODE_ATTRIBUTE = 'data-reward-mode';
-const REWARD_MODE_SELECTOR = '[' + REWARD_MODE_ATTRIBUTE + ']';
-const PATHWAY_POINTER_SELECTOR = '.PathwayStructure-animated-pointer';
-const REWARD_TRACKABLE_IDS_BY_MODE: Record<string, TrackableId> = {
-  sticker: TRACKABLE_IDS.PATHWAY_STICKER_REWARD,
-  mystery_box: TRACKABLE_IDS.PATHWAY_MYSTERY_REWARD,
+type ClickAnalyticsConfig = {
+  enabled_buttons: string[];
+  global_override: boolean;
+};
+
+const CLICK_ANALYTICS_DISABLED_CONFIG: ClickAnalyticsConfig = {
+  enabled_buttons: [],
+  global_override: true,
 };
 
 const storedStudent: {
@@ -27,8 +29,9 @@ const storedStudent: {
   type?: string;
 } = {};
 
+let activeGrowthBook: GrowthBook | undefined;
 const CLICK_ANALYTICS_THROTTLE_MS = 500;
-const lastTrackedClickAtByButtonId: Partial<Record<TrackableId, number>> = {};
+const lastTrackedClickAtByButtonId: Record<string, number> = {};
 
 const getClickAnalyticsStudent = async () => {
   try {
@@ -40,34 +43,39 @@ const getClickAnalyticsStudent = async () => {
   }
 };
 
-const getRewardTrackableId = (target: Element) => {
-  const rewardElement = target.closest(REWARD_MODE_SELECTOR);
-  const rewardMode = rewardElement?.getAttribute(REWARD_MODE_ATTRIBUTE);
+// Fail closed so an unpublished or malformed ruleset never emits click events.
+const isClickAnalyticsEnabled = (
+  growthbook: GrowthBook | undefined,
+  buttonId: string,
+): boolean => {
+  if (!growthbook) return false;
 
-  return rewardMode ? REWARD_TRACKABLE_IDS_BY_MODE[rewardMode] : undefined;
-};
+  const config = growthbook.getFeatureValue<ClickAnalyticsConfig>(
+    CLICK_ANALYTICS_CONFIG,
+    CLICK_ANALYTICS_DISABLED_CONFIG,
+  );
 
-const getPathwayLessonElement = (target: Element) => {
-  let element: Element | null = target;
-
-  while (element && element !== document.body) {
-    if (
-      element.tagName.toLowerCase() === 'g' &&
-      element.querySelector(PATHWAY_POINTER_SELECTOR)
-    ) {
-      return element;
-    }
-
-    element = element.parentElement;
-  }
-
-  return undefined;
+  return (
+    !!config &&
+    typeof config === 'object' &&
+    config.global_override === false &&
+    Array.isArray(config.enabled_buttons) &&
+    config.enabled_buttons.includes(buttonId)
+  );
 };
 
 export const logClickAnalytics = async (
   buttonId: TrackableId,
   actionType = 'click',
-) => {
+  growthbook: GrowthBook | undefined = activeGrowthBook,
+): Promise<void> => {
+  if (!isClickAnalyticsEnabled(growthbook, buttonId)) return;
+
+  const now = Date.now();
+  const lastTrackedClickAt = lastTrackedClickAtByButtonId[buttonId] ?? 0;
+  if (now - lastTrackedClickAt < CLICK_ANALYTICS_THROTTLE_MS) return;
+  lastTrackedClickAtByButtonId[buttonId] = now;
+
   const student = await getClickAnalyticsStudent();
   storedStudent.id = student?.id || storedStudent.id || 'null';
   storedStudent.name = student?.name || storedStudent.name || 'null';
@@ -89,24 +97,18 @@ export const logClickAnalytics = async (
   Util.logEvent(EVENTS.CLICK_ANALYTICS, eventData);
 };
 
-const handleClick = async (event: MouseEvent) => {
-  if (!isKidsAppClickAnalyticsPath(getAppPathname())) {
-    return;
-  }
-
+const handleClick = async (
+  event: MouseEvent,
+  growthbook?: GrowthBook,
+): Promise<void> => {
   if (!(event.target instanceof Element)) {
     return;
   }
 
   const trackableElement = event.target.closest(TRACKABLE_SELECTOR);
-  const rewardElement = event.target.closest(REWARD_MODE_SELECTOR);
-  const pathwayLessonElement = getPathwayLessonElement(event.target);
-  const analyticsElement =
-    trackableElement ?? rewardElement ?? pathwayLessonElement;
-
-  if (!analyticsElement) {
-    return;
-  }
+  const clickableElement = event.target.closest(CLICKABLE_SELECTOR);
+  const analyticsElement = trackableElement ?? clickableElement;
+  if (!analyticsElement) return;
 
   const ignoredParentElement = event.target.closest(
     TRACKABLE_PARENT_IGNORE_SELECTOR,
@@ -119,29 +121,27 @@ const handleClick = async (event: MouseEvent) => {
   }
 
   const buttonId =
-    (trackableElement?.getAttribute(
-      TRACKABLE_ID_ATTRIBUTE,
-    ) as TrackableId | null) ??
-    getRewardTrackableId(event.target) ??
-    (pathwayLessonElement ? TRACKABLE_IDS.PATHWAY_PLAY_LESSON : undefined);
+    trackableElement?.getAttribute(TRACKABLE_ID_ATTRIBUTE) ||
+    analyticsElement.id ||
+    analyticsElement.getAttribute('class')?.trim().split(/\s+/)[0];
   if (!buttonId) {
     return;
   }
 
-  const now = Date.now();
-  const lastTrackedClickAt = lastTrackedClickAtByButtonId[buttonId] ?? 0;
-  if (now - lastTrackedClickAt < CLICK_ANALYTICS_THROTTLE_MS) {
-    return;
-  }
-  lastTrackedClickAtByButtonId[buttonId] = now;
-
-  await logClickAnalytics(buttonId, event.type);
+  await logClickAnalytics(buttonId, event.type, growthbook);
 };
 
-export const initializeClickListener = () => {
-  document.addEventListener('click', handleClick, true);
+export const initializeClickListener = (
+  growthbook?: GrowthBook,
+): (() => void) => {
+  activeGrowthBook = growthbook;
+  const listener = (event: MouseEvent) => {
+    void handleClick(event, growthbook);
+  };
+  document.addEventListener('click', listener, true);
 
   return () => {
-    document.removeEventListener('click', handleClick, true);
+    document.removeEventListener('click', listener, true);
+    if (activeGrowthBook === growthbook) activeGrowthBook = undefined;
   };
 };
