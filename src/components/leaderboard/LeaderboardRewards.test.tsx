@@ -123,7 +123,7 @@ describe('LeaderboardRewards', () => {
       EVENTS.REWARDS_TAB_CLICKED,
       'student-1',
       progress,
-      { target_tab: 'stickers' },
+      { target_tab: 'competitions', number_of_competitions: 0 },
     );
 
     fireEvent.click(tabs[0]);
@@ -210,6 +210,41 @@ describe('LeaderboardRewards', () => {
     expect(
       await screen.findByText('Real saved competition'),
     ).toBeInTheDocument();
+    expect(mockSyncCampaignRewards).toHaveBeenCalledWith('student-1');
+    expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
+    expect(logBadgeEvent).toHaveBeenCalledWith(
+      EVENTS.REWARDS_TAB_CLICKED,
+      'student-1',
+      progress,
+      { target_tab: 'competitions', number_of_competitions: 1 },
+    );
+  });
+
+  it('loads cached rewards when synchronization fails offline', async () => {
+    mockSyncCampaignRewards.mockRejectedValue(new Error('offline'));
+    mockGetCachedCampaignRewards.mockResolvedValue([
+      { campaign_id: 'cached', campaign_name: 'Offline competition' },
+    ]);
+    render(<LeaderboardRewards />);
+    await screen.findByText('Lesson rewards');
+    fireEvent.click(screen.getAllByRole('tab')[1]);
+    expect(await screen.findByText('Offline competition')).toBeInTheDocument();
+  });
+
+  it('waits for synchronization before reading rewards', async () => {
+    let finishSync: () => void = () => undefined;
+    mockSyncCampaignRewards.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishSync = resolve;
+      }),
+    );
+    render(<LeaderboardRewards />);
+    await screen.findByText('Lesson rewards');
+    fireEvent.click(screen.getAllByRole('tab')[1]);
+    expect(mockGetCachedCampaignRewards).not.toHaveBeenCalled();
+    await act(async () => {
+      finishSync();
+    });
     expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
   });
 

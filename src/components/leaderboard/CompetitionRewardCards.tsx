@@ -213,7 +213,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
             id="ongoing-competitions-title"
             className="competition-section-title"
           >
-            Ongoing Competitions
+            {t('competition_ongoing_title')}
           </h1>
           <div className="competition-ongoing-list">
             {ongoingRewards.map(renderCard)}
@@ -226,7 +226,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
             id="completed-competitions-title"
             className="competition-section-title"
           >
-            Completed Competitions
+            {t('competition_completed_title')}
           </h1>
           <div className="competition-completed-grid">
             {completedRewards.map(renderCard)}

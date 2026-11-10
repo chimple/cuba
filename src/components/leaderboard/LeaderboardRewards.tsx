@@ -133,26 +133,44 @@ const LeaderboardRewards: FC = () => {
   useEffect(() => {
     if (!student?.id || activeTab !== REWARDS_TABS.COMPETITIONS) return;
 
-    void SqliteApi.getI()
-      .getCachedCampaignRewards(student.id)
-      .then((rewards) => {
+    let mounted = true;
+    setCompetitionRewards([]);
+    const loadRewards = async () => {
+      const api = SqliteApi.getI();
+      try {
+        await api.syncCampaignRewards(student.id);
+      } catch (error) {
+        logger.error(
+          'Failed to sync competition rewards; using local cache:',
+          error,
+        );
+      }
+      try {
+        const rewards = await api.getCachedCampaignRewards(student.id);
+        if (!mounted) return;
         setCompetitionRewards(rewards as CompetitionReward[]);
-      })
-      .catch((error) => {
-        setCompetitionRewards([]);
+        void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
+          target_tab: 'competitions',
+          number_of_competitions: rewards.length,
+        });
+      } catch (error) {
+        if (mounted) setCompetitionRewards([]);
         logger.error('Failed to load competition rewards:', error);
-      });
+      }
+    };
+    void loadRewards();
+    return () => {
+      mounted = false;
+    };
+    // Badge progress changes must not repeat a tab selection or reward sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, student?.id]);
 
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);
-    if (student?.id) {
+    if (student?.id && tab !== REWARDS_TABS.COMPETITIONS) {
       void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
-        target_tab:
-          tab === REWARDS_TABS.COMPETITIONS
-            ? 'competitions'
-            : 'lesson_completion_badges',
-        number_of_competitions: competitionRewards.length,
+        target_tab: 'lesson_completion_badges',
       });
     }
   };
