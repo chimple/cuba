@@ -427,6 +427,11 @@
   white-space: nowrap;
 }
 
+.score-card-goal-progress-content-box[data-progress-source]
+  .score-card-content-message {
+  font-weight: 600;
+}
+
 .score-card-dialog--progress .score-card-content-lesson-name {
   font-size: 14px;
   font-weight: 700;

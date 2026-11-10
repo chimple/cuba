@@ -3,10 +3,14 @@ import {
   EVENTS,
   FAIL_STREAK_KEY,
   LIDO_SCORES_KEY,
+  PROBLEM_END,
 } from '../common/constants';
+import { getCachedXapiLaunchAnalyticsContext } from '../tincan';
 import { Util } from '../utility/util';
 export const handleLidoActivityEnd = async (ctx: any, e: any) => {
   const {
+    chapterDetail,
+    courseDetail,
     courseDocId,
     exitLidoGame,
     getAssessmentProgressKey,
@@ -14,6 +18,8 @@ export const handleLidoActivityEnd = async (ctx: any, e: any) => {
     getStoredLidoScores,
     isAssessmentLesson,
     lesson,
+    lessonDetail,
+    lessonId,
     parseNumericValue,
     playedFrom,
     resolveStudentContext,
@@ -22,7 +28,10 @@ export const handleLidoActivityEnd = async (ctx: any, e: any) => {
   } = ctx;
   const { studentId, userId } = await resolveStudentContext();
   const detail = (e.detail ?? {}) as any;
-  const score = detail.score ?? 0;
+  const launchContext = getCachedXapiLaunchAnalyticsContext();
+  const score = launchContext
+    ? (parseNumericValue(detail.score) ?? 0)
+    : (detail.score ?? 0);
   const timeSpentForActivity =
     parseNumericValue(detail.timeSpentForActivity) ?? 0;
   const { correctMoves, wrongMoves } = getNormalizedMoveCounts(detail);
@@ -38,6 +47,45 @@ export const handleLidoActivityEnd = async (ctx: any, e: any) => {
     timeSpent: timeSpentForActivity,
   });
   localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
+
+  if (launchContext) {
+    const activityScore = parseNumericValue(detail.score);
+    const currentIndex = parseNumericValue(detail.currentIndex);
+    const rightMoves = parseNumericValue(detail.rightMoves);
+    const totalMoves = parseNumericValue(detail.totalMoves);
+    Util.logEvent(PROBLEM_END, {
+      lesson_id:
+        detail.lessonId ||
+        lessonId ||
+        lessonDetail?.lido_lesson_id ||
+        lessonDetail?.id ||
+        lesson.lido_lesson_id ||
+        lesson.id,
+      lesson_name:
+        detail.lessonName ||
+        lessonDetail?.name ||
+        lesson.name ||
+        launchContext.lessonName,
+      chapter_id: detail.chapterId || chapterDetail?.id,
+      chapter_name: detail.chapterName || chapterDetail?.name,
+      course_id: detail.courseId || courseDetail?.id || courseDocId,
+      course_name: detail.courseName || courseDetail?.name,
+      activity_index: currentIndex === undefined ? undefined : currentIndex + 1,
+      activity_total: parseNumericValue(detail.totalIndex),
+      score: activityScore,
+      is_correct: activityScore === undefined ? undefined : activityScore >= 70,
+      correct_moves: rightMoves,
+      wrong_moves: parseNumericValue(detail.wrongMoves),
+      total_moves:
+        totalMoves ??
+        (rightMoves === undefined
+          ? undefined
+          : rightMoves + (parseNumericValue(detail.wrongMoves) ?? 0)),
+      time_spent: timeSpentForActivity,
+      game_completed: detail.gameCompleted,
+    });
+  }
+
   if (!studentId) return;
   const parentUserId = userId;
   if (isAssessmentLesson) {
@@ -113,7 +161,6 @@ export const handleLidoGameExit = async (ctx: any, e: any) => {
     courseDetail,
     getAssessmentProgressKey,
     getNormalizedMoveCounts,
-    getStoredLidoScores,
     lesson,
     lessonDetail,
     logUserActivationLessonEvent,
@@ -134,7 +181,6 @@ export const handleLidoGameExit = async (ctx: any, e: any) => {
   Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
 
   const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
-  const storedScores = getStoredLidoScores();
   const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
   Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
     user_id: parentUserId,

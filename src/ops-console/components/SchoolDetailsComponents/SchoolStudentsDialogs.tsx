@@ -154,6 +154,7 @@ export const SchoolStudentsDialogs = ({
               : contact.value,
           )
           .join(' / '),
+        studentConnectivity: editStudentData?.user?.student_connectivity ?? '',
       }}
       onClose={() => {
         setIsEditStudentModalOpen(false);

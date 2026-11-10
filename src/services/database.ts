@@ -5383,6 +5383,9 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          student_connectivity?:
+            | Database['public']['Enums']['student_connectivity_type']
+            | null;
           tc_agreed_version: number;
           updated_at: string | null;
         };
@@ -5414,6 +5417,9 @@ export type Database = {
           sfx_off?: boolean | null;
           stars?: number | null;
           student_id?: string | null;
+          student_connectivity?:
+            | Database['public']['Enums']['student_connectivity_type']
+            | null;
           tc_agreed_version?: number;
           updated_at?: string | null;
         };
@@ -5445,6 +5451,9 @@ export type Database = {
           sfx_off?: boolean | null;
           stars?: number | null;
           student_id?: string | null;
+          student_connectivity?:
+            | Database['public']['Enums']['student_connectivity_type']
+            | null;
           tc_agreed_version?: number;
           updated_at?: string | null;
         };
@@ -6578,6 +6587,9 @@ export type Database = {
           change_type: string;
           campaign_id: string;
           campaign_name: string;
+          objective: string | null;
+          target_type: string | null;
+          target_value: number | null;
           rules_json: Json;
           start_date: string;
           end_date: string;
@@ -8491,6 +8503,18 @@ export type Database = {
         | 'field_coordinator'
         | 'external_user';
       status: 'active' | 'rejected' | 'requested' | 'migrated' | 'in_active';
+      student_connectivity_type:
+        | 'keypad_phone'
+        | 'no_phone'
+        | 'parents_outside'
+        | 'jio_phone'
+        | 'otp_not_coming'
+        | 'classcode_incorrect'
+        | 'phone_not_working'
+        | 'blank_screen_issue'
+        | 'app_uninstalled'
+        | 'no_recharge'
+        | 'no_internet_recharge';
       student_performance_metric:
         | 'grey_band'
         | 'red_band'

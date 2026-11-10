@@ -28,7 +28,7 @@ export const FormCardSelectField = ({
     const currentValue = values[field.name] || '';
     const isShortSelect = shouldUseShortCustomDropdown;
     const dropdownOptions =
-      isShortSelect && !field.suppressPlaceholderOption
+      !field.suppressPlaceholderOption && (isShortSelect || field.allowClear)
         ? [{ value: '', label: placeholderText }, ...(field.options ?? [])]
         : (field.options ?? []);
     const selectedOption = dropdownOptions.find(

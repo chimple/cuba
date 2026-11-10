@@ -63,6 +63,9 @@ type LocalCampaignRow = {
   start_date: string;
   end_date: string;
   status: string;
+  objective?: string | null;
+  target_type?: string | null;
+  target_value?: number | null;
   updated_at: string;
   is_deleted: number;
 };
@@ -520,6 +523,10 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const completion = totalLessons
       ? (completedLessons / totalLessons) * 100
       : 0;
+    const completion =
+      campaign.target_type === 'number_of_lessons'
+        ? completedLessons
+        : completionPercent;
     const rules = parseCampaignRules(campaign.rules_json).sort(
       (a, b) => b.min - a.min,
     );

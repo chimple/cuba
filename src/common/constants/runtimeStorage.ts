@@ -105,6 +105,7 @@ export interface PortPlugin {
     chimpleLessonId: string;
     lessonName: string;
     xapiIpcPackage: string;
+    zipUrl?: string;
   }>;
   returnToLauncher(): Promise<void>;
   getPort(): Promise<{ port: number }>;
