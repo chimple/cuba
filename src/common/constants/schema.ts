@@ -144,4 +144,6 @@ export enum TABLES {
   StickerBook = 'sticker_book',
   UserStickerBook = 'user_sticker_book',
   UserAchivements = 'user_achievements',
+  // Cached campaign reward outcomes are synced into the local SQLite table.
+  UserCampaignRewards = 'user_campaign_rewards',
 }
