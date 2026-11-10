@@ -177,6 +177,8 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.Assignment_user,
   TABLES.Result,
   TABLES.Assignment_cart,
+  // Pull cached campaign outcomes when the active student logs in.
+  TABLES.UserCampaignRewards,
   TABLES.ReqNewSchool,
   TABLES.Program,
   TABLES.FcSchoolVisit,

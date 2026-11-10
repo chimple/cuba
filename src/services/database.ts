@@ -6587,6 +6587,9 @@ export type Database = {
           change_type: string;
           campaign_id: string;
           campaign_name: string;
+          objective: string | null;
+          target_type: string | null;
+          target_value: number | null;
           rules_json: Json;
           start_date: string;
           end_date: string;
