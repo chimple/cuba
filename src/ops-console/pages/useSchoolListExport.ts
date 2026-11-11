@@ -408,11 +408,11 @@ const fetchGradeMetricsForExport = async (
     );
     metricResponses.push(...responseBatch);
   }
-  const grades = metricResponses[0]?.grades;
-  if (!grades || metricResponses.some((response) => !response.grades)) {
-    throw new Error('Failed to load grade metrics for the school export');
-  }
-  const gradeColumns: SchoolListExportGrade[] = grades;
+  const gradesById = new Map<string, SchoolListExportGrade>();
+  metricResponses.forEach((response) =>
+    response.grades?.forEach((grade) => gradesById.set(grade.id, grade)),
+  );
+  const gradeColumns = Array.from(gradesById.values());
   const metricsBySchool = new Map<string, SchoolListExportMetricRow[]>();
 
   schools.forEach((school) => {
