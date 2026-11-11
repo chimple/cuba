@@ -61,7 +61,7 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
   const tierMessage =
     leaderboard?.tier === 'silver' || leaderboard?.tier === 'bronze'
       ? t(
-          'Keep more students engaged and improve longer to climb the leaderboard! Lower engagement may move you down.',
+          'Keep more students engaged and learning longer to climb the leaderboard! Lower engagement may move you down.',
         )
       : t('Congratulations! You are in the top 20% teachers. Keep it up!');
   return (
@@ -110,7 +110,7 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
               />
               <strong>
                 {t('{{points}} points', {
-                  points: Number(leaderboard.final_score),
+                  points: Math.round(Number(leaderboard.final_score)),
                 })}
               </strong>
               <span>{t('You are here')}</span>
@@ -156,7 +156,7 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
           <p className="teacher-leaderboard-congratulations">{tierMessage}</p>
           {showScoreDetails && (
             <TeacherScoreDetails
-              currentScore={Number(leaderboard.final_score)}
+              currentScore={Math.round(Number(leaderboard.final_score))}
               scoreHistory={scoreHistory}
               onClose={() => setShowScoreDetails(false)}
             />
