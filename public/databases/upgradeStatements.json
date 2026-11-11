@@ -280,6 +280,9 @@
   },
   "22": {
     "toVersion": 22,
-    "statements": ["ALTER TABLE assignment ADD COLUMN campaign_id TEXT;"]
+    "statements": [
+      "ALTER TABLE assignment ADD COLUMN campaign_id TEXT;",
+      "ALTER TABLE sticker_book ADD COLUMN title_translations TEXT;"
+    ]
   }
 }
