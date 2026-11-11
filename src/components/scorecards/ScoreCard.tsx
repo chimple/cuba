@@ -1,6 +1,10 @@
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import { useScoreCard } from '../../hooks/useScoreCard';
 import './ScoreCard.css';
-import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
+import './ScoreCardGoals.css';
+import './ScoreCardGoalProgressRows.css';
+import './ScoreCardGoalsMotion.css';
+import './ScoreCardGoalsResponsive.css';
 
 const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
   const viewProps = useScoreCard(props);
@@ -15,7 +19,6 @@ const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
     displayedProgressRows,
     handleClose,
     handleContinueClick,
-    handleProgressRowsAnimationComplete,
     i18n,
     isLoadingRows,
     lessonName,
@@ -53,6 +56,7 @@ const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
       >
         <div
           id="ScoreCard-Content"
+          data-progress-source={props.progressContext?.source}
           className={
             useProgressLayout
               ? 'score-card-goal-progress-content-box'
@@ -89,7 +93,6 @@ const ScoreCard = (props: Parameters<typeof useScoreCard>[0]) => {
           <>
             <ScoreCardProgressRows
               rows={displayedProgressRows}
-              onRowsAnimationComplete={handleProgressRowsAnimationComplete}
             />
             <div
               id="ScoreCard-Continue-Button-div"

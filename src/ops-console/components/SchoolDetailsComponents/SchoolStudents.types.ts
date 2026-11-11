@@ -1,4 +1,5 @@
 import type { StudentInfo } from '../../../common/constants';
+import type { StudentConnectivity } from '../../../common/constants';
 
 export type ApiStudentData = StudentInfo;
 
@@ -15,6 +16,7 @@ export interface DisplayStudent {
   class: string;
   schstudents_performance?: string;
   whatsappGroupStatus?: WhatsappGroupStatusKey;
+  studentConnectivity?: StudentConnectivity | null;
   schstudents_actions?: string;
 }
 

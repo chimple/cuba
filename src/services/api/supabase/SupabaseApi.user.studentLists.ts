@@ -125,6 +125,7 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
         language_id,
         is_tc_accepted,
         student_id,
+        student_connectivity,
         reward,
         updated_at,
         id,

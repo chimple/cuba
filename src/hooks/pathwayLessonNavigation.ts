@@ -62,6 +62,13 @@ export function navigateToPathwayLesson({
       skillId: skillId,
       is_assessment: isAssessment,
       assessmentId: assessmentId,
+      // Keep local assignment IDs so reassigned assessments and campaigns count against this path.
+      pathwayAssignments: course.path?.flatMap(
+        (node: { assignment_id?: string; lesson_id?: string }) =>
+          node.assignment_id
+            ? [{ assignmentId: node.assignment_id, lessonId: node.lesson_id }]
+            : [],
+      ),
       source: source,
     },
   });

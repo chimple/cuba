@@ -3,9 +3,27 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import type {
   LeaderboardInfo,
   JoinClassInviteLookupResult,
+  TeacherLeaderboardScoreHistory,
 } from './ServiceApi.types';
 
 export interface ServiceApiClassroom {
+  /**
+   * Fetches a teacher leaderboard row for the supplied teacher ID.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  getTeacherLeaderboard?(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined>;
+
+  /**
+   * Gets the seven rolling daily scores used by the teacher score-details chart.
+   * @param teacherId Authenticated teacher user ID.
+   */
+  getTeacherLeaderboardScoreHistory?(
+    teacherId: string,
+  ): Promise<TeacherLeaderboardScoreHistory[]>;
+
   getPendingAssignments(
     classId: string,
     studentId: string,

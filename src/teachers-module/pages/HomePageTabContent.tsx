@@ -1,11 +1,16 @@
-import { PAGES, TABLEDROPDOWN, TABLESORTBY, TableTypes } from '../../common/constants';
+import {
+  PAGES,
+  TABLEDROPDOWN,
+  TABLESORTBY,
+  TableTypes,
+} from '../../common/constants';
 import type { History } from 'history';
-import ComingSoon from '../components/homePage/ai/comingSoon';
 import AssignScreen from '../components/homePage/assignment/AssignScreen';
 import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
 import DashBoard from '../components/homePage/dashBoard/DashBoard';
 import Library from '../components/library/Library';
 import ReportTable from '../components/reports/ReportsTable';
+import TeacherLeaderboard from '../components/leaderboard/TeacherLeaderboard';
 
 interface HomePageLocationState {
   isAssignments?: boolean;
@@ -92,7 +97,7 @@ const HomePageTabContent = ({
         />
       );
     case 4:
-      return <ComingSoon key={key} />;
+      return <TeacherLeaderboard key={key} onAssign={() => setTabValue(2)} />;
     default:
       return <Library key={key} />;
   }

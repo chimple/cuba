@@ -9,6 +9,7 @@ import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { t } from 'i18next';
 import { Util } from '../utility/util';
 import SkeltonLoading from '../components/SkeltonLoading';
+import { TRACKABLE_IDS } from '../analytics/trackable';
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -241,6 +242,8 @@ const StudentProgress: React.FC = () => {
         value={tabIndex}
         onChange={handleChange}
         handleBackButton={handleBackButton}
+        defaultTabTrackableId={TRACKABLE_IDS.PROGRESS_SWITCH_SUBJECT}
+        backTrackableId={TRACKABLE_IDS.PROGRESS_BACK}
       />
 
       {tabIndex && <div>{displayProgressUI(currentHeader)}</div>}

@@ -1,6 +1,6 @@
 import { SupabaseApiProgramDiscovery } from './SupabaseApi.program.discovery';
 import { RoleType } from '../../../interface/modelInterfaces';
-import { TABLES } from '../../../common/constants';
+import { STATUS, TABLES } from '../../../common/constants';
 
 const mockGetCurrentUser = jest.fn();
 const mockGetState = jest.fn();
@@ -41,6 +41,35 @@ function setup(roles: RoleType[]) {
   api.supabase = { from };
   return { api, from };
 }
+
+test('soft-deletes a school when its request is rejected', async () => {
+  const { api, from } = setup([RoleType.SUPER_ADMIN]);
+  const schoolUpdate = query();
+  from.mockReturnValueOnce(schoolUpdate);
+
+  await api.updateSchoolStatus('school-1', STATUS.REJECTED);
+
+  expect(schoolUpdate.update).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: STATUS.REJECTED,
+      is_deleted: true,
+    }),
+  );
+  expect(schoolUpdate.eq).toHaveBeenCalledWith('id', 'school-1');
+  expect(schoolUpdate.eq).toHaveBeenCalledWith('is_deleted', false);
+});
+
+test('does not soft-delete a school for other status changes', async () => {
+  const { api, from } = setup([RoleType.SUPER_ADMIN]);
+  const schoolUpdate = query();
+  from.mockReturnValueOnce(schoolUpdate);
+
+  await api.updateSchoolStatus('school-1', STATUS.ACTIVE);
+
+  expect(schoolUpdate.update).toHaveBeenCalledWith(
+    expect.not.objectContaining({ is_deleted: true }),
+  );
+});
 
 test('removes school connections only for removed coordinators in the same program', async () => {
   const { api, from } = setup([RoleType.SUPER_ADMIN]);

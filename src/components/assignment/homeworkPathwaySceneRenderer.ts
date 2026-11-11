@@ -11,6 +11,7 @@ import { Util } from '../../utility/util';
 import { hasPendingFinalHomeworkStickerFlow } from '../../utility/homeworkStickerFlow';
 import { runHomeworkPathwayRewardAnimation } from './homeworkPathwayRewardAnimation';
 import { buildHomeworkPathwayRewardNode } from './homeworkPathwayRewardNode';
+import type { HomeworkPathLessonItem } from './homeworkPathwayStructureTypes';
 
 export function renderHomeworkPathwayScene(params: any) {
   const {
@@ -81,6 +82,15 @@ export function renderHomeworkPathwayScene(params: any) {
     createSVGImage,
     haloPath,
   } = params;
+
+  const homeworkPathItems = lessonsToRender as HomeworkPathLessonItem[];
+  // Preserve the exact path because completion refreshes or removes HOMEWORK_PATHWAY.
+  const pathwayAssignments = homeworkPathItems.map((item) => ({
+    assignmentId: item.assignment_id ?? item.raw_assignment?.id ?? undefined,
+    lessonId: item.lesson?.id,
+    source: item.raw_assignment?.source,
+    campaignId: item.raw_assignment?.campaign_id,
+  }));
 
   requestAnimationFrame(() => {
     if (!containerRef.current || loadSvgRequestIdRef.current !== fetchRequestId)
@@ -156,7 +166,8 @@ export function renderHomeworkPathwayScene(params: any) {
       }
 
       const lessonIdx = pathIndex - startIndexOffset;
-      const { lesson } = lessonsToRender[lessonIdx];
+      const homeworkItem = homeworkPathItems[lessonIdx];
+      const { lesson } = homeworkItem;
 
       const isPlayed = lessonIdx < visualCurrentIndex;
       const isActive = lessonIdx === visualCurrentIndex;
@@ -270,6 +281,11 @@ export function renderHomeworkPathwayScene(params: any) {
                   `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
                 isHomework: true,
                 homeworkIndex: lessonIdx,
+                homeworkAssignmentId:
+                  homeworkItem.assignment_id ??
+                  homeworkItem.raw_assignment?.id ??
+                  undefined,
+                pathwayAssignments,
                 reward: shouldMarkRewardLesson,
                 source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
               },
@@ -293,6 +309,12 @@ export function renderHomeworkPathwayScene(params: any) {
                   `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
                 isHomework: true,
                 homeworkIndex: lessonIdx,
+                // Keep results and goals scoped to the selected local assignment path.
+                homeworkAssignmentId:
+                  homeworkItem.assignment_id ??
+                  homeworkItem.raw_assignment?.id ??
+                  undefined,
+                pathwayAssignments,
                 reward: shouldMarkRewardLesson,
                 source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
               },

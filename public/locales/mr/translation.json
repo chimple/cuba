@@ -1051,6 +1051,7 @@
     "You can edit or delete the Profile by clicking on the buttons below.": "खालील बटणांवर क्लिक करून तुम्ही प्रोफाइल संपादित किंवा हटवू शकता.",
     "You cannot delete yourself.": "तुम्ही स्वतःला हटवू शकत नाही.",
     "You Completed the Lesson:": "तुम्ही धडा पूर्ण केला:",
+    "You Completed the Lesson :": "तुम्ही धडा पूर्ण केला :",
     "You do not have any live quizzes available.": "तुमच्याकडे कोणतेही लाइव्ह क्विझ उपलब्ध नाहीत.",
     "You don't have any pending assignments.": "तुमच्याकडे कोणतेही प्रलंबित असाइनमेंट नाहीत.",
     "You have not chosen any assignments. Please go to ": "तुम्ही कोणतेही असाइनमेंट निवडलेले नाही. कृपया येथे जा ",
@@ -1118,7 +1119,9 @@
     "Teachers App": "शिक्षक ॲप",
     "Submit": "सादर करा",
     "Collect today’s reward.": "आजचे बक्षीस मिळवा.",
-    "Collect sticker by completing a pathway.": "मार्ग पूर्ण करून स्टिकर मिळवा.",
+    "Collect sticker by completing a pathway.": "एक शिकण्याचा मार्ग पूर्ण करा आणि स्टिकर मिळवा.",
+    "Complete Competition lessons.": "स्पर्धेतील धडे पूर्ण करा.",
+    "Complete lessons to earn a badge.": "बॅज मिळवण्यासाठी धडे पूर्ण करा.",
     "Lesson starts in :": "धडा यामध्ये सुरू होतो:",
     "Let's play and learn! Complete first lesson and earn a reward!": "चला खेळूया आणि शिकूया! तुमचा पहिला धडा पूर्ण करा आणि बक्षीस मिळवा!",
     "TINY FRIENDS": "लहान मित्र",
@@ -1132,6 +1135,7 @@
     "{{count}} lessons complete!": "{{count}} धडे पूर्ण!",
     "Keep learning and exploring!": "शिकत रहा, शोधत रहा!",
     "Sharing...": "शेअर करत आहे...",
+    "Achievements": "कामगिरी",
     "Competitions": "स्पर्धा",
     "Non-rank holders": "",
     "A visual indicator (=) showing no change compared to the last 7 days.": "",
@@ -1969,5 +1973,7 @@
     "Longest, Tallest, Shortest": "",
     "Average Assignments Completed": "",
     "Success Count": "",
-    "Poll question...": ""
+    "Poll question...": "",
+    "Start the Day!": "दिवसाची सुरुवात करा!",
+    "START THE DAY!": "दिवसाची सुरुवात करा!"
 }

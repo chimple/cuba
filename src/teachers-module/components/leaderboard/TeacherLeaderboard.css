@@ -1,0 +1,268 @@
+.teacher-leaderboard {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 22px 32px;
+  box-sizing: border-box;
+  color: #4e4e52;
+  text-align: left;
+}
+.teacher-leaderboard h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  text-align: left;
+  color: #112d5b;
+}
+.teacher-leaderboard-count {
+  margin: 10px 0 26px;
+  font-size: 19px;
+  font-weight: 700;
+  text-align: left;
+}
+.teacher-leaderboard-score {
+  position: absolute;
+  top: -30px;
+  width: 31%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.teacher-leaderboard-score > span:last-child {
+  color: #fa7900;
+  font-weight: 700;
+}
+.teacher-leaderboard-person {
+  width: 18px;
+  height: 18px;
+  color: #ff7d13;
+}
+.teacher-leaderboard-tiers {
+  position: relative;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 13px;
+}
+.teacher-leaderboard-score--silver {
+  left: 0;
+  top: 8px;
+}
+.teacher-leaderboard-score--gold {
+  left: 34.5%;
+}
+.teacher-leaderboard-score--bronze {
+  right: 0;
+  top: 36px;
+}
+.teacher-leaderboard-tier {
+  position: relative;
+  transform: translateY(50px);
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  width: 31%;
+  height: 105px;
+  padding-bottom: 27px;
+  box-sizing: border-box;
+  border-radius: 11px;
+  border: 0;
+  box-shadow: 6px 6px 0 #999999;
+  background: #e7e5e5;
+  font-size: 21px;
+  font-weight: 700;
+}
+.teacher-leaderboard-tier--gold {
+  height: 143px;
+  transform: translateY(50px);
+  background: #fef9dc;
+  color: #4e4e52;
+  box-shadow: 6px 6px 0 #ffc00c;
+}
+.teacher-leaderboard-tier--bronze {
+  height: 77px;
+  background: #ffeedc;
+  color: #4e4e52;
+  box-shadow: 6px 6px 0 #f27c08;
+}
+
+.teacher-leaderboard-hand {
+  position: absolute;
+  z-index: 2;
+  /* Each hand is positioned relative to its own bar, so it sits above the
+     active bar regardless of whether Gold, Silver, or Bronze is selected. */
+  top: -32px;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  transform: translateX(-50%);
+  animation: teacher-leaderboard-point 900ms ease-in-out infinite alternate;
+}
+.teacher-leaderboard-tier--gold .teacher-leaderboard-hand {
+  z-index: 3;
+}
+@keyframes teacher-leaderboard-point {
+  from {
+    margin-top: 0;
+  }
+  to {
+    margin-top: 10px;
+  }
+}
+.teacher-leaderboard-congratulations,
+.teacher-leaderboard-lock-message {
+  margin: 0 auto;
+  padding: 13px 11px;
+  border-radius: 10px;
+  background: #f0e6ff;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.22;
+}
+.teacher-leaderboard-congratulations {
+  max-width: 280px;
+  font-size: 12px;
+  line-height: 1.1;
+  margin-top: 74px;
+}
+.teacher-leaderboard-assign {
+  display: block;
+  width: 88%;
+  margin: 16px auto 0;
+  border: 0;
+  border-radius: 4px;
+  background: #7e5cb3;
+  color: #fff;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 50px;
+}
+.teacher-leaderboard-lock-message {
+  margin-top: 56px;
+  font-size: 20px;
+}
+.teacher-leaderboard-lock {
+  display: block;
+  width: 78px;
+  height: 78px;
+  margin: 22px auto 14px;
+}
+.teacher-leaderboard-lock-title,
+.teacher-leaderboard-lock-subtitle {
+  text-align: center;
+  margin: 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.teacher-leaderboard-lock-subtitle {
+  margin-top: 0;
+}
+.teacher-leaderboard:has(.teacher-leaderboard-lock)
+  .teacher-leaderboard-assign {
+  margin-top: 40px;
+}
+.teacher-leaderboard-loading {
+  flex: 1;
+  background: #fff;
+}
+
+/* Use the available width on the Lenovo Tab M8 portrait viewport while keeping
+   the established compact layout unchanged on desktop screens. */
+@media (min-width: 768px) and (max-width: 820px) and (min-height: 1000px) {
+  .teacher-leaderboard {
+    max-width: none;
+    padding: 34px clamp(48px, 8vw, 128px);
+  }
+  .teacher-leaderboard h2 {
+    font-size: clamp(26px, 3.5vw, 34px);
+  }
+  .teacher-leaderboard-count {
+    margin-bottom: clamp(76px, 9vw, 94px);
+    font-size: clamp(24px, 3vw, 31px);
+  }
+  .teacher-leaderboard-tiers {
+    --gold-tier-height: clamp(210px, 25vw, 250px);
+    --silver-tier-height: clamp(155px, 19vw, 185px);
+    --bronze-tier-height: clamp(115px, 14vw, 140px);
+    gap: clamp(12px, 1.2vw, 22px);
+    margin: 10px 0 30px;
+  }
+  .teacher-leaderboard-tier {
+    height: var(--silver-tier-height);
+    padding-bottom: clamp(28px, 2.5vw, 36px);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 #999999;
+    font-size: clamp(20px, 2.2vw, 28px);
+  }
+  .teacher-leaderboard-tier--gold {
+    height: var(--gold-tier-height);
+    box-shadow: 8px 8px 0 #ffc00c;
+  }
+  .teacher-leaderboard-tier--bronze {
+    height: var(--bronze-tier-height);
+    box-shadow: 8px 8px 0 #f27c08;
+  }
+  .teacher-leaderboard-score {
+    top: -50px;
+    font-size: clamp(18px, 2.5vw, 24px);
+  }
+  .teacher-leaderboard-score--silver {
+    top: calc(var(--gold-tier-height) - var(--silver-tier-height) - 50px);
+  }
+  .teacher-leaderboard-score--bronze {
+    top: calc(var(--gold-tier-height) - var(--bronze-tier-height) - 50px);
+  }
+  .teacher-leaderboard-person {
+    width: clamp(26px, 3vw, 34px);
+    height: clamp(26px, 3vw, 34px);
+  }
+  .teacher-leaderboard-hand {
+    width: clamp(46px, 4vw, 62px);
+    height: clamp(46px, 4vw, 62px);
+  }
+  .teacher-leaderboard-congratulations,
+  .teacher-leaderboard-lock-message {
+    max-width: none;
+    margin-inline: auto;
+    padding: 18px 24px;
+    font-size: clamp(20px, 2.6vw, 26px);
+  }
+  .teacher-leaderboard-congratulations {
+    margin-top: clamp(110px, 13vw, 130px);
+  }
+  .teacher-leaderboard-assign {
+    width: 100%;
+    margin-top: 48px;
+    font-size: clamp(24px, 2.2vw, 34px);
+    line-height: clamp(58px, 6vw, 76px);
+  }
+  .teacher-leaderboard-lock-message {
+    font-size: clamp(24px, 3vw, 30px);
+  }
+  .teacher-leaderboard-lock {
+    width: clamp(110px, 14vw, 128px);
+    height: clamp(110px, 14vw, 128px);
+  }
+  .teacher-leaderboard-lock-title,
+  .teacher-leaderboard-lock-subtitle {
+    font-size: clamp(26px, 3.2vw, 32px);
+  }
+  .teacher-leaderboard:has(.teacher-leaderboard-lock) {
+    min-height: calc(100dvh - 120px);
+    display: flex;
+    flex-direction: column;
+  }
+  .teacher-leaderboard:has(.teacher-leaderboard-lock)
+    .teacher-leaderboard-lock-message {
+    margin-top: auto;
+  }
+  .teacher-leaderboard:has(.teacher-leaderboard-lock)
+    .teacher-leaderboard-assign {
+    margin-bottom: auto;
+  }
+}

@@ -14,6 +14,7 @@ import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiCourseMedia } from './SqliteApi.course.media';
+import { SqliteApi } from '../SqliteApi';
 
 export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
   [key: string]: any;
@@ -46,6 +47,9 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
     status?: RESULT_STATUS | null,
     source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
+    const normalizedTimeSpent = Number.isFinite(Number(timeSpent))
+      ? Math.round(Number(timeSpent))
+      : 0;
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -67,7 +71,7 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       school_id: schoolId ?? null,
       score: score,
       student_id: student.id,
-      time_spent: timeSpent,
+      time_spent: normalizedTimeSpent,
       wrong_moves: wrongMoves,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -218,6 +222,17 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       );
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    // Evaluate cached campaign data locally after a lesson; assignment progress stays in SQLite.
+    // Use the root SQLite API singleton because the result-update branch does
+    // not inherit the campaign-management methods directly.
+    void SqliteApi.getInstance()
+      .then((api) => api.hydrateCampaignRewards(student.id))
+      .then(() =>
+        SqliteApi.getI().evaluateCampaignRewardsAfterLesson(student.id),
+      )
+      .catch((error: unknown) =>
+        logger.error('Campaign reward evaluation failed:', error),
+      );
     const pushData: any = {
       id: student.id,
       stars: updatedStudent?.stars,
@@ -261,6 +276,10 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
       sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
     } catch (e) {
       logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
+    if (newResult.status === RESULT_STATUS.COMPLETED) {
+      window.dispatchEvent(new Event('daily-rewards-pathway-activity-changed'));
     }
 
     return newResult;

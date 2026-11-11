@@ -1,5 +1,6 @@
 import { useDisplayChapters } from '../hooks/useDisplayChapters';
 import './DisplayChapters.css';
+import { TRACKABLE_IDS } from '../analytics/trackable';
 
 const DisplayChapters = () => {
   const viewProps = useDisplayChapters();
@@ -36,7 +37,15 @@ const DisplayChapters = () => {
     <IonPage id="display-chapters-page">
       <div className="chapters-header">
         <div id="back-button-container">
-          <BackButton aria-label={t('Back')} onClicked={onBackButton} />
+          <BackButton
+            aria-label={t('Back')}
+            onClicked={onBackButton}
+            trackableId={
+              stage === STAGES.CHAPTERS
+                ? TRACKABLE_IDS.CHAPTER_BACK
+                : TRACKABLE_IDS.LESSON_BACK
+            }
+          />
         </div>
         <div className="chapter-header">
           <IonItem lines="none">

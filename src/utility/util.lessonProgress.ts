@@ -264,7 +264,11 @@ export class UtilLessonProgress extends UtilAnalytics {
         nameOverride: getAppPathname(),
       });
 
-      if (launchContext && eventName === EVENTS.GOAL_PROGRESS) {
+      if (
+        launchContext &&
+        (eventName === EVENTS.GOAL_PROGRESS ||
+          eventName === EVENTS.POST_LESSON_GOALS_VIEWED)
+      ) {
         return;
       }
       await FirebaseAnalytics.logEvent({

@@ -14,6 +14,7 @@ export interface FieldConfig {
   required?: boolean;
   placeholder?: string;
   suppressPlaceholderOption?: boolean;
+  allowClear?: boolean;
   options?: { value: string; label: string }[];
   column?: FieldColumn;
   multi?: boolean;

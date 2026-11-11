@@ -159,14 +159,25 @@ export const STICKER_ROW_ID = 'sticker';
 export const STICKER_ROW_LABEL = 'Collect sticker by completing a pathway.';
 export const STICKER_ICON_ALT = 'Sticker';
 export const DAILY_REWARD_ROW_ID = 'dailyReward';
-export const DAILY_REWARD_LABEL = "Collect today's reward.";
+export const DAILY_REWARD_LABEL = 'Collect today’s reward.';
 export const DAILY_REWARD_ICON_SRC = 'assets/icons/reward.svg';
 export const DAILY_REWARD_ICON_ALT = 'Reward';
+export const CAMPAIGN_ROW_ID = 'campaign';
+export const CAMPAIGN_ROW_LABEL = 'Complete Competition lessons.';
+export const CAMPAIGN_ICON_SRC = 'assets/icons/campaign-completion.svg';
+export const CAMPAIGN_ICON_ALT = 'Competition reward';
+export const BADGE_ROW_ID = 'badge';
+export const BADGE_ROW_LABEL = 'Complete lessons to earn a badge.';
+export const BADGE_ICON_ALT = 'Badge';
 export const DAILY_REWARD_ANIMATION_SEEN_KEY =
   'score_card_daily_reward_animation_seen';
 export const DAILY_REWARD_ANIMATION_RECENCY_MS = 2 * 60 * 1000;
 export const STICKER_COMPLETION_ANIMATION_SEEN_KEY =
   'score_card_sticker_completion_animation_seen';
+export const CAMPAIGN_GOAL_ANIMATION_SEEN_KEY =
+  'score_card_campaign_goal_animation_seen';
+export const BADGE_GOAL_ANIMATION_SEEN_KEY =
+  'score_card_badge_goal_animation_seen';
 export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';
@@ -223,6 +234,7 @@ export enum AssignmentSource {
   RECOMMENDED = 'recommended',
   CHATBOT = 'chatbot',
   QR_CODE = 'qr_code',
+  CAMPAIGN = 'campaign',
 }
 export interface StudentInfo {
   user: TableTypes<'user'>;

@@ -75,7 +75,7 @@
     "toVersion": 6,
     "statements": [
       "ALTER TABLE user ADD COLUMN reward TEXT;",
-      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT), type TEXT, max_state_value INTEGER;"
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
     ]
   },
   "7": {
@@ -256,5 +256,30 @@
     "statements": [
       "CREATE TABLE IF NOT EXISTS live_quiz_room (id TEXT PRIMARY KEY, assignment_id TEXT NOT NULL, class_id TEXT NOT NULL, course_id TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, lesson_id TEXT NOT NULL, participants TEXT, results TEXT, school_id TEXT NOT NULL, starts_at TEXT NOT NULL, updated_at TEXT DEFAULT (datetime('now')));"
     ]
+  },
+  "19": {
+    "toVersion": 19,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT, type TEXT, max_state_value INTEGER);"
+    ]
+  },
+  "20": {
+    "toVersion": 20,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS local_campaigns (id TEXT PRIMARY KEY, name TEXT NOT NULL, rules_json TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, status TEXT NOT NULL, objective TEXT, target_type TEXT, target_value REAL, updated_at TEXT NOT NULL, is_deleted INTEGER NOT NULL DEFAULT 0);",
+      "CREATE INDEX IF NOT EXISTS idx_local_campaigns_status_dates ON local_campaigns(status, start_date, end_date);",
+      "CREATE TABLE IF NOT EXISTS user_campaign_rewards (campaign_id TEXT NOT NULL, student_id TEXT NOT NULL, rank_achieved INTEGER, status TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress')), evaluated_at TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT (datetime('now')), is_deleted INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (campaign_id, student_id));",
+      "CREATE INDEX IF NOT EXISTS idx_user_campaign_rewards_student_status ON user_campaign_rewards(student_id, status);"
+    ]
+  },
+  "21": {
+    "toVersion": 21,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS teacher_leaderboard (teacher_id TEXT PRIMARY KEY, block_name TEXT, final_score REAL NOT NULL DEFAULT 0, homework_count INTEGER NOT NULL DEFAULT 0, last_homework_at TEXT, score_date TEXT, score_updated_at TEXT, total_teachers_in_block INTEGER NOT NULL DEFAULT 0, active_teachers_in_block INTEGER NOT NULL DEFAULT 0, inactive_teachers_in_block INTEGER NOT NULL DEFAULT 0, tier TEXT NOT NULL DEFAULT 'locked', updated_at TEXT NOT NULL DEFAULT (datetime('now')), is_deleted BOOLEAN NOT NULL DEFAULT 0);"
+    ]
+  },
+  "22": {
+    "toVersion": 22,
+    "statements": ["ALTER TABLE assignment ADD COLUMN campaign_id TEXT;"]
   }
 }

@@ -286,6 +286,7 @@ export class SqliteApiAssignmentTeacherAssignments extends SqliteApiAssignmentRe
         chapter_id: chapter_id,
         course_id: course_id,
         batch_id: batch_id ?? null,
+        campaign_id: null,
         source: source ?? null,
         firebase_id: null,
         is_firebase: null,

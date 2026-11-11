@@ -14,13 +14,8 @@ interface Props {
 const CampaignMessageReport: React.FC<Props> = ({
   campaignId,
   campaignName,
-  campaignStartDate,
 }) => {
-  const report = useCampaignMessageReport(
-    campaignId,
-    campaignName,
-    campaignStartDate,
-  );
+  const report = useCampaignMessageReport(campaignId, campaignName);
   return (
     <article id="campaign-message-report" className="campaign-message-report">
       <CampaignMessageReportHeader
@@ -28,10 +23,9 @@ const CampaignMessageReport: React.FC<Props> = ({
         toDate={report.toDate}
         isExporting={report.isExporting}
         invalidDateRange={report.invalidDateRange}
-        onClear={report.clearFilters}
+        reportDays={report.reportDays}
+        onReportDaysChange={report.setReportDays}
         onExport={() => void report.exportReport()}
-        onFromDateChange={report.setFromDate}
-        onToDateChange={report.setToDate}
       />
       {report.error ? (
         <div
