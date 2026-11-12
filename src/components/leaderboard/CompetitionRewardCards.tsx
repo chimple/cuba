@@ -45,9 +45,6 @@ const isOngoingReward = (reward: CompetitionReward) => {
   return reward.status === 'in_progress';
 };
 
-const isCompletedReward = (reward: CompetitionReward) =>
-  !isOngoingReward(reward);
-
 const hasCompletedLessons = (reward: CompetitionReward) =>
   toNumber(
     reward.lessons_completed_count ??
@@ -55,10 +52,12 @@ const hasCompletedLessons = (reward: CompetitionReward) =>
       reward.homepage_lessons_completed_count,
   ) > 0;
 
-// Every ended campaign has a certificate. Ranked campaigns use their rank
-// artwork; campaigns without a rank use the participation artwork.
+// Completed rewards and certificates are available only for earned ranks 1–3.
 const canShareCertificate = (reward: CompetitionReward) =>
-  !isOngoingReward(reward);
+  !isOngoingReward(reward) &&
+  hasCompletedLessons(reward) &&
+  reward.status === 'won' &&
+  toCompetitionCertificateRank(reward.rank_achieved) !== null;
 
 const formatDate = (value?: string | null) => {
   if (!value) return '';
@@ -84,7 +83,7 @@ const getArtwork = (reward: CompetitionReward) => {
   if (reward.status === 'won' && rank === 3) {
     return '/assets/campaignCompetition/Campaign rank3 t.svg';
   }
-  return '/assets/campaignCompetition/Campaign participation t.svg';
+  return '/assets/campaignCompetition/Campaign progress t.svg';
 };
 
 const getCardClass = (reward: CompetitionReward) => {
@@ -114,8 +113,9 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
     useState<CompetitionReward | null>(null);
   const student = Util.getCurrentStudent();
   const ongoingRewards = rewards.filter(isOngoingReward);
-  const completedRewards = rewards.filter(
-    (reward) => isCompletedReward(reward) && hasCompletedLessons(reward),
+  const completedRewards = rewards.filter(canShareCertificate);
+  const selectedRank = toCompetitionCertificateRank(
+    selectedCertificate?.rank_achieved,
   );
 
   const renderCard = (reward: CompetitionReward) => (
@@ -239,26 +239,24 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
           onClose={() => setSelectedReward(null)}
         />
       )}
-      {selectedCertificate && (
-        <CompetitionCertificateModal
-          certificate={{
-            campaignId: selectedCertificate.campaign_id,
-            campaignName: selectedCertificate.campaign_name ?? '',
-            studentName: student?.name ?? '',
-            studentId: selectedCertificate.student_id ?? undefined,
-            rank: toCompetitionCertificateRank(
-              selectedCertificate.rank_achieved,
-              selectedCertificate.status,
-              selectedCertificate.end_date,
-            ),
-            awardedAt:
-              selectedCertificate.updated_at ?? new Date().toISOString(),
-            languageCode: localStorage.getItem('language') ?? 'en',
-            isNewlyEarned: false,
-          }}
-          onClose={() => setSelectedCertificate(null)}
-        />
-      )}
+      {selectedCertificate &&
+        canShareCertificate(selectedCertificate) &&
+        selectedRank !== null && (
+          <CompetitionCertificateModal
+            certificate={{
+              campaignId: selectedCertificate.campaign_id,
+              campaignName: selectedCertificate.campaign_name ?? '',
+              studentName: student?.name ?? '',
+              studentId: selectedCertificate.student_id ?? undefined,
+              rank: selectedRank,
+              awardedAt:
+                selectedCertificate.updated_at ?? new Date().toISOString(),
+              languageCode: localStorage.getItem('language') ?? 'en',
+              isNewlyEarned: false,
+            }}
+            onClose={() => setSelectedCertificate(null)}
+          />
+        )}
     </div>
   );
 };

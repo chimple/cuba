@@ -3,16 +3,13 @@ import { toPng } from 'html-to-image';
 import { Util } from '../../utility/util';
 import { EVENTS } from '../../common/constants';
 import { logCampaignCertificateEvent } from '../campaignCertificate/campaignCertificateAnalytics';
-import type {
-  CampaignCertificateData,
-  CampaignCertificateRank,
-} from '../campaignCertificate/campaignCertificate.types';
+import type { CampaignCertificateData } from '../campaignCertificate/campaignCertificate.types';
 import CampaignCertificateArtwork from '../campaignCertificate/CampaignCertificateArtwork';
 import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
 type Props = {
-  certificate: CampaignCertificateData;
+  certificate: Omit<CampaignCertificateData, 'rank'> & { rank: 1 | 2 | 3 };
   onClose: () => void;
 };
 
@@ -128,18 +125,11 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
 
 export const toCompetitionCertificateRank = (
   rank: number | string | null | undefined,
-  status: string | null | undefined,
-  endDate?: string | null,
-): CampaignCertificateRank => {
+): 1 | 2 | 3 | null => {
   const numericRank = Number(rank ?? 0);
-  if (numericRank === 1 || numericRank === 2 || numericRank === 3) {
-    return numericRank;
-  }
-  const end = endDate ? new Date(endDate).getTime() : Number.NaN;
-  const hasEnded = Number.isFinite(end)
-    ? end < Date.now()
-    : status === 'completed' || status === 'missed';
-  return hasEnded ? 'participation' : 'progress';
+  return numericRank === 1 || numericRank === 2 || numericRank === 3
+    ? numericRank
+    : null;
 };
 
 export default CompetitionCertificateModal;

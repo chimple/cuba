@@ -11,7 +11,6 @@ const rankAssets = {
   1: `${ASSET_ROOT}/Campaign rank1 t2.svg`,
   2: `${ASSET_ROOT}/Campaign rank2 t2.svg`,
   3: `${ASSET_ROOT}/Campaign rank3 t.svg`,
-  participation: `${ASSET_ROOT}/Campaign participation t.svg`,
   progress: `${ASSET_ROOT}/Campaign progress t.svg`,
 } as const;
 
@@ -19,7 +18,6 @@ const rankMessages = {
   1: 'Congratulations on getting first rank!',
   2: 'Congratulations on getting second rank!',
   3: 'Congratulations on getting third rank!',
-  participation: 'Congratulations on completing the campaign!',
   progress: 'Congratulations on making great progress!',
 } as const;
 
