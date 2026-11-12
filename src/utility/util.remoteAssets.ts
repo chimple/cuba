@@ -143,196 +143,211 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
         return true;
       }
       if (zipUrl && lessons.length !== 1) return false;
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-          void StorageManager.checkStorageLimit();
-        });
-      } else {
-        setTimeout(() => {
-          void StorageManager.checkStorageLimit();
-        }, 0);
-      }
-      for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
-        const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
-        const results = await Promise.all(
-          lessonsChunk.map(async (lesson) => {
-            const lessonId = this.getLessonBundleId(lesson);
-            if (!lessonId) {
-              logger.error('[LessonDownloader] Missing bundle lesson id');
-              return false;
-            }
+      const releaseLessonProtections = lessons
+        .map((lesson) => this.getLessonBundleId(lesson))
+        .filter((lessonId): lessonId is string => Boolean(lessonId))
+        .map((lessonId) => StorageManager.protectDownloadingLesson(lessonId));
 
-            try {
-              let lessonDownloadSuccess = true;
-              const androidPath = await this.getAndroidBundlePath();
-              // 🔥 GET DB VERSION ONCE
-              let dbVersion = Number(lesson.version ?? 1);
+      try {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            void StorageManager.checkStorageLimit();
+          });
+        } else {
+          setTimeout(() => {
+            void StorageManager.checkStorageLimit();
+          }, 0);
+        }
+        for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+          const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
+          const results = await Promise.all(
+            lessonsChunk.map(async (lesson) => {
+              const lessonId = this.getLessonBundleId(lesson);
+              if (!lessonId) {
+                logger.error('[LessonDownloader] Missing bundle lesson id');
+                return false;
+              }
 
-              let localVersion = 0;
-
-              // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
               try {
-                await Filesystem.readFile({
-                  path: lessonId + '/config.json',
-                  directory: Directory.External,
-                });
+                let lessonDownloadSuccess = true;
+                const androidPath = await this.getAndroidBundlePath();
+                // 🔥 GET DB VERSION ONCE
+                let dbVersion = Number(lesson.version ?? 1);
 
-                localVersion = await this.getLocalLessonVersion(lessonId);
+                let localVersion = 0;
 
-                if (localVersion >= dbVersion) {
-                  // ✅ UP-TO-DATE → SKIP
-                  this.setGameUrl(androidPath);
-                  this.storeLessonIdToLocalStorage(
-                    lessonId,
-                    DOWNLOADED_LESSON_ID,
+                // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
+                try {
+                  await Filesystem.readFile({
+                    path: lessonId + '/config.json',
+                    directory: Directory.External,
+                  });
+
+                  localVersion = await this.getLocalLessonVersion(lessonId);
+
+                  if (localVersion >= dbVersion) {
+                    // ✅ UP-TO-DATE → SKIP
+                    this.setGameUrl(androidPath);
+                    this.storeLessonIdToLocalStorage(
+                      lessonId,
+                      DOWNLOADED_LESSON_ID,
+                    );
+                    return true;
+                  }
+                } catch {
+                  // Continue with packaged or remote bundle resolution.
+                }
+
+                // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
+                // Packaged APK bundles are ZIP files. Live Quiz config.json is
+                // inside the ZIP, not exposed as a loose asset.
+                const localBundlePath =
+                  LOCAL_LESSON_BUNDLES_PATH + `${lessonId}.zip`;
+
+                try {
+                  const response = await fetch(localBundlePath, {
+                    method: 'HEAD',
+                  });
+                  if (response.ok && localVersion === 0) {
+                    this.setGameUrl(LOCAL_BUNDLES_PATH);
+                    return true;
+                  }
+                } catch {
+                  logger.error(
+                    `[LessonDownloader] Local bundle not found, downloading...`,
                   );
-                  return true;
                 }
-              } catch {
-                // Continue with packaged or remote bundle resolution.
-              }
 
-              // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
-              // Packaged APK bundles are ZIP files. Live Quiz config.json is
-              // inside the ZIP, not exposed as a loose asset.
-              const localBundlePath =
-                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}.zip`;
-
-              try {
-                const response = await fetch(localBundlePath, {
-                  method: 'HEAD',
-                });
-                if (response.ok && localVersion === 0) {
-                  this.setGameUrl(LOCAL_BUNDLES_PATH);
-                  return true;
+                // 🔥 DOWNLOAD LOGIC (UNCHANGED)
+                let bundleZipUrls: string[] = [];
+                if (!zipUrl) {
+                  const fallbackBundleZipUrls =
+                    getBundleZipUrlsFallback(bundleZipUrlsKey);
+                  const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                    string[] | null
+                  >(bundleZipUrlsKey, null);
+                  const fallbackGeneralBundleZipUrls =
+                    bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                      ? getBundleZipUrlsForEnv()
+                      : [];
+                  const cachedGeneralBundleZipUrls =
+                    bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                      ? getCachedGrowthBookFeatureValue<string[] | null>(
+                          REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                          null,
+                        )
+                      : null;
+                  bundleZipUrls =
+                    bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                      ? mergeBundleZipUrls(
+                          cachedBundleZipUrls,
+                          fallbackBundleZipUrls,
+                          cachedGeneralBundleZipUrls,
+                          fallbackGeneralBundleZipUrls,
+                        )
+                      : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
                 }
-              } catch {
-                logger.error(
-                  `[LessonDownloader] Local bundle not found, downloading...`,
+
+                if (!zipUrl && bundleZipUrls.length < 1) {
+                  logger.error('[LessonDownloader] No remote ZIP URLs found');
+                  return false;
+                }
+
+                const lessonBundlePlugin = getLessonBundlePlugin();
+                if (!lessonBundlePlugin) {
+                  logger.error(
+                    '[LessonDownloader] LessonBundle plugin unavailable',
+                  );
+                  return false;
+                }
+
+                const nativeBundleResult =
+                  await lessonBundlePlugin.downloadAndExtract({
+                    lessonId,
+                    ...(zipUrl ? { zipUrl } : { zipUrls: bundleZipUrls }),
+                    dbVersion,
+                  });
+
+                if (!nativeBundleResult?.byteLength) {
+                  return false;
+                }
+                // ✅ KEEP ORIGINAL METADATA + EVENTS
+                const lessonData = JSON.parse(
+                  localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
                 );
-              }
-
-              // 🔥 DOWNLOAD LOGIC (UNCHANGED)
-              let bundleZipUrls: string[] = [];
-              if (!zipUrl) {
-                const fallbackBundleZipUrls =
-                  getBundleZipUrlsFallback(bundleZipUrlsKey);
-                const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
-                  string[] | null
-                >(bundleZipUrlsKey, null);
-                const fallbackGeneralBundleZipUrls =
-                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                    ? getBundleZipUrlsForEnv()
-                    : [];
-                const cachedGeneralBundleZipUrls =
-                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                    ? getCachedGrowthBookFeatureValue<string[] | null>(
-                        REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-                        null,
-                      )
-                    : null;
-                bundleZipUrls =
-                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                    ? mergeBundleZipUrls(
-                        cachedBundleZipUrls,
-                        fallbackBundleZipUrls,
-                        cachedGeneralBundleZipUrls,
-                        fallbackGeneralBundleZipUrls,
-                      )
-                    : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
-              }
-
-              if (!zipUrl && bundleZipUrls.length < 1) {
-                logger.error('[LessonDownloader] No remote ZIP URLs found');
-                return false;
-              }
-
-              const lessonBundlePlugin = getLessonBundlePlugin();
-              if (!lessonBundlePlugin) {
-                logger.error(
-                  '[LessonDownloader] LessonBundle plugin unavailable',
+                lessonData[lessonId] = {
+                  size: nativeBundleResult.byteLength,
+                  sha256: nativeBundleResult.sha256Hex || undefined,
+                };
+                localStorage.setItem(
+                  DOWNLOADED_LESSONS_SIZE,
+                  JSON.stringify(lessonData),
                 );
-                return false;
-              }
-
-              const nativeBundleResult =
-                await lessonBundlePlugin.downloadAndExtract({
+                this.setGameUrl(androidPath);
+                this.storeLessonIdToLocalStorage(
                   lessonId,
-                  ...(zipUrl ? { zipUrl } : { zipUrls: bundleZipUrls }),
-                  dbVersion,
-                });
+                  DOWNLOADED_LESSON_ID,
+                );
 
-              if (!nativeBundleResult?.byteLength) {
+                window.dispatchEvent(
+                  new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
+                    detail: { lessonId },
+                  }),
+                );
+                return lessonDownloadSuccess;
+              } catch (err) {
+                const errorDetails =
+                  err instanceof Error
+                    ? {
+                        name: err.name,
+                        message: err.message,
+                        stack: err.stack,
+                        cause: err.cause,
+                      }
+                    : {
+                        value: String(err),
+                      };
+                const errorSummary =
+                  err instanceof Error
+                    ? `${err.name}: ${err.message}`
+                    : String(err);
+                logger.error(
+                  `[LessonDownloader] Error processing lesson: ${errorSummary}`,
+                  errorDetails,
+                );
                 return false;
               }
-              // ✅ KEEP ORIGINAL METADATA + EVENTS
-              const lessonData = JSON.parse(
-                localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
-              );
-              lessonData[lessonId] = {
-                size: nativeBundleResult.byteLength,
-                sha256: nativeBundleResult.sha256Hex || undefined,
-              };
-              localStorage.setItem(
-                DOWNLOADED_LESSONS_SIZE,
-                JSON.stringify(lessonData),
-              );
-              this.setGameUrl(androidPath);
-              this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+            }),
+          );
 
-              window.dispatchEvent(
-                new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
-                  detail: { lessonId },
-                }),
-              );
-              return lessonDownloadSuccess;
-            } catch (err) {
-              const errorDetails =
-                err instanceof Error
-                  ? {
-                      name: err.name,
-                      message: err.message,
-                      stack: err.stack,
-                      cause: err.cause,
-                    }
-                  : {
-                      value: String(err),
-                    };
-              const errorSummary =
-                err instanceof Error
-                  ? `${err.name}: ${err.message}`
-                  : String(err);
-              logger.error(
-                `[LessonDownloader] Error processing lesson: ${errorSummary}`,
-                errorDetails,
-              );
-              return false;
-            }
+          if (!results.every((r) => r === true)) {
+            logger.error(
+              '[LessonDownloader] Some lessons in chunk failed to download:',
+              lessonsChunk.map(
+                (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
+              ),
+            );
+            return false;
+          }
+        }
+
+        window.dispatchEvent(
+          new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
+            detail: { chapterId },
           }),
         );
 
-        if (!results.every((r) => r === true)) {
-          logger.error(
-            '[LessonDownloader] Some lessons in chunk failed to download:',
-            lessonsChunk.map(
-              (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
-            ),
+        if (chapterId) {
+          this.removeLessonIdFromLocalStorage(
+            chapterId,
+            DOWNLOADING_CHAPTER_ID,
           );
-          return false;
         }
+
+        return true;
+      } finally {
+        releaseLessonProtections.forEach((release) => release());
       }
-
-      window.dispatchEvent(
-        new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
-          detail: { chapterId },
-        }),
-      );
-
-      if (chapterId) {
-        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
-      }
-
-      return true;
     } catch {
       return false;
     }
