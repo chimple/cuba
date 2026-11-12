@@ -5,6 +5,8 @@ import type { CampaignCertificateData } from './campaignCertificate.types';
 
 export const CAMPAIGN_CERTIFICATE_EARNED_EVENT =
   'chimple:campaign-certificate-earned';
+export const CAMPAIGN_CERTIFICATE_HOME_READY_EVENT =
+  'chimple:campaign-certificate-home-ready';
 const PENDING_CERTIFICATE_STORAGE_KEY = 'campaignCertificatePending';
 
 const isHomeRoute = (pathname: string) => pathname === PAGES.HOME;
@@ -48,10 +50,7 @@ const CampaignCertificateHost = () => {
       });
     };
 
-    const displayPendingCertificateOnHome = () => {
-      // Lesson scorecards keep the event queued until Continue Playing returns
-      // the learner to Home, where the global modal is visible to the child.
-      if (!isHomeRoute(window.location.pathname)) return;
+    const displayPendingCertificate = () => {
       const pending = localStorage.getItem(PENDING_CERTIFICATE_STORAGE_KEY);
       if (!pending) return;
       try {
@@ -61,6 +60,13 @@ const CampaignCertificateHost = () => {
       } catch {
         localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
       }
+    };
+
+    const displayPendingCertificateOnHome = () => {
+      // Lesson scorecards keep the event queued until Continue Playing returns
+      // the learner to Home, where the global modal is visible to the child.
+      if (!isHomeRoute(window.location.pathname)) return;
+      displayPendingCertificate();
     };
 
     const showCertificate = (event: Event) => {
@@ -97,6 +103,10 @@ const CampaignCertificateHost = () => {
       'ionViewDidEnter',
       displayPendingCertificateOnHome,
     );
+    window.addEventListener(
+      CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
+      displayPendingCertificate,
+    );
     window.addEventListener('popstate', displayPendingCertificateOnHome);
     displayPendingCertificateOnHome();
     return () => {
@@ -115,6 +125,10 @@ const CampaignCertificateHost = () => {
       document.removeEventListener(
         'ionViewDidEnter',
         displayPendingCertificateOnHome,
+      );
+      window.removeEventListener(
+        CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
+        displayPendingCertificate,
       );
       window.removeEventListener('popstate', displayPendingCertificateOnHome);
     };
