@@ -3,6 +3,10 @@ import CampaignCertificateHost, {
   showCampaignCertificate,
 } from './CampaignCertificateHost';
 
+jest.mock('../../utility/util', () => ({
+  Util: { logEvent: jest.fn(), sendContentToAndroidOrWebShare: jest.fn() },
+}));
+
 jest.mock('react-confetti', () => () => <div data-testid="confetti" />);
 jest.mock('../../utility/AudioUtil', () => ({
   AudioUtil: {

@@ -31,8 +31,6 @@ export const SEARCH_LESSON_HISTORY = 'search_lesson_history';
 export const SEARCH_LESSON_CACHE_KEY = 'search_lesson_last_state';
 export const CURRENT_MODE = 'currentMode';
 export const LAST_MODE = 'lastMode';
-// Shared prefix makes campaign sync/evaluation logs easy to filter in device logs.
-export const CAMPAIGN_REWARD_LOG_KEYWORD = '[CAMPAIGN_REWARD]';
 export const CURRENT_CLASS = 'currentClass';
 export const FRESH_ASSESSMENT_AFTER_JOIN = (studentId: string) =>
   `fresh_assessment_after_join_${studentId}`;
@@ -353,6 +351,7 @@ export enum EVENTS {
   BADGE_SHARE_FAILED = 'badge_share_failed',
   REWARDS_PAGE_VIEWED = 'rewards_page_viewed',
   REWARDS_TAB_CLICKED = 'rewards_tab_clicked',
+  COMPETITION_INFO_CLICKED = 'competition_info_clicked',
   REWARD_BADGE_SHARE_CLICKED = 'reward_badge_share_clicked',
   REWARD_BADGE_SHARE_SUCCESS = 'reward_badge_share_success',
   REWARD_BADGE_SHARE_FAILED = 'reward_badge_share_failed',
