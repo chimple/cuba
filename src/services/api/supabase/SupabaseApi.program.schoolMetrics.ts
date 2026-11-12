@@ -459,14 +459,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         requiresCalculatedFiltering;
       const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
       const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
-      const gradeOptionsRequest = export_school_ids
-        ? this.supabase
-            .from('grade')
-            .select('id, name')
-            .eq('is_deleted', false)
-            .order('sort_index', { ascending: true })
-        : null;
-
       // Selected grade rows are aggregated per school before sorting/filtering.
       const { data, error, count } = requiresClientSideProcessing
         ? await fetchAllSchoolMetricRows(
@@ -595,17 +587,32 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       }) as FilteredSchoolsForSchoolListingOps[];
 
       let grades: Array<{ id: string; name: string }> | undefined;
-      if (gradeOptionsRequest) {
-        const { data: gradeRows, error: gradeError } =
-          await gradeOptionsRequest;
-        if (gradeError) {
-          logger.error(
-            'Error fetching grades for school metrics export:',
-            gradeError,
-          );
-          return { data: [], total: 0 };
+      if (export_school_ids) {
+        // Only metric-backed grades should become export columns.
+        const gradeIds = Array.from(
+          new Set(
+            mappedRows.flatMap((row) => (row.grade_id ? [row.grade_id] : [])),
+          ),
+        );
+        let gradeRows: Array<{ id: string; name: string }> = [];
+        if (gradeIds.length > 0) {
+          const { data: matchingGradeRows, error: gradeError } =
+            await this.supabase
+              .from('grade')
+              .select('id, name')
+              .eq('is_deleted', false)
+              .in('id', gradeIds)
+              .order('sort_index', { ascending: true });
+          if (gradeError) {
+            logger.error(
+              'Error fetching grades for school metrics export:',
+              gradeError,
+            );
+            return { data: [], total: 0 };
+          }
+          gradeRows = matchingGradeRows ?? [];
         }
-        grades = (gradeRows ?? []).map(({ id, name }) => ({ id, name }));
+        grades = gradeRows.map(({ id, name }) => ({ id, name }));
       }
 
       return {
