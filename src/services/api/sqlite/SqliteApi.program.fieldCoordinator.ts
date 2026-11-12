@@ -9,6 +9,7 @@ import { FCSchoolStats } from '../../../ops-console/pages/SchoolDetailsPage';
 import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
+  TeacherLifetimeAssignmentMap,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
@@ -99,6 +100,15 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
       'getRecentAssignmentCountsByTeachers is not supported in SQLite mode',
     );
     return this._serverApi.getRecentAssignmentCountsByTeachers(pairs);
+  }
+
+  async getTeacherLifetimeAssignmentStatus(
+    teacherIds: string[],
+  ): Promise<TeacherLifetimeAssignmentMap> {
+    logger.warn(
+      'getTeacherLifetimeAssignmentStatus is not supported in SQLite mode',
+    );
+    return this._serverApi.getTeacherLifetimeAssignmentStatus(teacherIds);
   }
 
   async getActiveTeachersCountForProgram7d(
