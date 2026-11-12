@@ -21,36 +21,6 @@ export class StorageManager {
     'stickerBookAssetCache',
     'homeworkRemoteAsset',
   ]);
-  private static readonly downloadingLessonRefCounts = new Map<
-    string,
-    number
-  >();
-
-  /**
-   * Keeps a lesson being downloaded, plus its native staging folders, out of
-   * storage eviction until the caller releases it.
-   */
-  public static protectDownloadingLesson(lessonId: string): () => void {
-    if (!lessonId) return () => undefined;
-
-    this.downloadingLessonRefCounts.set(
-      lessonId,
-      (this.downloadingLessonRefCounts.get(lessonId) ?? 0) + 1,
-    );
-
-    let released = false;
-    return () => {
-      if (released) return;
-      released = true;
-
-      const count = this.downloadingLessonRefCounts.get(lessonId) ?? 0;
-      if (count <= 1) {
-        this.downloadingLessonRefCounts.delete(lessonId);
-      } else {
-        this.downloadingLessonRefCounts.set(lessonId, count - 1);
-      }
-    };
-  }
 
   public static async checkStorageLimit(): Promise<void> {
     try {
@@ -108,12 +78,11 @@ export class StorageManager {
         if (currentSizeBytes <= limitBytes) {
           break;
         }
-        if (this.isProtectedFolder(lesson.lessonId)) {
-          if (this.PROTECTED_FOLDERS.has(lesson.lessonId)) {
-            logger.warn(
-              `[StorageManager] Skipping protected folder=${lesson.lessonId}`,
-            );
-          }
+        // Never delete the protected folders
+        if (this.PROTECTED_FOLDERS.has(lesson.lessonId)) {
+          logger.warn(
+            `[StorageManager] Skipping protected folder=${lesson.lessonId}`,
+          );
           continue;
         }
         const lessonSize = await this.getDirectorySize(lesson.lessonId);
@@ -129,22 +98,6 @@ export class StorageManager {
     } catch (error) {
       logger.error('[StorageManager] Error during storage limit check', error);
     }
-  }
-
-  private static isProtectedFolder(folderName: string): boolean {
-    if (this.PROTECTED_FOLDERS.has(folderName)) return true;
-
-    for (const lessonId of this.downloadingLessonRefCounts.keys()) {
-      if (
-        folderName === lessonId ||
-        folderName === `${lessonId}_temp` ||
-        folderName === `${lessonId}_old`
-      ) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   private static async getDirectorySize(path: string): Promise<number> {
