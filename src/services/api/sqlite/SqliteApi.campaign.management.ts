@@ -1,10 +1,11 @@
 import {
+  CAMPAIGN_REWARD_LOG_KEYWORD,
   RESULT_STATUS,
   AssignmentSource,
   TabType,
 } from '../../../common/constants';
 import { CampaignSetupOptions } from '../ServiceApi';
-import { SqliteApiCampaignRewards } from './SqliteApi.campaign.rewards';
+import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 import {
   CampaignCancellationDetails,
@@ -48,10 +49,43 @@ import {
 import type { CampaignNotificationPayload } from '../ServiceApi';
 import type { CampaignActiveChange, CampaignGoalProgress } from '../ServiceApi';
 import logger from '../../../utility/logger';
+import { showCampaignCertificate } from '../../../components/campaignCertificate';
+import type { CampaignCertificateRank } from '../../../components/campaignCertificate';
 
-export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
+// Keep campaign settings cached between explicit syncs; goal rendering itself never calls this sync.
+const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
+const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
+
+type LocalCampaignRow = {
+  id: string;
+  name: string;
+  rules_json: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  objective?: string | null;
+  target_type?: string | null;
+  target_value?: number | null;
+  updated_at: string;
+  is_deleted: number;
+};
+
+type CampaignRewardRule = { rank: 1 | 2 | 3; min: number; reward?: string };
+
+// Parse the stored campaign rules defensively so malformed admin data cannot break lesson completion.
+const parseCampaignRules = (value: string): CampaignRewardRule[] => {
+  try {
+    const parsed = JSON.parse(value) as { rules?: CampaignRewardRule[] };
+    return Array.isArray(parsed?.rules) ? parsed.rules : [];
+  } catch {
+    return [];
+  }
+};
+
+export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
 
+  /** Keeps the existing campaign-config API intact for non-scorecard callers. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
@@ -62,6 +96,7 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
     );
   }
 
+  /** Counts the supplied homework path's active campaign assignments and results locally. */
   async getActiveCampaignGoalProgress(
     studentId = this.currentStudent?.id,
     courseId?: string,
@@ -72,6 +107,7 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
     const now = new Date().toISOString();
     const assignmentPlaceholders = assignmentIds.map(() => '?').join(', ');
     try {
+      // Count only the campaign assignments shown in this homework pathway.
       const result = await this.executeQuery(
         `WITH current_course AS (
            SELECT id FROM course
@@ -128,11 +164,15 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
         ? { campaignId: row.campaign_id, current, total }
         : null;
     } catch (error) {
-      logger.warn('Local assignment progress unavailable', error);
+      logger.warn(
+        `${CAMPAIGN_REWARD_LOG_KEYWORD} local assignment progress unavailable`,
+        error,
+      );
       return null;
     }
   }
 
+  /** Delegates reward outcome persistence to Supabase while retaining local evaluation. */
   async upsertCampaignStudentReward(payload: {
     campaignId: string;
     studentId: string;
@@ -322,5 +362,239 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
       campaignId,
       params,
     );
+  }
+
+  /** Retains the existing campaign-settings sync for explicit callers outside the scorecard flow. */
+  async syncCampaignRewards(
+    studentId = this.currentStudent?.id,
+  ): Promise<void> {
+    if (!studentId) return;
+    await this.ensureInitialized();
+    const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
+    const lastFetch = localStorage.getItem(storageKey);
+    const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync started`, {
+      studentId,
+      lastFetch,
+    });
+    if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
+      const changes = await this.getActiveCampaigns(studentId, lastFetch);
+      logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} changes received`, {
+        studentId,
+        count: changes?.length ?? 0,
+      });
+      for (const change of changes ?? []) {
+        if (change.change_type === 'delete') {
+          await this.executeQuery(
+            'UPDATE local_campaigns SET is_deleted = 1, status = ? WHERE id = ?',
+            ['inactive', change.campaign_id],
+          );
+          logger.warn(
+            `${CAMPAIGN_REWARD_LOG_KEYWORD} campaign marked deleted`,
+            { studentId, campaignId: change.campaign_id },
+          );
+          continue;
+        }
+        await this.executeQuery(
+          `INSERT OR REPLACE INTO local_campaigns
+            (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+          [
+            change.campaign_id,
+            change.campaign_name,
+            JSON.stringify(change.rules_json ?? {}),
+            change.start_date,
+            change.end_date,
+            change.campaign_status ?? 'active',
+            change.objective ?? null,
+            change.target_type ?? null,
+            change.target_value ?? null,
+            change.updated_at ?? change.created_at ?? new Date().toISOString(),
+          ],
+        );
+        logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign stored locally`, {
+          studentId,
+          campaignId: change.campaign_id,
+          status: change.campaign_status,
+        });
+      }
+      localStorage.setItem(storageKey, new Date().toISOString());
+    }
+
+    await this.hydrateCampaignRewards(studentId);
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync completed`, { studentId });
+  }
+
+  async hydrateCampaignRewards(
+    studentId = this.currentStudent?.id,
+  ): Promise<void> {
+    if (!studentId) return;
+    await this.ensureInitialized();
+    const result = await this.executeQuery(
+      'SELECT * FROM local_campaigns WHERE is_deleted = 0',
+    );
+    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
+      await this.evaluateCampaignReward(campaign, studentId, false);
+    }
+  }
+
+  async evaluateCampaignRewardsAfterLesson(
+    studentId = this.currentStudent?.id,
+  ): Promise<void> {
+    if (!studentId) return;
+    await this.ensureInitialized();
+    const now = new Date().toISOString();
+    const result = await this.executeQuery(
+      `SELECT * FROM local_campaigns
+       WHERE is_deleted = 0 AND status = 'active'
+         AND start_date <= ? AND end_date >= ?`,
+      [now, now],
+    );
+    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
+      await this.evaluateCampaignReward(campaign, studentId, true);
+    }
+  }
+
+  async getCachedCampaignRewards(studentId = this.currentStudent?.id) {
+    if (!studentId) return [];
+    await this.ensureInitialized();
+    const result = await this.executeQuery(
+      `SELECT * FROM user_campaign_rewards
+       WHERE student_id = ? AND is_deleted = 0
+       ORDER BY evaluated_at DESC`,
+      [studentId],
+    );
+    return result?.values ?? [];
+  }
+
+  private async evaluateCampaignReward(
+    campaign: LocalCampaignRow,
+    studentId: string,
+    showCertificate: boolean,
+  ): Promise<void> {
+    const now = new Date();
+    const metricsResult = await this.executeQuery(
+      `SELECT
+         COUNT(DISTINCT a.lesson_id) AS total_lessons,
+         COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.lesson_id END) AS completed_lessons
+       FROM assignment a
+       LEFT JOIN result r
+         ON r.assignment_id = a.id
+        AND r.student_id = ?
+        AND r.is_deleted = 0
+        AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+       WHERE a.campaign_id = ? AND a.is_deleted = 0`,
+      [studentId, campaign.id],
+    );
+    const metrics = metricsResult?.values?.[0] ?? {};
+    let totalLessons = Number(metrics.total_lessons ?? 0);
+    let completedLessons = Number(metrics.completed_lessons ?? 0);
+
+    // Home Learning campaigns do not create assignment rows. If no campaign
+    // assignments were found, evaluate the student's synced lesson results
+    // within the campaign window instead.
+    if (totalLessons === 0) {
+      const resultMetrics = await this.executeQuery(
+        `SELECT
+           COUNT(DISTINCT r.lesson_id) AS total_lessons,
+           COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN r.lesson_id END) AS completed_lessons
+         FROM result r
+         WHERE r.student_id = ?
+           AND r.is_deleted = 0
+           AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+           AND r.created_at >= ? AND r.created_at <= ?`,
+        [studentId, campaign.start_date, campaign.end_date],
+      );
+      const fallbackMetrics = resultMetrics?.values?.[0] ?? {};
+      totalLessons = Number(fallbackMetrics.total_lessons ?? 0);
+      completedLessons = Number(fallbackMetrics.completed_lessons ?? 0);
+    }
+    const completionPercent = totalLessons
+      ? (completedLessons / totalLessons) * 100
+      : 0;
+    const completion =
+      campaign.target_type === 'number_of_lessons'
+        ? completedLessons
+        : completionPercent;
+    const rules = parseCampaignRules(campaign.rules_json).sort(
+      (a, b) => b.min - a.min,
+    );
+    const winningRule = rules.find((rule) => completion >= Number(rule.min));
+    const status = winningRule
+      ? 'won'
+      : now > new Date(campaign.end_date)
+        ? 'missed'
+        : 'in_progress';
+    const rank = winningRule?.rank ?? null;
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign evaluated`, {
+      campaignId: campaign.id,
+      studentId,
+      totalLessons,
+      completedLessons,
+      completion,
+      rank,
+      status,
+    });
+    const evaluatedAt = now.toISOString();
+    const existingResult = await this.executeQuery(
+      `SELECT status, rank_achieved FROM user_campaign_rewards
+       WHERE campaign_id = ? AND student_id = ? LIMIT 1`,
+      [campaign.id, studentId],
+    );
+    const existing = existingResult?.values?.[0] as
+      | { status?: string; rank_achieved?: number | null }
+      | undefined;
+    // Keep a separate marker for each rank so rank 2 and rank 1 can each be
+    // displayed once as the learner progresses through the campaign.
+    const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${rank}`;
+    const shouldEmitCertificate =
+      showCertificate &&
+      status === 'won' &&
+      !localStorage.getItem(certificateShownKey);
+
+    await this.executeQuery(
+      `INSERT OR REPLACE INTO user_campaign_rewards
+        (campaign_id, student_id, rank_achieved, status, evaluated_at, updated_at, is_deleted)
+       VALUES (?, ?, ?, ?, ?, ?, 0)`,
+      [campaign.id, studentId, rank, status, evaluatedAt, evaluatedAt],
+    );
+
+    if (existing?.status !== status || existing?.rank_achieved !== rank) {
+      try {
+        await this._serverApi.upsertCampaignStudentReward({
+          campaignId: campaign.id,
+          studentId,
+          rankAchieved: rank,
+          status,
+          evaluatedAt,
+        });
+      } catch (error) {
+        // Keep the local result when offline; the next sync can retry the Supabase write.
+        logger.error(
+          `${CAMPAIGN_REWARD_LOG_KEYWORD} reward sync deferred; keeping local result`,
+          error,
+        );
+      }
+    }
+
+    if (shouldEmitCertificate) {
+      logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} certificate event emitted`, {
+        campaignId: campaign.id,
+        studentId,
+        rank,
+      });
+      localStorage.setItem(certificateShownKey, evaluatedAt);
+      showCampaignCertificate({
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        // Pass the active child name for analytics/share context while keeping the artwork clean.
+        studentName: this.currentStudent?.name ?? '',
+        schoolId: this.currentSchool?.id,
+        rank: rank as CampaignCertificateRank,
+        awardedAt: evaluatedAt,
+        isNewlyEarned: true,
+        studentId,
+      });
+    }
   }
 }
