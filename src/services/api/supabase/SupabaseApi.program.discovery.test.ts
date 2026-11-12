@@ -38,7 +38,7 @@ function setup(roles: RoleType[]) {
   mockGetState.mockReturnValue({ auth: { roles } });
   const from = jest.fn();
   const api = new SupabaseApiProgramDiscovery();
-  api.supabase = { from };
+  api.supabase = { from } as unknown as typeof api.supabase;
   return { api, from };
 }
 

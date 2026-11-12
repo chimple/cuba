@@ -126,6 +126,7 @@ const response: CampaignMessageReportResponse = {
   summary: {
     whatsappGroups: 2,
     totalMembersReachable: 100,
+    interactions: 0,
     messagesSent: 10,
     deliveredMessages: 8,
     readMessages: 6,

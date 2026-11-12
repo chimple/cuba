@@ -5,3 +5,9 @@ dist
 .storybook
 storybook-static
 coverage
+
+# Preserve existing locale formatting to keep translation diffs focused.
+public/locales/hi/translation.json
+public/locales/kn/translation.json
+public/locales/mr/translation.json
+public/locales/pt/translation.json

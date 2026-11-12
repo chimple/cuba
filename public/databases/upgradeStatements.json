@@ -280,7 +280,17 @@
   },
   "22": {
     "toVersion": 22,
+    "statements": ["ALTER TABLE assignment ADD COLUMN campaign_id TEXT;"]
+  },
+  "23": {
+    "toVersion": 23,
     "statements": [
+      "ALTER TABLE local_campaigns ADD COLUMN objective TEXT NOT NULL DEFAULT 'homework_campaign';",
+      "ALTER TABLE local_campaigns ADD COLUMN target_value INTEGER;",
+      "ALTER TABLE user_campaign_rewards ADD COLUMN lessons_completed_count INTEGER NOT NULL DEFAULT 0;",
+      "ALTER TABLE user_campaign_rewards ADD COLUMN lessons_target_count INTEGER NOT NULL DEFAULT 0;",
+      "ALTER TABLE user_campaign_rewards ADD COLUMN completion_percentage INTEGER NOT NULL DEFAULT 0;",
+      "ALTER TABLE user_campaign_rewards ADD COLUMN certificate_available INTEGER NOT NULL DEFAULT 0;"
       "ALTER TABLE assignment ADD COLUMN campaign_id TEXT;",
       "ALTER TABLE sticker_book ADD COLUMN title_translations TEXT;"
     ]

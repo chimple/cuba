@@ -3,11 +3,11 @@ import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
 import './LeaderboardRewards.css';
 import LessonCompletionRewards from './LessonCompletionRewards';
-import LeaderboardBadges from './LeaderboardBadges';
-import LeaderboardBonus from './LeaderboardBonus';
-import LeaderboardSticker from './LeaderboardSticker';
+import CompetitionRewardCards from './CompetitionRewardCards';
+import type { CompetitionReward } from './CompetitionRewardCards';
 import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { SqliteApi } from '../../services/api/SqliteApi';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { REWARDS_TABS } from '../../common/constants/rewardsPathway';
@@ -36,6 +36,9 @@ const LeaderboardRewards: FC = () => {
       state.badgeProgress?.hasUnseenBadge === true,
   );
   const [progress, setProgress] = useState(EMPTY_BADGE_PROGRESS);
+  const [competitionRewards, setCompetitionRewards] = useState<
+    CompetitionReward[]
+  >([]);
   const [isProgressLoading, setIsProgressLoading] = useState(
     Boolean(student?.id),
   );
@@ -127,14 +130,47 @@ const LeaderboardRewards: FC = () => {
     student?.id,
   ]);
 
+  useEffect(() => {
+    if (!student?.id || activeTab !== REWARDS_TABS.COMPETITIONS) return;
+
+    let mounted = true;
+    setCompetitionRewards([]);
+    const loadRewards = async () => {
+      const api = SqliteApi.getI();
+      try {
+        await api.syncCampaignRewards(student.id);
+      } catch (error) {
+        logger.error(
+          'Failed to sync competition rewards; using local cache:',
+          error,
+        );
+      }
+      try {
+        const rewards = await api.getCachedCampaignRewards(student.id);
+        if (!mounted) return;
+        setCompetitionRewards(rewards as CompetitionReward[]);
+        void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
+          target_tab: 'competitions',
+          number_of_competitions: rewards.length,
+        });
+      } catch (error) {
+        if (mounted) setCompetitionRewards([]);
+        logger.error('Failed to load competition rewards:', error);
+      }
+    };
+    void loadRewards();
+    return () => {
+      mounted = false;
+    };
+    // Badge progress changes must not repeat a tab selection or reward sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, student?.id]);
+
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);
-    if (student?.id) {
+    if (student?.id && tab !== REWARDS_TABS.COMPETITIONS) {
       void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
-        target_tab:
-          tab === REWARDS_TABS.COMPETITIONS
-            ? 'stickers'
-            : 'lesson_completion_badges',
+        target_tab: 'lesson_completion_badges',
       });
     }
   };
@@ -180,11 +216,7 @@ const LeaderboardRewards: FC = () => {
       ) : activeTab === REWARDS_TABS.LESSON_COMPLETION ? (
         <LessonCompletionRewards studentId={student?.id} progress={progress} />
       ) : (
-        <div className="competition-rewards-content">
-          <LeaderboardSticker />
-          <LeaderboardBadges />
-          <LeaderboardBonus />
-        </div>
+        <CompetitionRewardCards rewards={competitionRewards} />
       )}
     </div>
   );
