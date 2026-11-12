@@ -45,6 +45,7 @@ export interface SchoolWithRole {
 }
 export interface FilteredSchoolsForSchoolListingOps {
   school_id?: string;
+  grade_id?: string | null;
   metric_window?: string | null;
   school_name: string;
   school_performance?: string | null;

@@ -553,39 +553,38 @@ describe('SchoolList export', () => {
 
   it('exports the filtered school metrics rows to an xlsx file', async () => {
     const user = userEvent.setup();
+    const schoolListingRow = {
+      school_id: 'school-1',
+      school_name: 'Alpha School',
+      school_performance: 'green',
+      state: 'Maharashtra',
+      district: 'Pune',
+      udise: '1234567890',
+      num_students: 120,
+      num_teachers: 8,
+      total_teachers: 8,
+      onboarded_students: 100,
+      activated_students: 80,
+      active_students: 60,
+      avg_time_spent: 45,
+      active_teachers: 6,
+      activated_teachers: 6,
+      activities_assigned: 14,
+      parents_reached: 42,
+      avg_assignments_completed: 10,
+      avg_activities_completed: 8,
+      phone_calls_students_parents: 5,
+      inperson_students_parents: 4,
+      phone_calls_teachers_hms: 3,
+      community_visits: 2,
+      school_visits: 7,
+      parents_on_whatsapp: 40,
+      parents_in_whatsapp_group: 32,
+      program_managers: ['Program Manager 1'],
+      field_coordinators: ['Field Coordinator 1'],
+    };
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
-      data: [
-        {
-          school_id: 'school-1',
-          school_name: 'Alpha School',
-          school_performance: 'green',
-          state: 'Maharashtra',
-          district: 'Pune',
-          udise: '1234567890',
-          num_students: 120,
-          num_teachers: 8,
-          total_teachers: 8,
-          onboarded_students: 100,
-          activated_students: 80,
-          active_students: 60,
-          avg_time_spent: 45,
-          active_teachers: 6,
-          activated_teachers: 6,
-          activities_assigned: 14,
-          parents_reached: 42,
-          avg_assignments_completed: 10,
-          avg_activities_completed: 8,
-          phone_calls_students_parents: 5,
-          inperson_students_parents: 4,
-          phone_calls_teachers_hms: 3,
-          community_visits: 2,
-          school_visits: 7,
-          parents_on_whatsapp: 40,
-          parents_in_whatsapp_group: 32,
-          program_managers: ['Program Manager 1'],
-          field_coordinators: ['Field Coordinator 1'],
-        },
-      ],
+      data: [schoolListingRow],
       total: 1,
     });
 
@@ -594,18 +593,42 @@ describe('SchoolList export', () => {
     const exportButton = await screen.findByRole('button', { name: 'Export' });
     await waitFor(() => expect(exportButton).toBeEnabled());
 
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValueOnce({
+      data: [schoolListingRow],
+      total: 1,
+    });
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValueOnce({
+      data: [
+        {
+          ...schoolListingRow,
+          grade_id: null,
+          onboarded_students: null,
+          parents_on_whatsapp: null,
+          parents_in_whatsapp_group: null,
+        },
+        {
+          ...schoolListingRow,
+          grade_id: 'grade-1',
+        },
+      ],
+      total: 2,
+      grades: [{ id: 'grade-1', name: 'Grade 1' }],
+    });
+
     await user.click(exportButton);
 
     expect(
       mockApiHandler.getSchoolMetricsForSchoolListing,
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(3);
     expect(
       mockApiHandler.getSchoolMetricsForSchoolListing,
     ).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        page: 1,
-        page_size: 500,
+        export_school_ids: ['school-1'],
         date_range: '7d',
+        filters: expect.objectContaining({ grade: [] }),
+        percentage_filters: {},
+        school_performance_filter: null,
       }),
     );
     expect(mockRunBackgroundWorkerTask).toHaveBeenCalledWith(
@@ -639,6 +662,11 @@ describe('SchoolList export', () => {
               'In-Person - Students / Parents',
               'On WhatsApp',
               'In Group',
+              'Onboarded Students - Grade 1',
+              'Total Onboarded Teachers',
+              'Activated Teachers',
+              'Parents on WhatsApp - Grade 1',
+              'Parents on Group - Grade 1',
             ],
             [
               'Alpha School',
@@ -663,6 +691,11 @@ describe('SchoolList export', () => {
               '42',
               '7',
               '4',
+              '40',
+              '32',
+              '100',
+              '8',
+              '6',
               '40',
               '32',
             ],
