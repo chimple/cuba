@@ -183,6 +183,9 @@ export type StickerBook = {
   /** Display title of the sticker book */
   title: string;
 
+  /** Optional, database-managed translations keyed by language code (for example hi). */
+  title_translations?: Record<string, string> | string | null;
+
   /** URL of the SVG layout used to visually render the book */
   svg_url: string;
 

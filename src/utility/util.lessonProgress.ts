@@ -14,6 +14,7 @@ import {
   DOWNLOADED_LESSON_ID,
   LAST_FUNCTION_CALL,
   CHAPTER_ID_LESSON_ID_MAP,
+  PROBLEM_END,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -24,7 +25,11 @@ import { OneRosterApi } from '../services/api/OneRosterApi';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
-import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
+import {
+  buildGlobalEventBaseContext,
+  UNKNOWN_CONTEXT_VALUE,
+} from '../common/eventBaseContext';
+import { getCachedXapiLaunchAnalyticsContext } from '../tincan';
 import logger from './logger';
 import { AudioUtil } from './AudioUtil';
 import {
@@ -207,18 +212,36 @@ export class UtilLessonProgress extends UtilAnalytics {
     });
   }
 
-  public static async logEvent(eventName: EVENTS, params: {}) {
+  public static async logEvent(
+    eventName: EVENTS | typeof PROBLEM_END,
+    params: {},
+  ) {
     try {
+      const launchContext = getCachedXapiLaunchAnalyticsContext();
       const baseContext = buildGlobalEventBaseContext();
       const mergedParams = {
         ...baseContext,
         ...params,
+        ...(launchContext
+          ? {
+              user_id: launchContext.analyticsUserId,
+              student_id: launchContext.analyticsUserId,
+              user_roles: UNKNOWN_CONTEXT_VALUE,
+              school_id: UNKNOWN_CONTEXT_VALUE,
+              current_app_mode: UNKNOWN_CONTEXT_VALUE,
+              src: launchContext.src,
+              xapi_activity_id: launchContext.xapiActivityId,
+            }
+          : {}),
       };
+      const validParams = Object.entries(mergedParams).filter(([, value]) => {
+        if (!launchContext) return true;
+        if (value === undefined || value === null) return false;
+        if (typeof value === 'number' && !Number.isFinite(value)) return false;
+        return typeof value !== 'string' || value.trim().length > 0;
+      });
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
-        Object.entries(mergedParams).map(([key, value]) => [
-          key,
-          String(value),
-        ]),
+        validParams.map(([key, value]) => [key, String(value)]),
       );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
@@ -241,6 +264,13 @@ export class UtilLessonProgress extends UtilAnalytics {
         nameOverride: getAppPathname(),
       });
 
+      if (
+        launchContext &&
+        (eventName === EVENTS.GOAL_PROGRESS ||
+          eventName === EVENTS.POST_LESSON_GOALS_VIEWED)
+      ) {
+        return;
+      }
       await FirebaseAnalytics.logEvent({
         name: eventName,
         params: normalizedParams,

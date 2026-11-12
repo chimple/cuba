@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import AddButton from '../../common/AddButton';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 import {
   AUTO_USER_ACTION_TYPES,
   CLASS_USERS,
@@ -133,12 +134,20 @@ const ClassUsers: React.FC = () => {
             )}
           </div>
           {selectedTab === CLASS_USERS.STUDENTS && !isExternalUser && (
-            <AddButton onClick={addStudent} />
+            <AddButton
+              onClick={addStudent}
+              trackableId={TRACKABLE_IDS.TEACHER_OPEN_ADD_STUDENT}
+            />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
             canAddTeacher &&
             !isExternalUser &&
-            !isTeacherSchoolMode && <AddButton onClick={addTeacher} />}
+            !isTeacherSchoolMode && (
+              <AddButton
+                onClick={addTeacher}
+                trackableId={TRACKABLE_IDS.TEACHER_ADD_TEACHER}
+              />
+            )}
         </div>
       )}
     </>

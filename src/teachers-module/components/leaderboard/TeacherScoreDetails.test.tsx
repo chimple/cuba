@@ -36,13 +36,18 @@ describe('TeacherScoreDetails', () => {
     expect(
       screen.getByText('Your Score today is 74 points'),
     ).toBeInTheDocument();
-    expect(screen.getByText('4↑')).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.textContent === '4⬆'),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
         'Your score has increased by 4 points. Keep it up! Motivate your students to stay strong on the leaderboard! 👍',
       ),
     ).toBeInTheDocument();
     expect(screen.getByText('Today')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('teacher-score-details-today-marker'),
+    ).toBeInTheDocument();
   });
 
   it('renders the decrease message and closes from the close button', () => {
@@ -55,7 +60,9 @@ describe('TeacherScoreDetails', () => {
       />,
     );
 
-    expect(screen.getByText('4↓')).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.textContent === '4⬇'),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
         'Your score has decreased by 4 points. Motivate students to move into the green band and climb the leaderboard! 👍',
@@ -66,5 +73,20 @@ describe('TeacherScoreDetails', () => {
       screen.getByRole('button', { name: 'Close score details' }),
     );
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('rounds score values before displaying them', () => {
+    render(
+      <TeacherScoreDetails
+        currentScore={74.8}
+        scoreHistory={scoreHistory([62.1, 68.4, 70.3, 71.5, 70.1, 70.5, 74.8])}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText('Your Score today is 75 points'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('75')).toBeInTheDocument();
   });
 });

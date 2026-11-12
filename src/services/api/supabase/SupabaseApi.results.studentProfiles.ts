@@ -156,8 +156,25 @@ export class SupabaseApiResultsStudentProfiles extends SupabaseApiResultsResultU
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    studentConnectivity?: TableTypes<'user'>['student_connectivity'],
+    connectivityOnly = false,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
+
+    if (connectivityOnly) {
+      const { error } = await this.supabase
+        .from(TABLES.User)
+        .update({ student_connectivity: studentConnectivity ?? null })
+        .eq('id', student.id);
+
+      if (error) {
+        logger.error('Error updating student connectivity:', error);
+        throw error;
+      }
+
+      return { ...student, student_connectivity: studentConnectivity ?? null };
+    }
+
     const now = new Date().toISOString();
     const updatedFields: any = {
       name,
@@ -171,6 +188,9 @@ export class SupabaseApiResultsStudentProfiles extends SupabaseApiResultsResultU
       student_id: student.student_id ?? null,
       updated_at: now,
     };
+    if (studentConnectivity !== undefined) {
+      updatedFields.student_connectivity = studentConnectivity;
+    }
 
     if (student.language_id !== languageDocId) {
       const countryCode = await this.getClientCountryCode();

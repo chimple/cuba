@@ -105,6 +105,7 @@ export interface PortPlugin {
     chimpleLessonId: string;
     lessonName: string;
     xapiIpcPackage: string;
+    zipUrl?: string;
   }>;
   returnToLauncher(): Promise<void>;
   getPort(): Promise<{ port: number }>;
@@ -444,3 +445,4 @@ export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
 export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
+export const CLICK_ANALYTICS_CONFIG = 'click_analytics_config';

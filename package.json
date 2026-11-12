@@ -143,6 +143,7 @@
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
     "check:file-size": "node scripts/check-file-size-limits.js",
     "check:new-any": "node scripts/check-new-explicit-any.js",
+    "check:button-class-id": "node scripts/check-button-class-id.js",
     "prepare": "husky"
   },
   "eslintConfig": {
@@ -210,6 +211,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "jszip": "^3.10.1",
     "lint-staged": "^16.3.3",
+    "postcss": "^8.5.6",
     "prettier": "^3.8.1",
     "prop-types": "^15.8.1",
     "shx": "^0.4.0",
@@ -227,6 +229,9 @@
       "prettier --check",
       "npm run check:new-any",
       "npm run check:file-size"
+    ],
+    "src/**/*.{tsx,css}": [
+      "npm run check:button-class-id"
     ],
     "*.{js,jsx,ts,tsx,css,json,md}": [
       "prettier --check"

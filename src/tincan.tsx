@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Statement, TinCan } from 'tincants';
+import { v4 as uuidv4 } from 'uuid';
 import { PortPlugin } from './common/constants';
 import logger from './utility/logger';
 
@@ -20,8 +21,26 @@ export interface RespectLaunchData {
   activityId: string;
   registration: string;
   xapiIpcPackage: string;
+  analyticsUserId: string;
+  analyticsStudentId: string | null;
+  lessonName?: string;
+  zipUrl?: string;
+}
+
+export type XapiLaunchSource = 'openeel' | 'respect';
+
+export interface XapiLaunchAnalyticsContext {
+  src: XapiLaunchSource;
+  xapiActivityId: string;
+  analyticsUserId: string;
+  analyticsStudentId: string | null;
   lessonName?: string;
 }
+
+const OPEN_EEL_IPC_PACKAGE = 'org.openeel.app';
+
+export const getXapiLaunchSource = (ipcPackage: string): XapiLaunchSource =>
+  ipcPackage === OPEN_EEL_IPC_PACKAGE ? 'openeel' : 'respect';
 
 type XapiStatement = ReturnType<Statement['asVersion']>;
 
@@ -54,6 +73,7 @@ export interface RespectLaunchParameters {
   lessonId: string;
   xapiIpcPackage: string;
   lessonName?: string;
+  zipUrl?: string;
 }
 
 let cachedRespectLaunchData: RespectLaunchData | null = null;
@@ -91,6 +111,8 @@ const toRespectLaunchData = (
       return null;
     }
 
+    const analyticsStudentId = actor.account?.name?.trim() || null;
+
     return {
       endpoint: launchParameters.endpoint,
       auth: launchParameters.auth,
@@ -98,7 +120,11 @@ const toRespectLaunchData = (
       activityId: launchParameters.lessonId,
       registration: launchParameters.registration,
       xapiIpcPackage: launchParameters.xapiIpcPackage,
+      // Keep Analytics IDs opaque; never reuse a learner name or mbox.
+      analyticsUserId: analyticsStudentId ?? uuidv4(),
+      analyticsStudentId,
       lessonName: launchParameters.lessonName,
+      zipUrl: launchParameters.zipUrl?.trim() || undefined,
     };
   } catch {
     return null;
@@ -116,6 +142,7 @@ const getRespectLaunchDataFromUrl = (): RespectLaunchData | null => {
     lessonId: searchParameters.get('activity_id') ?? '',
     xapiIpcPackage: searchParameters.get('xapiIpcPackage') ?? '',
     lessonName: searchParameters.get('lesson_name') ?? undefined,
+    zipUrl: searchParameters.get('zipUrl') ?? undefined,
   });
 };
 
@@ -128,6 +155,22 @@ export const cacheRespectLaunchData = (
   }
   return launchData;
 };
+
+export const clearCachedRespectLaunchData = (): void => {
+  cachedRespectLaunchData = null;
+};
+
+export const getCachedXapiLaunchAnalyticsContext =
+  (): XapiLaunchAnalyticsContext | null =>
+    cachedRespectLaunchData
+      ? {
+          src: getXapiLaunchSource(cachedRespectLaunchData.xapiIpcPackage),
+          xapiActivityId: cachedRespectLaunchData.activityId,
+          analyticsUserId: cachedRespectLaunchData.analyticsUserId,
+          analyticsStudentId: cachedRespectLaunchData.analyticsStudentId,
+          lessonName: cachedRespectLaunchData.lessonName,
+        }
+      : null;
 
 export const getRespectLaunchData =
   async (): Promise<RespectLaunchData | null> => {

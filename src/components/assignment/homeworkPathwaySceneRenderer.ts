@@ -309,6 +309,12 @@ export function renderHomeworkPathwayScene(params: any) {
                   `?tab=${HOMEHEADERLIST.ASSIGNMENT}&${CONTINUE}=true`,
                 isHomework: true,
                 homeworkIndex: lessonIdx,
+                // Keep results and goals scoped to the selected local assignment path.
+                homeworkAssignmentId:
+                  homeworkItem.assignment_id ??
+                  homeworkItem.raw_assignment?.id ??
+                  undefined,
+                pathwayAssignments,
                 reward: shouldMarkRewardLesson,
                 source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
               },

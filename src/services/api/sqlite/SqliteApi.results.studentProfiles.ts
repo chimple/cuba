@@ -125,6 +125,9 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    _phoneNumber?: string,
+    studentConnectivity?: TableTypes<'user'>['student_connectivity'],
+    connectivityOnly = false,
   ): Promise<TableTypes<'user'>> {
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
@@ -136,6 +139,21 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
     }
 
     const now = new Date().toISOString();
+
+    if (connectivityOnly) {
+      await this.executeQuery(
+        `UPDATE ${TABLES.User} SET student_connectivity = ? WHERE id = ?;`,
+        [studentConnectivity ?? null, student.id],
+      );
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        id: student.id,
+        student_connectivity: studentConnectivity ?? null,
+      });
+      return {
+        ...student,
+        student_connectivity: studentConnectivity ?? null,
+      };
+    }
 
     const updateUserQuery = `
       UPDATE "user"
@@ -150,6 +168,7 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         language_id = ?,
         locale_id = ?,
         student_id = ?,
+        student_connectivity = ?,
         updated_at = ?
       WHERE id = ?;
     `;
@@ -166,6 +185,7 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         languageDocId,
         localeId,
         student_id,
+        studentConnectivity ?? student.student_connectivity ?? null,
         now,
       ];
 
@@ -184,6 +204,8 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         grade_id: gradeDocId,
         language_id: languageDocId,
         student_id,
+        student_connectivity:
+          studentConnectivity ?? student.student_connectivity ?? null,
         locale_id: localeId,
         updated_at: now,
       };
@@ -198,6 +220,8 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         grade_id: gradeDocId,
         language_id: languageDocId,
         student_id: student_id,
+        student_connectivity:
+          studentConnectivity ?? student.student_connectivity ?? null,
         locale_id: localeId,
         updated_at: now,
         id: student.id,
