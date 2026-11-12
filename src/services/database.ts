@@ -5066,6 +5066,7 @@ export type Database = {
           stickers_metadata: Json;
           svg_url: string;
           title: string;
+          title_translations: Json | null;
           total_stickers: number;
           updated_at: string | null;
         };
@@ -5077,6 +5078,7 @@ export type Database = {
           stickers_metadata: Json;
           svg_url: string;
           title: string;
+          title_translations?: Json | null;
           total_stickers: number;
           updated_at?: string | null;
         };
@@ -5088,6 +5090,7 @@ export type Database = {
           stickers_metadata?: Json;
           svg_url?: string;
           title?: string;
+          title_translations?: Json | null;
           total_stickers?: number;
           updated_at?: string | null;
         };
