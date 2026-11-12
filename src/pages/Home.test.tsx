@@ -30,6 +30,7 @@ jest.mock('@ionic/react', () => ({
   IonPage: (props: any) => <div>{props.children}</div>,
   IonHeader: (props: any) => <div>{props.children}</div>,
   useIonRouter: () => ({}),
+  useIonViewDidEnter: jest.fn(),
 }));
 
 jest.mock('react-router', () => ({
