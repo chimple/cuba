@@ -271,19 +271,28 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     );
     if (!this.supabase || ids.length === 0) return status;
 
-    const { data, error } = await this.supabase
-      .from(TABLES.Assignment)
-      .select('created_by')
-      .in('created_by', ids);
-    if (error) {
-      logger.error('Error fetching lifetime teacher assignments:', error);
-      throw error;
-    }
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await this.supabase
+        .from(TABLES.Assignment)
+        .select('id, created_by')
+        .in('created_by', ids)
+        .order('created_by', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) {
+        logger.error('Error fetching lifetime teacher assignments:', error);
+        throw error;
+      }
 
-    (data ?? []).forEach((row) => {
-      const teacherId = String(row.created_by ?? '').trim();
-      if (teacherId) status[teacherId] = true;
-    });
+      const rows = data ?? [];
+      rows.forEach((row) => {
+        const teacherId = String(row.created_by ?? '').trim();
+        if (teacherId) status[teacherId] = true;
+      });
+
+      if (rows.length < pageSize) break;
+    }
     return status;
   }
 
