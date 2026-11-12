@@ -33,7 +33,12 @@ describe('CampaignCertificateHost', () => {
   });
 
   it('renders the modal when the public certificate event is dispatched', () => {
-    render(<CampaignCertificateHost />);
+    window.history.pushState({}, '', '/home');
+    render(
+      <>
+        <CampaignCertificateHost />
+      </>,
+    );
 
     act(() => {
       showCampaignCertificate({
