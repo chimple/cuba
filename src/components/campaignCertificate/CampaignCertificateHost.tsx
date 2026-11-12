@@ -12,6 +12,20 @@ const isHomeRoute = (pathname: string) =>
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,
 ) => {
+  // Persist before dispatching so an event emitted while the global host is
+  // mounting is not lost (this is common on native scorecard navigation).
+  const isPreview = new URLSearchParams(window.location.search).has(
+    'campaignCertificatePreview',
+  );
+  if (!isPreview) {
+    localStorage.setItem(
+      PENDING_CERTIFICATE_STORAGE_KEY,
+      JSON.stringify({
+        ...certificate,
+        isNewlyEarned: certificate.isNewlyEarned ?? true,
+      }),
+    );
+  }
   window.dispatchEvent(
     new CustomEvent<CampaignCertificateData>(
       CAMPAIGN_CERTIFICATE_EARNED_EVENT,
@@ -64,6 +78,9 @@ const CampaignCertificateHost = () => {
           }),
         );
         return;
+      }
+      if (!isPreview) {
+        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
       }
       displayCertificate(detail);
     };

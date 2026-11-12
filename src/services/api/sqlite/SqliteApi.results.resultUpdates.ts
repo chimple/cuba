@@ -221,7 +221,10 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
         updatedStudent.stars || 0,
       );
     }
-    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    // Finish queuing the result before evaluating campaigns. The campaign
+    // evaluator uses another SQLite API instance, so starting it immediately
+    // could read the database before the result write/push row is committed.
+    await this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     // Evaluate cached campaign data locally after a lesson; assignment progress stays in SQLite.
     // Use the root SQLite API singleton because the result-update branch does
     // not inherit the campaign-management methods directly.

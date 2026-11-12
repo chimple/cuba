@@ -54,7 +54,7 @@ import type { CampaignCertificateRank } from '../../../components/campaignCertif
 
 // Keep campaign settings cached between explicit syncs; goal rendering itself never calls this sync.
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
-const CAMPAIGN_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
 
 type LocalCampaignRow = {
   id: string;
@@ -373,13 +373,13 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
     const lastFetch = localStorage.getItem(storageKey);
     const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync started`, {
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync started`, {
       studentId,
       lastFetch,
     });
     if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
       const changes = await this.getActiveCampaigns(studentId, lastFetch);
-      logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} changes received`, {
+      logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} changes received`, {
         studentId,
         count: changes?.length ?? 0,
       });
@@ -389,7 +389,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
             'UPDATE local_campaigns SET is_deleted = 1, status = ? WHERE id = ?',
             ['inactive', change.campaign_id],
           );
-          logger.info(
+          logger.warn(
             `${CAMPAIGN_REWARD_LOG_KEYWORD} campaign marked deleted`,
             { studentId, campaignId: change.campaign_id },
           );
@@ -412,7 +412,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
             change.updated_at ?? change.created_at ?? new Date().toISOString(),
           ],
         );
-        logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign stored locally`, {
+        logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign stored locally`, {
           studentId,
           campaignId: change.campaign_id,
           status: change.campaign_status,
@@ -422,7 +422,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
 
     await this.hydrateCampaignRewards(studentId);
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync completed`, { studentId });
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} sync completed`, { studentId });
   }
 
   async hydrateCampaignRewards(
@@ -526,7 +526,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         ? 'missed'
         : 'in_progress';
     const rank = winningRule?.rank ?? null;
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign evaluated`, {
+    logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaign evaluated`, {
       campaignId: campaign.id,
       studentId,
       totalLessons,
@@ -578,7 +578,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
 
     if (shouldEmitCertificate) {
-      logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} certificate event emitted`, {
+      logger.warn(`${CAMPAIGN_REWARD_LOG_KEYWORD} certificate event emitted`, {
         campaignId: campaign.id,
         studentId,
         rank,
