@@ -177,3 +177,17 @@
     min-height: 43.2px;
   }
 }
+
+@media (min-width: 721px) {
+  .score-card-dialog--progress:has(
+      .score-card-goal-progress-content-box[data-progress-source]
+    ):not(.score-card-dialog--progress-no-rows)
+    .score-card-dialog__paper--progress {
+    width: 800px !important;
+    max-width: 800px !important;
+    height: 360px !important;
+    min-height: 360px !important;
+    max-height: 360px !important;
+    zoom: min(calc(100vw / 800px), calc(100vh / 360px), 1.7);
+  }
+}
