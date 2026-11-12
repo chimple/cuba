@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PAGES } from '../../common/constants';
 import CampaignCertificateModal from './CampaignCertificateModal';
 import type { CampaignCertificateData } from './campaignCertificate.types';
 
@@ -6,8 +7,7 @@ export const CAMPAIGN_CERTIFICATE_EARNED_EVENT =
   'chimple:campaign-certificate-earned';
 const PENDING_CERTIFICATE_STORAGE_KEY = 'campaignCertificatePending';
 
-const isHomeRoute = (pathname: string) =>
-  pathname === '/' || pathname.includes('/home');
+const isHomeRoute = (pathname: string) => pathname === PAGES.HOME;
 
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,
@@ -93,6 +93,10 @@ const CampaignCertificateHost = () => {
       'ionRouteDidChange',
       displayPendingCertificateOnHome,
     );
+    document.addEventListener(
+      'ionViewDidEnter',
+      displayPendingCertificateOnHome,
+    );
     window.addEventListener('popstate', displayPendingCertificateOnHome);
     displayPendingCertificateOnHome();
     return () => {
@@ -106,6 +110,10 @@ const CampaignCertificateHost = () => {
       );
       document.removeEventListener(
         'ionRouteDidChange',
+        displayPendingCertificateOnHome,
+      );
+      document.removeEventListener(
+        'ionViewDidEnter',
         displayPendingCertificateOnHome,
       );
       window.removeEventListener('popstate', displayPendingCertificateOnHome);
