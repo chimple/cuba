@@ -272,7 +272,11 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     if (!this.supabase || ids.length === 0) return status;
 
     const pageSize = 1000;
-    for (let from = 0; ; from += pageSize) {
+    for (
+      let from = 0, rowsFetched = pageSize;
+      rowsFetched === pageSize;
+      from += pageSize
+    ) {
       const { data, error } = await this.supabase
         .from(TABLES.Assignment)
         .select('id, created_by')
@@ -291,7 +295,7 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
         if (teacherId) status[teacherId] = true;
       });
 
-      if (rows.length < pageSize) break;
+      rowsFetched = rows.length;
     }
     return status;
   }
