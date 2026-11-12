@@ -1,5 +1,5 @@
 import { SupabaseApiSticker } from './SupabaseApi.sticker';
-import { checkWhatsappProviderStatus } from './SupabaseApi.whatsapp.providerStatus';
+import { fetchWhatsappProviderStatus } from './SupabaseApi.whatsapp.providerStatus';
 import { TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
@@ -40,7 +40,7 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
     };
   }
 
-  getWhatsappProviderStatus = checkWhatsappProviderStatus;
+  getWhatsappProviderStatus = () => fetchWhatsappProviderStatus(this.supabase);
   // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
@@ -254,8 +254,8 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
 
     if (record?.success === false) {
       const details = getRecord(record.details);
-      const primaryDetail = String(details?.maytapi ?? '').trim();
-      const secondaryDetail = String(details?.periskope ?? '').trim();
+      const primaryDetail = String(details?.openwa ?? '').trim();
+      const secondaryDetail = String(details?.maytapi ?? '').trim();
       const detailSuffix =
         primaryDetail || secondaryDetail
           ? ` (Primary: ${primaryDetail || 'n/a'} | Secondary: ${

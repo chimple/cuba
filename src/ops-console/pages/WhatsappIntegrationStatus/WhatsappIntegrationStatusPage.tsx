@@ -63,7 +63,7 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
           page,
           page_size: PAGE_SIZE,
           search,
-          periskope_status: statusFilters.periskopeStatus ?? undefined,
+          openwa_status: statusFilters.openwaStatus ?? undefined,
           maytapi_status: statusFilters.maytapiStatus ?? undefined,
         });
         if (cancelled) return;
@@ -92,14 +92,14 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
     page,
     search,
     statusFilters.maytapiStatus,
-    statusFilters.periskopeStatus,
+    statusFilters.openwaStatus,
     t,
   ]);
 
   const { isExporting, handleExport } = useWhatsappIntegrationStatusExport(
     rows,
     search,
-    statusFilters.periskopeStatus,
+    statusFilters.openwaStatus,
     statusFilters.maytapiStatus,
   );
 
@@ -153,7 +153,7 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
         <WhatsappIntegrationStatusAppliedFilters
           maytapiStatus={statusFilters.maytapiStatus}
           onDeleteFilter={statusFilters.handleDeleteFilter}
-          periskopeStatus={statusFilters.periskopeStatus}
+          openwaStatus={statusFilters.openwaStatus}
         />
 
         {error && <Alert severity="error">{error}</Alert>}
@@ -195,15 +195,13 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
                   render: (row) => row.group_id || '--',
                 },
                 {
-                  key: 'periskope_status',
-                  label: t('Periskope'),
+                  key: 'openwa_status',
+                  label: t('OpenWA'),
                   sortable: false,
                   align: 'left',
                   width: '20%',
                   render: (row) => (
-                    <WhatsappIntegrationStatusChip
-                      status={row.periskope_status}
-                    />
+                    <WhatsappIntegrationStatusChip status={row.openwa_status} />
                   ),
                 },
                 {
@@ -247,8 +245,8 @@ const WhatsappIntegrationStatusPage: React.FC = () => {
         <WhatsappIntegrationStatusFilterMenu
           anchorEl={statusFilters.anchorEl}
           selectedStatus={
-            statusFilters.column === 'periskope_status'
-              ? statusFilters.periskopeStatus
+            statusFilters.column === 'openwa_status'
+              ? statusFilters.openwaStatus
               : statusFilters.maytapiStatus
           }
           onClose={statusFilters.handleClose}

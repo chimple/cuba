@@ -36,6 +36,44 @@
   font-size: 12px;
   font-weight: 500;
 }
+.campaign-message-report-range-control {
+  min-width: 112px;
+}
+.campaign-message-report-range-control .MuiInputBase-root {
+  height: 30px;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: inherit;
+  font-size: 13px;
+}
+.campaign-message-report-range-control .MuiOutlinedInput-notchedOutline {
+  border-color: #d1d5db;
+}
+.campaign-message-report-range-control
+  .MuiInputBase-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #9ca3af;
+}
+.campaign-message-report-range-control
+  .MuiInputBase-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #1a71f6;
+  border-width: 1px;
+}
+.campaign-message-report-range-control .MuiSelect-select {
+  box-sizing: border-box;
+  min-height: 30px;
+  padding: 0 28px 0 8px !important;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+.campaign-message-report-range-control .MuiSelect-icon {
+  right: 6px;
+  color: #666;
+  font-size: 18px;
+}
 .campaign-message-report-date-control {
   position: relative;
   display: block;

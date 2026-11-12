@@ -3,8 +3,12 @@ import { Fab } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import './AddButton.css';
 import { t } from 'i18next';
+import { getTrackableProps, type TrackableId } from '../analytics/trackable';
 
-const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+const AddButton: React.FC<{
+  onClick: () => void;
+  trackableId?: TrackableId;
+}> = ({ onClick, trackableId }) => {
   const fabGreenStyle = {
     color: 'white',
     bgcolor: '#7c5db0',
@@ -24,6 +28,7 @@ const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       onClick={onClick}
       sx={fabGreenStyle}
       id="custom-add-icon"
+      {...(trackableId ? getTrackableProps(trackableId) : {})}
     >
       <AddIcon style={{ fontSize: '5vh' }} />
     </Fab>

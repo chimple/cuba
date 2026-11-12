@@ -469,6 +469,9 @@ export class SupabaseApiCourseCatalog extends SupabaseApiCoreSync {
 
     return ((data ?? []) as ChapterLessonRow[])
       .map((item) => item.lesson)
-      .filter((lesson): lesson is TableTypes<'lesson'> => !!lesson);
+      .filter(
+        (lesson): lesson is TableTypes<'lesson'> =>
+          !!lesson && lesson.is_deleted === false,
+      );
   }
 }

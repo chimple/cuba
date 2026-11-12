@@ -1,6 +1,7 @@
 import React, { MouseEventHandler, ReactNode } from 'react';
 import './DialogBoxButtons.css';
 import { OverlayEventDetail } from '@ionic/react/dist/types/components/react-component-lib/interfaces';
+import { getTrackableProps, type TrackableId } from '../../analytics/trackable';
 import {
   Dialog,
   DialogActions,
@@ -22,6 +23,9 @@ const DialogBoxButtons: React.FC<{
   noIcon?: ReactNode;
   showCloseButton?: boolean;
   yesIcon?: ReactNode;
+  yesTrackableId?: TrackableId;
+  noTrackableId?: TrackableId;
+  closeTrackableId?: TrackableId;
 }> = ({
   width,
   height,
@@ -36,6 +40,9 @@ const DialogBoxButtons: React.FC<{
   noIcon,
   showCloseButton = false,
   yesIcon,
+  yesTrackableId,
+  noTrackableId,
+  closeTrackableId,
 }) => {
   const [pressedButtonId, setPressedButtonId] = React.useState<string | null>(
     null,
@@ -69,6 +76,7 @@ const DialogBoxButtons: React.FC<{
             onClick={() =>
               handleClose({} as CustomEvent<OverlayEventDetail<unknown>>)
             }
+            {...(closeTrackableId ? getTrackableProps(closeTrackableId) : {})}
           >
             <img src="assets/popup-close.svg" alt="" />
           </button>
@@ -110,6 +118,7 @@ const DialogBoxButtons: React.FC<{
             onPointerLeave={clearPressedButton}
             onPointerUp={clearPressedButton}
             onClick={onYesButtonClicked}
+            {...(yesTrackableId ? getTrackableProps(yesTrackableId) : {})}
           >
             {yesIcon}
             {yesText}
@@ -125,6 +134,7 @@ const DialogBoxButtons: React.FC<{
             onPointerLeave={clearPressedButton}
             onPointerUp={clearPressedButton}
             onClick={onNoButtonClicked}
+            {...(noTrackableId ? getTrackableProps(noTrackableId) : {})}
           >
             {noIcon}
             {noText}

@@ -25,7 +25,8 @@ import logger from './logger';
 import { UtilLessonDownloads } from './util.lessonDownloads';
 type LessonBundleDownloadOptions = {
   lessonId: string;
-  zipUrls: string[];
+  zipUrls?: string[];
+  zipUrl?: string;
   dbVersion: number;
   cacheBust?: string;
 };
@@ -135,11 +136,13 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
     lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+    zipUrl?: string,
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
+      if (zipUrl && lessons.length !== 1) return false;
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
           void StorageManager.checkStorageLimit();
@@ -210,33 +213,36 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
-              const fallbackBundleZipUrls =
-                getBundleZipUrlsFallback(bundleZipUrlsKey);
-              const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
-                string[] | null
-              >(bundleZipUrlsKey, null);
-              const fallbackGeneralBundleZipUrls =
-                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                  ? getBundleZipUrlsForEnv()
-                  : [];
-              const cachedGeneralBundleZipUrls =
-                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                  ? getCachedGrowthBookFeatureValue<string[] | null>(
-                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-                      null,
-                    )
-                  : null;
-              const bundleZipUrls =
-                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
-                  ? mergeBundleZipUrls(
-                      cachedBundleZipUrls,
-                      fallbackBundleZipUrls,
-                      cachedGeneralBundleZipUrls,
-                      fallbackGeneralBundleZipUrls,
-                    )
-                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+              let bundleZipUrls: string[] = [];
+              if (!zipUrl) {
+                const fallbackBundleZipUrls =
+                  getBundleZipUrlsFallback(bundleZipUrlsKey);
+                const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                  string[] | null
+                >(bundleZipUrlsKey, null);
+                const fallbackGeneralBundleZipUrls =
+                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                    ? getBundleZipUrlsForEnv()
+                    : [];
+                const cachedGeneralBundleZipUrls =
+                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                    ? getCachedGrowthBookFeatureValue<string[] | null>(
+                        REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                        null,
+                      )
+                    : null;
+                bundleZipUrls =
+                  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                    ? mergeBundleZipUrls(
+                        cachedBundleZipUrls,
+                        fallbackBundleZipUrls,
+                        cachedGeneralBundleZipUrls,
+                        fallbackGeneralBundleZipUrls,
+                      )
+                    : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+              }
 
-              if (!bundleZipUrls || bundleZipUrls.length < 1) {
+              if (!zipUrl && bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
               }
@@ -252,7 +258,7 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
               const nativeBundleResult =
                 await lessonBundlePlugin.downloadAndExtract({
                   lessonId,
-                  zipUrls: bundleZipUrls,
+                  ...(zipUrl ? { zipUrl } : { zipUrls: bundleZipUrls }),
                   dbVersion,
                 });
 

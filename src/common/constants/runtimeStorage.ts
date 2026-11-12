@@ -2,8 +2,13 @@ import { Capacitor } from '@capacitor/core';
 import Auth from '../../models/Auth';
 import { TABLES } from './schema';
 
-export const SCREEN_WIDTH = window.innerWidth;
-export const SCREEN_HEIGHT = window.innerHeight;
+// Web Workers do not have access to the browser `window` object. Keep these
+// values undefined there because viewport dimensions are only meaningful on
+// the UI thread.
+export const SCREEN_WIDTH =
+  typeof window !== 'undefined' ? window.innerWidth : undefined;
+export const SCREEN_HEIGHT =
+  typeof window !== 'undefined' ? window.innerHeight : undefined;
 
 export const LESSONS_PLAYED_COUNT = 'lessonsPlayedCount';
 export const LESSON_END = 'lessonEnd';
@@ -26,6 +31,8 @@ export const SEARCH_LESSON_HISTORY = 'search_lesson_history';
 export const SEARCH_LESSON_CACHE_KEY = 'search_lesson_last_state';
 export const CURRENT_MODE = 'currentMode';
 export const LAST_MODE = 'lastMode';
+// Shared prefix makes campaign sync/evaluation logs easy to filter in device logs.
+export const CAMPAIGN_REWARD_LOG_KEYWORD = '[CAMPAIGN_REWARD]';
 export const CURRENT_CLASS = 'currentClass';
 export const FRESH_ASSESSMENT_AFTER_JOIN = (studentId: string) =>
   `fresh_assessment_after_join_${studentId}`;
@@ -100,8 +107,9 @@ export interface PortPlugin {
     chimpleLessonId: string;
     lessonName: string;
     xapiIpcPackage: string;
+    zipUrl?: string;
   }>;
-  returnDataToRespect(): Promise<void>;
+  returnToLauncher(): Promise<void>;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
@@ -269,9 +277,11 @@ export enum EVENTS {
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
   GOAL_PROGRESS = 'Goal_Progress',
+  POST_LESSON_GOALS_VIEWED = 'post_lesson_goals_viewed',
   CLICKS_ANALYTICS = 'clicks_analytics',
   CLICK_ANALYTICS = 'click_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
+  LOCAL_NOTIFICATION_OPENED = 'local_notification_opened',
   PATHWAY_CREATED = 'pathway_created',
   PATHWAY_COMPLETED = 'pathway_completed',
   PATHWAY_LESSON_END = 'pathway_lesson_end',
@@ -346,6 +356,11 @@ export enum EVENTS {
   REWARD_BADGE_SHARE_CLICKED = 'reward_badge_share_clicked',
   REWARD_BADGE_SHARE_SUCCESS = 'reward_badge_share_success',
   REWARD_BADGE_SHARE_FAILED = 'reward_badge_share_failed',
+  CAMPAIGN_CERTIFICATE_EARNED = 'campaign_certificate_earned',
+  CAMPAIGN_CERTIFICATE_POPUP_VIEWED = 'campaign_certificate_popup_viewed',
+  CAMPAIGN_CERTIFICATE_SHARE_CLICKED = 'campaign_certificate_share_clicked',
+  CAMPAIGN_CERTIFICATE_SHARE_SUCCESS = 'campaign_certificate_share_success',
+  CAMPAIGN_CERTIFICATE_SHARE_FAILED = 'campaign_certificate_share_failed',
   UNSEEN_BADGE_INDICATOR_CLICKED = 'unseen_badge_indicator_clicked',
   UNSEEN_BADGE_CLEARED = 'unseen_badge_cleared',
   TC_POPUP_VIEWED = 'tc_popup_viewed',
@@ -431,3 +446,4 @@ export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
 export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
+export const CLICK_ANALYTICS_CONFIG = 'click_analytics_config';

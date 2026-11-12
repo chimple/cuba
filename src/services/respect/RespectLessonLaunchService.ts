@@ -14,7 +14,12 @@ import { ScreenOrientation } from '../../utility/screenOrientation';
 import logger from '../../utility/logger';
 import { cachePreparedRespectLessonLaunchState } from './RespectLaunchCache';
 import type { RespectLessonLaunchState } from './RespectLaunchCache';
-import { cacheRespectLaunchData } from '../../tincan';
+import {
+  cacheRespectLaunchData,
+  clearCachedRespectLaunchData,
+  getXapiLaunchSource,
+} from '../../tincan';
+import { getOpenEelLessonZipUrl } from './RespectLessonZipUrl';
 
 export interface RespectLessonLaunch {
   pathname: PAGES;
@@ -25,17 +30,21 @@ const portPlugin = registerPlugin<PortPlugin>('Port');
 let receivedRespectLessonLaunch = false;
 
 /**
- * A RESPECT launch owns the surrounding navigation. Finishing Chimple returns
- * the learner to the lesson list that launched it instead of Cuba's home page.
+ * A launcher-owned lesson returns to the app that started it instead of Cuba's
+ * home page.
  */
-export const returnToRespectIfNeeded = async (): Promise<boolean> => {
+export const returnToLauncherIfNeeded = async (): Promise<boolean> => {
   if (!Util.isRespectMode) return false;
 
   try {
-    await portPlugin.returnDataToRespect();
+    await portPlugin.returnToLauncher();
     return true;
   } catch {
     return false;
+  } finally {
+    clearCachedRespectLaunchData();
+    receivedRespectLessonLaunch = false;
+    localStorage.removeItem(isRespectMode);
   }
 };
 
@@ -87,6 +96,9 @@ export const prepareRespectLessonLaunch =
   async (): Promise<RespectLessonLaunch | null> => {
     try {
       const launchData = await portPlugin.sendLaunchData();
+      console.log('[RespectLessonLaunch] Launcher handoff received', {
+        launchData
+      });
       if (!launchData.lessonId) return null;
 
       if (!cacheRespectLaunchData(launchData)) return null;
@@ -133,6 +145,15 @@ export const prepareRespectLessonLaunch =
       const playableLessonId = Util.getLessonBundleId(lesson);
       if (!playableLessonId) return null;
 
+      const isOpenEelLaunch =
+        getXapiLaunchSource(launchData.xapiIpcPackage) === 'openeel';
+      const openEelZipUrl = isOpenEelLaunch
+        ? getOpenEelLessonZipUrl(launchData.zipUrl, playableLessonId)
+        : undefined;
+      if (launchData.zipUrl && isOpenEelLaunch && !openEelZipUrl) {
+        logger.warn('[OpenEELLessonLaunch] Ignoring invalid lesson ZIP URL');
+      }
+
       const existingBundlePath = await Util.getLessonPath({
         lessonId: playableLessonId,
       });
@@ -141,11 +162,17 @@ export const prepareRespectLessonLaunch =
           [lesson],
           undefined,
           REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+          openEelZipUrl,
         );
         const downloadedBundlePath = await Util.getLessonPath({
           lessonId: playableLessonId,
         });
-        if (!downloaded || !downloadedBundlePath) return null;
+        if (!downloaded || !downloadedBundlePath) {
+          // Return to the launcher when its selected lesson is unavailable.
+          await returnToLauncherIfNeeded();
+          receivedRespectLessonLaunch = false;
+          return null;
+        }
       }
 
       await OneRosterApi.getInstance().createDeeplinkUser();

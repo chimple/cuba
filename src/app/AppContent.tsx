@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { IonRouterOutlet } from '@ionic/react';
 import { HardwareBackButtonHandler } from '../common/backButtonRegistry';
 import TermsGate from '../components/termsandconditons/TermsGate';
@@ -11,11 +11,26 @@ import { usePredictiveDownloads } from '../hooks/usePredictiveDownloads';
 import { useAppSelector } from '../redux/hooks';
 import AppRoutes from './AppRoutes';
 import AppOverlays from './AppOverlays';
+import { CampaignCertificateHost } from '../components/campaignCertificate';
+import { SqliteApi } from '../services/api/SqliteApi';
+import { Util } from '../utility/util';
 
 const AppRouteEffects = () => {
   useNavigationHandler();
   useOpsConsoleBodyClass();
   useRouteAudioCleanup();
+  useEffect(() => {
+    // Start the throttled campaign sync once the app shell is mounted.
+    const timer = window.setTimeout(() => {
+      const student = Util.getCurrentStudent();
+      if (student?.id) {
+        void SqliteApi.getInstance()
+          .then((api) => api.syncCampaignRewards(student.id))
+          .catch(() => undefined);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   return null;
 };
 
@@ -49,6 +64,8 @@ const AppContent: React.FC = () => {
         showBreakToast={usageLimit.showToast}
         onDismissBreakToast={() => usageLimit.setShowToast(false)}
       />
+      {/* Global host lets lesson evaluation open the certificate from any route. */}
+      <CampaignCertificateHost />
     </>
   );
 };

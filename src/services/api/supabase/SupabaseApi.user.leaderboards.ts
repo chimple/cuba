@@ -1,6 +1,15 @@
-import { LeaderboardDropdownList } from '../../../common/constants';
+import {
+  LeaderboardDropdownList,
+  TABLES,
+  TableTypes,
+} from '../../../common/constants';
 import logger from '../../../utility/logger';
-import { LeaderboardInfo, StudentLeaderboardInfo } from '../ServiceApi';
+import { calculateTeacherLeaderboardScoreHistory } from '../../../utility/teacherLeaderboardScoreUtil';
+import {
+  LeaderboardInfo,
+  StudentLeaderboardInfo,
+  TeacherLeaderboardScoreHistory,
+} from '../ServiceApi';
 import { SupabaseApiUserClassManagement } from './SupabaseApi.user.classManagement';
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
@@ -51,6 +60,118 @@ export interface SupabaseApiUserLeaderboards {
   [key: string]: any;
 }
 export class SupabaseApiUserLeaderboards extends SupabaseApiUserClassManagement {
+  /**
+   * Fetches the active leaderboard row for a teacher from Supabase.
+   * @param teacherId Authenticated teacher user ID.
+   * @returns Leaderboard row, or undefined when unavailable.
+   */
+  async getTeacherLeaderboard(
+    teacherId: string,
+  ): Promise<TableTypes<'teacher_leaderboard'> | undefined> {
+    if (!this.supabase || !teacherId) return undefined;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.TeacherLeaderboard)
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching teacher leaderboard:', error);
+      return undefined;
+    }
+
+    return data ?? undefined;
+  }
+
+  /**
+   * Loads the raw assignment, class roster, and result data needed to calculate
+   * the teacher's seven rolling daily scores. Calculation remains in the shared
+   * utility so this service only performs Supabase API requests.
+   * @param teacherId Authenticated teacher user ID whose score history is requested.
+   * @returns Seven date-and-score entries, or an empty array when inputs are unavailable.
+   */
+  async getTeacherLeaderboardScoreHistory(
+    teacherId: string,
+  ): Promise<TeacherLeaderboardScoreHistory[]> {
+    if (!this.supabase || !teacherId) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 1);
+    // The earliest displayed day needs its current and previous seven-day windows.
+    const earliestWindowDate = new Date(today);
+    earliestWindowDate.setDate(earliestWindowDate.getDate() - 12);
+
+    const { data: teacherClasses, error: teacherClassesError } =
+      await this.supabase
+        .from(TABLES.ClassUser)
+        .select('class_id')
+        .eq('user_id', teacherId)
+        .eq('role', 'teacher')
+        .eq('is_deleted', false);
+    if (teacherClassesError) {
+      logger.error('Error fetching teacher classes:', teacherClassesError);
+      return [];
+    }
+    const classIds = [
+      ...new Set((teacherClasses ?? []).map((row) => row.class_id)),
+    ];
+    if (classIds.length === 0) return [];
+
+    const [
+      { data: students, error: studentsError },
+      { data: assignments, error: assignmentsError },
+    ] = await Promise.all([
+      this.supabase
+        .from(TABLES.ClassUser)
+        .select('class_id,user_id')
+        .in('class_id', classIds)
+        .eq('role', 'student')
+        .eq('is_deleted', false),
+      this.supabase
+        .from(TABLES.Assignment)
+        .select('created_at')
+        .eq('created_by', teacherId)
+        .eq('is_deleted', false)
+        .gte('created_at', earliestWindowDate.toISOString())
+        .lt('created_at', endDate.toISOString()),
+    ]);
+    if (studentsError || assignmentsError) {
+      logger.error(
+        'Error fetching teacher score inputs:',
+        studentsError || assignmentsError,
+      );
+      return [];
+    }
+    const studentIds = [
+      ...new Set((students ?? []).map((student) => student.user_id)),
+    ];
+    if (studentIds.length === 0) return [];
+
+    const { data: results, error: resultsError } = await this.supabase
+      .from(TABLES.Result)
+      .select('class_id,student_id,time_spent,created_at')
+      .in('class_id', classIds)
+      .in('student_id', studentIds)
+      .eq('is_deleted', false)
+      .lt('created_at', endDate.toISOString());
+    if (resultsError) {
+      logger.error('Error fetching teacher student results:', resultsError);
+      return [];
+    }
+
+    // Reuse the same score calculation for Supabase-backed and local data.
+    return calculateTeacherLeaderboardScoreHistory({
+      assignments: assignments ?? [],
+      classIds,
+      results: results ?? [],
+      students: students ?? [],
+      today,
+    });
+  }
+
   async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList,

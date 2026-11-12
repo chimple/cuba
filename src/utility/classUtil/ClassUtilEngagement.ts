@@ -2,6 +2,21 @@ import { BANDS, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { addDays, subDays, subSeconds } from 'date-fns';
 
+export type StudentEngagementBand = 'green' | 'yellow' | 'red' | 'grey';
+
+export const getStudentEngagementBand = (
+  hasActivityInWindow: boolean,
+  timeSpentSeconds: number,
+  hasPlayedBeforeWindow: boolean,
+): StudentEngagementBand => {
+  if (!hasActivityInWindow) {
+    return hasPlayedBeforeWindow ? 'red' : 'grey';
+  }
+  if (timeSpentSeconds >= 45 * 60) return 'green';
+  if (timeSpentSeconds === 0) return 'red';
+  return 'yellow';
+};
+
 export class ClassUtilEngagement {
   protected api = ServiceConfig.getI().apiHandler;
 

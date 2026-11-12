@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { t } from 'i18next';
-import { AGE_OPTIONS, GENDER, StudentInfo } from '../../../common/constants';
+import {
+  AGE_OPTIONS,
+  GENDER,
+  STUDENT_CONNECTIVITY_OPTIONS,
+  StudentInfo,
+} from '../../../common/constants';
 import type { FieldConfig } from './FormCard';
 
 type SelectOption = {
@@ -156,6 +161,14 @@ export const useSchoolStudentFields = ({
         value: v,
         label: v,
       })),
+    },
+    {
+      name: 'studentConnectivity',
+      label: 'Student Connectivity',
+      kind: 'select',
+      column: 2,
+      allowClear: true,
+      options: [...STUDENT_CONNECTIVITY_OPTIONS],
     },
     {
       name: 'phone',

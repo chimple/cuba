@@ -1,6 +1,10 @@
 package org.chimple.bahama;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.util.Log;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -22,24 +26,34 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import okhttp3.Call;
 import okhttp3.Request;
 import okhttp3.Response;
 
 @CapacitorPlugin(name = "LessonBundle")
 public class LessonBundlePlugin extends Plugin {
+    private static final String TAG = "LessonBundle";
     private static final int BUFFER_SIZE = 8192;
     private static final int CONNECT_TIMEOUT_MS = 10000;
     private static final int READ_TIMEOUT_MS = 10000;
+    private static final long LAUNCHER_CACHE_TIMEOUT_SECONDS = 5;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @PluginMethod
     public void downloadAndExtract(PluginCall call) {
         String lessonId = call.getString("lessonId");
         JSArray zipUrls = call.getArray("zipUrls");
+        String requestedZipUrl = call.getString("zipUrl");
+        String zipUrl = requestedZipUrl == null || requestedZipUrl.trim().isEmpty()
+                ? null : requestedZipUrl.trim();
         Integer dbVersion = call.getInt("dbVersion");
 
         if (lessonId == null || lessonId.trim().isEmpty()) {
@@ -47,8 +61,13 @@ public class LessonBundlePlugin extends Plugin {
             return;
         }
 
-        if (zipUrls == null || zipUrls.length() == 0) {
-            call.reject("zipUrls is required");
+        if (zipUrl == null && (zipUrls == null || zipUrls.length() == 0)) {
+            call.reject("zipUrl or zipUrls is required");
+            return;
+        }
+
+        if (zipUrl != null && !isValidExactZipUrl(zipUrl, lessonId)) {
+            call.reject("zipUrl must be an HTTPS URL for the requested lesson ZIP");
             return;
         }
 
@@ -58,7 +77,9 @@ public class LessonBundlePlugin extends Plugin {
             try {
                 File rootDir = getExternalRootDirectory(getContext());
                 zipFile = File.createTempFile(lessonId, ".zip", rootDir);
-                DownloadResult downloadResult = downloadFirstAvailableZip(zipUrls, lessonId, zipFile);
+                DownloadResult downloadResult = zipUrl == null
+                        ? downloadFirstAvailableZip(zipUrls, lessonId, zipFile)
+                        : downloadZip(zipUrl, zipFile);
 
                 File extractDir = new File(rootDir, lessonId + "_temp");
                 deleteRecursively(extractDir);
@@ -84,6 +105,20 @@ public class LessonBundlePlugin extends Plugin {
     private File getExternalRootDirectory(Context context) {
         File externalDir = context.getExternalFilesDir(null);
         return externalDir == null ? context.getFilesDir() : externalDir;
+    }
+
+    private boolean isValidExactZipUrl(String zipUrl, String lessonId) {
+        try {
+            URL url = new URL(zipUrl);
+            return "https".equals(url.getProtocol())
+                    && url.getHost() != null
+                    && !url.getHost().isEmpty()
+                    && url.getUserInfo() == null
+                    && url.getRef() == null
+                    && url.getPath().endsWith("/" + lessonId + ".zip");
+        } catch (Exception exception) {
+            return false;
+        }
     }
 
     private DownloadResult downloadFirstAvailableZip(
@@ -117,10 +152,46 @@ public class LessonBundlePlugin extends Plugin {
     private DownloadResult downloadZip(String zipUrl, File destination)
             throws IOException, NoSuchAlgorithmException {
         if (!MainActivity.activity_id.isEmpty()
-                && RespectHttpClient.getOkHttpClient() != null) {
-            return downloadZipThroughRespectCache(zipUrl, destination);
+                && RespectHttpClient.getHttpIpcClient() != null) {
+            try {
+                return downloadZipThroughLauncherCache(zipUrl, destination);
+            } catch (IOException exception) {
+                if (!hasValidatedInternetConnection()) {
+                    Log.w(TAG, getLauncherCacheName() + " cache unavailable while offline");
+                    throw exception;
+                }
+
+                // A stalled launcher cache must not block an online launch forever.
+                Log.w(TAG, getLauncherCacheName() + " cache download failed; using direct download");
+            }
         }
 
+        return downloadZipDirect(zipUrl, destination);
+    }
+
+    private boolean hasValidatedInternetConnection() {
+        ConnectivityManager connectivityManager = getContext().getSystemService(
+                ConnectivityManager.class
+        );
+        if (connectivityManager == null) {
+            return false;
+        }
+
+        Network activeNetwork = connectivityManager.getActiveNetwork();
+        if (activeNetwork == null) {
+            return false;
+        }
+
+        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(
+                activeNetwork
+        );
+        return capabilities != null
+                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+    }
+
+    private DownloadResult downloadZipDirect(String zipUrl, File destination)
+            throws IOException, NoSuchAlgorithmException {
         HttpURLConnection connection = (HttpURLConnection) new URL(zipUrl).openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
@@ -129,7 +200,7 @@ public class LessonBundlePlugin extends Plugin {
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
             connection.disconnect();
-            throw new IOException("Unexpected response " + responseCode + " for " + zipUrl);
+            throw new IOException("Unexpected response " + responseCode + " for lesson bundle");
         }
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -154,14 +225,81 @@ public class LessonBundlePlugin extends Plugin {
         return new DownloadResult(byteLength, bytesToHex(digest.digest()));
     }
 
-    private DownloadResult downloadZipThroughRespectCache(String zipUrl, File destination)
-            throws IOException, NoSuchAlgorithmException {
+    private String getLauncherCacheName() {
+        return RespectHttpClient.OPEN_EEL_PACKAGE_NAME.equals(PortPlugin.getLauncherPackageName())
+                ? "OpenEEL" : "RESPECT";
+    }
+
+    private DownloadResult downloadZipThroughLauncherCache(String zipUrl, File destination)
+            throws IOException {
         Request request = new Request.Builder()
                 .url(zipUrl)
                 .build();
-        try (Response response = RespectHttpClient.getOkHttpClient().newCall(request).execute()) {
+        Call cacheCall = RespectHttpClient.getHttpIpcClient().newCall(request);
+        File cacheDestination = File.createTempFile(
+                "launcher-cache-",
+                ".zip",
+                destination.getParentFile()
+        );
+        ExecutorService cacheExecutor = Executors.newSingleThreadExecutor();
+        Future<DownloadResult> cacheTask = cacheExecutor.submit(
+                () -> downloadZipFromLauncherCache(cacheCall, cacheDestination)
+        );
+
+        try {
+            DownloadResult result = getWithinDeadline(
+                    cacheTask,
+                    LAUNCHER_CACHE_TIMEOUT_SECONDS,
+                    TimeUnit.SECONDS
+            );
+            if (destination.exists() && !destination.delete()) {
+                throw new IOException("Failed to replace lesson bundle download");
+            }
+            if (!cacheDestination.renameTo(destination)) {
+                throw new IOException("Failed to save launcher cache download");
+            }
+            return result;
+        } catch (IOException exception) {
+            // HttpIpcInterceptor blocks in a separate IPC call, so cancel its
+            // call directly to enforce the launch deadline.
+            cacheCall.cancel();
+            cacheTask.cancel(true);
+            throw exception;
+        } finally {
+            cacheExecutor.shutdownNow();
+            if (cacheDestination.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                cacheDestination.delete();
+            }
+        }
+    }
+
+    static <T> T getWithinDeadline(
+            Future<T> future,
+            long timeout,
+            TimeUnit timeUnit
+    ) throws IOException {
+        try {
+            return future.get(timeout, timeUnit);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Launcher cache request was interrupted", exception);
+        } catch (TimeoutException exception) {
+            throw new IOException("Launcher cache request timed out", exception);
+        } catch (ExecutionException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
+            }
+            throw new IOException("Launcher cache request failed", cause);
+        }
+    }
+
+    private DownloadResult downloadZipFromLauncherCache(Call cacheCall, File destination)
+            throws IOException, NoSuchAlgorithmException {
+        try (Response response = cacheCall.execute()) {
             if (!response.isSuccessful() || response.body() == null) {
-                throw new IOException("Unexpected response " + response.code() + " for " + zipUrl);
+                throw new IOException("Unexpected response " + response.code());
             }
 
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

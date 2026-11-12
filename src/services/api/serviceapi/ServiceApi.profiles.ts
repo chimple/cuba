@@ -62,6 +62,8 @@ export interface ServiceApiUserProfiles {
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    studentConnectivity?: TableTypes<'user'>['student_connectivity'],
+    connectivityOnly?: boolean,
   ): Promise<TableTypes<'user'>>;
 
   updateUserProfile(

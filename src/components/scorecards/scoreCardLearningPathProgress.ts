@@ -5,7 +5,11 @@ import {
 } from '../../common/constants';
 import type { TableTypes } from '../../common/constants';
 import { Util } from '../../utility/util';
-import type { LearningPathCourse, LearningPathData } from './scoreCardTypes';
+import type {
+  LearningPathCourse,
+  LearningPathData,
+  PathwayGoalAssignment,
+} from './scoreCardTypes';
 
 const parseLearningPath = (value: unknown): LearningPathData | null => {
   if (typeof value !== 'string' || !value) return null;
@@ -160,20 +164,25 @@ export const getCurrentPathwayStickerProgress = ({
   student,
   completedCourseId,
   completedLessonId,
+  completedAssignmentId,
   completedHomeworkIndex,
   countCompletedLessonTowardStickerProgress = true,
   allowZeroStickerProgress = false,
   stickerProgressCurrentOverride,
+  pathwayAssignments,
 }: {
   student?: TableTypes<'user'>;
   completedCourseId?: string;
   completedLessonId?: string;
+  completedAssignmentId?: string;
   completedHomeworkIndex?: number;
   countCompletedLessonTowardStickerProgress?: boolean;
   allowZeroStickerProgress?: boolean;
   stickerProgressCurrentOverride?: number;
+  pathwayAssignments?: PathwayGoalAssignment[];
 }): { current: number; total: number } => {
   const minProgress = allowZeroStickerProgress ? 0 : 1;
+  // Sticker progress tracks every pathway lesson, including campaign assignments.
 
   if (typeof stickerProgressCurrentOverride === 'number') {
     return {
@@ -183,6 +192,24 @@ export const getCurrentPathwayStickerProgress = ({
       ),
       total: STICKER_PROGRESS_TOTAL,
     };
+  }
+
+  if (
+    typeof completedHomeworkIndex === 'number' &&
+    pathwayAssignments
+  ) {
+    const assignments = pathwayAssignments.filter(
+      (assignment) => assignment.assignmentId,
+    );
+    const completedAssignments = pathwayAssignments
+      .slice(0, completedHomeworkIndex + 1)
+      .filter((assignment) => assignment.assignmentId).length;
+    const total = Math.min(
+      assignments.length || STICKER_PROGRESS_TOTAL,
+      STICKER_PROGRESS_TOTAL,
+    );
+
+    return { current: Math.min(completedAssignments, total), total };
   }
 
   if (
@@ -239,9 +266,17 @@ export const getCurrentPathwayStickerProgress = ({
         ? progressCourse.path
         : [];
     const total = STICKER_PROGRESS_TOTAL;
-    const playedCount = lessons.filter((lesson) => lesson?.isPlayed).length;
-    const completedLessonIndex = completedLessonId
-      ? lessons.findIndex((lesson) => lesson?.lesson_id === completedLessonId)
+    const playedCount = lessons.filter(
+      (lesson) => lesson?.isPlayed,
+    ).length;
+    const completedLessonIndex = completedAssignmentId
+      ? lessons.findIndex(
+          (lesson) => lesson?.assignment_id === completedAssignmentId,
+        )
+      : completedLessonId
+        ? lessons.findIndex(
+            (lesson) => lesson?.lesson_id === completedLessonId,
+          )
       : -1;
 
     if (
@@ -260,7 +295,9 @@ export const getCurrentPathwayStickerProgress = ({
     const completedLessonStillPending = completedLessonId
       ? lessons.some(
           (lesson) =>
-            lesson?.lesson_id === completedLessonId &&
+            (completedAssignmentId
+              ? lesson?.assignment_id === completedAssignmentId
+              : lesson?.lesson_id === completedLessonId) &&
             lesson?.isPlayed !== true,
         )
       : false;

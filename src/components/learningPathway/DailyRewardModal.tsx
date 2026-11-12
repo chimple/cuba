@@ -5,6 +5,7 @@ import RewardRive from './RewardRive';
 import { RewardBoxState } from '../../common/constants';
 import AudioButton from '../common/AudioButton';
 import { AudioUtil } from '../../utility/AudioUtil';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 const SOUND_EFFECT = '/assets/audios/common/generic_sound_effect.mp3';
 
@@ -84,7 +85,11 @@ const DailyRewardModal: React.FC<RewardModalProps> = ({
             size={44}
           />
         </div>
-        <button className="RewardModal-close" onClick={handleClose}>
+        <button
+          className="RewardModal-close"
+          onClick={handleClose}
+          {...getTrackableProps(TRACKABLE_IDS.REWARDS_POPUP_CLOSE)}
+        >
           <img src="pathwayAssets/menuCross.svg" alt="close-icon" />
         </button>
 
@@ -93,7 +98,11 @@ const DailyRewardModal: React.FC<RewardModalProps> = ({
             <RewardRive rewardRiveState={RewardBoxState.SHAKING} />
           </div>
           <p className="RewardModal-text">{text}</p>
-          <button className="RewardModal-OK-button" onClick={handlePlay}>
+          <button
+            className="RewardModal-OK-button"
+            onClick={handlePlay}
+            {...getTrackableProps(TRACKABLE_IDS.REWARDS_POPUP_PLAY)}
+          >
             <span className="RewardModal-ok-text">{t("Let's Play")}</span>
           </button>
         </div>

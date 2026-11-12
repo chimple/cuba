@@ -11,7 +11,7 @@ export const buildWhatsappIntegrationStatusCsv = (
     row.school_name,
     row.class_name ?? '--',
     row.group_id ?? '--',
-    row.periskope_status,
+    row.openwa_status,
     row.maytapi_status,
   ]);
 

@@ -59,7 +59,13 @@ const WhatsappProviderStatusTable: React.FC<Props> = ({
             sortable: false,
             width: '33.3333%',
             render: (row) =>
-              t(row.provider === 'periskope' ? 'Periskope' : 'Maytapi'),
+              t(
+                row.provider === 'openwa'
+                  ? 'OpenWA'
+                  : row.provider === 'openwa_api'
+                    ? 'OpenWA API'
+                    : 'Maytapi',
+              ),
           },
           {
             key: 'checked_at',

@@ -35,6 +35,9 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.android.installreferrer.api.InstallReferrerClient;
+import com.android.installreferrer.api.InstallReferrerStateListener;
+import com.android.installreferrer.api.ReferrerDetails;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +58,21 @@ public class PortPlugin extends Plugin {
         instance = this; // Assign instance when PortPlugin is created
     }
     private static final String TAG = "Logger001";
+    private static final String INSTALL_REFERRER_TAG = "REFERRER";
+    private static final String DEFAULT_LAUNCHER_PACKAGE = RespectHttpClient.RESPECT_PACKAGE_NAME;
+    private static final String XAPI_IPC_ACTION = "org.openeel.action.xapioveripc";
+    private static final String XAPI_IPC_PACKAGE_KEY = "xapiIpcPackage";
+    private static final String ZIP_URL_KEY = "zipUrl";
+
+    static String getLauncherPackageName() {
+        return resolveLauncherPackageName(deepLinkData.optString(XAPI_IPC_PACKAGE_KEY, ""));
+    }
+
+    static String resolveLauncherPackageName(String packageName) {
+        return RespectHttpClient.OPEN_EEL_PACKAGE_NAME.equals(packageName)
+                ? RespectHttpClient.OPEN_EEL_PACKAGE_NAME
+                : DEFAULT_LAUNCHER_PACKAGE;
+    }
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -101,6 +119,13 @@ public class PortPlugin extends Plugin {
 
     public static PortPlugin getInstance() {
         return instance;
+    }
+
+    public static void checkInstallReferrerOnLaunch() {
+        PortPlugin portPlugin = getInstance();
+        if (portPlugin != null) {
+            portPlugin.getInstallReferrer(null);
+        }
     }
 
     @PluginMethod
@@ -295,7 +320,8 @@ public class PortPlugin extends Plugin {
         String registration = deepLinkData.optString("registration", "");
         String chimpleLessonId = deepLinkData.optString("chimple_lesson_id", "");
         String lessonName = deepLinkData.optString("lesson_name", "");
-        String xapiIpcPackage = deepLinkData.optString("xapiIpcPackage", "");
+        String zipUrl = deepLinkData.optString(ZIP_URL_KEY, "");
+        String xapiIpcPackage = getLauncherPackageName();
 
         Log.d(TAG, "Received activity_id: " + activity_id);
         result.put("endpoint", endpoint);
@@ -305,8 +331,86 @@ public class PortPlugin extends Plugin {
         result.put("lessonId", activity_id);
         result.put("chimpleLessonId", chimpleLessonId);
         result.put("lessonName", lessonName);
+        result.put("zipUrl", zipUrl);
         result.put("xapiIpcPackage", xapiIpcPackage);
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getInstallReferrer(PluginCall call) {
+        InstallReferrerClient referrerClient =
+                InstallReferrerClient.newBuilder(getContext()).build();
+
+        try {
+            referrerClient.startConnection(new InstallReferrerStateListener() {
+                @Override
+                public void onInstallReferrerSetupFinished(int responseCode) {
+                    Log.d(INSTALL_REFERRER_TAG, "responseCode=" + responseCode);
+                    if (responseCode != InstallReferrerClient.InstallReferrerResponse.OK) {
+                        referrerClient.endConnection();
+                        if (call != null) {
+                            call.reject("Google Play Install Referrer is unavailable");
+                        }
+                        return;
+                    }
+
+                    try {
+                        ReferrerDetails details = referrerClient.getInstallReferrer();
+                        String installReferrer = details.getInstallReferrer();
+                        // Play returns the original install payload on later reads, so
+                        // consume it once before allowing RESPECT App Links to take over.
+                        MainActivity.markInstallReferrerConsumed(getContext());
+                        if (installReferrer != null && !installReferrer.isEmpty()) {
+                            Log.d(
+                                    INSTALL_REFERRER_TAG,
+                                    "Forwarding install referrer to MainActivity"
+                            );
+                            MainActivity.handleInstallReferrer(installReferrer);
+                        } else {
+                            Log.d(
+                                    INSTALL_REFERRER_TAG,
+                                    "Install referrer was empty; skipping MainActivity handoff"
+                            );
+                        }
+                        if (call != null) {
+                            JSObject result = new JSObject();
+                            result.put("installReferrer", installReferrer);
+                            result.put(
+                                    "referrerClickTimestampSeconds",
+                                    details.getReferrerClickTimestampSeconds()
+                            );
+                            result.put(
+                                    "installBeginTimestampSeconds",
+                                    details.getInstallBeginTimestampSeconds()
+                            );
+                            result.put(
+                                    "googlePlayInstantParam",
+                                    details.getGooglePlayInstantParam()
+                            );
+                            call.resolve(result);
+                        }
+                    } catch (Exception exception) {
+                        if (call != null) {
+                            call.reject("Failed to read Google Play Install Referrer", exception);
+                        }
+                    } finally {
+                        referrerClient.endConnection();
+                    }
+                }
+
+                @Override
+                public void onInstallReferrerServiceDisconnected() {
+                    if (call != null) {
+                        call.reject("Google Play Install Referrer service disconnected");
+                    }
+                }
+            });
+        } catch (Exception exception) {
+            referrerClient.endConnection();
+            if (call != null) {
+                call.reject("Failed to connect to Google Play Install Referrer", exception);
+            }
+        }
     }
 
     @PluginMethod
@@ -519,17 +623,45 @@ public class PortPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void returnToLauncher(PluginCall call) {
+        returnToLaunchSource(call);
+    }
+
+    @PluginMethod
     public void returnDataToRespect(PluginCall call) {
-        // Clear deeplink state before finishing activity
+        returnToLaunchSource(call);
+    }
+
+    private void returnToLaunchSource(PluginCall call) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            call.reject("Activity not found");
+            return;
+        }
+
+        String launcherPackage = getLauncherPackageName();
+
+        Intent xapiIntent = new Intent(XAPI_IPC_ACTION).setPackage(launcherPackage);
+        if (activity.getPackageManager().queryIntentServices(xapiIntent, 0).isEmpty()) {
+            call.reject("Launch source is unavailable");
+            return;
+        }
+
+        Intent launcherIntent = activity.getPackageManager()
+                .getLaunchIntentForPackage(launcherPackage);
+        if (launcherIntent == null) {
+            call.reject("Launch source is unavailable");
+            return;
+        }
+
+        launcherIntent.addFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+        activity.startActivity(launcherIntent);
+        // Clear launch state only after returning to the launcher that started the lesson.
         activity_id = "";
         deepLinkData = new JSONObject();
-
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.finish();
-            call.resolve();
-        } else {
-            call.reject("Activity not found");
-        }
+        activity.finish();
+        call.resolve();
     }
 }

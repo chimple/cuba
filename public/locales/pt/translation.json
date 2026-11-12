@@ -855,6 +855,7 @@
     "You can edit or delete the Profile by clicking on the buttons below.": "Pode editar ou apagar o Perfil clicando nos botões abaixo.",
     "You cannot delete yourself.": "Não se pode apagar a si próprio.",
     "You Completed the Lesson:": "Você concluiu a lição:",
+    "You Completed the Lesson :": "Você concluiu a lição :",
     "You do not have any live quizzes available.": "Não tem nenhum quiz em direto disponível.",
     "You don't have any pending assignments.": "Não tem trabalhos de casa pendentes.",
     "You have not chosen any assignments. Please go to ": "Não escolheu nenhuns trabalhos. Por favor, aceda a ",
@@ -898,8 +899,10 @@
     "For Teachers": "Para Professores",
     "Teachers App": "Aplicativo para professores",
     "Submit": "Enviar",
-    "Collect today’s reward.": "Receba sua recompensa de hoje.",
-    "Collect sticker by completing a pathway.": "Complete um percurso e ganhe um adesivo.",
+    "Collect today’s reward.": "Recolhe a recompensa de hoje.",
+    "Collect sticker by completing a pathway.": "Completa um percurso e ganha um autocolante.",
+    "Complete Competition lessons.": "Completa as lições da competição.",
+    "Complete lessons to earn a badge.": "Completa lições para ganhar um emblema.",
     "Lesson starts in :": "A aula começa em:",
     "Let's play and learn! Complete first lesson and earn a reward!": "Jogue a primeira lição e ganhe uma recompensa!",
     "TINY FRIENDS": "PEQUENOS AMIGOS",
@@ -913,6 +916,7 @@
     "{{count}} lessons complete!": "{{count}} lições concluídas!",
     "Keep learning and exploring!": "Continua a aprender!",
     "Sharing...": "Compartilhando...",
+    "Achievements": "Conquistas",
     "Competitions": "Competições",
     "Non-rank holders": "",
     "Calls Made": "",
@@ -1961,5 +1965,7 @@
     "Average Assignments Completed": "",
     "Success Count": "",
     "Enter your School Code": "",
-    "Poll question...": ""
+    "Poll question...": "",
+    "Start the Day!": "Vamos começar o dia!",
+    "START THE DAY!": "Vamos começar o dia!"
 }

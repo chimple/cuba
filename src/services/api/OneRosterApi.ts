@@ -54,6 +54,7 @@ import User from '../../models/User';
 import {
   getActorIdentifier,
   getRespectLaunchData,
+  getXapiLaunchSource,
   reinitializeTincan,
   sendRespectXapiStatement,
   toXapiAgent,
@@ -252,6 +253,7 @@ export class OneRosterApi implements ServiceApi {
 
   private _currentStudent: TableTypes<'user'> | undefined;
   private _currentClass: TableTypes<'class'> | undefined;
+  private _currentSchool: TableTypes<'school'> | undefined;
   public currentCourse: Map<string, TableTypes<'course'> | undefined> =
     new Map();
   public currentChapter: TableTypes<'chapter'> = {
@@ -2142,6 +2144,9 @@ export class OneRosterApi implements ServiceApi {
           'http://example.com/xapi/classId': classId,
           'http://example.com/xapi/schoolId': schoolId,
           'http://example.com/xapi/chapterId': chapterId,
+          'http://example.com/xapi/src': [
+            getXapiLaunchSource(launchData.xapiIpcPackage),
+          ],
           'http://example.com/xapi/createdAt': new Date().toISOString(),
           'http://example.com/xapi/updatedAt': new Date().toISOString(),
           'http://example.com/xapi/isDeleted': false,
@@ -2486,10 +2491,10 @@ export class OneRosterApi implements ServiceApi {
     this._currentClass = value;
   }
   get currentSchool(): TableTypes<'school'> | undefined {
-    throw new Error('Method not implemented.');
+    return this._currentSchool;
   }
   set currentSchool(value: TableTypes<'school'> | undefined) {
-    throw new Error('Method not implemented.');
+    this._currentSchool = value;
   }
 
   createProfile(
@@ -3381,7 +3386,9 @@ export class OneRosterApi implements ServiceApi {
       sfx_off: Util.getCurrentSound() === 0,
       student_id: registration,
       updated_at: null,
-      learning_path: Util.getCurrentStudent()?.learning_path || null,
+      // A RESPECT launch creates a temporary learner before Cuba has an
+      // active profile, so it must not read an unrelated Cuba learning path.
+      learning_path: null,
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
@@ -3392,8 +3399,11 @@ export class OneRosterApi implements ServiceApi {
       reward: null,
       tc_agreed_version: 0,
     };
-    ServiceConfig.getI().authHandler.currentUser = user;
-    Util.setCurrentStudent(user);
+    const serviceConfig = ServiceConfig.getI();
+    serviceConfig.authHandler.currentUser = user;
+    // The normal profile setter resolves Cuba's existing learner first. A
+    // RESPECT launch has no Cuba learner, so set its temporary learner directly.
+    serviceConfig.apiHandler.currentStudent = user;
     localStorage.setItem(CURRENT_STUDENT, JSON.stringify(user));
   }
   insertProgram(payload: any): Promise<boolean | any> {

@@ -1425,6 +1425,7 @@
     "You can edit or delete the Profile by clicking on the buttons below.": "आप नीचे दिए गए बटनों पर क्लिक करके प्रोफ़ाइल को संपादित या हटा सकते हैं।",
     "You cannot delete yourself.": "आप स्वयं को हटा नहीं सकते.",
     "You Completed the Lesson:": "आपने पाठ पूरा कर लिया:",
+    "You Completed the Lesson :": "आपने पाठ पूरा कर लिया :",
     "You do not have any live quizzes available.": "आपके पास कोई लाइव क्विज़ उपलब्ध नहीं है.",
     "You don't have any pending assignments.": "आपका कोई भी कार्य बाकि नहीं है.",
     "You have not chosen any assignments. Please go to ": "आपने कोई असाइनमेंट नहीं चुना है। कृपया यहाँ जाएँ ",
@@ -1657,8 +1658,10 @@
     "streakInfoCoinsTitle": "कॉइन्स",
     "streakInfoCoinsBody": "**स्वागत उपहार:** शैक्षणिक वर्ष की शुरुआत में आपके वॉलेट में **1,000 कॉइन्स** पहले से लोड कर दिए जाएंगे।\n**सप्ताह का पहला गृहकार्य:** सप्ताह का अपना पहला होमवर्क असाइन करने पर **2X बोनस (+50 कॉइन्स)** कमाएं।\n**अन्य गृहकार्य:** उसी सप्ताह में प्रत्येक अतिरिक्त होमवर्क असाइन करने पर **+25 कॉइन्स** कमाएं।",
     "streakInfoMaintainingBody": "**सुरक्षा कवच:** यदि आप किसी सप्ताह होमवर्क असाइन करना भूल जाते हैं, तो ऐप आपकी स्ट्रीक को टूटने से बचाने और फ्लेम (🔥) को जलाए रखने के लिए स्वचालित रूप से **100 कॉइन्स** काट लेगा।\n**स्ट्रीक रीसेट:** यदि आपके वॉलेट में **100 से कम कॉइन्स** हैं और आप होमवर्क असाइन नहीं कर पाते हैं, तो सुरक्षा कवच काम नहीं करेगा और आपकी स्ट्रीक वापस **0** पर रीसेट हो जाएगी।",
-    "Collect today’s reward.": "आज का इनाम प्राप्त करें।",
-    "Collect sticker by completing a pathway.": "एक रास्ता पूरा करके स्टिकर पाएं!",
+    "Collect today’s reward.": "आज का इनाम पाएं।",
+    "Collect sticker by completing a pathway.": "एक रास्ता पूरा करें और स्टिकर पाएं।",
+    "Complete Competition lessons.": "प्रतियोगिता के पाठ पूरे करें।",
+    "Complete lessons to earn a badge.": "बैज पाने के लिए पाठ पूरे करें।",
     "Lesson starts in :": "पाठ शुरू होता है:",
     "Let's play and learn! Complete first lesson and earn a reward!": "आओ खेलें और सीखें! पहला पाठ पूरा करें और पुरस्कार पाएं!",
     "TINY FRIENDS": "नन्हे दोस्त",
@@ -1673,6 +1676,7 @@
     "{{count}} lessons complete!": "{{count}} पाठ पूरे!",
     "Keep learning and exploring!": "सीखते रहें, खोजते रहें!",
     "Sharing...": "शेयर किया जा रहा है..।",
+    "Achievements": "उपलब्धियाँ",
     "Competitions": "प्रतियोगिताएँ",
     "Non-rank holders": "",
     "Save this group for reuse": "",
@@ -1999,5 +2003,7 @@
     "Class Summary": "",
     "Not Active for last 7 days": "",
     "A maximum of {{limit}} unique phone numbers can be sent in one run.": "",
-    "Average time spent by active students in the last 7 days.": ""
+    "Average time spent by active students in the last 7 days.": "",
+    "Start the Day!": "दिन की शुरुआत करें!",
+    "START THE DAY!": "दिन की शुरुआत करें!"
 }
