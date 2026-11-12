@@ -114,16 +114,37 @@ describe('offline campaign reward evaluation', () => {
     expect(await api.getCachedCampaignRewards('student-a')).toHaveLength(1);
   });
 
-  it('keeps homework query parameters independent of homepage result dates', async () => {
-    db.run(`UPDATE local_campaigns SET objective = 'homework_campaign' WHERE id = 'campaign-a';
+  it.each([
+    ['before the start', '2025-12-31', 1],
+    ['after the end', '2026-02-01', 1],
+    ['at the start', '2026-01-01', 2],
+    ['at the end', '2026-01-31', 2],
+    ['during the campaign', '2026-01-20', 2],
+  ])(
+    'counts homework results by campaign dates: %s',
+    async (_label, date, expected) => {
+      db.run(`UPDATE local_campaigns SET objective = 'homework_campaign' WHERE id = 'campaign-a';
       UPDATE assignment SET campaign_id = 'campaign-a';`);
-    await api.hydrateCampaignRewards('student-a');
-    const rewards = await api.getCachedCampaignRewards('student-a');
-    expect(rewards[0]).toMatchObject({
-      lessons_completed_count: 2,
-      completion_percentage: 100,
-    });
-  });
+      db.run('UPDATE local_campaigns SET rules_json = ? WHERE id = ?', [
+        JSON.stringify({
+          rules: [
+            { rank: 1, min: 100 },
+            { rank: 2, min: 50 },
+          ],
+        }),
+        'campaign-a',
+      ]);
+      db.run('UPDATE result SET created_at = ? WHERE id = ?', [date, 'r2']);
+      await api.hydrateCampaignRewards('student-a');
+      const rewards = await api.getCachedCampaignRewards('student-a');
+      expect(rewards[0]).toMatchObject({
+        lessons_completed_count: expected,
+        lessons_target_count: 2,
+        completion_percentage: expected === 2 ? 100 : 50,
+        rank_achieved: expected === 2 ? 1 : 2,
+      });
+    },
+  );
 
   it('removes eligibility only for the student whose RPC reports deletion', async () => {
     localStorage.setItem(key('student-b'), '["campaign-a"]');

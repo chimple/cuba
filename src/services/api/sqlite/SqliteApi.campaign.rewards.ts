@@ -208,8 +208,10 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
             AND r.student_id = ?
             AND r.is_deleted = 0
             AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
+            AND r.created_at >= ?
+            AND r.created_at <= ?
            WHERE a.campaign_id = ? AND a.is_deleted = 0`,
-          [studentId, campaign.id],
+          [studentId, campaign.start_date, campaign.end_date, campaign.id],
         );
     const metrics = metricsResult?.values?.[0] ?? {};
     let totalLessons = Number(metrics.total_lessons ?? 0);
