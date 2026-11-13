@@ -80,6 +80,8 @@ const buildLesson = (
   id,
   plugin_type: pluginType,
   source,
+  previous_cocos_lesson_id: null,
+  previous_lido_lesson_id: null,
   cocos_chapter_code: null,
   cocos_lesson_id: null,
   cocos_subject_code: null,

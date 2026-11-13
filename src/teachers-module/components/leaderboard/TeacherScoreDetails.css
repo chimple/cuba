@@ -59,13 +59,22 @@
 .teacher-score-details__chart text {
   font-family: inherit;
   font-size: 10px;
+}
+.teacher-score-details__chart text:not(.teacher-score-details__weekday--today) {
   font-weight: 700;
 }
 .teacher-score-details__up {
   fill: #167f20;
 }
 .teacher-score-details__down {
-  fill: #c91430;
+  fill: #ff1744;
+}
+.teacher-score-details__chart .teacher-score-details__up,
+.teacher-score-details__chart .teacher-score-details__down {
+  font-size: 13px;
+}
+.teacher-score-details__trend-arrow {
+  font-weight: 900;
 }
 .teacher-score-details__value {
   fill: #4e4e52;
@@ -78,6 +87,12 @@
 .teacher-score-details__weekday {
   fill: #fa7900;
   font-size: 8px !important;
+}
+.teacher-score-details__today-marker {
+  fill: #7655aa;
+}
+.teacher-score-details__weekday--today {
+  fill: #fff;
 }
 .teacher-score-details__message {
   margin: 12px 26px 28px;

@@ -11,6 +11,7 @@ import {
 import AddStudentSection from '../components/AddStudentSection';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import ProfileDetails from '../components/library/ProfileDetails';
 import Loading from '../../components/Loading';
 import logger from '../../utility/logger';
@@ -269,10 +270,12 @@ const AddStudent: React.FC = () => {
         />
         <div className="form-actions">
           <button
-            className={`add-button ${!isFormValid ? 'disabled' : ''}`}
+            className="add-button"
+            id="add-button"
             type="button"
             onClick={handleSave}
             disabled={!isFormValid}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_ADD_STUDENT)}
           >
             {t('Add')}
           </button>

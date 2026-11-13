@@ -128,6 +128,7 @@ export interface ServiceApiPrograms {
 
   getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
+    export_school_ids?: string[];
     programId?: string;
     page?: number;
     page_size?: number;
@@ -140,6 +141,7 @@ export interface ServiceApiPrograms {
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
+    grades?: Array<{ id: string; name: string }>;
   }>;
 
   getClassMetricsForClassListing(params: {

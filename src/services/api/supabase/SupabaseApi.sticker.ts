@@ -7,10 +7,13 @@ import {
 } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
+import { resolveStickerBookTitle } from '../../../utility/stickerBookTitle';
 
 const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
   id: book.id,
-  title: book.title,
+  title: resolveStickerBookTitle(book.title, book.title_translations),
+  title_translations:
+    book.title_translations as StickerBook['title_translations'],
   svg_url: book.svg_url,
   sort_index: book.sort_index,
   stickers_metadata: Array.isArray(book.stickers_metadata)

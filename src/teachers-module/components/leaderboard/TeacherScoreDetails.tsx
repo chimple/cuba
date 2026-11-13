@@ -31,22 +31,25 @@ const lastSevenDates = () =>
     return date.toISOString().slice(0, 10);
   });
 
+const displayScore = (score: number) => Math.round(score);
+
 const TeacherScoreDetails = ({
   currentScore,
   scoreHistory = [],
   onClose,
 }: TeacherScoreDetailsProps) => {
   const { t } = useTranslation();
+  const roundedCurrentScore = displayScore(currentScore);
   const byDate = new Map(
     scoreHistory.map((item) => [item.date.slice(0, 10), item.score]),
   );
   const days = lastSevenDates().map((date) => ({
     date,
     // Keeps the chart stable while a source has no score for a particular day.
-    score: byDate.get(date) ?? currentScore,
+    score: displayScore(byDate.get(date) ?? roundedCurrentScore),
   }));
   const previousScore = days[days.length - 2].score;
-  const change = currentScore - previousScore;
+  const change = roundedCurrentScore - previousScore;
   const range =
     Math.max(...days.map((day) => day.score)) -
     Math.min(...days.map((day) => day.score));
@@ -98,7 +101,7 @@ const TeacherScoreDetails = ({
         <div className="teacher-score-details__chart-card">
           <strong>
             {t('Your Score today is {{points}} points', {
-              points: currentScore,
+              points: roundedCurrentScore,
             })}
           </strong>
           <svg
@@ -113,11 +116,12 @@ const TeacherScoreDetails = ({
                 .join(' ')}
               fill="none"
               stroke="#7655aa"
-              strokeWidth="2"
+              strokeWidth="1"
             />
             {days.map((day, index) => {
               const [x, y] = point(day.score, index).split(',');
               const dailyChange = index ? day.score - days[index - 1].score : 0;
+              const isToday = index === days.length - 1;
               return (
                 <g key={day.date}>
                   <line
@@ -138,11 +142,14 @@ const TeacherScoreDetails = ({
                         : 'teacher-score-details__up'
                     }
                   >
-                    {index
-                      ? `${Math.abs(dailyChange)}${
-                          dailyChange > 0 ? '↑' : dailyChange < 0 ? '↓' : '–'
-                        }`
-                      : ''}
+                    {index ? (
+                      <>
+                        <tspan>{Math.abs(dailyChange)}</tspan>
+                        <tspan className="teacher-score-details__trend-arrow">
+                          {dailyChange > 0 ? '⬆' : dailyChange < 0 ? '⬇' : '–'}
+                        </tspan>
+                      </>
+                    ) : null}
                   </text>
                   <circle cx={x} cy={y} r="4.5" fill="#7655aa" />
                   <text
@@ -161,15 +168,26 @@ const TeacherScoreDetails = ({
                   >
                     {dateLabel(day.date)}
                   </text>
+                  {isToday && (
+                    <rect
+                      data-testid="teacher-score-details-today-marker"
+                      x={Number(x) - 19}
+                      y="149"
+                      width="38"
+                      height="13"
+                      rx="2"
+                      className="teacher-score-details__today-marker"
+                    />
+                  )}
                   <text
                     x={x}
                     y="158"
                     textAnchor="middle"
-                    className="teacher-score-details__weekday"
+                    className={`teacher-score-details__weekday ${
+                      isToday ? 'teacher-score-details__weekday--today' : ''
+                    }`}
                   >
-                    {index === days.length - 1
-                      ? t('Today')
-                      : dayLabel(day.date)}
+                    {isToday ? t('Today') : dayLabel(day.date)}
                   </text>
                 </g>
               );

@@ -138,11 +138,21 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
     zipUrl?: string,
   ): Promise<boolean> {
+    const releaseLessonProtections: Array<() => void> = [];
     try {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
       if (zipUrl && lessons.length !== 1) return false;
+      lessons
+        .map((lesson) => this.getLessonBundleId(lesson))
+        .filter((lessonId): lessonId is string => Boolean(lessonId))
+        .forEach((lessonId) => {
+          releaseLessonProtections.push(
+            StorageManager.protectDownloadingLesson(lessonId),
+          );
+        });
+
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
           void StorageManager.checkStorageLimit();
@@ -335,6 +345,8 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
       return true;
     } catch {
       return false;
+    } finally {
+      releaseLessonProtections.forEach((release) => release());
     }
   }
 

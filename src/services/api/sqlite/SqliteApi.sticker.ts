@@ -8,6 +8,7 @@ import {
 } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ensureLocalStickerBookSvgUri } from '../../../utility/stickerBookAssets';
+import { resolveStickerBookTitle } from '../../../utility/stickerBookTitle';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SqliteApiRewards } from './SqliteApi.rewards';
 
@@ -390,6 +391,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
   private mapStickerBookRow(row: any): StickerBook {
     return {
       ...row,
+      title: resolveStickerBookTitle(row?.title ?? '', row?.title_translations),
       sort_index: Number(row?.sort_index ?? 0),
       total_stickers: Number(row?.total_stickers ?? 0),
       stickers_metadata: this.parseSqliteJsonArray<StickerMeta>(

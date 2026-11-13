@@ -152,6 +152,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
   // selected grades reads grade rows and aggregates them back to one row per school.
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
+    export_school_ids?: string[];
     programId?: string;
     page?: number;
     page_size?: number;
@@ -164,6 +165,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
+    grades?: Array<{ id: string; name: string }>;
   }> {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized');
@@ -190,6 +192,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       date_range,
       percentage_filters,
       school_performance_filter,
+      export_school_ids,
     } = params;
 
     const specialRoles = await this.getUserSpecialRoles(authUser.id);
@@ -270,6 +273,13 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         .select(schoolMetricsSelect, { count: 'exact' })
         .eq('is_deleted', false);
 
+      if (export_school_ids) {
+        if (export_school_ids.length === 0) {
+          return { data: [], total: 0, grades: [] };
+        }
+        query = query.in('school_id', export_school_ids);
+      }
+
       if (shouldRestrictToSchoolLinks) {
         query = query
           .eq('school_access.school_user.user_id', authUser.id)
@@ -332,11 +342,10 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         return { data: [], total: 0 };
       }
 
-      // No explicit grade filter means "all grades", which uses the precomputed
-      // school-level row. Partial grade selections use grade-level rows.
+      // Export keeps summary and grade rows together; listing uses one of them.
       if (hasSelectedGradeFilter) {
         query = query.in('grade_id', selectedGradeIds);
-      } else {
+      } else if (!export_school_ids) {
         query = query.is('grade_id', null);
       }
 
@@ -445,10 +454,11 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       // Percentage/performance filters and selected-grade aggregation need the
       // complete result set before sorting and slicing the requested page.
       const requiresClientSideProcessing =
-        hasSelectedGradeFilter || requiresCalculatedFiltering;
+        !!export_school_ids ||
+        hasSelectedGradeFilter ||
+        requiresCalculatedFiltering;
       const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
       const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
-
       // Selected grade rows are aggregated per school before sorting/filtering.
       const { data, error, count } = requiresClientSideProcessing
         ? await fetchAllSchoolMetricRows(
@@ -527,7 +537,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       }
 
       const pagedRows = requiresClientSideProcessing
-        ? rows.slice(from, from + normalizedPageSize)
+        ? export_school_ids
+          ? rows
+          : rows.slice(from, from + normalizedPageSize)
         : rows;
 
       const mappedRows = pagedRows.map((row: Record<string, unknown>) => {
@@ -536,6 +548,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
 
         return {
           ...metricRow,
+          grade_id: typeof row.grade_id === 'string' ? row.grade_id : null,
           school_name:
             typeof row.school_name === 'string' ? row.school_name : '',
           udise: row.udise ?? null,
@@ -573,9 +586,39 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         };
       }) as FilteredSchoolsForSchoolListingOps[];
 
+      let grades: Array<{ id: string; name: string }> | undefined;
+      if (export_school_ids) {
+        // Only metric-backed grades should become export columns.
+        const gradeIds = Array.from(
+          new Set(
+            mappedRows.flatMap((row) => (row.grade_id ? [row.grade_id] : [])),
+          ),
+        );
+        let gradeRows: Array<{ id: string; name: string }> = [];
+        if (gradeIds.length > 0) {
+          const { data: matchingGradeRows, error: gradeError } =
+            await this.supabase
+              .from('grade')
+              .select('id, name')
+              .eq('is_deleted', false)
+              .in('id', gradeIds)
+              .order('sort_index', { ascending: true });
+          if (gradeError) {
+            logger.error(
+              'Error fetching grades for school metrics export:',
+              gradeError,
+            );
+            return { data: [], total: 0 };
+          }
+          gradeRows = matchingGradeRows ?? [];
+        }
+        grades = gradeRows.map(({ id, name }) => ({ id, name }));
+      }
+
       return {
         data: mappedRows,
         total: requiresClientSideProcessing ? rows.length : (count ?? 0),
+        ...(grades ? { grades } : {}),
       };
     } catch (error) {
       logger.error(

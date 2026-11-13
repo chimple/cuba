@@ -1,4 +1,3 @@
-import { CAMPAIGN_REWARD_LOG_KEYWORD } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { Database } from '../../database';
 import type { CampaignStudentRewardPayload } from '../ServiceApi';
@@ -6,7 +5,6 @@ import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
 
 /** Supabase operations supporting offline campaign reward evaluation. */
 export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
-  /** Preserves the existing RPC for campaign-config sync callers outside goal rendering. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
@@ -14,21 +12,12 @@ export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
     Database['public']['Functions']['get_active_campaigns']['Returns']
   > {
     if (!this.supabase || !studentId) return [];
-
     const { data, error } = await this.supabase.rpc('get_active_campaigns', {
       p_student_id: studentId,
       p_last_fetch_timestamp: lastFetchTimestamp ?? null,
     });
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} campaigns fetched`, {
-      studentId,
-      lastFetchTimestamp: lastFetchTimestamp ?? null,
-      count: data?.length ?? 0,
-    });
     if (error) {
-      logger.error(
-        `${CAMPAIGN_REWARD_LOG_KEYWORD} campaign fetch failed`,
-        error,
-      );
+      logger.error('Campaign fetch failed', error);
       throw error;
     }
     return (data ??
@@ -42,10 +31,6 @@ export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
     if (!this.supabase) return;
 
     const now = new Date().toISOString();
-    logger.info(
-      `${CAMPAIGN_REWARD_LOG_KEYWORD} reward upsert started`,
-      payload,
-    );
     const { error } = await this.supabase
       .from('campaign_student_rewards')
       .upsert(
@@ -62,15 +47,8 @@ export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
       );
 
     if (error) {
-      logger.error(
-        `${CAMPAIGN_REWARD_LOG_KEYWORD} reward upsert failed`,
-        error,
-      );
+      logger.error('Campaign reward upload failed', error);
       throw error;
     }
-    logger.info(`${CAMPAIGN_REWARD_LOG_KEYWORD} reward upsert completed`, {
-      campaignId: payload.campaignId,
-      studentId: payload.studentId,
-    });
   }
 }

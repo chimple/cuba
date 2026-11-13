@@ -1,4 +1,10 @@
+import { t } from 'i18next';
 import { type SchoolListSourceRow } from './SchoolList.fetcher';
+import {
+  buildSchoolListExportMetricHeaders,
+  buildSchoolListExportMetricValues,
+  collectSchoolListExportGrades,
+} from './SchoolList.export.metrics';
 import {
   formatCompactNumber,
   formatPercent,
@@ -143,18 +149,26 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
 
 export const buildSchoolListExportSheetRows = (rows: SchoolListSourceRow[]) => {
   const exportColumns = getSchoolListExportColumns();
+  const grades = collectSchoolListExportGrades(rows);
 
   return [
-    exportColumns.map((column) => column.label),
+    [
+      ...exportColumns.map((column) => column.label),
+      ...buildSchoolListExportMetricHeaders(grades),
+    ],
     ...rows.map((school) => {
       const exportCellTextMap = buildExportCellTextMap(school);
-      return exportColumns.map((column) => {
+      const exportCells = exportColumns.map((column) => {
         const metric = exportCellTextMap[column.key];
         if (!metric) return '--';
         return column.part === 'percent'
           ? metric.percentText
           : metric.valueText;
       });
+      return [
+        ...exportCells,
+        ...buildSchoolListExportMetricValues(school, grades),
+      ];
     }),
   ];
 };

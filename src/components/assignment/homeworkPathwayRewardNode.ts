@@ -1,6 +1,10 @@
 import { t } from 'i18next';
 
 import { EVENTS } from '../../common/constants';
+import {
+  TRACKABLE_ID_ATTRIBUTE,
+  TRACKABLE_IDS,
+} from '../../analytics/trackable';
 import { Util } from '../../utility/util';
 
 export function buildHomeworkPathwayRewardNode(params: any): SVGGElement | null {
@@ -44,6 +48,12 @@ export function buildHomeworkPathwayRewardNode(params: any): SVGGElement | null 
         : 'sticker';
 
     rewardWrapper.setAttribute('data-reward-mode', rewardMode);
+    rewardWrapper.setAttribute(
+      TRACKABLE_ID_ATTRIBUTE,
+      rewardMode === 'sticker'
+        ? TRACKABLE_IDS.PATHWAY_STICKER_REWARD
+        : TRACKABLE_IDS.PATHWAY_MYSTERY_REWARD,
+    );
 
     const width =
       window.innerWidth >= 1024 ? 68 : window.innerWidth >= 768 ? 62 : 57;

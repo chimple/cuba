@@ -289,7 +289,11 @@ export type CampaignRewardsPayload = {
 
 /** Existing campaign-configuration change returned by getActiveCampaigns. */
 export type CampaignActiveChange =
-  Database['public']['Functions']['get_active_campaigns']['Returns'][number];
+  Database['public']['Functions']['get_active_campaigns']['Returns'][number] & {
+    objective?: string | null;
+    target_value?: number | null;
+    rewards?: Json;
+  };
 
 /** Assignment counts for one active campaign in the currently played subject. */
 export type CampaignGoalProgress = {

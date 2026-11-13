@@ -46,7 +46,9 @@ function setup(
     class_course: classCourses,
   };
   const api = new SupabaseApiResultsCourseSelection();
-  api.supabase = { from: jest.fn((table: string) => queries[table]) };
+  api.supabase = {
+    from: jest.fn((table: string) => queries[table]),
+  } as unknown as typeof api.supabase;
   api.getCourses = jest.fn().mockResolvedValue([]);
   return { api, school, classCourses };
 }

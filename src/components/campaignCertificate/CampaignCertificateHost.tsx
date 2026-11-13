@@ -1,13 +1,33 @@
 import { useEffect, useState } from 'react';
+import { PAGES } from '../../common/constants';
 import CampaignCertificateModal from './CampaignCertificateModal';
 import type { CampaignCertificateData } from './campaignCertificate.types';
 
 export const CAMPAIGN_CERTIFICATE_EARNED_EVENT =
   'chimple:campaign-certificate-earned';
+export const CAMPAIGN_CERTIFICATE_HOME_READY_EVENT =
+  'chimple:campaign-certificate-home-ready';
+const PENDING_CERTIFICATE_STORAGE_KEY = 'campaignCertificatePending';
+
+const isHomeRoute = (pathname: string) => pathname === PAGES.HOME;
 
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,
 ) => {
+  // Persist before dispatching so an event emitted while the global host is
+  // mounting is not lost (this is common on native scorecard navigation).
+  const isPreview = new URLSearchParams(window.location.search).has(
+    'campaignCertificatePreview',
+  );
+  if (!isPreview) {
+    localStorage.setItem(
+      PENDING_CERTIFICATE_STORAGE_KEY,
+      JSON.stringify({
+        ...certificate,
+        isNewlyEarned: certificate.isNewlyEarned ?? true,
+      }),
+    );
+  }
   window.dispatchEvent(
     new CustomEvent<CampaignCertificateData>(
       CAMPAIGN_CERTIFICATE_EARNED_EVENT,
@@ -23,20 +43,95 @@ const CampaignCertificateHost = () => {
     useState<CampaignCertificateData | null>(null);
 
   useEffect(() => {
+    const displayCertificate = (detail: CampaignCertificateData) => {
+      setCertificate({
+        ...detail,
+        isNewlyEarned: detail.isNewlyEarned ?? true,
+      });
+    };
+
+    const displayPendingCertificate = () => {
+      const pending = localStorage.getItem(PENDING_CERTIFICATE_STORAGE_KEY);
+      if (!pending) return;
+      try {
+        const detail = JSON.parse(pending) as CampaignCertificateData;
+        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
+        displayCertificate(detail);
+      } catch {
+        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
+      }
+    };
+
+    const displayPendingCertificateOnHome = () => {
+      // Lesson scorecards keep the event queued until Continue Playing returns
+      // the learner to Home, where the global modal is visible to the child.
+      if (!isHomeRoute(window.location.pathname)) return;
+      displayPendingCertificate();
+    };
+
     const showCertificate = (event: Event) => {
       const detail = (event as CustomEvent<CampaignCertificateData>).detail;
-      setCertificate(
-        detail
-          ? { ...detail, isNewlyEarned: detail.isNewlyEarned ?? true }
-          : null,
+      if (!detail) return;
+      const isPreview = new URLSearchParams(window.location.search).has(
+        'campaignCertificatePreview',
       );
+      if (!isHomeRoute(window.location.pathname) && !isPreview) {
+        localStorage.setItem(
+          PENDING_CERTIFICATE_STORAGE_KEY,
+          JSON.stringify({
+            ...detail,
+            isNewlyEarned: detail.isNewlyEarned ?? true,
+          }),
+        );
+        return;
+      }
+      if (!isPreview) {
+        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
+      }
+      displayCertificate(detail);
     };
     window.addEventListener(CAMPAIGN_CERTIFICATE_EARNED_EVENT, showCertificate);
-    return () =>
+    window.addEventListener(
+      'ionRouteDidChange',
+      displayPendingCertificateOnHome,
+    );
+    document.addEventListener(
+      'ionRouteDidChange',
+      displayPendingCertificateOnHome,
+    );
+    document.addEventListener(
+      'ionViewDidEnter',
+      displayPendingCertificateOnHome,
+    );
+    window.addEventListener(
+      CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
+      displayPendingCertificate,
+    );
+    window.addEventListener('popstate', displayPendingCertificateOnHome);
+    displayPendingCertificateOnHome();
+    return () => {
       window.removeEventListener(
         CAMPAIGN_CERTIFICATE_EARNED_EVENT,
         showCertificate,
       );
+      window.removeEventListener(
+        'ionRouteDidChange',
+        displayPendingCertificateOnHome,
+      );
+      document.removeEventListener(
+        'ionRouteDidChange',
+        displayPendingCertificateOnHome,
+      );
+      document.removeEventListener(
+        'ionViewDidEnter',
+        displayPendingCertificateOnHome,
+      );
+      window.removeEventListener(
+        CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
+        displayPendingCertificate,
+      );
+      window.removeEventListener('popstate', displayPendingCertificateOnHome);
+    };
   }, []);
 
   // QA preview works from either Home route (the app has kid and teacher Home routes).

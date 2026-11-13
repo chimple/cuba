@@ -1,4 +1,5 @@
 import { IS_REWARD_FEATURE_ON, EVENTS } from '../common/constants';
+import { TRACKABLE_ID_ATTRIBUTE, TRACKABLE_IDS } from '../analytics/trackable';
 import { Util } from '../utility/util';
 import logger from '../utility/logger';
 import { t } from 'i18next';
@@ -225,6 +226,10 @@ export function renderPathwaySvgScene(params: any) {
           'PathwayStructure-animated-pointer',
         );
         activeGroup.appendChild(pointer);
+        activeGroup.setAttribute(
+          TRACKABLE_ID_ATTRIBUTE,
+          TRACKABLE_IDS.PATHWAY_PLAY_LESSON,
+        );
 
         activeGroup.style.cursor = 'pointer';
         activeGroup.addEventListener('click', () => {
@@ -288,9 +293,12 @@ export function renderPathwaySvgScene(params: any) {
         ? 'mystery_box'
         : 'sticker';
     rewardWrapper.setAttribute('data-reward-mode', rewardMode);
-    rewardWrapper.dataset.trackable = 'true';
-    rewardWrapper.dataset.trackableId =
-      rewardMode === 'sticker' ? 'open_sticker_reward' : 'open_mystery_reward';
+    rewardWrapper.setAttribute(
+      TRACKABLE_ID_ATTRIBUTE,
+      rewardMode === 'sticker'
+        ? TRACKABLE_IDS.PATHWAY_STICKER_REWARD
+        : TRACKABLE_IDS.PATHWAY_MYSTERY_REWARD,
+    );
     rewardWrapper.setAttribute(
       'aria-label',
       rewardMode === 'sticker' ? 'Sticker reward' : 'Mystery box reward',

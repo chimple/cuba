@@ -195,6 +195,7 @@ export class SqliteApiProgramFoundation extends SqliteApiCampaignManagement {
 
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
+    export_school_ids?: string[];
     programId?: string;
     page?: number;
     page_size?: number;
@@ -204,7 +205,11 @@ export class SqliteApiProgramFoundation extends SqliteApiCampaignManagement {
     date_range?: string;
     percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
     school_performance_filter?: string | null;
-  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+    grades?: Array<{ id: string; name: string }>;
+  }> {
     return await this._serverApi.getSchoolMetricsForSchoolListing(params);
   }
 

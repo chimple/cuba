@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useGrowthBook } from '@growthbook/growthbook-react';
 import {
   SEARCH_LESSON_CACHE_KEY,
   SEARCH_LESSON_HISTORY,
@@ -7,6 +8,7 @@ import { initializeClickListener } from '../analytics/clickUtil';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
 export const useGlobalBrowserEffects = () => {
+  const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
 
@@ -28,7 +30,7 @@ export const useGlobalBrowserEffects = () => {
   }, []);
 
   useEffect(() => {
-    const cleanupClickListener = initializeClickListener();
+    const cleanupClickListener = initializeClickListener(growthbook);
 
     const handleOnline = () => {
       if (!online) {
@@ -62,5 +64,5 @@ export const useGlobalBrowserEffects = () => {
       window.removeEventListener('offline', handleOffline);
       cleanupClickListener();
     };
-  }, [online, presentToast]);
+  }, [growthbook, online, presentToast]);
 };

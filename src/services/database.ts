@@ -5066,6 +5066,7 @@ export type Database = {
           stickers_metadata: Json;
           svg_url: string;
           title: string;
+          title_translations: Json | null;
           total_stickers: number;
           updated_at: string | null;
         };
@@ -5077,6 +5078,7 @@ export type Database = {
           stickers_metadata: Json;
           svg_url: string;
           title: string;
+          title_translations?: Json | null;
           total_stickers: number;
           updated_at?: string | null;
         };
@@ -5088,6 +5090,7 @@ export type Database = {
           stickers_metadata?: Json;
           svg_url?: string;
           title?: string;
+          title_translations?: Json | null;
           total_stickers?: number;
           updated_at?: string | null;
         };
@@ -6587,6 +6590,9 @@ export type Database = {
           change_type: string;
           campaign_id: string;
           campaign_name: string;
+          objective: string | null;
+          target_type: string | null;
+          target_value: number | null;
           rules_json: Json;
           start_date: string;
           end_date: string;

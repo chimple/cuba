@@ -17,6 +17,7 @@ import { BsFillBellFill } from 'react-icons/bs';
 import { useHistory, useLocation } from 'react-router';
 import { t } from 'i18next';
 import { PAGES } from '../../common/constants';
+import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
@@ -121,9 +122,11 @@ const CampaignListingPage: React.FC = () => {
           {canCreateCampaign ? (
             <Button
               className="campaign-listing-new-button"
+              id="campaign-listing-new-button"
               startIcon={<Add />}
               onClick={handleClickNewCampaign}
               aria-label={String(t('New Campaign'))}
+              {...getTrackableProps(TRACKABLE_IDS.OPS_CREATE_CAMPAIGN)}
             >
               {isPortraitMobile ? null : t('New Campaign')}
             </Button>

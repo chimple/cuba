@@ -1,0 +1,83 @@
+.competition-certificate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(24, 42, 79, 0.56);
+}
+
+.competition-certificate-dialog {
+  position: relative;
+  width: 476.24px;
+  max-width: calc(100vw - 2rem);
+  overflow: visible;
+}
+
+.competition-certificate-stage {
+  position: relative;
+  width: 100%;
+  height: 350px;
+}
+
+.competition-certificate-artwork-target {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  cursor: pointer;
+}
+
+.competition-certificate-artwork-target:focus-visible {
+  outline: 3px solid #f34d08;
+  outline-offset: 4px;
+}
+
+.competition-certificate-stage .campaign-certificate-artwork {
+  width: 100%;
+  height: 350px;
+  border-radius: 25px;
+  box-shadow: 0 4px 0 rgba(24, 42, 79, 0.25);
+}
+
+.competition-certificate-student-name {
+  margin: 0.1rem 0 0 !important;
+  color: #665800;
+  font-size: clamp(11px, 2.4vw, 14px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.competition-certificate-star {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.competition-certificate-star-left {
+  top: 18.1px;
+  left: -67.74px;
+  width: 62.36px;
+  height: 54.31px;
+  transform: rotate(63.53deg);
+}
+
+.competition-certificate-star-right {
+  top: 85.49px;
+  left: 480.27px;
+  width: 100.51px;
+  height: 76.44px;
+  transform: rotate(-63.51deg);
+}
+
+@media (max-width: 560px) {
+  .competition-certificate-dialog {
+    width: calc(100vw - 1rem);
+  }
+
+  .competition-certificate-stage,
+  .competition-certificate-stage .campaign-certificate-artwork {
+    height: auto;
+    aspect-ratio: 476.24 / 350;
+  }
+}

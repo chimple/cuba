@@ -114,7 +114,7 @@
   color: #333;
 }
 
-.add-button.disabled {
+#add-button:disabled {
   background-color: #7c5db0;
   cursor: pointer;
   height: 50px;

@@ -21,6 +21,20 @@ type SchoolListApiRequest = {
   school_performance_filter: SchoolPerformanceFilterValue | null;
 };
 
+export type SchoolListExportMetricRow = {
+  grade_id: string | null;
+  total_teachers: number | null;
+  activated_teachers: number | null;
+  onboarded_students: number | null;
+  parents_on_whatsapp: number | null;
+  parents_in_group: number | null;
+};
+
+export type SchoolListExportGrade = {
+  id: string;
+  name: string;
+};
+
 export type SchoolMetricCell = {
   value: unknown;
   text: string;
@@ -40,6 +54,8 @@ export type SchoolListSourceRow = FilteredSchoolsForSchoolListingOps & {
   assignments_assigned?: number | null;
   community_parents_reached?: number | null;
   active_teacher_percentage?: number | null;
+  school_metrics_export_rows?: SchoolListExportMetricRow[];
+  school_grade_columns?: SchoolListExportGrade[];
 };
 
 export type SchoolListRow = SchoolListSourceRow & {

@@ -7,6 +7,8 @@ import logger from '../../utility/logger';
 import { runBackgroundWorkerTask } from '../../workers/backgroundWorkerClient';
 import {
   fetchSchoolListPage,
+  type SchoolListExportGrade,
+  type SchoolListExportMetricRow,
   type SchoolListSourceRow,
 } from './SchoolList.fetcher';
 import {
@@ -27,6 +29,9 @@ import {
 const EXPORT_SHEET_NAME = 'Schools';
 const EXPORT_FILE_NAME = 'SchoolMetrics.xlsx';
 const EXPORT_PAGE_SIZE = 500;
+// Keep school ID filters below PostgREST's request URL limit.
+const EXPORT_SCHOOL_METRICS_BATCH_SIZE = 100;
+const EXPORT_SCHOOL_METRICS_BATCH_CONCURRENCY = 4;
 type XlsxModule = typeof XLSXModule;
 type XlsxWorkSheet = XLSXModule.WorkSheet;
 
@@ -352,6 +357,98 @@ const fetchAllSchoolsForExport = async ({
   return allSchools;
 };
 
+const fetchGradeMetricsForExport = async (
+  params: FetchAllSchoolsForExportParams,
+  schools: SchoolListSourceRow[],
+) => {
+  if (schools.length === 0) return schools;
+
+  const schoolIds = new Set(
+    schools.map((school) => String(school.school_id ?? '')).filter(Boolean),
+  );
+  const schoolIdList = Array.from(schoolIds);
+  if (schoolIdList.length === 0) return schools;
+  const filters: Record<string, string[]> = {
+    ...params.filters,
+    grade: [],
+  };
+  if (params.selectedTab !== PROGRAM_TAB.ALL) {
+    filters.model = [params.selectedTab];
+  }
+  const schoolIdBatches: string[][] = [];
+  for (
+    let start = 0;
+    start < schoolIdList.length;
+    start += EXPORT_SCHOOL_METRICS_BATCH_SIZE
+  ) {
+    schoolIdBatches.push(
+      schoolIdList.slice(start, start + EXPORT_SCHOOL_METRICS_BATCH_SIZE),
+    );
+  }
+  const metricResponses: Array<
+    Awaited<ReturnType<ServiceApi['getSchoolMetricsForSchoolListing']>>
+  > = [];
+  for (
+    let start = 0;
+    start < schoolIdBatches.length;
+    start += EXPORT_SCHOOL_METRICS_BATCH_CONCURRENCY
+  ) {
+    const responseBatch = await Promise.all(
+      schoolIdBatches
+        .slice(start, start + EXPORT_SCHOOL_METRICS_BATCH_CONCURRENCY)
+        .map((exportSchoolIds) =>
+          params.api.getSchoolMetricsForSchoolListing({
+            export_school_ids: exportSchoolIds,
+            filters,
+            date_range: params.selectedDateRange,
+            percentage_filters: {},
+            school_performance_filter: null,
+          }),
+        ),
+    );
+    metricResponses.push(...responseBatch);
+  }
+  const gradesById = new Map<string, SchoolListExportGrade>();
+  metricResponses.forEach((response) =>
+    response.grades?.forEach((grade) => gradesById.set(grade.id, grade)),
+  );
+  const gradeColumns = Array.from(gradesById.values());
+  const metricsBySchool = new Map<string, SchoolListExportMetricRow[]>();
+
+  schools.forEach((school) => {
+    const schoolId = String(school.school_id ?? '');
+    if (!schoolId) return;
+    metricsBySchool.set(schoolId, []);
+  });
+
+  metricResponses.flatMap((response) => response.data).forEach((school) => {
+    const schoolId = String(school.school_id ?? '');
+    if (!schoolIds.has(schoolId)) return;
+    metricsBySchool.get(schoolId)?.push({
+      grade_id: school.grade_id ?? null,
+      total_teachers:
+        school.grade_id == null ? school.total_teachers ?? null : null,
+      activated_teachers:
+        school.grade_id == null ? school.activated_teachers ?? null : null,
+      onboarded_students:
+        school.grade_id == null ? null : school.onboarded_students ?? null,
+      parents_on_whatsapp:
+        school.grade_id == null ? null : school.parents_on_whatsapp ?? null,
+      parents_in_group:
+        school.grade_id == null
+          ? null
+          : school.parents_in_whatsapp_group ?? null,
+    });
+  });
+
+  return schools.map((school) => ({
+    ...school,
+    school_grade_columns: gradeColumns,
+    school_metrics_export_rows:
+      metricsBySchool.get(String(school.school_id ?? '')) ?? [],
+  }));
+};
+
 export const useSchoolListExport = ({
   api,
   filters,
@@ -376,7 +473,7 @@ export const useSchoolListExport = ({
 
     setIsExporting(true);
     try {
-      const exportSchools = await fetchAllSchoolsForExport({
+      const exportParams = {
         api,
         filters,
         selectedTab,
@@ -386,7 +483,12 @@ export const useSchoolListExport = ({
         selectedDateRange,
         percentageFilters,
         schoolPerformanceFilter,
-      });
+      };
+      const schools = await fetchAllSchoolsForExport(exportParams);
+      const exportSchools = await fetchGradeMetricsForExport(
+        exportParams,
+        schools,
+      );
       const exportSheetRows = buildSchoolListExportSheetRows(exportSchools);
       const output = await buildExportWorkbook(exportSheetRows);
 

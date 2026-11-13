@@ -1,7 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
 import CampaignCertificateHost, {
+  CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
   showCampaignCertificate,
 } from './CampaignCertificateHost';
+
+jest.mock('../../utility/util', () => ({
+  Util: { logEvent: jest.fn(), sendContentToAndroidOrWebShare: jest.fn() },
+}));
 
 jest.mock('react-confetti', () => () => <div data-testid="confetti" />);
 jest.mock('../../utility/AudioUtil', () => ({
@@ -29,7 +34,12 @@ describe('CampaignCertificateHost', () => {
   });
 
   it('renders the modal when the public certificate event is dispatched', () => {
-    render(<CampaignCertificateHost />);
+    window.history.pushState({}, '', '/home');
+    render(
+      <>
+        <CampaignCertificateHost />
+      </>,
+    );
 
     act(() => {
       showCampaignCertificate({
@@ -44,5 +54,25 @@ describe('CampaignCertificateHost', () => {
     // The host is the single orchestration point for certificate popup rendering.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Summer League')).toBeInTheDocument();
+  });
+
+  it('displays a queued player certificate when Home becomes active', () => {
+    window.history.pushState({}, '', '/lido-player');
+    render(<CampaignCertificateHost />);
+
+    act(() => {
+      showCampaignCertificate({
+        campaignId: 'campaign-queued',
+        campaignName: 'Queued League',
+        studentName: 'Madhavi',
+        rank: 3,
+        awardedAt: '2026-06-28T00:00:00.000Z',
+      });
+      window.history.pushState({}, '', '/home');
+      window.dispatchEvent(new Event(CAMPAIGN_CERTIFICATE_HOME_READY_EVENT));
+    });
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Queued League')).toBeInTheDocument();
   });
 });

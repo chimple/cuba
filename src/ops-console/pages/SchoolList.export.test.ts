@@ -61,6 +61,8 @@ describe('buildSchoolListExportSheetRows', () => {
         'In-Person - Students / Parents',
         'On WhatsApp',
         'In Group',
+        'Total Onboarded Teachers',
+        'Activated Teachers',
       ],
       [
         'Alpha School',
@@ -87,6 +89,8 @@ describe('buildSchoolListExportSheetRows', () => {
         '4',
         '40',
         '32',
+        '8',
+        '6',
       ],
     ]);
   });
@@ -146,6 +150,102 @@ describe('buildSchoolListExportSheetRows', () => {
       '--',
       '--',
       '--',
+      '0',
+      '0',
+    ]);
+  });
+
+  it('exports NULL for missing grades and stored metrics for matching grades', () => {
+    const grades = [
+      { id: 'grade-1', name: 'Grade 1' },
+      { id: 'grade-2', name: 'Grade 2' },
+    ];
+    const exportRows = buildSchoolListExportSheetRows([
+      {
+        school_id: 'school-1',
+        school_name: 'Alpha School',
+        school_grade_columns: grades.slice(0, 1),
+        school_metrics_export_rows: [
+          {
+            grade_id: null,
+            total_teachers: 8,
+            activated_teachers: 6,
+            onboarded_students: null,
+            parents_on_whatsapp: null,
+            parents_in_group: null,
+          },
+          {
+            grade_id: 'grade-1',
+            total_teachers: null,
+            activated_teachers: null,
+            onboarded_students: 10,
+            parents_on_whatsapp: 5,
+            parents_in_group: 2,
+          },
+          {
+            grade_id: 'grade-2',
+            total_teachers: null,
+            activated_teachers: null,
+            onboarded_students: 4,
+            parents_on_whatsapp: 6,
+            parents_in_group: 3,
+          },
+        ],
+      },
+      {
+        school_id: 'school-2',
+        school_name: 'Beta School',
+        school_grade_columns: grades,
+        school_metrics_export_rows: [
+          {
+            grade_id: null,
+            total_teachers: 2,
+            activated_teachers: 1,
+            onboarded_students: null,
+            parents_on_whatsapp: null,
+            parents_in_group: null,
+          },
+          {
+            grade_id: 'grade-1',
+            total_teachers: null,
+            activated_teachers: null,
+            onboarded_students: 7,
+            parents_on_whatsapp: 3,
+            parents_in_group: 2,
+          },
+        ],
+      },
+    ] as SchoolListSourceRow[]);
+
+    expect(exportRows[0].slice(-8)).toEqual([
+      'Onboarded Students - Grade 1',
+      'Onboarded Students - Grade 2',
+      'Total Onboarded Teachers',
+      'Activated Teachers',
+      'Parents on WhatsApp - Grade 1',
+      'Parents on WhatsApp - Grade 2',
+      'Parents on Group - Grade 1',
+      'Parents on Group - Grade 2',
+    ]);
+    expect(exportRows[1].slice(-8)).toEqual([
+      '10',
+      '4',
+      '8',
+      '6',
+      '5',
+      '6',
+      '2',
+      '3',
+    ]);
+    expect(exportRows[2].slice(-8)).toEqual([
+      '7',
+      'NULL',
+      '2',
+      '1',
+      '3',
+      'NULL',
+      '2',
+      'NULL',
     ]);
   });
 });
