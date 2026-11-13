@@ -5,6 +5,7 @@ import { SupabaseApiProgramClassManagement } from './SupabaseApi.program.classMa
 import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
+  TeacherLifetimeAssignmentMap,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { FcUserFormSaveResult } from '../serviceapi/ServiceApi.types';
 import {
@@ -257,6 +258,46 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     });
 
     return counts;
+  }
+
+  async getTeacherLifetimeAssignmentStatus(
+    teacherIds: string[],
+  ): Promise<TeacherLifetimeAssignmentMap> {
+    const ids = Array.from(
+      new Set(teacherIds.map((id) => String(id ?? '').trim()).filter(Boolean)),
+    );
+    const status: TeacherLifetimeAssignmentMap = Object.fromEntries(
+      ids.map((id) => [id, false]),
+    );
+    if (!this.supabase || ids.length === 0) return status;
+
+    const pageSize = 1000;
+    for (
+      let from = 0, rowsFetched = pageSize;
+      rowsFetched === pageSize;
+      from += pageSize
+    ) {
+      const { data, error } = await this.supabase
+        .from(TABLES.Assignment)
+        .select('id, created_by')
+        .in('created_by', ids)
+        .order('created_by', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) {
+        logger.error('Error fetching lifetime teacher assignments:', error);
+        throw error;
+      }
+
+      const rows = data ?? [];
+      rows.forEach((row) => {
+        const teacherId = String(row.created_by ?? '').trim();
+        if (teacherId) status[teacherId] = true;
+      });
+
+      rowsFetched = rows.length;
+    }
+    return status;
   }
 
   async getActiveTeachersCountForProgram7d(

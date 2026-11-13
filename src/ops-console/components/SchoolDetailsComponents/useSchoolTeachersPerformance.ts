@@ -129,6 +129,7 @@ export const useSchoolTeachersPerformance = ({
       });
 
       const countsByPair: Record<string, number | null> = {};
+      let lifetimeStatus: Record<string, boolean> | null = null;
       const activeApi = ServiceConfig.getI().apiHandler;
       const pairs = Array.from(pairByKey.values());
 
@@ -141,14 +142,25 @@ export const useSchoolTeachersPerformance = ({
           cachedSchool?.teacherAssignmentCounts ?? {},
         );
       } else if (pairs.length > 0) {
-        try {
-          Object.assign(
-            countsByPair,
-            await activeApi.getRecentAssignmentCountsByTeachers(pairs),
-          );
-        } catch (error) {
+        const teacherIds = Array.from(
+          new Set(pairs.map(({ teacherId }) => teacherId)),
+        );
+        const [recentResult, lifetimeResult] = await Promise.allSettled([
+          activeApi.getRecentAssignmentCountsByTeachers(pairs),
+          activeApi.getTeacherLifetimeAssignmentStatus(teacherIds),
+        ]);
+        if (recentResult.status === 'fulfilled') {
+          Object.assign(countsByPair, recentResult.value);
+        } else {
           logger.error('Failed to load teacher performance counts:', {
-            error,
+            error: recentResult.reason,
+          });
+        }
+        if (lifetimeResult.status === 'fulfilled') {
+          lifetimeStatus = lifetimeResult.value;
+        } else {
+          logger.error('Failed to load teacher lifetime assignment status:', {
+            error: lifetimeResult.reason,
           });
         }
       }
@@ -180,7 +192,11 @@ export const useSchoolTeachersPerformance = ({
         }
 
         const pairKey = getAssignmentPairKey(pair);
-        const perfLevel = mapCountToPerformance(countsByPair[pairKey] ?? null);
+        const hasLifetimeStatus = lifetimeStatus?.[pair.teacherId];
+        const perfLevel =
+          hasLifetimeStatus === false
+            ? PerformanceLevel.NOT_TRACKED
+            : mapCountToPerformance(countsByPair[pairKey] ?? null);
 
         return toDisplayTeacher(
           apiTeacher,

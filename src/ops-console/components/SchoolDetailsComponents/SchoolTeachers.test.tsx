@@ -39,6 +39,10 @@ type ApiHandlerMock = {
     Promise<Record<string, number | null>>,
     [Array<{ teacherId: string; classId: string }>]
   >;
+  getTeacherLifetimeAssignmentStatus: jest.Mock<
+    Promise<Record<string, boolean>>,
+    [string[]]
+  >;
   getClassesForSchool: jest.Mock<Promise<SchoolClassLink[]>, []>;
   addTeacherToClass: jest.Mock<Promise<void>, []>;
   deleteUserFromClass: jest.Mock<Promise<boolean>, []>;
@@ -50,6 +54,7 @@ const mockApiHandler: ApiHandlerMock = {
   searchTeachersInSchool: jest.fn(),
   getTeacherInfoBySchoolId: jest.fn(),
   getRecentAssignmentCountsByTeachers: jest.fn(),
+  getTeacherLifetimeAssignmentStatus: jest.fn(),
   getClassesForSchool: jest.fn(),
   addTeacherToClass: jest.fn(),
   deleteUserFromClass: jest.fn(),
@@ -240,6 +245,9 @@ describe('SchoolTeachers', () => {
     });
     mockApiHandler.getRecentAssignmentCountsByTeachers.mockResolvedValue({
       'teacher-1:class-1': 0,
+    });
+    mockApiHandler.getTeacherLifetimeAssignmentStatus.mockResolvedValue({
+      'teacher-1': false,
     });
     mockApiHandler.getClassesForSchool.mockResolvedValue([
       { id: 'class-1', name: '6A' },

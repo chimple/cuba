@@ -16,7 +16,8 @@ export class SqliteApiUserLookups extends SqliteApiCorePushSync {
     SELECT *
     FROM ${TABLES.Class}
     WHERE school_id = ?
-      AND is_deleted = false;
+      AND is_deleted = false
+    ORDER BY name COLLATE NOCASE ASC, id ASC;
   `;
 
     const res = await this._db?.query(query, [schoolId]);
