@@ -1,8 +1,10 @@
+import { useIonViewDidEnter } from '@ionic/react';
 import { useEffect, useState } from 'react';
 import { useHome } from '../hooks/useHome';
 import BadgeCelebrationModal from '../components/badges/BadgeCelebrationModal';
 import { PENDING_BADGE_MILESTONE_KEY } from '../common/Badges/badgeProgress';
 import type { BadgeAnalyticsProgress } from '../common/Badges/badgeAnalytics';
+import { CAMPAIGN_CERTIFICATE_HOME_READY_EVENT } from '../components/campaignCertificate';
 import { Util } from '../utility/util';
 import './Home.css';
 
@@ -38,6 +40,13 @@ const Home = () => {
     setPendingLiveQuizCount,
     showActivationLessonBanner,
   } = useHome();
+
+  // Ionic keeps Home mounted between route changes on native. Notify the
+  // global host when this real Home view becomes visible so it can show a
+  // certificate earned from the lesson player after Continue Playing.
+  useIonViewDidEnter(() => {
+    window.dispatchEvent(new Event(CAMPAIGN_CERTIFICATE_HOME_READY_EVENT));
+  });
 
   useEffect(() => {
     const currentStudentId = Util.getCurrentStudent()?.id;
