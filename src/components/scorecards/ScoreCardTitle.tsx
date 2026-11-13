@@ -1,5 +1,5 @@
-import { t } from 'i18next';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './ScoreCardTitle.css';
 
 type ScoreCardTitleProps = {
@@ -12,7 +12,10 @@ type TitleVariant = {
   mirrorRightIcon?: boolean;
 };
 
-const getTitleVariant = (score: number): TitleVariant => {
+const getTitleVariant = (
+  score: number,
+  t: (key: string) => string,
+): TitleVariant => {
   if (score > 75) {
     return {
       asset: 'assets/3starconfetti.svg',
@@ -43,7 +46,8 @@ const getTitleVariant = (score: number): TitleVariant => {
 };
 
 const ScoreCardTitle: React.FC<ScoreCardTitleProps> = ({ score }) => {
-  const { asset, message, mirrorRightIcon } = getTitleVariant(score);
+  const { t } = useTranslation();
+  const { asset, message, mirrorRightIcon } = getTitleVariant(score, t);
 
   return (
     <div
