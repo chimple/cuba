@@ -66,7 +66,7 @@ export default function NewProgramLocationFields({
                     marginBottom: 1,
                   }}
                 >
-                  {t(key)}
+                  {t(key) || key}
                 </Typography>
                 <span className="new-program-mandatory">*</span>
               </Box>
@@ -86,7 +86,7 @@ export default function NewProgramLocationFields({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label={t(`Select ${key}`)}
+                    label={t(`Select ${key}`) || `Select ${key}`}
                     error={!!errors[`location-${key}`] && touchedFields[key]}
                     helperText={
                       touchedFields[key] ? errors[`location-${key}`] : ''

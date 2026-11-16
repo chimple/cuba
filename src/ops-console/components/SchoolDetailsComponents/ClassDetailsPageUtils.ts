@@ -173,8 +173,8 @@ export function sortClassesByGradeAndSection<T extends GradeSource>(
     }
 
     const textOptions: Intl.CollatorOptions = { sensitivity: 'base' };
-    const sectionOrder = (first.section?.trim() || firstName).localeCompare(
-      second.section?.trim() || secondName,
+    const sectionOrder = (first.section?.trim() ?? '').localeCompare(
+      second.section?.trim() ?? '',
       undefined,
       textOptions,
     );
