@@ -16,6 +16,12 @@ const mockGetCachedCampaignRewards = jest.fn();
 const mockSyncCampaignRewards = jest.fn();
 const mockDispatch = jest.fn();
 let mockHasUnseenBadge = false;
+let mockLocationSearch = '';
+
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
+  useLocation: () => ({ search: mockLocationSearch }),
+}));
 
 jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
@@ -94,6 +100,7 @@ describe('LeaderboardRewards', () => {
   beforeEach(() => {
     delete process.env.DEV;
     mockHasUnseenBadge = false;
+    mockLocationSearch = '';
     mockDispatch.mockImplementation(() => {
       mockHasUnseenBadge = false;
     });
@@ -132,6 +139,20 @@ describe('LeaderboardRewards', () => {
       'student-1',
       progress,
       { target_tab: 'lesson_completion_badges' },
+    );
+  });
+
+  it('switches to Competitions when sidebar navigation updates the rewards query', async () => {
+    const view = render(<LeaderboardRewards />);
+
+    mockLocationSearch = '?tab=rewards&rewards=competitions';
+    view.rerender(<LeaderboardRewards />);
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('tab')[1]).toHaveAttribute(
+        'aria-selected',
+        'true',
+      ),
     );
   });
 

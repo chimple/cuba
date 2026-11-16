@@ -5,6 +5,16 @@ import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
 
 /** Supabase operations supporting offline campaign reward evaluation. */
 export class SupabaseApiCampaignRewards extends SupabaseApiCampaignMessaging {
+  async getCampaignCertificateIndicator(_studentId: string): Promise<{
+    hasUnseenCertificate: boolean;
+    campaignId?: string;
+  }> {
+    return { hasUnseenCertificate: false };
+  }
+
+  async markCampaignCertificatesSeen(_studentId: string): Promise<void> {}
+
+  /** Preserves the existing RPC for campaign-config sync callers outside goal rendering. */
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,

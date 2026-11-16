@@ -28,6 +28,7 @@ const ProfileMenu = (props: Parameters<typeof useProfileMenu>[0]) => {
     className,
     hasDetails,
     hasUnseenBadge,
+    hasUnseenCertificate,
     isClosing,
     isSchoolKidsMode,
     localStorage,
@@ -156,12 +157,13 @@ const ProfileMenu = (props: Parameters<typeof useProfileMenu>[0]) => {
                       data-testid="sticker-book-notification-dot"
                     />
                   )}
-                {item.label === 'Rewards' && hasUnseenBadge && (
-                  <span
-                    className="profile-menu-notification-dot"
-                    data-testid="badge-notification-dot"
-                  />
-                )}
+                {item.label === 'Rewards' &&
+                  (hasUnseenBadge || hasUnseenCertificate) && (
+                    <span
+                      className="profile-menu-notification-dot"
+                      data-testid="rewards-notification-dot"
+                    />
+                  )}
               </div>
             </div>
             <hr className="profile-menu-horizontal-line" />

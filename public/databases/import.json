@@ -1,6 +1,6 @@
 {
   "database": "db_issue10",
-  "version": 22,
+  "version": 23,
   "encrypted": false,
   "mode": "full",
   "tables": [
@@ -531582,6 +531582,10 @@
         { "column": "student_id", "value": "TEXT NOT NULL" },
         { "column": "rank_achieved", "value": "INTEGER" },
         {
+          "column": "has_unseen_certificate",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
           "column": "status",
           "value": "TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress'))"
         },
@@ -531649,28 +531653,6 @@
         {
           "name": "idx_local_campaigns_status_dates",
           "value": "status, start_date, end_date"
-        }
-      ]
-    },
-    {
-      "name": "user_campaign_rewards",
-      "schema": [
-        { "column": "campaign_id", "value": "TEXT NOT NULL" },
-        { "column": "student_id", "value": "TEXT NOT NULL" },
-        { "column": "rank_achieved", "value": "INTEGER" },
-        {
-          "column": "status",
-          "value": "TEXT NOT NULL CHECK (status IN ('won', 'missed', 'in_progress'))"
-        },
-        { "column": "evaluated_at", "value": "TEXT NOT NULL" },
-        {
-          "column": "updated_at",
-          "value": "TEXT NOT NULL DEFAULT (datetime ('now'))"
-        },
-        { "column": "is_deleted", "value": "INTEGER NOT NULL DEFAULT 0" },
-        {
-          "constraint": "CPK_campaign_student",
-          "value": "PRIMARY KEY (campaign_id, student_id)"
         }
       ]
     }
