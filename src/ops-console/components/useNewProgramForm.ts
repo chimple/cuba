@@ -18,6 +18,7 @@ export function useNewProgramForm() {
     Country: '',
     State: '',
     District: '',
+    Block: '',
   });
   const [programType, setProgramType] = useState<ProgramType | ''>('');
   const [models, setModels] = useState<string[]>([]);
@@ -35,10 +36,12 @@ export function useNewProgramForm() {
     Country: string[];
     State: string[];
     District: string[];
-  }>({ Country: [], State: [], District: [] });
+    Block: string[];
+  }>({ Country: [], State: [], District: [], Block: [] });
   const [isCountriesLoading, setCountriesLoading] = useState(false);
   const [isStatesLoading, setStatesLoading] = useState(false);
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
+  const [isBlocksLoading, setBlocksLoading] = useState(false);
   const [stats, setStats] = useState({
     schools: '',
     students: '',
@@ -76,8 +79,11 @@ export function useNewProgramForm() {
     if (startDate && endDate && startDate.isAfter(endDate))
       newErrors['date'] = t('Start date must be before End date');
     Object.entries(locations).forEach(([key, value]) => {
-      if (['Country', 'State', 'District'].includes(key) && !value) {
-        newErrors[`location-${key}`] = t('{{key}} is required', { key });
+      if (!value.trim()) {
+        newErrors[`location-${key}`] =
+          key === 'Block'
+            ? t('Block is required')
+            : t('{{key}} is required', { key });
       }
     });
     return newErrors;
@@ -97,6 +103,7 @@ export function useNewProgramForm() {
       Country: 'location-Country',
       State: 'location-State',
       District: 'location-District',
+      Block: 'location-Block',
       startDate: 'date',
       endDate: 'date',
       date: 'date',
@@ -124,6 +131,7 @@ export function useNewProgramForm() {
     const isCountryValid = locations.Country !== '';
     const isStateValid = locations.State !== '';
     const isDistrictValid = locations.District !== '';
+    const isBlockValid = locations.Block.trim() !== '';
     const isDateValid = !startDate || !endDate || !startDate.isAfter(endDate);
     return (
       isImplementationValid &&
@@ -137,6 +145,7 @@ export function useNewProgramForm() {
       isCountryValid &&
       isStateValid &&
       isDistrictValid &&
+      isBlockValid &&
       isDateValid
     );
   };
@@ -234,6 +243,37 @@ export function useNewProgramForm() {
     }
   }, [locations.State, api]);
 
+  useEffect(() => {
+    setLocations((prev) => ({ ...prev, Block: '' }));
+    setGeoData((prev) => ({ ...prev, Block: [] }));
+    if (!locations.Country || !locations.State || !locations.District) {
+      setBlocksLoading(false);
+      return;
+    }
+
+    let active = true;
+    const loadBlocks = async () => {
+      setBlocksLoading(true);
+      try {
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+          p_district: locations.District,
+        });
+        if (active) setGeoData((prev) => ({ ...prev, Block: data }));
+      } catch (error) {
+        if (active) logger.error('Failed to load program blocks:', error);
+      } finally {
+        if (active) setBlocksLoading(false);
+      }
+    };
+    void loadBlocks();
+
+    return () => {
+      active = false;
+    };
+  }, [api, locations.Country, locations.District, locations.State]);
+
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
   };
@@ -242,7 +282,11 @@ export function useNewProgramForm() {
     validateField(fieldName);
   };
   const handleLocationChange = (field: string, value: string | null) => {
-    setLocations((prev) => ({ ...prev, [field]: value }));
+    setLocations((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'Block' ? {} : { Block: '' }),
+    }));
     if (touchedFields[field]) {
       validateField(field);
     }
@@ -269,6 +313,7 @@ export function useNewProgramForm() {
       Country: true,
       State: true,
       District: true,
+      Block: true,
       schools: true,
       students: true,
       devices: true,
@@ -284,7 +329,7 @@ export function useNewProgramForm() {
   const clearForm = () => {
     setPartners({ implementation: '', funding: '', institute: '' });
     setProgramName('');
-    setLocations({ Country: '', State: '', District: '' });
+    setLocations({ Country: '', State: '', District: '', Block: '' });
     setProgramType(ProgramType.LearningCenter);
     setModels([]);
     setSelectedManagers([]);
@@ -338,6 +383,7 @@ export function useNewProgramForm() {
     handleSave,
     handleStatsChange,
     isCountriesLoading,
+    isBlocksLoading,
     isDistrictsLoading,
     isEditingProgramName,
     isFormValid,

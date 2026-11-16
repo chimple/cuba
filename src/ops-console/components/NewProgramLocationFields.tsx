@@ -1,4 +1,12 @@
-import { Autocomplete, Box, FormControl, Grid, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  FormControl,
+  Grid,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { t } from 'i18next';
 import { useNewProgramForm } from './useNewProgramForm';
 
 type NewProgramForm = ReturnType<typeof useNewProgramForm>;
@@ -7,9 +15,14 @@ const locationFields = [
   { key: 'Country', loadingKey: 'isCountriesLoading' },
   { key: 'State', loadingKey: 'isStatesLoading' },
   { key: 'District', loadingKey: 'isDistrictsLoading' },
+  { key: 'Block', loadingKey: 'isBlocksLoading' },
 ] as const;
 
-export default function NewProgramLocationFields({ form }: { form: NewProgramForm }) {
+export default function NewProgramLocationFields({
+  form,
+}: {
+  form: NewProgramForm;
+}) {
   const {
     errors,
     geoData,
@@ -17,6 +30,7 @@ export default function NewProgramLocationFields({ form }: { form: NewProgramFor
     handleLocationChange,
     isCountriesLoading,
     isDistrictsLoading,
+    isBlocksLoading,
     isStatesLoading,
     locations,
     touchedFields,
@@ -25,6 +39,7 @@ export default function NewProgramLocationFields({ form }: { form: NewProgramFor
     isCountriesLoading,
     isStatesLoading,
     isDistrictsLoading,
+    isBlocksLoading,
   };
 
   return (
@@ -51,7 +66,7 @@ export default function NewProgramLocationFields({ form }: { form: NewProgramFor
                     marginBottom: 1,
                   }}
                 >
-                  {key}
+                  {t(key) || key}
                 </Typography>
                 <span className="new-program-mandatory">*</span>
               </Box>
@@ -61,7 +76,8 @@ export default function NewProgramLocationFields({ form }: { form: NewProgramFor
                 loading={loadingByKey[loadingKey]}
                 disabled={
                   (key === 'State' && !locations.Country) ||
-                  (key === 'District' && !locations.State)
+                  (key === 'District' && !locations.State) ||
+                  (key === 'Block' && !locations.District)
                 }
                 onChange={(_, newValue) => {
                   handleLocationChange(key, newValue || '');
@@ -70,10 +86,8 @@ export default function NewProgramLocationFields({ form }: { form: NewProgramFor
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label={`Select ${key}`}
-                    error={
-                      !!errors[`location-${key}`] && touchedFields[key]
-                    }
+                    label={t(`Select ${key}`) || `Select ${key}`}
+                    error={!!errors[`location-${key}`] && touchedFields[key]}
                     helperText={
                       touchedFields[key] ? errors[`location-${key}`] : ''
                     }
