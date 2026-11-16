@@ -12,6 +12,7 @@ import { FCSchoolStats } from '../../../ops-console/pages/SchoolDetailsPage';
 import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
+  TeacherLifetimeAssignmentMap,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
@@ -126,6 +127,12 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     pairs: TeacherAssignmentCountPair[],
   ): Promise<TeacherAssignmentCountMap> {
     return await this.s.getRecentAssignmentCountsByTeachers(pairs);
+  }
+
+  async getTeacherLifetimeAssignmentStatus(
+    teacherIds: string[],
+  ): Promise<TeacherLifetimeAssignmentMap> {
+    return await this.s.getTeacherLifetimeAssignmentStatus(teacherIds);
   }
 
   async getActiveTeachersCountForProgram7d(

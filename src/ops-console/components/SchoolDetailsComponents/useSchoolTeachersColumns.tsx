@@ -95,7 +95,7 @@ export const useSchoolTeachersColumns = ({
   },
   {
     key: 'performance',
-    label: t('Performance (7 days)'),
+    label: t('Performance/Status'),
     align: 'center',
     width: 120,
     sortable: false,

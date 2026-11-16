@@ -21,6 +21,7 @@ export type TeacherAssignmentCountPair = {
 };
 
 export type TeacherAssignmentCountMap = Record<string, number | null>;
+export type TeacherLifetimeAssignmentMap = Record<string, boolean>;
 
 export interface ServiceApiFieldActivities {
   getActiveStudentsCountByClass(classId: string): Promise<string>;
@@ -97,6 +98,10 @@ export interface ServiceApiFieldActivities {
   getRecentAssignmentCountsByTeachers(
     pairs: TeacherAssignmentCountPair[],
   ): Promise<TeacherAssignmentCountMap>;
+
+  getTeacherLifetimeAssignmentStatus(
+    teacherIds: string[],
+  ): Promise<TeacherLifetimeAssignmentMap>;
 
   getActiveTeachersCountForProgram7d(
     programId: string,
