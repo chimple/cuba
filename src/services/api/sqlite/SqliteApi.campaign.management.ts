@@ -164,7 +164,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         : null;
     } catch (error) {
       logger.warn(
-        `${CAMPAIGN_REWARD_LOG_KEYWORD} local assignment progress unavailable ${error instanceof Error ? error.message : String(error)}`,
+        `Campaign local assignment progress unavailable: ${error instanceof Error ? error.message : String(error)}`,
       );
       return null;
     }
