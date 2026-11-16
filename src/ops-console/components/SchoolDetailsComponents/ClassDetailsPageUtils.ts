@@ -142,6 +142,49 @@ export function parseGradeSection(
   };
 }
 
+export function sortClassesByGradeAndSection<T extends GradeSource>(
+  classes: T[],
+): T[] {
+  return [...classes].sort((firstClass, secondClass) => {
+    const firstName = firstClass.name?.trim() ?? '';
+    const secondName = secondClass.name?.trim() ?? '';
+    const first = parseGradeSection(
+      firstName,
+      firstClass.grade ?? undefined,
+      firstClass.section ?? undefined,
+    );
+    const second = parseGradeSection(
+      secondName,
+      secondClass.grade ?? undefined,
+      secondClass.section ?? undefined,
+    );
+    // shortcut: unsupported grade labels sort last; extend parseClassName when new formats appear.
+    const firstGrade = Number(first.grade);
+    const secondGrade = Number(second.grade);
+    const firstSortGrade = Number.isFinite(firstGrade)
+      ? firstGrade
+      : Number.POSITIVE_INFINITY;
+    const secondSortGrade = Number.isFinite(secondGrade)
+      ? secondGrade
+      : Number.POSITIVE_INFINITY;
+
+    if (firstSortGrade !== secondSortGrade) {
+      return firstSortGrade - secondSortGrade;
+    }
+
+    const textOptions: Intl.CollatorOptions = { sensitivity: 'base' };
+    const sectionOrder = (first.section?.trim() || firstName).localeCompare(
+      second.section?.trim() || secondName,
+      undefined,
+      textOptions,
+    );
+    return (
+      sectionOrder ||
+      firstName.localeCompare(secondName, undefined, textOptions)
+    );
+  });
+}
+
 export function getClassDisplayLabel(
   grade?: number | string | null,
   section?: string | null,

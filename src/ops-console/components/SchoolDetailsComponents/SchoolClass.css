@@ -287,3 +287,17 @@
   color: #b42318; /* red text */
   border-color: #f5c2c7; /* soft red border */
 }
+.schoolclass-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.schoolclass-actions__trigger.MuiButton-root {
+  min-width: 0;
+  border-radius: 8px;
+  text-transform: none;
+}
+
+.schoolclass-actions__arrow {
+  color: black;
+}
