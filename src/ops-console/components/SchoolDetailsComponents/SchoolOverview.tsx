@@ -9,6 +9,7 @@ import { PAGES, PROGRAM_TAB_LABELS } from '../../../common/constants';
 import { useHistory } from 'react-router';
 import { RoleType } from '../../../interface/modelInterfaces';
 import SubjectCurriculumCard from '../SubjectCurriculumCard';
+import SchoolLocationCard from './SchoolLocationCard';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
@@ -61,11 +62,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: 'District', value: data.schoolData?.group2 },
     { label: 'Block', value: data.schoolData?.group3 },
     { label: 'Cluster', value: data.schoolData?.group4 },
-  ].filter((item) => item.value !== undefined && item.value !== null);
-
-  // school address details
-  const schooladdressDetailsItems = [
-    { label: 'Full Address', value: data.schoolData?.address },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   // program details
@@ -177,6 +173,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             }
           />
           <SubjectCurriculumCard schoolId={data.schoolData?.id} />
+          <SchoolLocationCard
+            id="school-overview-location"
+            className="school-overview-location"
+            schoolName={data.schoolData?.name || ''}
+            locationLink={data.schoolData?.location_link}
+          />
           <SchoolOverviewProgramDetails
             data={data}
             isMobile
@@ -218,9 +220,15 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   })
                 }
               />
-              <Box mb={5}>
+              <Box>
                 <SubjectCurriculumCard schoolId={data.schoolData?.id} />
               </Box>
+              <SchoolLocationCard
+                id="school-overview-location"
+                className="school-overview-location"
+                schoolName={data.schoolData?.name || ''}
+                locationLink={data.schoolData?.location_link}
+              />
             </Box>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>

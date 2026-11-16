@@ -11,6 +11,22 @@
   min-height: 0; /* CRITICAL for scroll */
 }
 
+.schooldetailspage .school-detail-role-tabs-wrapper {
+  height: 100%;
+  min-height: 0;
+}
+
+.schooldetailspage .school-detail-role-tabs-container {
+  flex-shrink: 0;
+}
+
+.schooldetailspage .school-detail-tab-content {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding-bottom: 15px;
+}
+
 .schooldetailspage .school-detail-gap {
   height: 10px;
   width: 100%;
@@ -130,17 +146,4 @@
 
 .schooldetailspage .check-in-icon-rotated {
   transform: rotate(180deg) !important;
-}
-
-@media (max-width: 600px) {
-  .schooldetailspage .school-detail-role-tabs-wrapper {
-    height: 100%;
-    min-height: 0;
-  }
-
-  .schooldetailspage .school-detail-tab-content {
-    flex: 1;
-    height: auto;
-    min-height: 0;
-  }
 }
