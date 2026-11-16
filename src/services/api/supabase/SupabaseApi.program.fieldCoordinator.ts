@@ -271,32 +271,29 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     );
     if (!this.supabase || ids.length === 0) return status;
 
-    const pageSize = 1000;
-    for (
-      let from = 0, rowsFetched = pageSize;
-      rowsFetched === pageSize;
-      from += pageSize
-    ) {
-      const { data, error } = await this.supabase
-        .from(TABLES.Assignment)
-        .select('id, created_by')
-        .in('created_by', ids)
-        .order('created_by', { ascending: true })
-        .order('id', { ascending: true })
-        .range(from, from + pageSize - 1);
-      if (error) {
-        logger.error('Error fetching lifetime teacher assignments:', error);
-        throw error;
-      }
+    const assignmentChecks = await Promise.all(
+      ids.map(async (teacherId) => {
+        const { data, error } = await this.supabase!.from(TABLES.Assignment)
+          .select('id')
+          .eq('created_by', teacherId)
+          .limit(1)
+          .maybeSingle();
 
-      const rows = data ?? [];
-      rows.forEach((row) => {
-        const teacherId = String(row.created_by ?? '').trim();
-        if (teacherId) status[teacherId] = true;
-      });
+        if (error) {
+          logger.error('Error checking lifetime teacher assignments:', {
+            teacherId,
+            error,
+          });
+          throw error;
+        }
 
-      rowsFetched = rows.length;
-    }
+        return [teacherId, Boolean(data)] as const;
+      }),
+    );
+
+    assignmentChecks.forEach(([teacherId, hasEverAssigned]) => {
+      status[teacherId] = hasEverAssigned;
+    });
     return status;
   }
 
