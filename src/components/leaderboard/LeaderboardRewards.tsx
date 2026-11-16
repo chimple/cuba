@@ -1,4 +1,5 @@
 import { FC, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router';
 import { EVENTS } from '../../common/constants';
 import { t } from 'i18next';
 import './LeaderboardRewards.css';
@@ -13,23 +14,37 @@ import logger from '../../utility/logger';
 import { REWARDS_TABS } from '../../common/constants/rewardsPathway';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { clearBadgeProgress } from '../../redux/slices/badgeProgress/badgeProgressSlice';
+import {
+  clearUnseenCertificate,
+  setCampaignRewardsState,
+} from '../../redux/slices/campaignRewards/campaignRewardsSlice';
 import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
 type RewardsTab = (typeof REWARDS_TABS)[keyof typeof REWARDS_TABS];
-
 const EMPTY_BADGE_PROGRESS = {
   lessons_played_count: 0,
   latest_badge_milestone: 0,
   has_unseen_badge: false,
 };
+const getRewardsTabFromSearch = (search: string): RewardsTab =>
+  new URLSearchParams(search).get('rewards') === REWARDS_TABS.COMPETITIONS
+    ? REWARDS_TABS.COMPETITIONS
+    : REWARDS_TABS.LESSON_COMPLETION;
 
 const LeaderboardRewards: FC = () => {
-  // Lesson completion is the default tab and the badge navigation target.
-  const [activeTab, setActiveTab] = useState<RewardsTab>(
-    REWARDS_TABS.LESSON_COMPLETION,
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<RewardsTab>(() =>
+    getRewardsTabFromSearch(location.search),
   );
   const student = Util.getCurrentStudent();
   const dispatch = useAppDispatch();
+  const hasUnseenCertificate = useAppSelector(
+    (state) =>
+      state.campaignRewards?.studentId === student?.id &&
+      state.campaignRewards?.hasUnseenCertificate === true,
+  );
+  const [unseenCertificateCampaignId, setUnseenCertificateCampaignId] =
+    useState<string | undefined>();
   const hasUnseenBadge = useAppSelector(
     (state) =>
       state.badgeProgress?.studentId === student?.id &&
@@ -43,6 +58,30 @@ const LeaderboardRewards: FC = () => {
     Boolean(student?.id),
   );
   const clearingBadgeStudentIdsRef = useRef(new Set<string>());
+  const clearingCertificateStudentIdsRef = useRef(new Set<string>());
+  useEffect(() => {
+    setActiveTab(getRewardsTabFromSearch(location.search));
+  }, [location.search]);
+
+  useEffect(() => {
+    if (!student?.id) return;
+    const api = ServiceConfig.getI().apiHandler;
+    if (!api.getCampaignCertificateIndicator) return;
+    void api
+      .getCampaignCertificateIndicator(student.id)
+      .then((indicator) => {
+        setUnseenCertificateCampaignId(indicator.campaignId);
+        dispatch(
+          setCampaignRewardsState({
+            studentId: student.id,
+            hasUnseenCertificate: indicator.hasUnseenCertificate,
+          }),
+        );
+      })
+      .catch((error) =>
+        logger.error('Failed to load unseen campaign certificate:', error),
+      );
+  }, [dispatch, student?.id]);
 
   useEffect(() => {
     if (!student?.id) {
@@ -102,7 +141,6 @@ const LeaderboardRewards: FC = () => {
       ) {
         return;
       }
-      // Prevent progress refreshes from issuing duplicate clear requests.
       clearingBadgeStudentIdsRef.current.add(student.id);
       try {
         await ServiceConfig.getI().apiHandler.markUserBadgeSeen(student.id);
@@ -162,9 +200,45 @@ const LeaderboardRewards: FC = () => {
     return () => {
       mounted = false;
     };
-    // Badge progress changes must not repeat a tab selection or reward sync.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, student?.id]);
+
+  useEffect(() => {
+    if (
+      !student?.id ||
+      !hasUnseenCertificate ||
+      activeTab !== REWARDS_TABS.COMPETITIONS ||
+      clearingCertificateStudentIdsRef.current.has(student.id)
+    ) {
+      return;
+    }
+    const api = ServiceConfig.getI().apiHandler;
+    if (!api.markCampaignCertificatesSeen) return;
+    clearingCertificateStudentIdsRef.current.add(student.id);
+    void api
+      .markCampaignCertificatesSeen(student.id)
+      .then(() => {
+        dispatch(clearUnseenCertificate(student.id));
+        void Util.logEvent(EVENTS.UNSEEN_CERTIFICATE_CLEARED, {
+          student_id: student.id,
+          language: student.language_id ?? 'en',
+          cleared_campaign_id: unseenCertificateCampaignId ?? '',
+        });
+      })
+      .catch((error) =>
+        logger.error('Failed to clear unseen campaign certificate:', error),
+      )
+      .finally(() => {
+        clearingCertificateStudentIdsRef.current.delete(student.id);
+      });
+  }, [
+    activeTab,
+    dispatch,
+    hasUnseenCertificate,
+    student?.id,
+    student?.language_id,
+    unseenCertificateCampaignId,
+  ]);
 
   const selectTab = (tab: RewardsTab) => {
     setActiveTab(tab);

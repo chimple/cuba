@@ -28,6 +28,7 @@ import {
 import { schoolUtil } from '../utility/schoolUtil';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setBadgeProgress } from '../redux/slices/badgeProgress/badgeProgressSlice';
+import { setCampaignRewardsState } from '../redux/slices/campaignRewards/campaignRewardsSlice';
 import { RootState } from '../redux/store';
 import logger from '../utility/logger';
 import { parsePath } from 'history';
@@ -58,6 +59,11 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
   );
   const growthbookFeatureValues = useAppSelector(
     (state: RootState) => state.growthbook.featureValues,
+  );
+  const hasUnseenCertificate = useAppSelector(
+    (state: RootState) =>
+      state.campaignRewards?.studentId === student?.id &&
+      state.campaignRewards?.hasUnseenCertificate === true,
   );
   const hasUnseenBadge = useAppSelector(
     (state: RootState) =>
@@ -144,6 +150,16 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
           // Preserve the Redux badge state and continue loading Sticker Book data.
           logger.error('Failed to load badge progress:', error);
         }
+        if (api.getCampaignCertificateIndicator) {
+          const certificateIndicator =
+            await api.getCampaignCertificateIndicator(currentStudent.id);
+          dispatch(
+            setCampaignRewardsState({
+              studentId: currentStudent.id,
+              hasUnseenCertificate: certificateIndicator.hasUnseenCertificate,
+            }),
+          );
+        }
         const userStickers = await api.getUserStickerBook(currentStudent.id);
         const hasUnseen = userStickers.some((s) => !s.is_seen);
         setHasUnseenStickers(hasUnseen);
@@ -196,8 +212,14 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
   };
 
   const onReward = () => {
-    let avatarObj = AvatarObj.getInstance();
-    if (hasUnseenBadge && student?.id && badgeProgress) {
+    const avatarObj = AvatarObj.getInstance();
+    if (hasUnseenCertificate && student?.id) {
+      void Util.logEvent(EVENTS.UNSEEN_CERTIFICATE_INDICATOR_CLICKED, {
+        student_id: student.id,
+        language: student.language_id ?? 'en',
+        routed_to_tab: REWARDS_TABS.COMPETITIONS,
+      });
+    } else if (hasUnseenBadge && student?.id && badgeProgress) {
       void logBadgeEvent(
         EVENTS.UNSEEN_BADGE_INDICATOR_CLICKED,
         student.id,
@@ -205,9 +227,11 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
         { routed_to_tab: REWARDS_TABS.LESSON_COMPLETION },
       );
     }
-    const rewardsTab = hasUnseenBadge
-      ? REWARDS_TABS.LESSON_COMPLETION
-      : avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase();
+    const rewardsTab = hasUnseenCertificate
+      ? REWARDS_TABS.COMPETITIONS
+      : hasUnseenBadge
+        ? REWARDS_TABS.LESSON_COMPLETION
+        : avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase();
     history.push(
       PAGES.LEADERBOARD +
         `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${rewardsTab}`,
@@ -269,7 +293,6 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       icon: '/assets/icons/TreasureChest.svg',
       label: 'Rewards',
       onClick: onReward,
-      hasUnseenBadge,
     },
     {
       icon: '/assets/icons/Pencil.svg',
@@ -327,6 +350,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
     setShowDialogBox,
     shouldShowStickerBookNotification,
     hasUnseenBadge,
+    hasUnseenCertificate,
     showDialogBox,
     student,
     t,

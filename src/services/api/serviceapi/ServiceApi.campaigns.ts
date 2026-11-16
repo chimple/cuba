@@ -37,6 +37,12 @@ import type {
 import type { CampaignNotificationPayload } from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
+  getCampaignCertificateIndicator(
+    studentId: string,
+  ): Promise<{ hasUnseenCertificate: boolean; campaignId?: string }>;
+
+  markCampaignCertificatesSeen(studentId: string): Promise<void>;
+
   /** Fetches campaign configuration changes for existing campaign-sync callers. */
   getActiveCampaigns(
     studentId: string,

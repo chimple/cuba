@@ -44,7 +44,6 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
-      // logger.info("?? sqlite_master count result:", res1);
     } catch (error) {
       logger.error(
         '?? ~ SqliteApi ~ setUpDatabase ~ error:',
@@ -59,24 +58,20 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
     ) {
       try {
         try {
-          //  logger.info("?? About to import SQLite schema from JSON");
           const importData = await fetch('databases/import.json');
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
-          // logger.info("? importFromJson SUCCESS:", resImport);
           localStorage.setItem(
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
-          // Fresh installs already imported the bundled data, so record the marker to avoid re-importing on the next launch.
           localStorage.setItem(
             this.BUNDLED_IMPORT_APP_VERSION_KEY,
             await this.getCurrentAppVersionMarker(),
           );
           logger.info('?? ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
-          // Keep current web behavior; avoid native full page reload on first import.
           if (!Capacitor.isNativePlatform()) {
             window.location.replace(BASE_NAME || '/');
             return;
@@ -213,7 +208,6 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
   private async ensureCampaignRewardSchema(): Promise<void> {
     const db: SQLiteDBConnection | undefined = this._db;
     if (!db) return;
-
     const campaigns = await db.query('PRAGMA table_info(local_campaigns)');
     if (!(campaigns.values ?? []).length) {
       await db.query(
@@ -249,6 +243,17 @@ export class SqliteApiCoreLifecycle extends SqliteApiCoreFoundation {
           'ALTER TABLE local_campaigns ADD COLUMN target_value INTEGER',
         );
       }
+    }
+    const rewards = await db.query('PRAGMA table_info(user_campaign_rewards)');
+    const rewardColumns = new Set(
+      (rewards.values ?? [])
+        .map((row: { name?: unknown }) => row.name)
+        .filter((name: unknown): name is string => typeof name === 'string'),
+    );
+    if (!rewardColumns.has('has_unseen_certificate')) {
+      await db.query(
+        'ALTER TABLE user_campaign_rewards ADD COLUMN has_unseen_certificate INTEGER NOT NULL DEFAULT 0',
+      );
     }
   }
 
