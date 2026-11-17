@@ -26,6 +26,8 @@ import {
   getStudentContactEntries,
 } from '../../utils/studentContactNumbers';
 import type { DisplayStudent } from './SchoolStudents.types';
+import ExistingStudentProfiles from './ExistingStudentProfiles';
+import type { ProfileSearchApi } from './useExistingStudentProfiles';
 
 type PopupState = {
   open: boolean;
@@ -36,6 +38,7 @@ type PopupState = {
 };
 
 type SchoolStudentsDialogsProps = {
+  api: ProfileSearchApi;
   addStudentFields: FieldConfig[];
   currentClass: { id: string; name: string } | null;
   deleteTargetStudent: StudentInfo | null;
@@ -43,9 +46,15 @@ type SchoolStudentsDialogsProps = {
   editStudentFields: FieldConfig[];
   errorMessage?: MessageConfig;
   handleCloseAddStudentModal: () => void;
+  handleAddStudentFieldChange: (name: string, value: string) => void;
+  handleSelectExistingStudent: (studentId: string | null) => void;
   handleConfirmDelete: () => void;
   handleEditSubmit: (values: Record<string, string>) => void;
   handleMergeStudents: (student: any) => Promise<void>;
+  handleLinkExistingStudent: (
+    studentId: string,
+    contact: string,
+  ) => Promise<void>;
   handleSubmitAddStudentModal: (values: Record<string, string>) => void;
   isAddStudentModalOpen: boolean;
   isDeleting: boolean;
@@ -70,19 +79,26 @@ type SchoolStudentsDialogsProps = {
   setPopup: React.Dispatch<React.SetStateAction<PopupState>>;
   studentData?: StudentInfo;
   studentStatus?: EnumType<'fc_support_level'>;
+  studentProfileClassId: string;
+  studentProfileContact: string;
+  selectedExistingStudentId: string | null;
 };
 
 export const SchoolStudentsDialogs = ({
+  api,
   addStudentFields,
   currentClass,
   deleteTargetStudent,
   editStudentData,
   editStudentFields,
   errorMessage,
+  handleAddStudentFieldChange,
   handleCloseAddStudentModal,
   handleConfirmDelete,
   handleEditSubmit,
+  handleSelectExistingStudent,
   handleMergeStudents,
+  handleLinkExistingStudent,
   handleSubmitAddStudentModal,
   isAddStudentModalOpen,
   isDeleting,
@@ -107,6 +123,9 @@ export const SchoolStudentsDialogs = ({
   setPopup,
   studentData,
   studentStatus,
+  studentProfileClassId,
+  studentProfileContact,
+  selectedExistingStudentId,
 }: SchoolStudentsDialogsProps) => (
   <>
     <OpsGenericPopup
@@ -129,13 +148,40 @@ export const SchoolStudentsDialogs = ({
           ? `${t('Add New Student')} - ${currentClass.name}`
           : t('Add New Student')
       }
-      submitLabel={isSubmitting ? t('Adding...') : t('Add Student')}
+      submitLabel={
+        selectedExistingStudentId
+          ? t('Link to this class')
+          : isSubmitting
+            ? t('Adding...')
+            : t('Create New Profile')
+      }
       fields={addStudentFields}
       onClose={handleCloseAddStudentModal}
-      onSubmit={handleSubmitAddStudentModal}
+      onSubmit={(values) => {
+        if (selectedExistingStudentId) {
+          void handleLinkExistingStudent(
+            selectedExistingStudentId,
+            studentProfileContact,
+          );
+          return;
+        }
+        handleSubmitAddStudentModal(values);
+      }}
+      onFieldChange={handleAddStudentFieldChange}
+      selectedExistingStudentId={selectedExistingStudentId}
       message={errorMessage}
       disabled={isSubmitting}
-    />
+    >
+      <ExistingStudentProfiles
+        api={api}
+        classId={issTotal ? studentProfileClassId : currentClass?.id || ''}
+        contact={studentProfileContact}
+        disabled={isSubmitting}
+        selectedStudentId={selectedExistingStudentId}
+        onSelectStudent={handleSelectExistingStudent}
+        open={isAddStudentModalOpen}
+      />
+    </FormCard>
     <FormCard
       open={isEditStudentModalOpen}
       title={t('Edit Student Details')}

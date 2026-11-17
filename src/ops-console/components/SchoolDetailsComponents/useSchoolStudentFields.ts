@@ -54,61 +54,59 @@ export const useSchoolStudentFields = ({
   issTotal,
 }: UseSchoolStudentFieldsParams) => {
   const addStudentFields: FieldConfig[] = useMemo(() => {
-    const fields: FieldConfig[] = [
+    const fields: FieldConfig[] = [];
+    if (!isAtSchool) {
+      fields.push({
+        name: 'contact',
+        label: 'Phone Number / Email',
+        kind: 'contact',
+        required: true,
+        placeholder: 'Enter phone number or email address',
+        column: 2,
+      });
+    }
+    const classField: FieldConfig = {
+      name: 'class',
+      label: 'Class',
+      kind: 'select',
+      required: true,
+      column: 2,
+      options: classOptions,
+    };
+    if (issTotal && !isAtSchool) fields.push(classField);
+    fields.push(
       {
         name: 'studentName',
         label: 'Student Name',
         kind: 'text',
         required: true,
         placeholder: 'Enter Student Name',
-        column: issTotal ? 2 : 0,
+        column: 2,
       },
       {
         name: 'studentID',
         label: 'Student ID',
         kind: 'text',
         placeholder: 'Enter Student ID',
-        column: issTotal ? 0 : 1,
+        column: 2,
       },
+      ...(issTotal && isAtSchool ? [classField] : []),
       {
         name: 'gender',
         label: 'Gender',
         kind: 'select',
-        column: issTotal ? 1 : 0,
+        column: 0,
         options: genderOptions(),
       },
-      ...(issTotal
-        ? [
-            {
-              name: 'class',
-              label: 'Class',
-              kind: 'select' as const,
-              required: true,
-              column: 0 as const,
-              options: classOptions,
-            },
-          ]
-        : []),
       {
         name: 'ageGroup',
         label: 'Age',
         kind: 'select',
         placeholder: 'Select Age Group',
-        column: issTotal ? 1 : 1,
+        column: 1,
         options: getAgeOptions(),
       },
-    ];
-    if (!isAtSchool) {
-      fields.push({
-        name: 'phone',
-        label: 'Phone Number',
-        kind: 'phone',
-        required: true,
-        nationalPhoneDigits: 10,
-        placeholder: 'Enter phone number',
-        column: 2,
-      });
-    }
+    );
     return fields;
   }, [issTotal, classOptions, isAtSchool]);
 

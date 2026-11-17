@@ -1,8 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AVATARS, TABLES } from '../../../common/constants';
-import { RoleType } from '../../../interface/modelInterfaces';
+import { AVATARS } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiProgramEnrollment } from './SupabaseApi.program.enrollment';
+import type {
+  OpsStudentProfileMatch,
+  OpsStudentProfileSearchResult,
+} from '../serviceapi/ServiceApi.fieldActivities';
+import { normalizeIndianPhone10 } from '../../../ops-console/utils/phoneNormalization';
 
 export interface SupabaseApiProgramClassManagement {
   [key: string]: any;
@@ -80,6 +84,81 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     }
   }
 
+  async searchStudentProfilesByContact(
+    contact: string,
+    classId: string,
+  ): Promise<OpsStudentProfileSearchResult> {
+    if (!this.supabase) throw new Error('Supabase client is not initialized');
+
+    const { data, error } = await this.supabase.functions.invoke(
+      'get_or_create_user',
+      {
+        body: { action: 'search_student_profiles', contact, class_id: classId },
+      },
+    );
+    if (error) throw error;
+
+    const profiles = (data?.profiles ?? []).map(
+      (profile: {
+        id: string;
+        name: string | null;
+        studentCode: string | null;
+        isInSelectedClass: boolean;
+      }) => profile,
+    );
+    return {
+      profiles,
+      profileCount:
+        typeof data?.profile_count === 'number'
+          ? data.profile_count
+          : profiles.length,
+    };
+  }
+
+  async hasDuplicateStudentProfile(
+    name: string,
+    phone: string,
+    classId: string,
+  ): Promise<boolean> {
+    if (!this.supabase) throw new Error('Supabase client is not initialized');
+
+    const { data, error } = await this.supabase.functions.invoke(
+      'get_or_create_user',
+      {
+        body: {
+          action: 'check_student_profile_duplicate',
+          student_name: name.trim(),
+          phone,
+          class_id: classId,
+        },
+      },
+    );
+    if (error) throw error;
+    return data?.duplicate === true;
+  }
+
+  async linkExistingStudentToClass(
+    studentId: string,
+    classId: string,
+    contact: string,
+  ): Promise<boolean> {
+    if (!this.supabase) throw new Error('Supabase client is not initialized');
+
+    const { data, error } = await this.supabase.functions.invoke(
+      'get_or_create_user',
+      {
+        body: {
+          action: 'link_existing_student_profile',
+          student_id: studentId,
+          class_id: classId,
+          contact,
+        },
+      },
+    );
+    if (error) throw error;
+    return data?.linked === true;
+  }
+
   async addStudentWithParentValidation(params: {
     phone?: string;
     name: string;
@@ -108,213 +187,85 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
       studentID,
       atSchool,
     } = params;
-    const timestamp = new Date().toISOString();
-    const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    const normalizedName = name.trim();
+    const normalizedPhone = phone
+      ? (normalizeIndianPhone10(phone) ?? undefined)
+      : undefined;
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (phone && !normalizedPhone) {
+      return { success: false, message: 'Phone number must be 10 digits.' };
+    }
+    if (
+      normalizedEmail &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+    ) {
+      return { success: false, message: 'Please enter a valid email address.' };
+    }
+    if (
+      !normalizedName ||
+      (!atSchool && !normalizedPhone && !normalizedEmail)
+    ) {
+      return {
+        success: false,
+        message: 'Name and phone number or email are required.',
+      };
+    }
+
     const parsedAge = age === null || age === '' ? NaN : Number(age);
     const normalizedAge = Number.isNaN(parsedAge) ? null : parsedAge;
     try {
-      let languageId;
-      if (schoolId) {
-        const { data: schoolData, error: schoolError } = await this.supabase
-          .from(TABLES.School)
-          .select('language')
-          .eq('id', schoolId)
-          .maybeSingle();
-
-        if (schoolData?.language) {
-          languageId = schoolData?.language;
-        }
-      }
-      if (!languageId) {
-        languageId = '7eaf3509-e44e-460f-80a1-7f6a13a8a883';
-      }
-
-      if (atSchool) {
-        const childId = uuidv4();
-        const { error: childCreateError } = await this.supabase
-          .from(TABLES.User)
-          .insert({
-            id: childId,
-            name: name,
-            gender: gender,
-            age: normalizedAge,
-            language_id: languageId,
-            avatar: finalAvatar,
-            created_at: timestamp,
-            updated_at: timestamp,
-            is_deleted: false,
-            student_id: studentID || null,
+      let parentId: string | null = null;
+      if (normalizedPhone || normalizedEmail) {
+        const { data: parentData, error: parentError } =
+          await this.supabase.functions.invoke('get_or_create_user', {
+            body: {
+              name: parentName || 'Parent',
+              phone: normalizedPhone,
+              email: normalizedEmail,
+              normalize_contact_lookup: true,
+            },
           });
-        if (childCreateError) {
-          logger.error(
-            'Error creating at-school student user:',
-            childCreateError,
-          );
-          return { success: false, message: 'Error creating student profile' };
+        if (parentError || !parentData?.user?.id) {
+          logger.error('Error creating/getting parent user:', parentError);
+          return { success: false, message: 'Error creating parent account' };
         }
-        const { error: studentClassError } = await this.supabase
-          .from(TABLES.ClassUser)
-          .insert({
-            id: uuidv4(),
-            class_id: classId,
-            user_id: childId,
-            role: RoleType.STUDENT,
-            created_at: timestamp,
-            updated_at: timestamp,
-            is_deleted: false,
-          });
-        if (studentClassError) {
-          logger.error(
-            'Error adding at-school student to class:',
-            studentClassError,
-          );
-          return { success: false, message: 'Error adding student to class' };
-        }
-        return {
-          success: true,
-          message: 'Student added successfully',
-          data: { studentId: childId },
-        };
+        parentId = parentData.user.id;
       }
 
-      const { data: userData, error: userError } =
+      const { data: createResult, error: createError } =
         await this.supabase.functions.invoke('get_or_create_user', {
           body: {
-            name: parentName || 'Parent',
-            phone: phone,
-            email: email,
+            action: 'create_student_profile',
+            name: normalizedName,
+            gender,
+            age: normalizedAge,
+            student_code: studentID || null,
+            class_id: classId,
+            school_id: schoolId || null,
+            parent_id: parentId,
+            phone: normalizedPhone ?? null,
+            email: normalizedEmail ?? null,
+            avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+            at_school: Boolean(atSchool),
           },
         });
 
-      if (userError) {
-        logger.error('Error creating/getting parent user:', userError);
-        return {
-          success: false,
-          message: 'Error creating parent account',
-        };
-      }
-
-      if (!userData || !userData.user) {
-        logger.error('Invalid response from user-upsert:', userData);
-        return { success: false, message: 'Invalid response from server' };
-      }
-
-      const parentId = userData.user.id;
-
-      const { count, error: countError } = await this.supabase
-        .from(TABLES.ParentUser)
-        .select('*', { count: 'exact', head: true })
-        .eq('parent_id', parentId)
-        .eq('is_deleted', false);
-
-      if (countError) {
-        logger.error('Error counting children:', countError);
-        return {
-          success: false,
-          message: 'Error checking existing profiles',
-        };
-      }
-
-      if (count !== null && count >= 3) {
-        return {
-          success: false,
-          message: 'This number already has 3 profiles.',
-        };
-      }
-
-      const childId = uuidv4();
-      const { error: childCreateError } = await this.supabase
-        .from(TABLES.User)
-        .insert({
-          id: childId,
-          name: name,
-          gender: gender,
-          age: normalizedAge,
-          language_id: languageId,
-          avatar: finalAvatar,
-          created_at: timestamp,
-          updated_at: timestamp,
-          is_deleted: false,
-          student_id: studentID || null,
-        });
-
-      if (childCreateError) {
-        logger.error('Error creating child user:', childCreateError);
+      if (createError) {
+        logger.error('Error creating Ops student profile:', createError);
         return { success: false, message: 'Error creating student profile' };
       }
 
-      const { error: parentUserError } = await this.supabase
-        .from(TABLES.ParentUser)
-        .insert({
-          id: uuidv4(),
-          parent_id: parentId,
-          student_id: childId,
-          created_at: timestamp,
-          updated_at: timestamp,
-          is_deleted: false,
-        });
-
-      if (parentUserError) {
-        logger.error('Error linking child to parent:', parentUserError);
-        return { success: false, message: 'Error linking student to parent' };
-      }
-
-      const { error: studentClassError } = await this.supabase
-        .from(TABLES.ClassUser)
-        .insert({
-          id: uuidv4(),
-          class_id: classId,
-          user_id: childId,
-          role: RoleType.STUDENT,
-          created_at: timestamp,
-          updated_at: timestamp,
-          is_deleted: false,
-        });
-
-      if (studentClassError) {
-        logger.error('Error adding student to class:', studentClassError);
-        return { success: false, message: 'Error adding student to class' };
-      }
-
-      const { data: parentInClass, error: parentCheckError } =
-        await this.supabase
-          .from(TABLES.ClassUser)
-          .select('id')
-          .eq('class_id', classId)
-          .eq('user_id', parentId)
-          .eq('role', RoleType.PARENT)
-          .eq('is_deleted', false)
-          .maybeSingle();
-
-      if (parentCheckError) {
-        logger.error('Error checking parent in class:', parentCheckError);
-      }
-
-      if (!parentInClass) {
-        const { error: parentClassError } = await this.supabase
-          .from(TABLES.ClassUser)
-          .insert({
-            id: uuidv4(),
-            class_id: classId,
-            user_id: parentId,
-            role: RoleType.PARENT,
-            created_at: timestamp,
-            updated_at: timestamp,
-            is_deleted: false,
-          });
-
-        if (parentClassError) {
-          logger.error('Error adding parent to class:', parentClassError);
-        }
+      if (!createResult?.success || !createResult.student_id) {
+        return {
+          success: false,
+          message: createResult?.message || 'Error creating student profile',
+        };
       }
 
       return {
         success: true,
         message: 'Student added successfully',
-        data: {
-          studentId: childId,
-          parentId: parentId,
-        },
+        data: { studentId: createResult.student_id, parentId },
       };
     } catch (error) {
       logger.error(

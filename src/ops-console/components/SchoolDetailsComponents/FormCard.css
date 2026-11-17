@@ -126,6 +126,58 @@
   box-sizing: border-box;
 }
 
+.formcard-contact-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 6px;
+}
+
+.formcard-contact-field .formcard-label {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: center;
+  margin-bottom: 0;
+}
+
+.formcard-contact-field > input,
+.formcard-contact-field > .formcard-phone-input {
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+
+.formcard-contact-field > input {
+  width: 100%;
+}
+
+.formcard-contact-method {
+  display: flex;
+  grid-row: 1;
+  grid-column: 2;
+  align-self: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+}
+
+.formcard-contact-method button {
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #5f6368;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.formcard-contact-method button[aria-pressed='true'] {
+  border-color: #d2e3fc;
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
 .formcard-value-chip {
   max-width: 100%;
   min-height: 24px;
@@ -208,64 +260,11 @@
   transform: translateY(-50%) rotateX(180deg);
 }
 
-.formcard-phone-input {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  border-radius: 4px;
-  border: 1px solid #dadce0;
-  height: 44px;
-}
-
-.formcard-country-selector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  background: #ffffff;
-  border: none;
-  border-right: 1px solid #dadce0;
-  cursor: pointer;
-  font-size: 13px;
-  color: #3c4043;
-}
-
-.formcard-flag {
-  font-size: 16px;
-}
-
-.formcard-country-code-text {
-  white-space: nowrap;
-}
-
-.formcard-phone-input .formcard-select-arrow {
-  position: static;
-}
-
-.formcard-phone-input input {
-  border: none;
-  padding: 0 12px;
-  font-size: 14px;
-  outline: none;
-  height: 100%;
-}
-
-.formcard-phone-input input::placeholder {
-  color: #9aa0a6;
-}
-
 .formcard-form-group
-  .react-international-phone-input-container:focus-within
-  .react-international-phone-country-selector-button,
-.formcard-form-group
-  .react-international-phone-input-container:focus-within
-  input.react-international-phone-input {
+  .formcard-phone-input
+  .react-international-phone-input-container:focus-within {
   border-color: #1a73e8;
-}
-
-.formcard-form-group
-  .react-international-phone-input-container:focus-within
-  .react-international-phone-country-selector-button {
-  border-right-color: #dadce0;
+  box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.15);
 }
 
 .formcard-btn-primary:disabled {
@@ -303,30 +302,39 @@
 
 .formcard-phone-input {
   width: 100%;
-  height: 100%;
-  border: none !important;
-}
-
-.formcard-phone-input-inner {
-  width: 100%;
-  height: 40px;
-  font-size: 14px;
+  height: 38px;
 }
 
 .formcard-phone-input .react-international-phone-input-container {
+  display: flex;
   width: 100%;
+  height: 100%;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .formcard-phone-input
   .react-international-phone-input-container
-  .react-international-phone-country-selector {
-  border-radius: 4px 0 0 4px;
+  .react-international-phone-country-selector-button {
+  height: 100%;
+  margin-right: 0;
+  border: 0;
+  border-right: 1px solid #dadce0;
+  border-radius: 3px 0 0 3px;
 }
 
 .formcard-phone-input
   .react-international-phone-input-container
   input.react-international-phone-input {
-  border-radius: 0 4px 4px 0;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  font-size: 14px;
 }
 
 .formcard-message {

@@ -13,6 +13,7 @@ import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
   TeacherLifetimeAssignmentMap,
+  OpsStudentProfileSearchResult,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
@@ -64,6 +65,29 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this.s.addStudentWithParentValidation(params);
+  }
+
+  async searchStudentProfilesByContact(
+    contact: string,
+    classId: string,
+  ): Promise<OpsStudentProfileSearchResult> {
+    return this.s.searchStudentProfilesByContact(contact, classId);
+  }
+
+  async hasDuplicateStudentProfile(
+    name: string,
+    phone: string,
+    classId: string,
+  ): Promise<boolean> {
+    return this.s.hasDuplicateStudentProfile(name, phone, classId);
+  }
+
+  async linkExistingStudentToClass(
+    studentId: string,
+    classId: string,
+    contact: string,
+  ): Promise<boolean> {
+    return this.s.linkExistingStudentToClass(studentId, classId, contact);
   }
 
   async updateClassCourses(
