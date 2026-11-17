@@ -72,6 +72,9 @@ describe('TeacherScoreDetails', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Close score details' }),
     );
+    fireEvent.animationEnd(screen.getByRole('dialog'), {
+      animationName: 'teacher-score-details-exit',
+    });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -88,5 +91,22 @@ describe('TeacherScoreDetails', () => {
       screen.getByText('Your Score today is 75 points'),
     ).toBeInTheDocument();
     expect(screen.getByText('75')).toBeInTheDocument();
+  });
+
+  it('shows only the unchanged-score message when the daily score is unchanged', () => {
+    render(
+      <TeacherScoreDetails
+        currentScore={74}
+        scoreHistory={scoreHistory([62, 68, 70, 71, 70, 74, 74])}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText('Your score is unchanged from yesterday.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Move students to the yellow band/),
+    ).not.toBeInTheDocument();
   });
 });

@@ -100,9 +100,10 @@ export class SupabaseApiUserLeaderboards extends SupabaseApiUserClassManagement 
     today.setHours(0, 0, 0, 0);
     const endDate = new Date(today);
     endDate.setDate(endDate.getDate() + 1);
-    // The earliest displayed day needs its current and previous seven-day windows.
+    // The earliest visible point needs a prior seven-day comparison window,
+    // so assignment data starts thirteen days before today.
     const earliestWindowDate = new Date(today);
-    earliestWindowDate.setDate(earliestWindowDate.getDate() - 12);
+    earliestWindowDate.setDate(earliestWindowDate.getDate() - 13);
 
     const { data: teacherClasses, error: teacherClassesError } =
       await this.supabase
@@ -134,7 +135,10 @@ export class SupabaseApiUserLeaderboards extends SupabaseApiUserClassManagement 
         .from(TABLES.Assignment)
         .select('created_at')
         .eq('created_by', teacherId)
+        .in('class_id', classIds)
         .eq('is_deleted', false)
+        .eq('type', 'assignment')
+        .eq('source', 'manual')
         .gte('created_at', earliestWindowDate.toISOString())
         .lt('created_at', endDate.toISOString()),
     ]);
@@ -156,6 +160,7 @@ export class SupabaseApiUserLeaderboards extends SupabaseApiUserClassManagement 
       .in('class_id', classIds)
       .in('student_id', studentIds)
       .eq('is_deleted', false)
+      .eq('status', 'completed')
       .lt('created_at', endDate.toISOString());
     if (resultsError) {
       logger.error('Error fetching teacher student results:', resultsError);
