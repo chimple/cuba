@@ -69,6 +69,10 @@ export const useAddSchoolPage = () => {
   const [schoolName, setSchoolName] = useState('');
   const [udise, setUdise] = useState('');
   const [schoolModel, setSchoolModel] = useState('');
+  const [language, setLanguage] = useState('');
+  const [languages, setLanguages] = useState<{ id: string; name: string }[]>(
+    [],
+  );
   const [program, setProgram] = useState<any>(null);
   const [programs, setPrograms] = useState<any[]>([]);
   const [fieldCoordinator, setFieldCoordinator] = useState<any>(null);
@@ -94,6 +98,7 @@ export const useAddSchoolPage = () => {
     schoolName,
     udise,
     schoolModel,
+    language,
     address,
     selectedCourseIds,
     initialSelectedCourseIds,
@@ -111,6 +116,7 @@ export const useAddSchoolPage = () => {
     setSchoolName(school?.name || '');
     setUdise(school?.udise || '');
     setSchoolModel(school?.model || '');
+    setLanguage(school?.language || '');
     setAddress({
       state: school?.group1 || '',
       district: school?.group2 || '',
@@ -304,6 +310,16 @@ export const useAddSchoolPage = () => {
       } catch {
         setPrograms([]);
       }
+      try {
+        const data = await api.getAllLanguages();
+        setLanguages(
+          Array.isArray(data)
+            ? data.map((item) => ({ id: item.id, name: item.name }))
+            : [],
+        );
+      } catch {
+        setLanguages([]);
+      }
       setLoading(false);
     }
     init();
@@ -411,6 +427,7 @@ export const useAddSchoolPage = () => {
           program.id,
           udise,
           address.address,
+          language || null,
         );
         await api.insertSchoolDetails(
           editData.schoolData.id,
@@ -450,6 +467,7 @@ export const useAddSchoolPage = () => {
           DEFAULT_COUNTRY,
           true,
           false,
+          language || null,
         );
         await api.insertSchoolDetails(
           school.id,
@@ -515,6 +533,8 @@ export const useAddSchoolPage = () => {
     isSaving,
     isStatesLoading,
     loading,
+    language,
+    languages,
     lockDropdowns,
     program,
     programs,
@@ -527,6 +547,7 @@ export const useAddSchoolPage = () => {
     setFieldCoordinator,
     setProgram,
     setSchoolModel,
+    setLanguage,
     setSchoolName,
     states,
     setSelectedGradeId,

@@ -20,6 +20,7 @@ export interface ServiceApiSchoolManagement {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
+    language?: string | null,
   ): Promise<TableTypes<'school'>>;
 
   updateSchoolProfile(
@@ -33,6 +34,7 @@ export interface ServiceApiSchoolManagement {
     program_id: string | null,
     udise: string | null,
     address: string | null,
+    language?: string | null,
   ): Promise<TableTypes<'school'>>;
 
   updateSchoolLocation(
