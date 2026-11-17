@@ -7,6 +7,7 @@ import {
   DialogTitle,
   IconButton,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -191,6 +192,25 @@ export default function SchoolLocationCard({
             </Box>
           </Box>
           {open && location && <SchoolLocationMap location={location} />}
+          {location && (
+            <Box className="school-location-actions">
+              <Tooltip
+                title={t('Open in Google Maps') ?? 'Open in Google Maps'}
+              >
+                <IconButton
+                  id="school-location-google-maps"
+                  className="school-location-google-maps"
+                  size="small"
+                  aria-label={t('Open in Google Maps') ?? 'Open in Google Maps'}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${location.lat},${location.lng}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <OpenInNewIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
     </Box>

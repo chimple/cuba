@@ -52,6 +52,20 @@ describe('SchoolLocationCard', () => {
       'Coordinates: 14.0000° N, 74.0000° E',
     );
     expect(screen.getByTestId('school-map')).toBeInTheDocument();
+    const mapsLink = screen.getByRole('link', { name: 'Open in Google Maps' });
+    expect(mapsLink).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/search/?api=1&query=14%2C74',
+    );
+    expect(mapsLink).toHaveAttribute('target', '_blank');
+    expect(mapsLink).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(mapsLink).not.toHaveTextContent('Open in Google Maps');
+    fireEvent.mouseOver(mapsLink);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Open in Google Maps',
+    );
+    fireEvent.mouseLeave(mapsLink);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     fireEvent.click(
       screen.getByRole('button', { name: 'Close school location' }),
     );
@@ -103,5 +117,28 @@ describe('SchoolLocationCard', () => {
       screen.getByRole('button', { name: 'Open school location' }),
     ).toBeDisabled();
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('opens Maps with the full saved coordinates even when the address lookup fails', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+    render(
+      <SchoolLocationCard
+        id="school-overview-location"
+        className="school-overview-location"
+        schoolName="School"
+        locationLink="https://www.google.com/maps?q=-14.123456,74.987654"
+      />,
+    );
+    await screen.findByText('Address not available. Please try again.');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Open school location' }),
+    );
+    expect(
+      screen.getByRole('link', { name: 'Open in Google Maps' }),
+    ).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/search/?api=1&query=-14.123456%2C74.987654',
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });
