@@ -54,14 +54,15 @@ export class SqliteApiUserLeaderboards extends SqliteApiUserClassManagement {
 
     try {
       const result = await this._db.query(
-        // The query creates seven dates, compares consecutive rolling windows,
-        // then applies base engagement and band-movement points per class.
+        // Each point compares two rolling seven-day IST windows and includes
+        // only qualifying manual assignments and completed student results.
         `WITH RECURSIVE
           params(teacher_id) AS (SELECT ?),
-          days(score_date, day_number) AS (
-            SELECT date('now', '-6 days'), 0
+          days(display_date, score_date, day_number) AS (
+            SELECT date('now', '+5 hours', '+30 minutes', '-6 days'),
+              date('now', '+5 hours', '+30 minutes', '-7 days'), 0
             UNION ALL
-            SELECT date(score_date, '+1 day'), day_number + 1
+            SELECT date(display_date, '+1 day'), date(score_date, '+1 day'), day_number + 1
             FROM days WHERE day_number < 6
           ),
           teacher_classes AS (
@@ -71,35 +72,41 @@ export class SqliteApiUserLeaderboards extends SqliteApiUserClassManagement {
               AND COALESCE(cu.is_deleted, 0) = 0
           ),
           active_days AS (
-            SELECT d.score_date
+            SELECT d.display_date
             FROM days d, params p
             WHERE EXISTS (
               SELECT 1 FROM ${TABLES.Assignment} a
               WHERE a.created_by = p.teacher_id
                 AND COALESCE(a.is_deleted, 0) = 0
-                AND a.created_at >= date(d.score_date, '-6 days')
-                AND a.created_at < date(d.score_date, '+1 day')
+                AND a.class_id IN (SELECT class_id FROM teacher_classes)
+                AND a.type = 'assignment' AND a.source = 'manual'
+                AND julianday(a.created_at) >= julianday(datetime(d.score_date || ' 00:00:00', '-6 days', '-5 hours', '-30 minutes'))
+                AND julianday(a.created_at) < julianday(datetime(d.score_date || ' 00:00:00', '+1 day', '-5 hours', '-30 minutes'))
             )
           ),
           windows AS (
-            SELECT d.score_date, tc.class_id, students.user_id AS student_id,
+            SELECT d.display_date, tc.class_id, students.user_id AS student_id,
               COALESCE((SELECT SUM(r.time_spent) FROM ${TABLES.Result} r
                 WHERE r.student_id = students.user_id AND r.class_id = tc.class_id
                   AND COALESCE(r.is_deleted, 0) = 0
-                  AND r.created_at >= date(d.score_date, '-6 days')
-                  AND r.created_at < date(d.score_date, '+1 day')), 0) AS current_seconds,
+                  AND r.status = 'completed'
+                  AND julianday(r.created_at) >= julianday(datetime(d.score_date || ' 00:00:00', '-6 days', '-5 hours', '-30 minutes'))
+                  AND julianday(r.created_at) < julianday(datetime(d.score_date || ' 00:00:00', '+1 day', '-5 hours', '-30 minutes'))), 0) AS current_seconds,
               COALESCE((SELECT SUM(r.time_spent) FROM ${TABLES.Result} r
                 WHERE r.student_id = students.user_id AND r.class_id = tc.class_id
                   AND COALESCE(r.is_deleted, 0) = 0
-                  AND r.created_at >= date(d.score_date, '-7 days')
-                  AND r.created_at < d.score_date), 0) AS previous_seconds,
+                  AND r.status = 'completed'
+                  AND julianday(r.created_at) >= julianday(datetime(d.score_date || ' 00:00:00', '-7 days', '-5 hours', '-30 minutes'))
+                  AND julianday(r.created_at) < julianday(datetime(d.score_date || ' 00:00:00', '-5 hours', '-30 minutes'))), 0) AS previous_seconds,
               EXISTS(SELECT 1 FROM ${TABLES.Result} r
                 WHERE r.student_id = students.user_id AND r.class_id = tc.class_id
                   AND COALESCE(r.is_deleted, 0) = 0
-                  AND r.created_at < date(d.score_date, '+1 day')) AS played_current,
+                  AND r.status = 'completed'
+                  AND julianday(r.created_at) < julianday(datetime(d.score_date || ' 00:00:00', '+1 day', '-5 hours', '-30 minutes'))) AS played_current,
               EXISTS(SELECT 1 FROM ${TABLES.Result} r
                 WHERE r.student_id = students.user_id AND r.class_id = tc.class_id
-                  AND COALESCE(r.is_deleted, 0) = 0 AND r.created_at < d.score_date) AS played_previous
+                  AND COALESCE(r.is_deleted, 0) = 0 AND r.status = 'completed'
+                  AND julianday(r.created_at) < julianday(datetime(d.score_date || ' 00:00:00', '-5 hours', '-30 minutes'))) AS played_previous
             FROM days d CROSS JOIN teacher_classes tc
             JOIN ${TABLES.ClassUser} students ON students.class_id = tc.class_id
               AND students.role = 'student' AND COALESCE(students.is_deleted, 0) = 0
@@ -111,20 +118,20 @@ export class SqliteApiUserLeaderboards extends SqliteApiUserClassManagement {
             FROM windows
           ),
           class_scores AS (
-            SELECT score_date, class_id,
+            SELECT display_date, class_id,
               (COALESCE(AVG(CASE WHEN current_band = 'green' THEN current_seconds END), 0)
                 + COALESCE(AVG(CASE WHEN current_band = 'yellow' THEN current_seconds END), 0)) / 60.0
               + SUM(CASE previous_band || '-' || current_band
                 WHEN 'red-yellow' THEN 10 WHEN 'yellow-green' THEN 5 WHEN 'red-green' THEN 15
                 WHEN 'grey-yellow' THEN 20 WHEN 'grey-green' THEN 25 WHEN 'green-yellow' THEN -5
                 WHEN 'yellow-red' THEN -10 WHEN 'green-red' THEN -15 ELSE 0 END) AS score
-            FROM bands GROUP BY score_date, class_id
+            FROM bands GROUP BY display_date, class_id
           )
-        SELECT d.score_date AS date,
-          CASE WHEN ad.score_date IS NULL THEN 0 ELSE ROUND(COALESCE(SUM(cs.score), 0)) END AS score
-        FROM days d LEFT JOIN active_days ad ON ad.score_date = d.score_date
-        LEFT JOIN class_scores cs ON cs.score_date = d.score_date
-        GROUP BY d.score_date, ad.score_date ORDER BY d.score_date`,
+        SELECT d.display_date AS date,
+          CASE WHEN ad.display_date IS NULL THEN 0 ELSE ROUND(COALESCE(AVG(cs.score), 0)) END AS score
+        FROM days d LEFT JOIN active_days ad ON ad.display_date = d.display_date
+        LEFT JOIN class_scores cs ON cs.display_date = d.display_date
+        GROUP BY d.display_date, ad.display_date ORDER BY d.display_date`,
         [teacherId],
       );
 

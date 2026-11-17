@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './TeacherScoreDetails.css';
 
@@ -39,6 +40,7 @@ const TeacherScoreDetails = ({
   onClose,
 }: TeacherScoreDetailsProps) => {
   const { t } = useTranslation();
+  const [isClosing, setIsClosing] = useState(false);
   const roundedCurrentScore = displayScore(currentScore);
   const byDate = new Map(
     scoreHistory.map((item) => [item.date.slice(0, 10), item.score]),
@@ -56,7 +58,7 @@ const TeacherScoreDetails = ({
   const min = Math.min(...days.map((day) => day.score));
   const point = (score: number, index: number) => {
     const x = 20 + index * 43;
-    const y = range ? 113 - ((score - min) / range) * 67 : 80;
+    const y = range ? 105 - ((score - min) / range) * 60 : 75;
     return `${x},${y}`;
   };
   const message =
@@ -70,30 +72,39 @@ const TeacherScoreDetails = ({
             'Your score has increased by {{points}} points. Keep it up! Motivate your students to stay strong on the leaderboard!',
             { points: change },
           )
-        : t(
-            'Your score is unchanged from yesterday. Move students to the yellow band to climb up the leaderboard.',
-          );
+        : t('Your score is unchanged from yesterday.');
+  const closeWithAnimation = () => {
+    if (!isClosing) setIsClosing(true);
+  };
 
   return (
     <div
       className="teacher-score-details-backdrop"
       role="presentation"
-      onMouseDown={onClose}
+      onMouseDown={closeWithAnimation}
     >
       <section
-        className="teacher-score-details"
+        className={`teacher-score-details ${
+          isClosing ? 'teacher-score-details--closing' : ''
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="teacher-score-details-title"
         onMouseDown={(event) => event.stopPropagation()}
+        onAnimationEnd={(event) => {
+          if (isClosing && event.currentTarget === event.target) {
+            onClose();
+          }
+        }}
       >
         <div className="teacher-score-details__header">
           <h2 id="teacher-score-details-title">{t('Your Score')}</h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeWithAnimation}
             aria-label={String(t('Close score details'))}
             className="teacher-score-details__close"
+            id="teacher-score-details__close"
           >
             <CloseIcon />
           </button>
@@ -122,6 +133,8 @@ const TeacherScoreDetails = ({
               const [x, y] = point(day.score, index).split(',');
               const dailyChange = index ? day.score - days[index - 1].score : 0;
               const isToday = index === days.length - 1;
+              // Place Today's marker below its score value while keeping it above the date.
+              const todayMarkerY = Math.min(Number(y) + 24, 129);
               return (
                 <g key={day.date}>
                   <line
@@ -169,25 +182,33 @@ const TeacherScoreDetails = ({
                     {dateLabel(day.date)}
                   </text>
                   {isToday && (
-                    <rect
-                      data-testid="teacher-score-details-today-marker"
-                      x={Number(x) - 19}
-                      y="149"
-                      width="38"
-                      height="13"
-                      rx="2"
-                      className="teacher-score-details__today-marker"
-                    />
+                    <>
+                      <rect
+                        data-testid="teacher-score-details-today-marker"
+                        x={Number(x) - 19}
+                        y={todayMarkerY}
+                        width="38"
+                        height="13"
+                        rx="2"
+                        className="teacher-score-details__today-marker"
+                      />
+                      <text
+                        x={x}
+                        y={todayMarkerY + 9}
+                        textAnchor="middle"
+                        className="teacher-score-details__weekday teacher-score-details__weekday--today"
+                      >
+                        {t('Today')}
+                      </text>
+                    </>
                   )}
                   <text
                     x={x}
                     y="158"
                     textAnchor="middle"
-                    className={`teacher-score-details__weekday ${
-                      isToday ? 'teacher-score-details__weekday--today' : ''
-                    }`}
+                    className="teacher-score-details__weekday"
                   >
-                    {isToday ? t('Today') : dayLabel(day.date)}
+                    {dayLabel(day.date)}
                   </text>
                 </g>
               );
