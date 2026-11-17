@@ -103,7 +103,7 @@ export const MessagesListing: React.FC<Props> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
-  const [userType, setUserType] = useState('All user types');
+  const [userType, setUserType] = useState('');
   const [page, setPage] = useState(1);
   const models = ['All School Models', 'At School', 'At Home', 'Hybrid'];
 
@@ -142,7 +142,7 @@ export const MessagesListing: React.FC<Props> = ({
   }, [messages, model, query, sortDirection, sortKey]);
 
   const filteredMessages = visibleMessages.filter(
-    (message) => userType === 'All user types' || message.userType === userType,
+    (message) => !userType || message.userType?.toLowerCase() === userType,
   );
   const pageCount = Math.max(1, Math.ceil(filteredMessages.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -241,19 +241,24 @@ export const MessagesListing: React.FC<Props> = ({
           open={Boolean(filterAnchor)}
           onClose={() => setFilterAnchor(null)}
         >
-          {['All user types', 'Student', 'Teacher', 'Principal'].map((item) => (
+          {[
+            { label: 'All user types', value: '' },
+            { label: 'Student', value: 'student' },
+            { label: 'Teacher', value: 'teacher' },
+            { label: 'Principal', value: 'principal' },
+          ].map((item) => (
             <MenuItem
-              key={item}
+              key={item.value}
               id="messages-listing__filter-option"
               className="messages-listing__filter-option"
-              selected={userType === item}
+              selected={userType === item.value}
               onClick={() => {
-                setUserType(item);
+                setUserType(item.value);
                 setPage(1);
                 setFilterAnchor(null);
               }}
             >
-              {item}
+              {item.label}
             </MenuItem>
           ))}
         </Menu>

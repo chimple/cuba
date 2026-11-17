@@ -12,6 +12,9 @@ import {
   getCurrentLocalDateString,
   getCurrentLocalHourPlusOneString,
   isScheduledTimeInPast,
+  emptyNotificationDraft,
+  PUSH_NOTIFICATION_FAILURE_FALLBACK,
+  RECURRENT_DAYS_ERROR,
 } from './messagesPage/MessagesPage.helpers';
 import { PushNotificationDraft } from './pushNotificationCompose/PushNotificationComposeComponents';
 import MessagesPageView from './MessagesPageView';
@@ -30,18 +33,6 @@ import './MessagesPage.css';
 import './PushNotificationComposeForm.css';
 import './PushNotificationComposePreview.css';
 
-const emptyDraft: PushNotificationDraft = {
-  label: '',
-  title: '',
-  body: '',
-  imageName: '',
-  imageUrl: '',
-};
-
-const RECURRENT_DAYS_ERROR = 'Please choose one or more delivery days.';
-const PUSH_NOTIFICATION_FAILURE_FALLBACK =
-  'Failed to send notification. Please try again.';
-
 const MessagesPage: React.FC = () => {
   const { t } = useTranslation();
   const [presentToast] = useIonToast();
@@ -50,7 +41,9 @@ const MessagesPage: React.FC = () => {
     'Select Audience' | 'Compose Notification' | 'Review & Send'
   >('Select Audience');
   const [isAudienceValid, setIsAudienceValid] = useState(false);
-  const [draft, setDraft] = useState<PushNotificationDraft>(emptyDraft);
+  const [draft, setDraft] = useState<PushNotificationDraft>(
+    emptyNotificationDraft,
+  );
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('send_now');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(getCurrentLocalDateString());
@@ -168,6 +161,9 @@ const MessagesPage: React.FC = () => {
 
   const handleImageChange = createImageChangeHandler(setImageFile, setDraft);
 
+  // prettier-ignore
+  const startNewNotification = () => { if (draft.imageUrl) URL.revokeObjectURL(draft.imageUrl); if (fileInputRef.current) fileInputRef.current.value = ''; setDraft(emptyNotificationDraft); setDeliveryMode('send_now'); setSelectedDays([]); setStartDate(getCurrentLocalDateString()); setEndDate(getCurrentLocalDateString()); setSendTime(getCurrentLocalHourPlusOneString()); setNeverEnds(true); setImageFile(null); setSending(false); setSendError(null); setSendSuccess(false); setIsAudienceValid(false); audience.resetAudience(); setActiveTab('Select Audience'); setView('compose'); };
+
   const handleSendAction = async () => {
     setSendError(null);
     setSending(true);
@@ -222,11 +218,7 @@ const MessagesPage: React.FC = () => {
       <MessagesListing
         messages={messages}
         loading={messagesLoading}
-        onCreate={() => {
-          setSendSuccess(false);
-          setActiveTab('Select Audience');
-          setView('compose');
-        }}
+        onCreate={startNewNotification}
         onOpen={(message) => {
           setSelectedMessage(message);
           setView('overview');

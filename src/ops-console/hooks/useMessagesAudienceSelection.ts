@@ -455,6 +455,27 @@ export const useMessagesAudienceSelection = () => {
     setSaveGroupAttempted(false);
   };
 
+  const resetAudience = () => {
+    setProgramId('');
+    setProgramModel('');
+    setUserType('student');
+    setActivityRecency('all');
+    setSelectedSavedGroupId('');
+    setAudienceOptions(emptyAudienceOptions);
+    setSelectedBlocks([]);
+    setSelectedSchools([]);
+    setSelectedGrades([]);
+    setAvailableGrades([]);
+    setAudienceSummary(emptyAudienceSummary);
+    setHasCustomBlockSelection(false);
+    setHasCustomSchoolSelection(false);
+    setHasCustomGradeSelection(false);
+    setSaveGroup(false);
+    setGroupName('');
+    setSaveGroupAttempted(false);
+    setMessage(null);
+  };
+
   return {
     // Program state
     programs,
@@ -518,5 +539,6 @@ export const useMessagesAudienceSelection = () => {
     setGroupName,
     handleSaveGroup,
     handleCancelSaveGroup,
+    resetAudience,
   };
 };
