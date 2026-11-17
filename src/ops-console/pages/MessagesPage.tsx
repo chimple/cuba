@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useIonToast } from '@ionic/react';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useTranslation } from 'react-i18next';
-import logger from '../../utility/logger';
 import { useMessagesAudienceSelection } from '../hooks/useMessagesAudienceSelection';
+import logger from '../../utility/logger';
 import {
   buildAudienceSummaryItems,
   buildCampaignNotificationPayload,
@@ -11,11 +11,16 @@ import {
   DeliveryMode,
   getCurrentLocalDateString,
   getCurrentLocalHourPlusOneString,
-  getCurrentLocalTimePlusOneMinuteString,
   isScheduledTimeInPast,
 } from './messagesPage/MessagesPage.helpers';
 import { PushNotificationDraft } from './pushNotificationCompose/PushNotificationComposeComponents';
 import MessagesPageView from './MessagesPageView';
+import { MessagesListing } from './messagesPage/MessagesListing';
+import { MessageOverview } from './messagesPage/MessageOverview';
+import { useMessagesListingData } from './messagesPage/useMessagesListingData';
+import { createImageChangeHandler } from './messagesPage/messagesImage.helpers';
+import { useDraftImageCleanup } from './messagesPage/useDraftImageCleanup';
+import type { CampaignNotificationListItem } from '../../services/api/ServiceApi';
 import {
   getOpsErrorMessage,
   showOpsFailureToast,
@@ -46,8 +51,6 @@ const MessagesPage: React.FC = () => {
   >('Select Audience');
   const [isAudienceValid, setIsAudienceValid] = useState(false);
   const [draft, setDraft] = useState<PushNotificationDraft>(emptyDraft);
-  const [labelOptions, setLabelOptions] = useState<string[]>([]);
-  const [loadingLabels, setLoadingLabels] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('send_now');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(getCurrentLocalDateString());
@@ -58,6 +61,16 @@ const MessagesPage: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [view, setView] = useState<'list' | 'compose' | 'overview'>('list');
+  const [selectedMessage, setSelectedMessage] =
+    useState<CampaignNotificationListItem | null>(null);
+  const {
+    labelOptions,
+    loadingLabels,
+    loadMessages,
+    messages,
+    messagesLoading,
+  } = useMessagesListingData();
   const audience = useMessagesAudienceSelection();
   const activeStepIndex = [
     'Select Audience',
@@ -105,32 +118,7 @@ const MessagesPage: React.FC = () => {
   );
   const deliveryDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  useEffect(() => {
-    let active = true;
-    setLoadingLabels(true);
-    const loadLabels = async () => {
-      try {
-        const labels =
-          await ServiceConfig.getI().apiHandler.getCampaignNotificationLabels();
-        if (active) setLabelOptions(labels);
-      } catch {
-        if (active) setLabelOptions([]);
-      } finally {
-        if (active) setLoadingLabels(false);
-      }
-    };
-    void loadLabels();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (draft.imageUrl) URL.revokeObjectURL(draft.imageUrl);
-    },
-    [draft.imageUrl],
-  );
+  useDraftImageCleanup(draft.imageUrl);
 
   const handleNext = () => {
     if (!isLastStep)
@@ -178,16 +166,7 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    const nextImageUrl = URL.createObjectURL(file);
-    setDraft((current) => {
-      if (current.imageUrl) URL.revokeObjectURL(current.imageUrl);
-      return { ...current, imageUrl: nextImageUrl, imageName: file.name };
-    });
-  };
+  const handleImageChange = createImageChangeHandler(setImageFile, setDraft);
 
   const handleSendAction = async () => {
     setSendError(null);
@@ -215,11 +194,14 @@ const MessagesPage: React.FC = () => {
       if (!notificationId || !notificationId.trim()) {
         throw new Error(PUSH_NOTIFICATION_FAILURE_FALLBACK);
       }
-      await showOpsSuccessToast(
-        presentToast,
-        t('Notification sent successfully.'),
-      );
+      const successMessage =
+        deliveryMode === 'send_now'
+          ? t('The Notification has been sent successfully.')
+          : t('The Notification has been scheduled successfully.');
       setSendSuccess(true);
+      setView('list');
+      await loadMessages();
+      await showOpsSuccessToast(presentToast, successMessage);
     } catch (error) {
       logger.error('Failed to send campaign notification:', error);
       const message = getOpsErrorMessage(
@@ -234,6 +216,33 @@ const MessagesPage: React.FC = () => {
       setSending(false);
     }
   };
+
+  if (view === 'list') {
+    return (
+      <MessagesListing
+        messages={messages}
+        loading={messagesLoading}
+        onCreate={() => {
+          setSendSuccess(false);
+          setActiveTab('Select Audience');
+          setView('compose');
+        }}
+        onOpen={(message) => {
+          setSelectedMessage(message);
+          setView('overview');
+        }}
+      />
+    );
+  }
+
+  if (view === 'overview' && selectedMessage) {
+    return (
+      <MessageOverview
+        message={selectedMessage}
+        onBack={() => setView('list')}
+      />
+    );
+  }
 
   return (
     <MessagesPageView
@@ -265,7 +274,7 @@ const MessagesPage: React.FC = () => {
       sending={sending}
       startDate={startDate}
       canSubmitSchedule={!scheduleTimeError}
-      onBack={handleBack}
+      onBack={() => (isFirstStep ? setView('list') : handleBack())}
       onDeliveryModeChange={handleDeliveryModeChange}
       onDraftChange={setDraft}
       onEditAudience={() => setActiveTab('Select Audience')}

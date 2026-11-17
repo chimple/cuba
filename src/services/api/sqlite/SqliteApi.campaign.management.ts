@@ -3,50 +3,43 @@ import {
   AssignmentSource,
   TabType,
 } from '../../../common/constants';
-import { CampaignSetupOptions } from '../ServiceApi';
-import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
+import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import {
-  CampaignCancellationDetails,
-  CampaignListingItem,
-  CampaignListingParams,
-} from '../ServiceApi';
-import {
+  CampaignActiveChange,
+  CampaignAssignmentFilters,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
+  CampaignAssignmentsResponse,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
+  CampaignCancellationDetails,
+  CampaignDashboardMetric,
+  CampaignListingItem,
+  CampaignListingParams,
+  CampaignMessageReportParams,
+  CampaignMessageReportResponse,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  CampaignNotificationPayload,
+  CampaignOption,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignSavedAudienceGroup,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
+  CampaignSetupOptions,
+  CampaignWhatsappLabelData,
+  CampaignGoalProgress,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
-} from '../ServiceApi';
-import {
-  CampaignAssignmentFilters,
-  CampaignAssignmentOptions,
-  CampaignAssignmentOptionsParams,
-  CampaignAssignmentsResponse,
-  CampaignOption,
-} from '../ServiceApi';
-import {
-  CampaignMessagingQueryParams,
-  CampaignMessagingResponse,
   UpdateCampaignMessagingRowPayload,
 } from '../ServiceApi';
-import {
-  CampaignAssignmentsReportParams,
-  CampaignAssignmentsReportResponse,
-  CampaignDashboardMetric,
-  CampaignMessageReportParams,
-  CampaignMessageReportResponse,
-  CampaignSchoolPerformanceReportParams,
-  CampaignSchoolPerformanceReportResponse,
-  CampaignRewardsReportParams,
-  CampaignRewardsReportResponse,
-  CampaignWhatsappLabelData,
-} from '../ServiceApi';
-import type { CampaignNotificationPayload } from '../ServiceApi';
-import type { CampaignActiveChange, CampaignGoalProgress } from '../ServiceApi';
 import logger from '../../../utility/logger';
 import { store } from '../../../redux/store';
 import { setCampaignRewardsState } from '../../../redux/slices/campaignRewards/campaignRewardsSlice';
@@ -213,6 +206,10 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
 
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this._serverApi.getCampaignNotificationLabels();
+  }
+
+  async getCampaignNotifications() {
+    return await this._serverApi.getCampaignNotifications();
   }
 
   async uploadPushNotificationImage(file: File): Promise<string> {
