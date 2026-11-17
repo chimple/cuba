@@ -150,10 +150,10 @@ export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
 
   public async hasDuplicateStudentProfile(
     name: string,
-    phone: string,
+    contact: string,
     classId: string,
   ): Promise<boolean> {
-    return this._serverApi.hasDuplicateStudentProfile(name, phone, classId);
+    return this._serverApi.hasDuplicateStudentProfile(name, contact, classId);
   }
 
   public async linkExistingStudentToClass(

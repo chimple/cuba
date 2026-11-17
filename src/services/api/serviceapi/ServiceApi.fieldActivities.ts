@@ -74,7 +74,7 @@ export interface ServiceApiFieldActivities {
 
   hasDuplicateStudentProfile(
     name: string,
-    phone: string,
+    contact: string,
     classId: string,
   ): Promise<boolean>;
 

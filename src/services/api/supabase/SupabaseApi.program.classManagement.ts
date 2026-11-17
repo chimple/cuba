@@ -117,7 +117,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
 
   async hasDuplicateStudentProfile(
     name: string,
-    phone: string,
+    contact: string,
     classId: string,
   ): Promise<boolean> {
     if (!this.supabase) throw new Error('Supabase client is not initialized');
@@ -128,7 +128,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
         body: {
           action: 'check_student_profile_duplicate',
           student_name: name.trim(),
-          phone,
+          contact,
           class_id: classId,
         },
       },

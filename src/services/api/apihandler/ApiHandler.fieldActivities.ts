@@ -76,10 +76,10 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
 
   async hasDuplicateStudentProfile(
     name: string,
-    phone: string,
+    contact: string,
     classId: string,
   ): Promise<boolean> {
-    return this.s.hasDuplicateStudentProfile(name, phone, classId);
+    return this.s.hasDuplicateStudentProfile(name, contact, classId);
   }
 
   async linkExistingStudentToClass(

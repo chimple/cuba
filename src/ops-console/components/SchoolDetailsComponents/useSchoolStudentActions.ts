@@ -20,6 +20,7 @@ import {
   getStudentContactEntries,
 } from '../../utils/studentContactNumbers';
 import {
+  DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE,
   DUPLICATE_STUDENT_PROFILE_MESSAGE,
   parseStudentProfileContact,
 } from '../../utils/studentProfileContact';
@@ -325,15 +326,19 @@ export const useSchoolStudentActions = ({
       let created = false;
       try {
         if (
-          parsedContact.phone &&
+          parsedContact.value &&
           (await api.hasDuplicateStudentProfile(
             studentName,
-            parsedContact.phone,
+            parsedContact.value,
             classId,
           ))
         ) {
           if (modalSession.current !== session) return;
-          return fail(DUPLICATE_STUDENT_PROFILE_MESSAGE);
+          return fail(
+            parsedContact.email
+              ? DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE
+              : DUPLICATE_STUDENT_PROFILE_MESSAGE,
+          );
         }
         if (modalSession.current !== session) return;
         const payload = {

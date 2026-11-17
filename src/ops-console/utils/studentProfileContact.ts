@@ -2,6 +2,8 @@ import { normalizeIndianPhone10 } from './phoneNormalization';
 
 export const DUPLICATE_STUDENT_PROFILE_MESSAGE =
   'A student profile with this name and phone number already exists. Please select the existing profile instead.';
+export const DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE =
+  'A student profile with this name and email already exists. Please select the existing profile instead.';
 
 export type ParsedStudentProfileContact = {
   value: string;

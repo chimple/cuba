@@ -3,6 +3,7 @@ import { t } from 'i18next';
 import { AGE_OPTIONS, GENDER } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import {
+  DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE,
   DUPLICATE_STUDENT_PROFILE_MESSAGE,
   parseStudentProfileContact,
 } from '../../utils/studentProfileContact';
@@ -236,16 +237,18 @@ export function useSchoolClassAddStudent({
     }
     try {
       if (
-        parsedContact.phone &&
+        parsedContact.value &&
         (await api.hasDuplicateStudentProfile(
           studentName,
-          parsedContact.phone,
+          parsedContact.value,
           classId,
         ))
       ) {
         if (modalSession.current !== session) return;
         setStudentErrorMessage({
-          text: DUPLICATE_STUDENT_PROFILE_MESSAGE,
+          text: parsedContact.email
+            ? DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE
+            : DUPLICATE_STUDENT_PROFILE_MESSAGE,
           type: 'error',
         });
         return;
