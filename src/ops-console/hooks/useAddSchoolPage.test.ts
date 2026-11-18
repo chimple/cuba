@@ -23,6 +23,7 @@ const mockApi = {
   getClassesBySchoolId: jest.fn(),
   getCoursesByClassId: jest.fn(),
   getGeoData: jest.fn(),
+  getAllLanguages: jest.fn(),
   getProgramsByRole: jest.fn(),
   getFieldCoordinatorsByProgram: jest.fn(),
   getFieldCoordinatorsForSchools: jest.fn(),
@@ -54,6 +55,9 @@ beforeEach(() => {
     { course_id: 'unavailable-course' },
   ]);
   mockApi.getGeoData.mockResolvedValue([]);
+  mockApi.getAllLanguages.mockResolvedValue([
+    { id: 'language-1', name: 'English' },
+  ]);
   mockApi.getProgramsByRole.mockResolvedValue({ data: [program] });
   mockApi.getFieldCoordinatorsByProgram.mockResolvedValue({
     data: [coordinator],

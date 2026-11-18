@@ -15,6 +15,7 @@ type SchoolData = {
   group4?: string | null;
   address?: string | null;
   location_link?: string | null;
+  language?: string | null;
 };
 
 type EditData = {
@@ -30,6 +31,7 @@ type UseSchoolFormChangesProps = {
   schoolName: string;
   udise: string;
   schoolModel: string;
+  language: string;
   address: Record<string, string>;
   selectedCourseIds: string[];
   initialSelectedCourseIds: string[] | null;
@@ -44,6 +46,7 @@ export const useSchoolFormChanges = ({
   schoolName,
   udise,
   schoolModel,
+  language,
   address,
   selectedCourseIds,
   initialSelectedCourseIds,
@@ -66,6 +69,7 @@ export const useSchoolFormChanges = ({
       schoolName: school?.name || '',
       udise: school?.udise || '',
       schoolModel: school?.model || '',
+      language: school?.language || '',
       address: {
         state: school?.group1 || '',
         district: school?.group2 || '',
@@ -98,6 +102,7 @@ export const useSchoolFormChanges = ({
         schoolName,
         udise,
         schoolModel,
+        language,
         address,
         programId: program?.id,
         fieldCoordinatorId: fieldCoordinator?.id,
