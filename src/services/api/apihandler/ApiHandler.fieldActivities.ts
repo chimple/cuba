@@ -14,6 +14,7 @@ import type {
   TeacherAssignmentCountPair,
   TeacherLifetimeAssignmentMap,
   OpsStudentProfileSearchResult,
+  StudentProfileCreateResult,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
@@ -63,7 +64,7 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     email?: string;
     studentID?: string;
     atSchool?: boolean;
-  }): Promise<{ success: boolean; message: string; data?: any }> {
+  }): Promise<StudentProfileCreateResult> {
     return this.s.addStudentWithParentValidation(params);
   }
 

@@ -7,7 +7,10 @@ import logger from '../../../utility/logger';
 import { SqliteApiProgramDiscovery } from './SqliteApi.program.discovery';
 import { MUTATE_TYPES, TABLES } from '../../../common/constants';
 import { v4 as uuidv4 } from 'uuid';
-import type { OpsStudentProfileSearchResult } from '../serviceapi/ServiceApi.fieldActivities';
+import type {
+  OpsStudentProfileSearchResult,
+  StudentProfileCreateResult,
+} from '../serviceapi/ServiceApi.fieldActivities';
 
 export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
   [key: string]: any;
@@ -137,7 +140,7 @@ export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
     email?: string;
     studentID?: string;
     atSchool?: boolean;
-  }): Promise<{ success: boolean; message: string; data?: any }> {
+  }): Promise<StudentProfileCreateResult> {
     return this._serverApi.addStudentWithParentValidation(params);
   }
 

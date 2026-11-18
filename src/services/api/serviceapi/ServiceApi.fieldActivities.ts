@@ -35,6 +35,12 @@ export type OpsStudentProfileSearchResult = {
   profileCount: number;
 };
 
+export type StudentProfileCreateResult = {
+  success: boolean;
+  message: string;
+  data?: { studentId: string; parentId: string | null };
+};
+
 export interface ServiceApiFieldActivities {
   getActiveStudentsCountByClass(classId: string): Promise<string>;
 
@@ -65,7 +71,7 @@ export interface ServiceApiFieldActivities {
     email?: string;
     studentID?: string;
     atSchool?: boolean;
-  }): Promise<{ success: boolean; message: string; data?: any }>;
+  }): Promise<StudentProfileCreateResult>;
 
   searchStudentProfilesByContact(
     contact: string,
