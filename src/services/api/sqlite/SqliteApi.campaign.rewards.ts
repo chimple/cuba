@@ -133,7 +133,7 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
       `SELECT * FROM local_campaigns
        WHERE is_deleted = 0 AND status = 'active'
          AND start_date <= ?
-         AND datetime(end_date, '+1 day') > datetime(?)`,
+         AND date(end_date) >= date(?)`,
       [now, now],
     );
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
@@ -161,9 +161,15 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
   }> {
     await this.ensureInitialized();
     const result = await this.executeQuery(
-      `SELECT campaign_id FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0 AND has_unseen_certificate = 1
-       ORDER BY evaluated_at DESC LIMIT 1`,
+      `SELECT r.campaign_id FROM user_campaign_rewards r
+       JOIN local_campaigns c
+         ON c.id = r.campaign_id AND c.is_deleted = 0
+       WHERE r.student_id = ?
+         AND r.is_deleted = 0
+         AND r.has_unseen_certificate = 1
+         AND c.end_date IS NOT NULL
+         AND date(c.end_date) < date('now')
+       ORDER BY r.evaluated_at DESC LIMIT 1`,
       [studentId],
     );
     const campaignId = result?.values?.[0]?.campaign_id as string | undefined;

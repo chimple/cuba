@@ -115,6 +115,30 @@ describe('offline campaign reward evaluation', () => {
     expect(await api.getCachedCampaignRewards('student-a')).toHaveLength(1);
   });
 
+  it('shows the certificate indicator only after the campaign end date', async () => {
+    db.run(`
+      INSERT INTO user_campaign_rewards
+        (campaign_id, student_id, has_unseen_certificate, evaluated_at, is_deleted)
+      VALUES ('campaign-a', 'student-a', 1, date('now'), 0);
+      UPDATE local_campaigns
+      SET end_date = date('now', '+1 day')
+      WHERE id = 'campaign-a';
+    `);
+
+    expect(await api.getCampaignCertificateIndicator('student-a')).toEqual({
+      hasUnseenCertificate: false,
+      campaignId: undefined,
+    });
+
+    db.run(`UPDATE local_campaigns SET end_date = date('now', '-1 day')
+      WHERE id = 'campaign-a';`);
+
+    expect(await api.getCampaignCertificateIndicator('student-a')).toEqual({
+      hasUnseenCertificate: true,
+      campaignId: 'campaign-a',
+    });
+  });
+
   it.each([
     ['before the start', '2025-12-31', 1],
     ['after the end', '2026-02-01', 1],
