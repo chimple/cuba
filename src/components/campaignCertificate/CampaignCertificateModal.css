@@ -17,10 +17,17 @@
 
 .campaign-certificate-dialog {
   --control-size: clamp(2.7rem, 7vh, 3.6rem);
+  --certificate-share-height: 48px;
+  --certificate-share-top-gap: 10px;
+  --certificate-share-bottom-gap: 6px;
   position: relative;
   z-index: 1;
-  width: min(466px, calc(100vw - 8rem));
-  padding-bottom: clamp(3.7rem, 11vh, 4.7rem);
+  width: min(500px, calc(100vw - 7rem));
+  /* The footer always fits Share plus a small visible gap above and below it. */
+  padding-bottom: calc(
+    var(--certificate-share-height) + var(--certificate-share-top-gap) +
+      var(--certificate-share-bottom-gap)
+  );
   border-radius: 0 0 18px 18px;
   background: #fffdee;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
@@ -64,10 +71,40 @@
 .campaign-certificate-artwork {
   position: relative;
   width: 100%;
-  aspect-ratio: 466 / 360;
+  aspect-ratio: 466 / 326;
   overflow: hidden;
   background: #fff9d9;
   color: #665800;
+}
+
+.campaign-certificate-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.campaign-certificate-share-preview {
+  position: relative;
+  width: 100%;
+}
+
+.campaign-certificate-share-capture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1260;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: transparent;
+  pointer-events: none;
+}
+
+.campaign-certificate-share-capture {
+  position: relative;
+  width: min(540px, calc(100vw - 5rem));
+  padding: 1rem 0.5rem;
+  box-sizing: border-box;
+  background: #fff9d9;
 }
 
 .campaign-certificate-border {
@@ -204,12 +241,21 @@
   right: calc(100% + 0.8rem);
 }
 
-.campaign-certificate-audio .audio-button,
-.campaign-certificate-audio .audio-button__icon {
+.campaign-certificate-audio-button,
+.campaign-certificate-audio-button img {
   width: 100% !important;
   height: 100% !important;
   max-width: none;
   max-height: none;
+}
+
+.campaign-certificate-audio-button {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
 }
 
 .campaign-certificate-close {
@@ -244,15 +290,13 @@
 .campaign-certificate-share {
   /* Keep the certificate share control identical to BadgeCelebrationModal. */
   position: absolute;
-  bottom: 0.35rem;
+  bottom: var(--certificate-share-bottom-gap);
   left: 50%;
   display: flex;
-  width: max-content;
-  min-width: 100px;
-  max-width: calc(100% - 1rem);
-  height: 64px;
-  min-height: 60px;
-  padding: 2.188px clamp(0.75rem, 4vw, 22.636px) 2.992px;
+  width: 90.545px;
+  height: var(--certificate-share-height);
+  min-height: var(--certificate-share-height);
+  padding: 2.184px 22.636px 3px 22.909px;
   box-sizing: border-box;
   flex: 0 1 auto;
   flex-direction: column;
@@ -262,10 +306,10 @@
   transform: translateX(-50%);
   border: none;
   border-bottom: 5.455px solid #300d37;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #c094ef;
   color: #2d1644;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -282,8 +326,8 @@
 }
 
 .campaign-certificate-share img {
-  width: clamp(15.7px, 4vw, 21.421px);
-  height: clamp(18.421px, 4.7vw, 22.6px);
+  width: 23px;
+  height: 24px;
 }
 
 .campaign-certificate-share-star {
@@ -308,30 +352,77 @@
 .campaign-certificate-share-star-left {
   width: 62px;
   height: 54px;
-  top: 18px;
-  left: -58px;
+  top: 1.5rem;
+  left: 0.45rem;
 }
 
 .campaign-certificate-share-star-right {
   width: 88px;
   height: 76px;
-  top: 35%;
-  right: -80px;
+  top: 52%;
+  right: 0.35rem;
   --star-rotate: 60deg;
+}
+
+.campaign-certificate-share-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.campaign-certificate-share-flash--active {
+  animation: campaign-certificate-camera-flash 700ms ease-out both;
+}
+
+@media (min-width: 900px) and (min-height: 501px) {
+  .campaign-certificate-dialog {
+    width: clamp(500px, 42vw, 540px);
+    --certificate-share-height: clamp(48px, 4.5vw, 56px);
+    --certificate-share-top-gap: 12px;
+    --certificate-share-bottom-gap: 8px;
+  }
+}
+
+@keyframes campaign-certificate-camera-flash {
+  0%,
+  35% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.85;
+    background: #fff;
+  }
+  100% {
+    opacity: 0;
+    background: #fff;
+  }
 }
 
 @media (max-height: 500px) {
   .campaign-certificate-dialog {
-    width: min(400px, calc(100vw - 8rem));
-    padding-bottom: 3.4rem;
+    width: min(430px, calc(100vw - 8rem));
+    --certificate-share-top-gap: 6px;
+    --certificate-share-bottom-gap: 4px;
   }
   .campaign-certificate-rank {
     width: 20%;
     margin: 0.15rem 0;
   }
-  .campaign-certificate-share {
-    height: 62px;
-    min-height: 58px;
+}
+
+@media (min-width: 900px) and (max-height: 500px) {
+  .campaign-certificate-dialog {
+    --certificate-share-height: 54px;
+    --certificate-share-top-gap: 8px;
+    --certificate-share-bottom-gap: 6px;
+  }
+}
+
+@media (max-width: 899px) and (max-height: 500px) {
+  .campaign-certificate-dialog {
+    width: min(390px, calc(100vw - 8rem));
   }
 }
 

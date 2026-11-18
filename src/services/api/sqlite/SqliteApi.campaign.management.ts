@@ -1,6 +1,6 @@
 import {
-  RESULT_STATUS,
   AssignmentSource,
+  RESULT_STATUS,
   TabType,
 } from '../../../common/constants';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
@@ -50,6 +50,7 @@ import {
   hasEligibleCampaignIds,
   saveEligibleCampaignIds,
 } from './campaignRewardEligibility';
+import { getCampaignLessonMetrics } from './campaignRewardMetrics';
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
 type LocalCampaignRow = {
@@ -470,39 +471,11 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     showCertificate: boolean,
   ): Promise<void> {
     const now = new Date();
-    const metricsResult = await this.executeQuery(
-      `SELECT
-         COUNT(DISTINCT a.lesson_id) AS total_lessons,
-         COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN a.lesson_id END) AS completed_lessons
-       FROM assignment a
-       LEFT JOIN result r
-         ON r.assignment_id = a.id
-        AND r.student_id = ?
-        AND r.is_deleted = 0
-        AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
-       WHERE a.campaign_id = ? AND a.is_deleted = 0`,
-      [studentId, campaign.id],
+    const { totalLessons, completedLessons } = await getCampaignLessonMetrics(
+      (statement, values) => this.executeQuery(statement, values),
+      campaign,
+      studentId,
     );
-    const metrics = metricsResult?.values?.[0] ?? {};
-    let totalLessons = Number(metrics.total_lessons ?? 0);
-    let completedLessons = Number(metrics.completed_lessons ?? 0);
-
-    if (totalLessons === 0) {
-      const resultMetrics = await this.executeQuery(
-        `SELECT
-           COUNT(DISTINCT r.lesson_id) AS total_lessons,
-           COUNT(DISTINCT CASE WHEN r.id IS NOT NULL THEN r.lesson_id END) AS completed_lessons
-         FROM result r
-         WHERE r.student_id = ?
-           AND r.is_deleted = 0
-           AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
-           AND r.created_at >= ? AND r.created_at <= ?`,
-        [studentId, campaign.start_date, campaign.end_date],
-      );
-      const fallbackMetrics = resultMetrics?.values?.[0] ?? {};
-      totalLessons = Number(fallbackMetrics.total_lessons ?? 0);
-      completedLessons = Number(fallbackMetrics.completed_lessons ?? 0);
-    }
     const completionPercent = totalLessons
       ? (completedLessons / totalLessons) * 100
       : 0;
@@ -574,6 +547,19 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     }
 
     if (shouldEmitCertificate) {
+      let languageCode = localStorage.getItem('language') ?? 'en';
+      try {
+        const student = await this.getUserByDocId(studentId);
+        if (student?.language_id) {
+          const language = await this.getLanguageWithId(student.language_id);
+          languageCode = language?.code ?? languageCode;
+        }
+      } catch (error) {
+        logger.warn(
+          'Campaign certificate language lookup failed; using stored language',
+          error,
+        );
+      }
       store.dispatch(
         setCampaignRewardsState({
           studentId,
@@ -588,6 +574,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
         schoolId: this.currentSchool?.id,
         rank: rank as CampaignCertificateRank,
         awardedAt: evaluatedAt,
+        languageCode,
         isNewlyEarned: true,
         studentId,
       });
