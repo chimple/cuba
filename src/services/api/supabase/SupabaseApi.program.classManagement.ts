@@ -266,7 +266,11 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
       RoleType.PROGRAM_MANAGER,
       RoleType.FIELD_COORDINATOR,
     ];
-    if (!specialUser || !allowedRoles.includes(specialUser.role)) {
+    if (
+      !specialUser ||
+      !specialUser.role ||
+      !allowedRoles.includes(specialUser.role)
+    ) {
       throw new Error('You cannot manage this class');
     }
     if (
