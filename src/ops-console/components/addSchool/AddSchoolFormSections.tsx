@@ -9,7 +9,11 @@ export const AddSchoolDetailsSection = ({
   schoolModelDisabled,
   schoolModelOptions,
   schoolModel,
+  language,
+  languages,
+  isLanguageLoading,
   schoolName,
+  setLanguage,
   setSchoolModel,
   setSchoolName,
   udise,
@@ -19,7 +23,11 @@ export const AddSchoolDetailsSection = ({
   schoolModelDisabled: boolean;
   schoolModelOptions: { label: string; value: string }[];
   schoolModel: string;
+  language: string;
+  languages: { id: string; name: string }[];
+  isLanguageLoading: boolean;
   schoolName: string;
+  setLanguage: (value: string) => void;
   setSchoolModel: (value: string) => void;
   setSchoolName: (value: string) => void;
   udise: string;
@@ -78,6 +86,22 @@ export const AddSchoolDetailsSection = ({
           openDirection="down"
         />
       </Grid>
+
+      {!isLanguageLoading && (
+        <Grid size={{ xs: 12, md: 3 }}>
+          <DropdownField
+            label={t('Language')}
+            value={language}
+            onChange={setLanguage}
+            options={languages.map((item) => ({
+              label: item.name,
+              value: item.id,
+            }))}
+            placeholder={t('Select Language') ?? ''}
+            openDirection="down"
+          />
+        </Grid>
+      )}
     </Grid>
   </Box>
 );

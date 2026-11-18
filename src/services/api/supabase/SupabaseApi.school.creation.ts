@@ -31,11 +31,15 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     if (!this.supabase) return {} as TableTypes<'school'>;
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw 'User is not Logged in';
+    if (language && !(await this.getLanguageWithId(language))) {
+      throw new Error('Selected language is not available');
+    }
 
     const schoolId = uuidv4();
     const timestamp = new Date().toISOString();
@@ -69,7 +73,7 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
         firebase_id: null,
         is_firebase: null,
         is_ops: null,
-        language: null,
+        language: language ?? null,
         ops_created_by: null,
         student_login_type: null,
         status: status,

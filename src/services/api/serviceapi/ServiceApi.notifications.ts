@@ -36,3 +36,26 @@ export type CampaignNotificationPayload = {
   recurringDays?: string[];
   savedAudienceGroupId?: string | null;
 };
+
+/** A message shown in the Ops Console Messages list. */
+export type CampaignNotificationListItem = {
+  id: string;
+  label: string;
+  title: string;
+  message: string;
+  imageUrl: string | null;
+  status: string;
+  sendDate: string | null;
+  sendTime: string | null;
+  endDate: string | null;
+  recurringDays: number[] | null;
+  createdAt: string;
+  updatedAt: string;
+  programId: string;
+  programName: string | null;
+  programManagerNames: string[];
+  schoolModel: string | null;
+  audienceId: string;
+  userType: string | null;
+  targetType: string | null;
+};

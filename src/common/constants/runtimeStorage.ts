@@ -119,7 +119,7 @@ export interface PortPlugin {
     text: string;
     title: string;
     url?: string;
-    imageFile?: File[];
+    imageFile?: File[] | { name: string; path: string };
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
   saveProceesedXlsxFile(options: {

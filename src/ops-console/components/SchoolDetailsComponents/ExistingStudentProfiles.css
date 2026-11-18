@@ -1,0 +1,70 @@
+.ops-student-profile-lookup {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 8px;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.ops-student-profile-lookup__list {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-student-profile-lookup__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 38px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  line-height: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.ops-student-profile-lookup__selection {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.ops-student-profile-lookup__selection input {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.ops-student-profile-lookup__selection input:disabled {
+  cursor: not-allowed;
+}
+
+.ops-student-profile-lookup__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-student-profile-lookup__already-linked {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid #f9dda5;
+  border-radius: 4px;
+  background: #fef7e0;
+  color: #b06000;
+  font-size: 0.75rem;
+}
+
+.ops-student-profile-lookup__error {
+  color: #c63d3d;
+}

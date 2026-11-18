@@ -68,8 +68,12 @@ const AddSchoolPage: React.FC = () => {
           schoolModelDisabled={!controller.program?.id}
           schoolModelOptions={controller.schoolModelOptions}
           schoolModel={controller.schoolModel}
+          language={controller.language}
+          languages={controller.languages}
+          isLanguageLoading={controller.loading}
           schoolName={controller.schoolName}
           setSchoolModel={controller.setSchoolModel}
+          setLanguage={controller.setLanguage}
           setSchoolName={controller.setSchoolName}
           udise={controller.udise}
         />

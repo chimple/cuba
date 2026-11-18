@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import { t } from 'i18next';
 import {
@@ -19,6 +19,11 @@ import {
   formatIndianStudentPhone,
   getStudentContactEntries,
 } from '../../utils/studentContactNumbers';
+import {
+  DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE,
+  DUPLICATE_STUDENT_PROFILE_MESSAGE,
+  parseStudentProfileContact,
+} from '../../utils/studentProfileContact';
 
 type UseSchoolStudentActionsParams = {
   api: any;
@@ -65,6 +70,13 @@ export const useSchoolStudentActions = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isMergingStudent, setIsMergingStudent] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [studentProfileContact, setStudentProfileContact] = useState('');
+  const [studentProfileClassId, setStudentProfileClassId] = useState('');
+  const [selectedExistingStudentId, setSelectedExistingStudentId] = useState<
+    string | null
+  >(null);
+  const modalSession = useRef(0);
+  const successCloseTimer = useRef<number | null>(null);
   const [popup, setPopup] = useState({
     open: false,
     image: '',
@@ -100,9 +112,18 @@ export const useSchoolStudentActions = ({
   );
 
   const handleAddNewStudent = useCallback(() => {
+    modalSession.current += 1;
+    if (successCloseTimer.current !== null) {
+      window.clearTimeout(successCloseTimer.current);
+      successCloseTimer.current = null;
+    }
+    setStudentProfileContact('');
+    setStudentProfileClassId(currentClassRef.current?.id ?? '');
+    setSelectedExistingStudentId(null);
+    setIsSubmitting(false);
     setIsAddStudentModalOpen(true);
     setErrorMessage(undefined);
-  }, []);
+  }, [currentClassRef]);
 
   const handleEditSubmit = async (values: Record<string, string>) => {
     if (!editStudentData) return;
@@ -160,43 +181,170 @@ export const useSchoolStudentActions = ({
   };
 
   const handleCloseAddStudentModal = useCallback(() => {
+    modalSession.current += 1;
+    if (successCloseTimer.current !== null) {
+      window.clearTimeout(successCloseTimer.current);
+      successCloseTimer.current = null;
+    }
     setIsAddStudentModalOpen(false);
     setErrorMessage(undefined);
     setIsSubmitting(false);
+    setStudentProfileContact('');
+    setStudentProfileClassId('');
+    setSelectedExistingStudentId(null);
   }, []);
+
+  const closeModalAfterSuccess = useCallback(
+    (delay: number, session: number) => {
+      if (successCloseTimer.current !== null) {
+        window.clearTimeout(successCloseTimer.current);
+      }
+      successCloseTimer.current = window.setTimeout(() => {
+        successCloseTimer.current = null;
+        if (modalSession.current === session) handleCloseAddStudentModal();
+      }, delay);
+    },
+    [handleCloseAddStudentModal],
+  );
+
+  useEffect(
+    () => () => {
+      if (successCloseTimer.current !== null) {
+        window.clearTimeout(successCloseTimer.current);
+      }
+    },
+    [],
+  );
+
+  const handleAddStudentFieldChange = useCallback(
+    (fieldName: string, value: string) => {
+      if (fieldName === 'contact') setStudentProfileContact(value);
+      if (fieldName === 'class') setStudentProfileClassId(value);
+      if (fieldName === 'contact' || fieldName === 'class') {
+        setSelectedExistingStudentId(null);
+      }
+    },
+    [],
+  );
+
+  const handleSelectExistingStudent = useCallback(
+    (studentId: string | null) => {
+      setSelectedExistingStudentId(studentId);
+    },
+    [],
+  );
+
+  const handleLinkExistingStudent = useCallback(
+    async (studentId: string, contact: string) => {
+      const classId =
+        (issTotal ? studentProfileClassId : currentClassRef.current?.id) ?? '';
+      if (!classId) {
+        setErrorMessage({ text: 'Please select a class.', type: 'error' });
+        return;
+      }
+      if (isSubmitting) return;
+
+      const session = modalSession.current;
+      setIsSubmitting(true);
+      setErrorMessage(undefined);
+      let succeeded = false;
+      try {
+        const linked = await api.linkExistingStudentToClass(
+          studentId,
+          classId,
+          contact,
+        );
+        if (modalSession.current !== session) {
+          if (linked) fetchStudents(debouncedSearchTerm);
+          return;
+        }
+        if (!linked) {
+          setErrorMessage({
+            text: 'This student is already linked or is no longer available.',
+            type: 'error',
+          });
+          return;
+        }
+        setErrorMessage({
+          text: 'Student linked successfully.',
+          type: 'success',
+        });
+        succeeded = true;
+        fetchStudents(debouncedSearchTerm);
+        closeModalAfterSuccess(1800, session);
+      } catch (error) {
+        logger.error('Error linking existing student:', error);
+        if (modalSession.current === session && !succeeded) {
+          setErrorMessage({
+            text: 'An unexpected error occurred. Please try again.',
+            type: 'error',
+          });
+        }
+      } finally {
+        if (!succeeded && modalSession.current === session) {
+          setIsSubmitting(false);
+        }
+      }
+    },
+    [
+      api,
+      currentClassRef,
+      debouncedSearchTerm,
+      fetchStudents,
+      closeModalAfterSuccess,
+      isSubmitting,
+      issTotal,
+      studentProfileClassId,
+    ],
+  );
 
   const handleSubmitAddStudentModal = useCallback(
     async (formValues: Record<string, string>) => {
       if (isSubmitting) return;
 
+      const session = modalSession.current;
       setIsSubmitting(true);
       setErrorMessage(undefined);
 
       const fail = (text: string) => {
+        if (modalSession.current !== session) return;
         setErrorMessage({ text, type: 'error' });
         setIsSubmitting(false);
       };
 
-      const rawPhone = (formValues.phone ?? '').toString();
-      let digits = rawPhone.replace(/\D/g, '');
-      if (digits === '' || digits === '91') digits = '';
-      if (digits.length === 12 && digits.startsWith('91'))
-        digits = digits.slice(2);
-      if (digits.length === 11 && digits.startsWith('0'))
-        digits = digits.slice(1);
-      if (!isAtSchool) {
-        if (digits.length !== 10)
-          return fail('Phone number must be 10 digits.');
-      } else if (digits.length !== 0 && digits.length !== 10) {
-        return fail('Phone number must be 10 digits when provided.');
+      const rawContact = formValues.contact ?? '';
+      const parsedContact = parseStudentProfileContact(rawContact);
+      if (!parsedContact || (!isAtSchool && !parsedContact.value)) {
+        return fail('Please enter a valid phone number or email address.');
       }
-      const classId = issTotal ? formValues.class : currentClassRef.current?.id;
+      const studentName = (formValues.studentName ?? '').trim();
+      if (!studentName) return fail('Student Name is required.');
+      const classId = issTotal
+        ? formValues.class
+        : studentProfileClassId || currentClassRef.current?.id;
       if (!classId) return fail('Please select a class.');
-      const normalizedPhone = digits.length === 10 ? digits : undefined;
+      let created = false;
       try {
-        const payload: any = {
-          phone: normalizedPhone,
-          name: formValues.studentName || '',
+        if (
+          parsedContact.value &&
+          (await api.hasDuplicateStudentProfile(
+            studentName,
+            parsedContact.value,
+            classId,
+          ))
+        ) {
+          if (modalSession.current !== session) return;
+          return fail(
+            parsedContact.email
+              ? DUPLICATE_STUDENT_PROFILE_EMAIL_MESSAGE
+              : DUPLICATE_STUDENT_PROFILE_MESSAGE,
+          );
+        }
+        if (modalSession.current !== session) return;
+        const payload = {
+          phone: parsedContact.phone,
+          email: parsedContact.email,
+          name: studentName,
           gender: formValues.gender || '',
           age: formValues.ageGroup || null,
           classId: classId,
@@ -205,21 +353,34 @@ export const useSchoolStudentActions = ({
           atSchool: isAtSchool,
         };
         const result = await api.addStudentWithParentValidation(payload);
+        if (modalSession.current !== session) {
+          if (result.success) fetchStudents(debouncedSearchTerm);
+          return;
+        }
         if (result.success) {
-          handleCloseAddStudentModal();
+          created = true;
+          setErrorMessage({
+            text: 'Student added successfully.',
+            type: 'success',
+          });
           setPage(1);
           fetchStudents(debouncedSearchTerm);
+          closeModalAfterSuccess(2000, session);
         } else {
           setErrorMessage({ text: result.message, type: 'error' });
         }
       } catch (error) {
         logger.error('Error adding student:', error);
-        setErrorMessage({
-          text: 'An unexpected error occurred. Please try again.',
-          type: 'error',
-        });
+        if (modalSession.current === session && !created) {
+          setErrorMessage({
+            text: 'An unexpected error occurred. Please try again.',
+            type: 'error',
+          });
+        }
       } finally {
-        setIsSubmitting(false);
+        if (!created && modalSession.current === session) {
+          setIsSubmitting(false);
+        }
       }
     },
     [
@@ -228,10 +389,11 @@ export const useSchoolStudentActions = ({
       isSubmitting,
       issTotal,
       currentClassRef,
+      studentProfileClassId,
       schoolId,
       fetchStudents,
       debouncedSearchTerm,
-      handleCloseAddStudentModal,
+      closeModalAfterSuccess,
       setPage,
     ],
   );
@@ -346,11 +508,13 @@ export const useSchoolStudentActions = ({
     editStudentData,
     errorMessage,
     handleAddNewStudent,
+    handleAddStudentFieldChange,
     handleCloseAddStudentModal,
     handleConfirmDelete,
     handleEditSubmit,
     handleInteractClick,
     handleMergeStudents,
+    handleLinkExistingStudent,
     handleSubmitAddStudentModal,
     isAddStudentModalOpen,
     isDeleting,
@@ -373,5 +537,9 @@ export const useSchoolStudentActions = ({
     showSuccessPopup,
     studentData,
     studentStatus,
+    studentProfileClassId,
+    studentProfileContact,
+    selectedExistingStudentId,
+    handleSelectExistingStudent,
   };
 };

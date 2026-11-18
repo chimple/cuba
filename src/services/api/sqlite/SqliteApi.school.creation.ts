@@ -28,12 +28,16 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw 'User is not Logged in';
+    if (language && !(await this.getLanguageWithId(language))) {
+      throw new Error('Selected language is not available');
+    }
 
     const schoolId = uuidv4();
     const academicYear = JSON.stringify([getRuntimeCurrentAcademicYear()]);
@@ -59,7 +63,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
-      language: null,
+      language: language ?? null,
       ops_created_by: null,
       student_login_type: null,
       status: status,
@@ -71,8 +75,8 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     if (oSchool) {
       await this.executeQuery(
         `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country, academic_year)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country, academic_year, language)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           newSchool.id,
@@ -87,6 +91,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
           newSchool.status,
           newSchool.country,
           newSchool.academic_year,
+          newSchool.language,
         ],
       );
 

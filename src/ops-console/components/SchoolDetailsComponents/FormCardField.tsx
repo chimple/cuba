@@ -1,8 +1,11 @@
 import React from 'react';
 import CheckIcon from '@mui/icons-material/Check';
 import { t } from 'i18next';
-import { PhoneInput } from 'react-international-phone';
 import type { FieldConfig } from './FormCard';
+import {
+  FormCardContactField,
+  FormCardPhoneInput,
+} from './FormCardContactField';
 import { FormCardSelectField } from './FormCardSelectField';
 type FormCardFieldProps = {
   field: FieldConfig;
@@ -27,37 +30,19 @@ export const FormCardField = ({
   };
   if (field.kind === 'phone') {
     return (
-      <PhoneInput
-        defaultCountry="in"
-        value={values[field.name] ?? ''}
-        onChange={(value, meta) => {
-          const digits = value.replace(/\D/g, '');
-          const dialCode = meta?.country?.dialCode ?? '';
-          const isCountryCodeOnly = dialCode !== '' && digits === dialCode;
-          handleChange(field.name, isCountryCodeOnly ? '' : value, dialCode);
-        }}
-        disabled={field.disabled}
-        disableCountryGuess
-        className="formcard-phone-input"
-        inputClassName="formcard-phone-input-inner"
-        inputProps={{
-          id: field.name,
-          name: field.name,
-          required: field.required,
-          placeholder: field.placeholder ?? '',
-          onKeyDown: (e) => {
-            const input = e.currentTarget as HTMLInputElement;
-            const selectionStart = input.selectionStart ?? 0;
-            const prefixMatch = input.value.match(/^\+\d+\s*/);
-            const prefixLength = prefixMatch ? prefixMatch[0].length : 0;
-            if (
-              selectionStart <= prefixLength &&
-              (e.key === 'Backspace' || e.key === 'Delete')
-            ) {
-              e.preventDefault();
-            }
-          },
-        }}
+      <FormCardPhoneInput
+        field={field}
+        handleChange={handleChange}
+        values={values}
+      />
+    );
+  }
+  if (field.kind === 'contact') {
+    return (
+      <FormCardContactField
+        field={field}
+        handleChange={handleChange}
+        values={values}
       />
     );
   }

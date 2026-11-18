@@ -103,8 +103,18 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     program_id?: string | null,
     udise?: string | null,
     address?: string | null,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     if (!this.supabase) return {} as TableTypes<'school'>;
+    // A school can retain a language that has since been soft-deleted. Only
+    // validate a language when the operator is selecting a different one.
+    if (
+      language &&
+      language !== school.language &&
+      !(await this.getLanguageWithId(language))
+    ) {
+      throw new Error('Selected language is not available');
+    }
 
     const result = image
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
@@ -129,7 +139,7 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
-      language: null,
+      language: language ?? school.language,
       ops_created_by: null,
       student_login_type: null,
       status: null,

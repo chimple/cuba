@@ -1,6 +1,6 @@
 import {
-  RESULT_STATUS,
   AssignmentSource,
+  RESULT_STATUS,
   TabType,
 } from '../../../common/constants';
 
@@ -30,13 +30,27 @@ import {
   UpdateCampaignMessagingRowPayload,
   CampaignAssignmentsReportParams,
   CampaignAssignmentsReportResponse,
+  CampaignAssignmentsResponse,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignCancellationDetails,
   CampaignDashboardMetric,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
-  CampaignSchoolPerformanceReportParams,
-  CampaignSchoolPerformanceReportResponse,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  CampaignNotificationPayload,
+  CampaignOption,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
+  CampaignSavedAudienceGroup,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
+  CampaignSetupOptions,
   CampaignWhatsappLabelData,
   CampaignNotificationPayload,
   CampaignActiveChange,
@@ -165,6 +179,11 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this._serverApi.getCampaignNotificationLabels();
   }
+
+  async getCampaignNotifications() {
+    return await this._serverApi.getCampaignNotifications();
+  }
+
   async uploadPushNotificationImage(file: File): Promise<string> {
     return await this._serverApi.uploadPushNotificationImage(file);
   }

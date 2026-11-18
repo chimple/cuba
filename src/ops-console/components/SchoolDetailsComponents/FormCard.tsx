@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import './FormCard.css';
 import 'react-international-phone/style.css';
-import { t } from 'i18next';
-import { FormCardField } from './FormCardField';
+import { FormCardContent } from './FormCardContent';
 
-export type FieldKind = 'text' | 'email' | 'phone' | 'select' | 'chips';
+export type FieldKind =
+  | 'text'
+  | 'email'
+  | 'phone'
+  | 'contact'
+  | 'select'
+  | 'chips';
 export type FieldColumn = 0 | 1 | 2; // 0 = left, 1 = right, 2 = full row
 
 export interface FieldConfig {
@@ -39,6 +44,9 @@ interface EntityModalProps {
   message?: MessageConfig | string;
   initialValues?: Record<string, string>;
   disabled?: boolean;
+  onFieldChange?: (name: string, value: string) => void;
+  selectedExistingStudentId?: string | null;
+  children?: React.ReactNode;
 }
 
 const FormCard: React.FC<EntityModalProps> = ({
@@ -51,6 +59,9 @@ const FormCard: React.FC<EntityModalProps> = ({
   message,
   initialValues,
   disabled = false,
+  onFieldChange,
+  selectedExistingStudentId,
+  children,
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
@@ -96,6 +107,7 @@ const FormCard: React.FC<EntityModalProps> = ({
 
   const handleChange = (name: string, value: string, dialCode?: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
+    onFieldChange?.(name, value);
     if (dialCode !== undefined) {
       setPhoneDialCodes((prev) => ({ ...prev, [name]: dialCode }));
     }
@@ -125,9 +137,7 @@ const FormCard: React.FC<EntityModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (disabled) {
-      return;
-    }
+    if (disabled) return;
     const errors = fields.reduce<Record<string, string>>((result, field) => {
       if (field.kind !== 'phone' || !field.nationalPhoneDigits) return result;
 
@@ -149,95 +159,28 @@ const FormCard: React.FC<EntityModalProps> = ({
     onSubmit(values);
   };
 
-  const getFieldClassName = (field: FieldConfig) => {
-    const col = field.column ?? 2;
-    if (col === 0) return 'formcard-form-group formcard-col-left';
-    if (col === 1) return 'formcard-form-group formcard-col-right';
-    return 'formcard-form-group formcard-col-full';
-  };
-
-  const renderMessage = () => {
-    if (!message) return null;
-
-    const messageConfig: MessageConfig =
-      typeof message === 'string' ? { text: message, type: 'info' } : message;
-
-    const messageType = messageConfig.type || 'info';
-
-    return (
-      <div className="formcard-message-wrapper">
-        <div className={`formcard-message formcard-message-${messageType}`}>
-          {t(messageConfig.text)}
-        </div>
-      </div>
-    );
-  };
-
   const firstFieldError = Object.values(fieldErrors)[0];
 
   return (
-    <div className="formcard-modal-backdrop">
-      <div className="formcard-modal">
-        <div className="formcard-modal-header">
-          <h2 className="formcard-title">{title}</h2>
-          <button
-            type="button"
-            className="formcard-close-button"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="formcard-modal-body">
-          <div className="formcard-form-grid">
-            {fields.map((field) => (
-              <div key={field.name} className={getFieldClassName(field)}>
-                <label htmlFor={field.name} className="formcard-label">
-                  {t(field.label)}
-                  {field.required && (
-                    <span className="formcard-required"> *</span>
-                  )}
-                </label>
-                <FormCardField
-                  field={field}
-                  handleChange={handleChange}
-                  openSelect={openSelect}
-                  setOpenSelect={setOpenSelect}
-                  values={values}
-                />
-              </div>
-            ))}
-          </div>
-          {firstFieldError && (
-            <div className="formcard-message-wrapper">
-              <div
-                className="formcard-message formcard-message-error"
-                role="alert"
-              >
-                {t(firstFieldError)}
-              </div>
-            </div>
-          )}
-          {renderMessage()}
-          <div className="formcard-modal-footer">
-            <button
-              type="button"
-              className="formcard-btn formcard-btn-text"
-              onClick={onClose}
-            >
-              {t('Cancel')}
-            </button>
-            <button
-              type="submit"
-              className="formcard-btn formcard-btn-primary"
-              disabled={disabled || (isEditMode && !isDirty)}
-            >
-              {submitLabel}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <FormCardContent
+      title={title}
+      submitLabel={submitLabel}
+      fields={fields}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      message={message}
+      disabled={disabled}
+      isEditMode={isEditMode}
+      isDirty={isDirty}
+      onFieldChange={handleChange}
+      openSelect={openSelect}
+      setOpenSelect={setOpenSelect}
+      values={values}
+      firstFieldError={firstFieldError}
+      selectedExistingStudentId={selectedExistingStudentId}
+    >
+      {children}
+    </FormCardContent>
   );
 };
 

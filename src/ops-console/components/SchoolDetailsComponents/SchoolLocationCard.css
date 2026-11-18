@@ -1,0 +1,146 @@
+.school-location-card .school-location-open {
+  color: #2563eb;
+}
+
+.school-location-card .school-location-label,
+.school-location-card .school-location-address,
+.school-location-dialog .MuiDialog-paper,
+.school-location-dialog .MuiTypography-root,
+.school-location-dialog .school-location-coordinates strong {
+  font-style: normal;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.school-location-card .school-location-label {
+  display: block;
+  color: #666666;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  margin-bottom: 2px;
+}
+
+.school-location-card .school-location-address,
+.school-location-dialog .school-location-address {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.school-location-card .school-location-address {
+  color: #1f1f1f;
+}
+
+.school-location-dialog .MuiDialog-paper {
+  width: 423px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  margin: 16px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+.school-location-dialog .school-location-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 61px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 20px;
+  border-bottom: 1px solid #d1d5db;
+  color: #1f1f1f;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.school-location-dialog .school-location-close {
+  color: #1f1f1f;
+}
+
+.school-location-dialog .school-location-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px 8px;
+}
+
+.school-location-dialog .school-location-title + .school-location-content {
+  padding-top: 18px;
+}
+
+.school-location-dialog .school-location-details {
+  display: flex;
+  align-items: flex-start;
+  gap: 27px;
+  min-height: 146px;
+  box-sizing: border-box;
+  padding: 16px 20px 11px;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.school-location-dialog .school-location-pin {
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.school-location-description {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.school-location-dialog .school-location-name {
+  margin: 0 0 5px;
+  color: #1f1f1f;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.school-location-dialog .school-location-coordinates {
+  display: block;
+  margin: 24px 0 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.school-location-dialog .school-location-coordinates strong {
+  font-family: inherit;
+  font-weight: 700;
+}
+
+.school-location-map {
+  width: 100%;
+  height: 228px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.school-location-dialog .school-location-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.school-location-dialog .school-location-google-maps {
+  color: #2563eb;
+}

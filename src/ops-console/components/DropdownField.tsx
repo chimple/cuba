@@ -65,7 +65,12 @@ const DropdownField: React.FC<DropdownProps> = ({
         renderValue={(selected) =>
           selected ? (
             isObjectOptions ? (
-              (options as Option[]).find((o) => o.value === selected)?.label
+              ((options as Option[]).find((o) => o.value === selected)
+                ?.label ?? (
+                <span className="school-form-dropdown-placeholder">
+                  {placeholder}
+                </span>
+              ))
             ) : (
               selected
             )
