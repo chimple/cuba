@@ -18,7 +18,7 @@ export const parseStudentProfileContact = (
   if (!contact) return { value: '' };
 
   if (contact.includes('@')) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.exec(contact)
       ? { value: contact.toLowerCase(), email: contact.toLowerCase() }
       : null;
   }

@@ -724,7 +724,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     }
     if (
       normalizedEmail &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.exec(normalizedEmail)
     ) {
       return { success: false, message: 'Please enter a valid email address.' };
     }
