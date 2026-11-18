@@ -23,6 +23,24 @@ export type TeacherAssignmentCountPair = {
 export type TeacherAssignmentCountMap = Record<string, number | null>;
 export type TeacherLifetimeAssignmentMap = Record<string, boolean>;
 
+export type OpsStudentProfileMatch = {
+  id: string;
+  name: string | null;
+  studentCode: string | null;
+  isInSelectedClass: boolean;
+};
+
+export type OpsStudentProfileSearchResult = {
+  profiles: OpsStudentProfileMatch[];
+  profileCount: number;
+};
+
+export type StudentProfileCreateResult = {
+  success: boolean;
+  message: string;
+  data?: { studentId: string; parentId: string | null };
+};
+
 export interface ServiceApiFieldActivities {
   getActiveStudentsCountByClass(classId: string): Promise<string>;
 
@@ -53,7 +71,24 @@ export interface ServiceApiFieldActivities {
     email?: string;
     studentID?: string;
     atSchool?: boolean;
-  }): Promise<{ success: boolean; message: string; data?: any }>;
+  }): Promise<StudentProfileCreateResult>;
+
+  searchStudentProfilesByContact(
+    contact: string,
+    classId: string,
+  ): Promise<OpsStudentProfileSearchResult>;
+
+  hasDuplicateStudentProfile(
+    name: string,
+    contact: string,
+    classId: string,
+  ): Promise<boolean>;
+
+  linkExistingStudentToClass(
+    studentId: string,
+    classId: string,
+    contact: string,
+  ): Promise<boolean>;
 
   updateClassCourses(
     classId: string,
