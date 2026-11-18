@@ -53,7 +53,7 @@ describe('CampaignCertificateHost', () => {
 
     // The host is the single orchestration point for certificate popup rendering.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Summer League')).toBeInTheDocument();
+    expect(screen.getByText('SUMMER LEAGUE')).toBeInTheDocument();
   });
 
   it('displays a queued player certificate when Home becomes active', () => {
@@ -73,6 +73,6 @@ describe('CampaignCertificateHost', () => {
     });
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Queued League')).toBeInTheDocument();
+    expect(screen.getByText('QUEUED LEAGUE')).toBeInTheDocument();
   });
 });
