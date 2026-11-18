@@ -9,8 +9,6 @@ import {
   hasEligibleCampaignIds,
   saveEligibleCampaignIds,
 } from './campaignRewardEligibility';
-const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:studentScoped:';
-const CAMPAIGN_SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
 type LocalCampaignRow = {
   id: string;
   name: string;
@@ -27,15 +25,15 @@ type LocalCampaignRow = {
 
 type CampaignRewardRule = { rank: 1 | 2 | 3; min: number; reward?: string };
 
-// Campaign dates are calendar dates. Treat the end date as inclusive by
-// using the start of the following UTC day as the exclusive boundary.
-const getCampaignEndExclusive = (endDate: string): Date => {
-  const end = new Date(endDate);
-  if (Number.isNaN(end.getTime())) return end;
-  return new Date(
-    Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() + 1),
-  );
+// Campaign dates are calendar dates; all campaign boundaries use local dates.
+const getLocalDateKey = (value = new Date()): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
+
+const getCampaignDateKey = (value: string): string => value.slice(0, 10);
 
 const parseCampaignRules = (value: string): CampaignRewardRule[] => {
   try {
@@ -70,42 +68,33 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
   async syncCampaignRewards(studentId = this.currentStudent?.id) {
     if (!studentId) return;
     await this.ensureInitialized();
-    const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
-    const lastFetch = localStorage.getItem(storageKey);
-    const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
-    if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
-      const changes = await this._serverApi.getActiveCampaigns(
-        studentId,
-        lastFetch,
-      );
-      const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-      for (const change of changes ?? []) {
-        if (change.change_type === 'delete') {
-          eligibleCampaignIds.delete(change.campaign_id);
-          continue;
-        }
-        eligibleCampaignIds.add(change.campaign_id);
-        await this.executeQuery(
-          `INSERT OR REPLACE INTO local_campaigns
+    const changes = await this._serverApi.getActiveCampaigns(studentId);
+    const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+    for (const change of changes ?? []) {
+      if (change.change_type === 'delete') {
+        eligibleCampaignIds.delete(change.campaign_id);
+        continue;
+      }
+      eligibleCampaignIds.add(change.campaign_id);
+      await this.executeQuery(
+        `INSERT OR REPLACE INTO local_campaigns
             (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-          [
-            change.campaign_id,
-            change.campaign_name,
-            JSON.stringify(change.rules_json ?? {}),
-            change.start_date,
-            change.end_date,
-            change.campaign_status ?? 'active',
-            change.objective ?? null,
-            change.target_type ?? null,
-            change.target_value ?? null,
-            change.updated_at ?? change.created_at ?? new Date().toISOString(),
-          ],
-        );
-      }
-      saveEligibleCampaignIds(studentId, eligibleCampaignIds);
-      localStorage.setItem(storageKey, new Date().toISOString());
+        [
+          change.campaign_id,
+          change.campaign_name,
+          JSON.stringify(change.rules_json ?? {}),
+          change.start_date,
+          change.end_date,
+          change.campaign_status ?? 'active',
+          change.objective ?? null,
+          change.target_type ?? null,
+          change.target_value ?? null,
+          change.updated_at ?? change.created_at ?? new Date().toISOString(),
+        ],
+      );
     }
+    saveEligibleCampaignIds(studentId, eligibleCampaignIds);
     await this.hydrateCampaignRewards(studentId);
   }
   async hydrateCampaignRewards(studentId = this.currentStudent?.id) {
@@ -128,13 +117,13 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
       await this.syncCampaignRewards(studentId);
     }
     await this.ensureInitialized();
-    const now = new Date().toISOString();
+    const today = getLocalDateKey();
     const result = await this.executeQuery(
       `SELECT * FROM local_campaigns
        WHERE is_deleted = 0 AND status = 'active'
-         AND start_date <= ?
+         AND date(start_date) <= date(?)
          AND date(end_date) >= date(?)`,
-      [now, now],
+      [today, today],
     );
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
@@ -160,6 +149,7 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
     campaignId?: string;
   }> {
     await this.ensureInitialized();
+    const today = getLocalDateKey();
     const result = await this.executeQuery(
       `SELECT r.campaign_id FROM user_campaign_rewards r
        JOIN local_campaigns c
@@ -168,9 +158,9 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
          AND r.is_deleted = 0
          AND r.has_unseen_certificate = 1
          AND c.end_date IS NOT NULL
-         AND date(c.end_date) < date('now')
+         AND date(c.end_date) < date(?)
        ORDER BY r.evaluated_at DESC LIMIT 1`,
-      [studentId],
+      [studentId, today],
     );
     const campaignId = result?.values?.[0]?.campaign_id as string | undefined;
     return { hasUnseenCertificate: Boolean(campaignId), campaignId };
@@ -189,7 +179,10 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
     showCertificate: boolean,
   ): Promise<void> {
     const now = new Date();
-    const campaignEndExclusive = getCampaignEndExclusive(campaign.end_date);
+    const today = getLocalDateKey(now);
+    const campaignStartDate = getCampaignDateKey(campaign.start_date);
+    const campaignEndDate = getCampaignDateKey(campaign.end_date);
+    const campaignEnded = today > campaignEndDate;
     const isHomepageCampaign =
       campaign.objective === 'homepage_learning_pathway_campaign';
     const metricsResult = isHomepageCampaign
@@ -199,9 +192,9 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
            WHERE r.student_id = ? AND r.is_deleted = 0
              AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
              AND r.source IN ('learning_pathway_home_no_pal', 'learning_pathway_home_pal')
-             AND julianday(r.created_at) >= julianday(?)
-             AND julianday(r.created_at) < julianday(?)`,
-          [studentId, campaign.start_date, campaignEndExclusive.toISOString()],
+             AND date(r.created_at) >= date(?)
+             AND date(r.created_at) <= date(?)`,
+          [studentId, campaignStartDate, campaignEndDate],
         )
       : await this.executeQuery(
           `SELECT COUNT(DISTINCT a.lesson_id) AS total_lessons,
@@ -210,15 +203,10 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
            LEFT JOIN result r ON r.assignment_id = a.id
              AND r.student_id = ? AND r.is_deleted = 0
              AND COALESCE(r.status, '') NOT IN ('system_exit', 'assessment_terminated')
-             AND julianday(r.created_at) >= julianday(?)
-             AND julianday(r.created_at) < julianday(?)
+             AND date(r.created_at) >= date(?)
+             AND date(r.created_at) <= date(?)
            WHERE a.campaign_id = ? AND a.is_deleted = 0`,
-          [
-            studentId,
-            campaign.start_date,
-            campaignEndExclusive.toISOString(),
-            campaign.id,
-          ],
+          [studentId, campaignStartDate, campaignEndDate, campaign.id],
         );
     const metrics = metricsResult?.values?.[0] ?? {};
     const completedLessons = Number(metrics.completed_lessons ?? 0);
@@ -246,10 +234,10 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
     );
     const winningRule = rules.find((rule) => completion >= Number(rule.min));
     const participationEligible =
-      !winningRule && now >= campaignEndExclusive && completedLessons >= 1;
+      !winningRule && campaignEnded && completedLessons >= 1;
     const status = winningRule
       ? 'won'
-      : now >= campaignEndExclusive
+      : campaignEnded
         ? 'missed'
         : 'in_progress';
     const rank = winningRule?.rank ?? null;

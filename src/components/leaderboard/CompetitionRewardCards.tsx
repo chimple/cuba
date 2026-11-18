@@ -37,20 +37,16 @@ type CompetitionRewardCardsProps = {
 const toNumber = (value: number | string | null | undefined) =>
   Number(value ?? 0);
 
-const getCampaignEndExclusive = (endDate: string): number => {
-  const end = new Date(endDate);
-  if (Number.isNaN(end.getTime())) return Number.NaN;
-  return Date.UTC(
-    end.getUTCFullYear(),
-    end.getUTCMonth(),
-    end.getUTCDate() + 1,
-  );
+const getLocalDateKey = (value = new Date()): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const isOngoingReward = (reward: CompetitionReward) => {
   if (reward.end_date) {
-    const endExclusive = getCampaignEndExclusive(reward.end_date);
-    if (Number.isFinite(endExclusive)) return endExclusive > Date.now();
+    return reward.end_date.slice(0, 10) >= getLocalDateKey();
   }
   return reward.status === 'in_progress';
 };
