@@ -1,4 +1,4 @@
-export type CampaignCertificateRank = 1 | 2 | 3 | 'progress';
+export type CampaignCertificateRank = 1 | 2 | 3 | 'progress' | 'participation';
 
 export type CampaignCertificateData = {
   campaignId: string;

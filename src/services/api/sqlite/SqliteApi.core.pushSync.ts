@@ -7,6 +7,10 @@ import { SqliteApiCoreSync } from './SqliteApi.core.sync';
 
 export class SqliteApiCorePushSync extends SqliteApiCoreSync {
   [key: string]: any;
+  protected async onResultSyncCompleted(
+    _resultRowsChanged: boolean,
+  ): Promise<void> {}
+
   private async pushChanges(tableNames: TABLES[]) {
     if (!this._db) return false;
     const tables = "'" + tableNames.join("', '") + "'";
@@ -122,7 +126,14 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
           `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
         );
       }
-      await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
+      const syncResult = await this.pullChanges(
+        tableNames,
+        isFirstSync,
+        refreshTables.length > 0,
+      );
+      if (syncResult.resultRowsChanged) {
+        await this.onResultSyncCompleted(true);
+      }
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       await this.pushQueuedCampaignRewards();

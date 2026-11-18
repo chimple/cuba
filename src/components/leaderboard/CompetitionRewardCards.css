@@ -55,14 +55,43 @@
   border-color: #7b5f07;
 }
 
+.competition-reward-card.rank-1 h2,
+.competition-reward-card.rank-1 .competition-reward-date,
+.competition-reward-card.rank-1 .competition-reward-completion-message {
+  color: #7b5f07;
+}
+
 .competition-reward-card.rank-2 {
   background: #f3fcff;
   border-color: #808080;
 }
 
-.competition-reward-card.rank-3 {
+.competition-reward-card.rank-2 h2,
+.competition-reward-card.rank-2 .competition-reward-date,
+.competition-reward-card.rank-2 .competition-reward-completion-message {
+  color: #555555;
+}
+
+.competition-reward-card.participation h2,
+.competition-reward-card.participation .competition-reward-date,
+.competition-reward-card.participation .competition-reward-completion-message {
+  color: #ad3654;
+}
+
+.competition-reward-card.participation {
   background: #ffebf0;
   border-color: #ad3654;
+}
+
+.competition-reward-card.rank-3 {
+  background: #fff0e3;
+  border-color: #9a5b22;
+}
+
+.competition-reward-card.rank-3 h2,
+.competition-reward-card.rank-3 .competition-reward-date,
+.competition-reward-card.rank-3 .competition-reward-completion-message {
+  color: #9a5b22;
 }
 
 .competition-reward-card h2 {

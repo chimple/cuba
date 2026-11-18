@@ -14,6 +14,7 @@ export type CompetitionReward = {
   student_id?: string | null;
   campaign_name?: string | null;
   objective?: string | null;
+  target_value?: number | string | null;
   start_date?: string | null;
   end_date?: string | null;
   lessons_completed_count?: number | string | null;
@@ -23,6 +24,7 @@ export type CompetitionReward = {
   homepage_lessons_completed_count?: number | string | null;
   homepage_lessons_target_count?: number | string | null;
   completion_percentage?: number | string | null;
+  certificate_available?: number | boolean | null;
   rank_achieved?: number | string | null;
   status?: string | null;
   updated_at?: string | null;
@@ -35,12 +37,20 @@ type CompetitionRewardCardsProps = {
 const toNumber = (value: number | string | null | undefined) =>
   Number(value ?? 0);
 
+const getCampaignEndExclusive = (endDate: string): number => {
+  const end = new Date(endDate);
+  if (Number.isNaN(end.getTime())) return Number.NaN;
+  return Date.UTC(
+    end.getUTCFullYear(),
+    end.getUTCMonth(),
+    end.getUTCDate() + 1,
+  );
+};
+
 const isOngoingReward = (reward: CompetitionReward) => {
-  // The campaign timeline is authoritative. An in-progress status must not
-  // keep an expired campaign in the ongoing section after its end date.
   if (reward.end_date) {
-    const end = new Date(reward.end_date).getTime();
-    if (Number.isFinite(end)) return end >= Date.now();
+    const endExclusive = getCampaignEndExclusive(reward.end_date);
+    if (Number.isFinite(endExclusive)) return endExclusive > Date.now();
   }
   return reward.status === 'in_progress';
 };
@@ -52,12 +62,34 @@ const hasCompletedLessons = (reward: CompetitionReward) =>
       reward.homepage_lessons_completed_count,
   ) > 0;
 
-// Completed rewards and certificates are available only for earned ranks 1–3.
+const isParticipationReward = (reward: CompetitionReward) =>
+  !isOngoingReward(reward) &&
+  hasCompletedLessons(reward) &&
+  Boolean(Number(reward.certificate_available ?? 0)) &&
+  toCompetitionCertificateRank(reward.rank_achieved) === null;
+
+type CompetitionCertificateType = 1 | 2 | 3 | 'participation';
+
+const getCertificateType = (
+  reward: CompetitionReward | null | undefined,
+): CompetitionCertificateType | null => {
+  if (!reward) return null;
+  return (
+    toCompetitionCertificateRank(reward.rank_achieved) ??
+    (isParticipationReward(reward) ? 'participation' : null)
+  );
+};
+
+const isCompletedReward = (reward: CompetitionReward) =>
+  !isOngoingReward(reward) &&
+  hasCompletedLessons(reward) &&
+  (toCompetitionCertificateRank(reward.rank_achieved) !== null ||
+    isParticipationReward(reward));
+
 const canShareCertificate = (reward: CompetitionReward) =>
   !isOngoingReward(reward) &&
   hasCompletedLessons(reward) &&
-  reward.status === 'won' &&
-  toCompetitionCertificateRank(reward.rank_achieved) !== null;
+  getCertificateType(reward) !== null;
 
 const formatDate = (value?: string | null) => {
   if (!value) return '';
@@ -83,11 +115,17 @@ const getArtwork = (reward: CompetitionReward) => {
   if (reward.status === 'won' && rank === 3) {
     return '/assets/campaignCompetition/Campaign rank3 t.svg';
   }
+  if (isParticipationReward(reward)) {
+    return '/assets/campaignCompetition/Campaign participation t.svg';
+  }
   return '/assets/campaignCompetition/Campaign progress t.svg';
 };
 
 const getCardClass = (reward: CompetitionReward) => {
   if (isOngoingReward(reward)) return 'competition-reward-card ongoing';
+  if (isParticipationReward(reward)) {
+    return 'competition-reward-card completed participation';
+  }
   const rank = toNumber(reward.rank_achieved);
   return `competition-reward-card completed rank-${rank || 3}`;
 };
@@ -113,10 +151,8 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
     useState<CompetitionReward | null>(null);
   const student = Util.getCurrentStudent();
   const ongoingRewards = rewards.filter(isOngoingReward);
-  const completedRewards = rewards.filter(canShareCertificate);
-  const selectedRank = toCompetitionCertificateRank(
-    selectedCertificate?.rank_achieved,
-  );
+  const completedRewards = rewards.filter(isCompletedReward);
+  const selectedCertificateRank = getCertificateType(selectedCertificate);
 
   const renderCard = (reward: CompetitionReward) => (
     <article className={getCardClass(reward)} key={reward.campaign_id}>
@@ -241,14 +277,14 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
       )}
       {selectedCertificate &&
         canShareCertificate(selectedCertificate) &&
-        selectedRank !== null && (
+        selectedCertificateRank !== null && (
           <CompetitionCertificateModal
             certificate={{
               campaignId: selectedCertificate.campaign_id,
               campaignName: selectedCertificate.campaign_name ?? '',
               studentName: student?.name ?? '',
               studentId: selectedCertificate.student_id ?? undefined,
-              rank: selectedRank,
+              rank: selectedCertificateRank,
               awardedAt:
                 selectedCertificate.updated_at ?? new Date().toISOString(),
               languageCode: localStorage.getItem('language') ?? 'en',
