@@ -5,6 +5,7 @@ import { Box, CardContent, Divider, Typography } from '@mui/material';
 import './InfoCard.css';
 
 interface InfoCardProps {
+  id?: string;
   title: string;
   items?: DetailItemProps[];
   children?: React.ReactNode;
@@ -24,8 +25,10 @@ const InfoCard = ({
   onEditClick,
   headerAction,
   hideDivider,
+  ...cardProps
 }: InfoCardProps) => (
   <Card
+    {...cardProps}
     variant="outlined"
     className={`info-card${className ? ' ' + className : ''}`}
   >

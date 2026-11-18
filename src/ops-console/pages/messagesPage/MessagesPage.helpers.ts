@@ -267,3 +267,13 @@ export const buildCampaignNotificationPayload = async ({
     savedAudienceGroupId: audience.selectedSavedGroupId || null,
   };
 };
+export const emptyNotificationDraft: PushNotificationDraft = {
+  label: '',
+  title: '',
+  body: '',
+  imageName: '',
+  imageUrl: '',
+};
+export const RECURRENT_DAYS_ERROR = 'Please choose one or more delivery days.';
+export const PUSH_NOTIFICATION_FAILURE_FALLBACK =
+  'Failed to send notification. Please try again.';

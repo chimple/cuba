@@ -1,6 +1,6 @@
 import {
-  RESULT_STATUS,
   AssignmentSource,
+  RESULT_STATUS,
   TabType,
 } from '../../../common/constants';
 
@@ -165,6 +165,11 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this._serverApi.getCampaignNotificationLabels();
   }
+
+  async getCampaignNotifications() {
+    return await this._serverApi.getCampaignNotifications();
+  }
+
   async uploadPushNotificationImage(file: File): Promise<string> {
     return await this._serverApi.uploadPushNotificationImage(file);
   }

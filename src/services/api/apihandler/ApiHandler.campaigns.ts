@@ -68,6 +68,10 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
     return await this.s.getCampaignNotificationLabels();
   }
 
+  async getCampaignNotifications() {
+    return await this.s.getCampaignNotifications();
+  }
+
   async uploadPushNotificationImage(file: File): Promise<string> {
     return await this.s.uploadPushNotificationImage(file);
   }
