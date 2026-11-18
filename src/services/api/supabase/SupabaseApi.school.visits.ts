@@ -106,7 +106,13 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     language?: string | null,
   ): Promise<TableTypes<'school'>> {
     if (!this.supabase) return {} as TableTypes<'school'>;
-    if (language && !(await this.getLanguageWithId(language))) {
+    // A school can retain a language that has since been soft-deleted. Only
+    // validate a language when the operator is selecting a different one.
+    if (
+      language &&
+      language !== school.language &&
+      !(await this.getLanguageWithId(language))
+    ) {
       throw new Error('Selected language is not available');
     }
 
