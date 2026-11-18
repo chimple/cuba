@@ -260,7 +260,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
       .eq('is_deleted', false)
       .maybeSingle();
     if (specialUserError) throw specialUserError;
-    const allowedRoles = [
+    const allowedRoles: string[] = [
       RoleType.OPERATIONAL_DIRECTOR,
       RoleType.SUPER_ADMIN,
       RoleType.PROGRAM_MANAGER,
