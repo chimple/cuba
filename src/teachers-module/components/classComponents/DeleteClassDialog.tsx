@@ -15,6 +15,12 @@ import logger from '../../../utility/logger';
 
 const CLASS_HAS_CONNECTED_USERS_MESSAGE =
   'Cannot delete this class because students or teachers are still connected to it. Please remove or migrate them to a different class before deleting the class.';
+const getClassHasConnectedUsersMessage = (): string => {
+  const message = t(CLASS_HAS_CONNECTED_USERS_MESSAGE);
+  return typeof message === 'string'
+    ? message
+    : CLASS_HAS_CONNECTED_USERS_MESSAGE;
+};
 
 const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -30,7 +36,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
         api.getTeachersForClass(classId),
       ]);
       if (students.length > 0 || (teachers?.length ?? 0) > 0) {
-        setDeleteErrorMessage(t(CLASS_HAS_CONNECTED_USERS_MESSAGE));
+        setDeleteErrorMessage(getClassHasConnectedUsersMessage());
         setShowAlert(true);
       } else {
         setShowConfirm(true);
@@ -67,7 +73,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
         error instanceof Error &&
         error.message.includes('CLASS_HAS_ACTIVE_STUDENTS_OR_TEACHERS')
       ) {
-        setDeleteErrorMessage(t(CLASS_HAS_CONNECTED_USERS_MESSAGE));
+        setDeleteErrorMessage(getClassHasConnectedUsersMessage());
         setShowAlert(true);
         return;
       }
