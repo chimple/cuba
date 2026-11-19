@@ -3,108 +3,8 @@ import { Box, FormLabel, Grid, TextField, Typography } from '@mui/material';
 import { t } from 'i18next';
 import DropdownField from '../DropdownField';
 
-export const AddSchoolDetailsSection = ({
-  errorMessage,
-  handleUdiseChange,
-  schoolModelDisabled,
-  schoolModelOptions,
-  schoolModel,
-  language,
-  languages,
-  isLanguageLoading,
-  schoolName,
-  setLanguage,
-  setSchoolModel,
-  setSchoolName,
-  udise,
-}: {
-  errorMessage: string;
-  handleUdiseChange: (value: string) => void;
-  schoolModelDisabled: boolean;
-  schoolModelOptions: { label: string; value: string }[];
-  schoolModel: string;
-  language: string;
-  languages: { id: string; name: string }[];
-  isLanguageLoading: boolean;
-  schoolName: string;
-  setLanguage: (value: string) => void;
-  setSchoolModel: (value: string) => void;
-  setSchoolName: (value: string) => void;
-  udise: string;
-}) => (
-  <Box className="add-school-section-box">
-    <Typography
-      variant="subtitle2"
-      fontWeight="bold"
-      sx={{ marginBottom: '16px', fontSize: '1rem', color: '#111827' }}
-    >
-      {t('School Details')}
-    </Typography>
-
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, md: 4.5 }}>
-        <FormLabel sx={{ color: '#111827' }}>
-          {t('School Name')} <span className="add-school-requird">*</span>
-        </FormLabel>
-        <TextField
-          fullWidth
-          size="small"
-          value={schoolName}
-          placeholder={t('School Name') ?? ''}
-          onChange={(event) => setSchoolName(event.target.value)}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, md: 4.5 }}>
-        <FormLabel sx={{ color: '#111827' }}>
-          {t('School ID (UDISE)')} <span className="add-school-requird">*</span>
-        </FormLabel>
-        <TextField
-          fullWidth
-          size="small"
-          value={udise}
-          inputProps={{
-            maxLength: 11,
-            inputMode: 'numeric',
-            pattern: '[0-9]*',
-          }}
-          placeholder={t('Enter 11 digit UDISE code') ?? ''}
-          onChange={(event) => handleUdiseChange(event.target.value)}
-        />
-        {errorMessage && <div className="class-form-error">{errorMessage}</div>}
-      </Grid>
-
-      <Grid size={{ xs: 12, md: 3 }}>
-        <DropdownField
-          label={t('School') + ' ' + t('Model')}
-          required
-          value={schoolModel}
-          onChange={setSchoolModel}
-          placeholder={t('Select Model') ?? ''}
-          options={schoolModelOptions}
-          disabled={schoolModelDisabled}
-          openDirection="down"
-        />
-      </Grid>
-
-      {!isLanguageLoading && (
-        <Grid size={{ xs: 12, md: 3 }}>
-          <DropdownField
-            label={t('Language')}
-            value={language}
-            onChange={setLanguage}
-            options={languages.map((item) => ({
-              label: item.name,
-              value: item.id,
-            }))}
-            placeholder={t('Select Language') ?? ''}
-            openDirection="down"
-          />
-        </Grid>
-      )}
-    </Grid>
-  </Box>
-);
+type NamedOption = { id: string; name: string };
+type ProgramOption = NamedOption & { model?: string };
 
 export const AddSchoolAddressSection = ({
   address,
@@ -225,13 +125,13 @@ export const AddSchoolProgramSection = ({
   setFieldCoordinator,
   setProgram,
 }: {
-  fieldCoordinator: any;
-  fieldCoordinators: any[];
+  fieldCoordinator: NamedOption | null;
+  fieldCoordinators: NamedOption[];
   lockDropdowns: boolean;
-  program: any;
-  programs: any[];
-  setFieldCoordinator: (value: any) => void;
-  setProgram: (value: any) => void;
+  program: ProgramOption | null;
+  programs: ProgramOption[];
+  setFieldCoordinator: (value: NamedOption | null) => void;
+  setProgram: (value: ProgramOption | null) => void;
 }) => (
   <Box className="add-school-dropdown-container">
     <Typography variant="h6" className="add-school-dropdown-title">

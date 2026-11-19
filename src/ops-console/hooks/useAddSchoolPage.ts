@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from 'i18next';
 import { useHistory, useLocation } from 'react-router-dom';
 import { PAGES } from '../../common/constants';
+import type { EnumType } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
@@ -68,6 +69,9 @@ export const useAddSchoolPage = () => {
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState('');
   const [udise, setUdise] = useState('');
+  const [studentLoginType, setStudentLoginType] = useState<
+    EnumType<'login_type'> | ''
+  >('');
   const [schoolModel, setSchoolModel] = useState('');
   const [language, setLanguage] = useState('');
   const [languages, setLanguages] = useState<{ id: string; name: string }[]>(
@@ -235,6 +239,7 @@ export const useAddSchoolPage = () => {
       udise.length === UDISE_LENGTH &&
       !!schoolModel &&
       isSchoolModelAllowedForProgram(program?.model, schoolModel) &&
+      (Boolean(editData) || Boolean(studentLoginType)) &&
       !!address.state &&
       !!address.district &&
       !!program &&
@@ -390,6 +395,8 @@ export const useAddSchoolPage = () => {
   }, [api, editData, program]);
 
   async function handleApprove() {
+    if (!editData && !studentLoginType) return;
+
     if (isCoursesLoading || courseLoadError || selectedCourseIds.length === 0) {
       return;
     }
@@ -468,6 +475,7 @@ export const useAddSchoolPage = () => {
           true,
           false,
           language || null,
+          studentLoginType || null,
         );
         await api.insertSchoolDetails(
           school.id,
@@ -541,6 +549,8 @@ export const useAddSchoolPage = () => {
     schoolModel,
     schoolModelOptions,
     schoolName,
+    studentLoginType,
+    setStudentLoginType,
     grades,
     selectedCourseIds,
     selectedGradeId,

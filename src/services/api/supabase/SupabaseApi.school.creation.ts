@@ -32,6 +32,7 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
     language?: string | null,
+    studentLoginType?: EnumType<'login_type'> | null,
   ): Promise<TableTypes<'school'>> {
     if (!this.supabase) return {} as TableTypes<'school'>;
     const _currentUser =
@@ -75,7 +76,7 @@ export class SupabaseApiSchoolCreation extends SupabaseApiSchoolCourses {
         is_ops: null,
         language: language ?? null,
         ops_created_by: null,
-        student_login_type: null,
+        student_login_type: studentLoginType ?? null,
         status: status,
         key_contacts: null,
         country: country ?? null,

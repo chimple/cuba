@@ -63,10 +63,17 @@ export const normalizeWhatsappBotNumber = (value: unknown): string => {
 export const normalizeSheetRows = (rows: FileUploadRow[]): FileUploadRow[] =>
   rows.map((row) =>
     Object.fromEntries(
-      Object.entries(row).map(([key, value]) => [
-        key.trim(),
-        typeof value === 'string' ? value.trim() : value,
-      ]),
+      Object.entries(row).map(([key, value]) => {
+        const normalizedKey = key.trim();
+        // Password whitespace may be part of the credential.
+        return [
+          normalizedKey,
+          typeof value === 'string' &&
+          normalizedKey.toLowerCase() !== 'password'
+            ? value.trim()
+            : value,
+        ];
+      }),
     ),
   );
 

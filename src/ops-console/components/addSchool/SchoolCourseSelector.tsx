@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
   Box,
   Checkbox,
@@ -74,7 +75,7 @@ export const SchoolCourseSelector = ({
 
       <Box className="add-school-course-filters">
         <Box className="add-school-course-field">
-          <FormLabel>{t('Grade')}</FormLabel>
+          <FormLabel sx={{ color: '#111827' }}>{t('Grade')}</FormLabel>
           <Select
             size="small"
             fullWidth
@@ -93,19 +94,32 @@ export const SchoolCourseSelector = ({
         </Box>
 
         <Box className="add-school-course-field" ref={coursesRef}>
-          <FormLabel>
+          <FormLabel sx={{ color: '#111827' }}>
             {t('Courses')} <span className="add-school-requird">*</span>
           </FormLabel>
           <button
             type="button"
             className="add-school-course-select-trigger"
+            aria-expanded={coursesOpen}
             disabled={loading}
             onClick={() => setCoursesOpen((open) => !open)}
           >
-            {selectedCourseIds.length
-              ? `${selectedCourseIds.length} ${t('Courses selected')}`
-              : t('Select Courses')}
-            <span>{coursesOpen ? '⌃' : '⌄'}</span>
+            <span
+              className={`add-school-course-select-value${
+                selectedCourseIds.length
+                  ? ''
+                  : ' add-school-course-select-placeholder'
+              }`}
+            >
+              {selectedCourseIds.length
+                ? `${selectedCourseIds.length} ${t('Courses selected')}`
+                : t('Select Courses')}
+            </span>
+            <ArrowDropDownIcon
+              className={`add-school-course-select-icon${
+                coursesOpen ? ' add-school-course-select-icon-open' : ''
+              }`}
+            />
           </button>
           {mode === 'edit' &&
             !loading &&
