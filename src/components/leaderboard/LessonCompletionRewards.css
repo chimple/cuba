@@ -2,7 +2,25 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 6px clamp(16px, 8vw, 88px) 24px;
+  padding: 10px clamp(16px, 8vw, 88px) 24px;
+}
+
+.lesson-completion-rewards-subheading {
+  display: flex;
+  width: min(633px, 100%);
+  height: 31px;
+  margin: 0 auto 10px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  align-items: center;
+  border-radius: 10px;
+  background: #fffdee;
+  color: #182a4f;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
 }
 
 .lesson-completion-rewards-grid {
@@ -63,32 +81,48 @@
   z-index: 1300;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.12);
-  pointer-events: none;
+  background: rgba(0, 0, 0, 0.58);
+  pointer-events: auto;
+}
+
+.lesson-completion-rewards-share-preview-trigger {
+  display: grid;
+  width: min(343px, calc(100vw - 2rem));
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lesson-completion-rewards-share-preview-trigger:focus-visible {
+  outline: 3px solid #182a4f;
+  outline-offset: 8px;
+  border-radius: 16px;
 }
 
 .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
-  width: min(472.5px, calc(100vw - 40px));
-  height: auto;
-  padding: 8px;
-  aspect-ratio: 350 / 320;
-  flex: 0 0 auto;
-  box-sizing: content-box;
+  width: 343px;
+  height: 309px;
+  padding: 0;
+  aspect-ratio: auto;
+  flex: 0 0 309px;
+  box-sizing: border-box;
   animation: lesson-completion-rewards-slide-down 1200ms
     cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.lesson-completion-rewards-share-artwork .BadgeCelebrationModal-badge-art {
-  width: 350px;
-  max-width: none;
-  height: 320px;
-  scale: 1.25;
+.lesson-completion-rewards-share-preview-trigger
+  .BadgeCelebrationModal-share-card {
+  pointer-events: none;
 }
 
-.lesson-completion-rewards-share-artwork
-  .BadgeCelebrationModal-generated-badge {
-  top: calc(50% - 15px);
-  transform: translate(-50%, -50%) scale(0.64);
+.lesson-completion-rewards-share-artwork .BadgeCelebrationModal-badge-art {
+  width: 343px;
+  max-width: 100%;
+  height: 309px;
+  scale: 1;
 }
 
 /* Match the earned-card shadow on the badge inside the shared artwork. */
@@ -114,19 +148,24 @@
 }
 
 @media (max-width: 460px), (max-height: 420px) {
+  .lesson-completion-rewards-share-preview-trigger {
+    width: min(343px, calc(100vw - 32px));
+  }
+
   .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
-    width: min(350px, calc(100vw - 32px));
+    width: 343px;
+    max-width: calc(100vw - 32px);
   }
 
   .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-badge-art {
-    scale: 1;
+    max-width: 100%;
   }
 }
 
 @media (max-height: 380px) {
-  .lesson-completion-rewards-share-artwork
-    .BadgeCelebrationModal-generated-badge {
-    transform: translate(-50%, -50%) scale(0.6);
+  .lesson-completion-rewards-share-artwork .BadgeCelebrationModal-share-card {
+    transform: scale(0.9);
+    transform-origin: center;
   }
 }
 

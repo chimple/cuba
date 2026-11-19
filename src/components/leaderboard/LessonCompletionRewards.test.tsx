@@ -92,6 +92,7 @@ describe('LessonCompletionRewards', () => {
     expect(
       screen.getAllByTestId(/badge-/).map((badge) => badge.textContent),
     ).toEqual(['50', '100', '150', '200']);
+    expect(screen.getByText('Lessons Completed')).toBeInTheDocument();
   });
 
   it('opens the share preview and records the selected milestone', () => {
@@ -127,16 +128,18 @@ describe('LessonCompletionRewards', () => {
     expect(screen.queryByTestId('badge-3050')).not.toBeInTheDocument();
   });
 
-  it('records a successful share outcome', async () => {
-    jest.useFakeTimers();
+  it('opens native sharing only after the preview is clicked', async () => {
     mockedToPng.mockResolvedValue('data:image/png;base64,AA==');
     render(
       <LessonCompletionRewards studentId="student-1" progress={progress} />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /share 100/i }));
+    expect(mockedShare).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole('button', { name: /share 100 lesson badge preview/i }),
+    );
     await act(async () => {
-      jest.advanceTimersByTime(1000);
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -150,7 +153,7 @@ describe('LessonCompletionRewards', () => {
       ),
     );
     expect(mockedShare).toHaveBeenCalledWith(
-      '100 lessons complete!',
+      'I have completed 100 lessons!',
       'My Chimple Badge',
       undefined,
       expect.arrayContaining([expect.any(File)]),
@@ -159,7 +162,6 @@ describe('LessonCompletionRewards', () => {
   });
 
   it('records a failed share outcome with its error', async () => {
-    jest.useFakeTimers();
     mockedToPng.mockResolvedValue('data:image/png;base64,AA==');
     mockedShare.mockRejectedValue(new Error('Native share unavailable'));
     render(
@@ -167,8 +169,10 @@ describe('LessonCompletionRewards', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: /share 50/i }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /share 50 lesson badge preview/i }),
+    );
     await act(async () => {
-      jest.advanceTimersByTime(1000);
       await Promise.resolve();
       await Promise.resolve();
     });

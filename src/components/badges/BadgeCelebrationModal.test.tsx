@@ -128,13 +128,13 @@ describe('BadgeCelebrationModal', () => {
       audioUrl: '/assets/audios/badgeCollected/Badge collected English.mp3',
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    jest.advanceTimersByTime(2200);
-    expect(onClose).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByRole('button', { name: /share/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+    await screen.findByRole('button', { name: 'Share badge image' });
+    fireEvent.click(screen.getByRole('button', { name: 'Share badge image' }));
     await waitFor(() => expect(mockedShare).toHaveBeenCalled());
     expect(mockedToPng).toHaveBeenCalled();
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('uses the final badge voiceover for milestone 3000', () => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import { t } from 'i18next';
 import { getGeneratedBadge } from '../../common/Badges/badgeGenerator';
@@ -15,8 +15,6 @@ type Props = {
   studentId?: string;
   progress: BadgeAnalyticsProgress;
 };
-
-const SHARE_PREVIEW_DURATION_MS = 1000;
 
 const dataUrlToFile = (dataUrl: string, milestone: number) => {
   const [header, encoded] = dataUrl.split(',');
@@ -69,58 +67,52 @@ const LessonCompletionRewards = ({ studentId, progress }: Props) => {
     setShareMilestone(milestone);
   };
 
-  useEffect(() => {
+  const sharePreview = async () => {
     if (shareMilestone === null || !captureRef.current || !studentId) return;
-    let active = true;
-    const share = async () => {
-      try {
-        const dataUrl = await toPng(captureRef.current!, {
-          cacheBust: true,
-          pixelRatio: 2,
-        });
-        await Util.sendContentToAndroidOrWebShare(
-          `${shareMilestone} lessons complete!`,
-          'My Chimple Badge',
-          undefined,
-          [dataUrlToFile(dataUrl, shareMilestone)],
-          { rethrowOnError: true },
-        );
-        void logBadgeEvent(
-          EVENTS.REWARD_BADGE_SHARE_SUCCESS,
-          studentId,
-          progress,
-          { shared_milestone_number: shareMilestone },
-        );
-      } catch (error) {
-        void logBadgeEvent(
-          EVENTS.REWARD_BADGE_SHARE_FAILED,
-          studentId,
-          progress,
-          {
-            shared_milestone_number: shareMilestone,
-            error_message:
-              error instanceof Error ? error.message : String(error),
-          },
-        );
-      } finally {
-        if (active) setShareMilestone(null);
-      }
-    };
-    const shareTimer = window.setTimeout(
-      () => void share(),
-      SHARE_PREVIEW_DURATION_MS,
-    );
-    return () => {
-      active = false;
-      window.clearTimeout(shareTimer);
-    };
-  }, [progress, shareMilestone, studentId]);
+    const milestone = shareMilestone;
+    try {
+      const dataUrl = await toPng(captureRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      await Util.sendContentToAndroidOrWebShare(
+        `I have completed ${milestone} lessons!`,
+        'My Chimple Badge',
+        undefined,
+        [dataUrlToFile(dataUrl, milestone)],
+        { rethrowOnError: true },
+      );
+      void logBadgeEvent(
+        EVENTS.REWARD_BADGE_SHARE_SUCCESS,
+        studentId,
+        progress,
+        { shared_milestone_number: milestone },
+      );
+    } catch (error) {
+      void logBadgeEvent(
+        EVENTS.REWARD_BADGE_SHARE_FAILED,
+        studentId,
+        progress,
+        {
+          shared_milestone_number: milestone,
+          error_message: error instanceof Error ? error.message : String(error),
+        },
+      );
+    } finally {
+      setShareMilestone(null);
+    }
+  };
 
   return (
     <section
       className="lesson-completion-rewards-root"
       aria-label="Lesson completion badges"
     >
+      <div className="lesson-completion-rewards-subheading">
+        {t('lessons_completed_title', {
+          defaultValue: 'Lessons Completed',
+        })}
+      </div>
       <div className="lesson-completion-rewards-grid">
         {displayedBadges.map((milestone) => {
           const isLocked = milestone === upcomingBadge;
@@ -157,28 +149,36 @@ const LessonCompletionRewards = ({ studentId, progress }: Props) => {
       {shareMilestone !== null && (
         <div
           className="lesson-completion-rewards-share-artwork"
-          aria-hidden="true"
+          role="presentation"
         >
-          <SharedBadgeArtwork
-            ref={captureRef}
-            milestone={shareMilestone}
-            heading={String(
-              t('Congratulations!', { defaultValue: 'Congratulations!' }),
-            )}
-            completedText={String(
-              t('{{count}} lessons complete!', {
-                count: shareMilestone,
-                defaultValue: `${shareMilestone} lessons complete!`,
-              }),
-            )}
-            badge={
-              <LessonCompletionBadge
-                number={shareMilestone}
-                isShared
-                generatedBadge={generatedBadges.get(shareMilestone)}
-              />
-            }
-          />
+          <button
+            type="button"
+            className="lesson-completion-rewards-share-preview-trigger"
+            id="lesson-completion-rewards-share-preview-trigger"
+            aria-label={`Share ${shareMilestone} lesson badge preview`}
+            onClick={() => void sharePreview()}
+          >
+            <SharedBadgeArtwork
+              ref={captureRef}
+              milestone={shareMilestone}
+              heading={String(
+                t('Congratulations!', { defaultValue: 'Congratulations!' }),
+              )}
+              completedText={String(
+                t('I have completed {{count}} lessons!', {
+                  count: shareMilestone,
+                  defaultValue: `I have completed ${shareMilestone} lessons!`,
+                }),
+              )}
+              badge={
+                <LessonCompletionBadge
+                  number={shareMilestone}
+                  isShared
+                  generatedBadge={generatedBadges.get(shareMilestone)}
+                />
+              }
+            />
+          </button>
         </div>
       )}
     </section>
