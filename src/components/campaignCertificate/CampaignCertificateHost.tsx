@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
-import { PAGES } from '../../common/constants';
 import CampaignCertificateModal from './CampaignCertificateModal';
 import type { CampaignCertificateData } from './campaignCertificate.types';
 
 export const CAMPAIGN_CERTIFICATE_EARNED_EVENT =
   'chimple:campaign-certificate-earned';
-export const CAMPAIGN_CERTIFICATE_HOME_READY_EVENT =
-  'chimple:campaign-certificate-home-ready';
 const PENDING_CERTIFICATE_STORAGE_KEY = 'campaignCertificatePending';
-
-const isHomeRoute = (pathname: string) => pathname === PAGES.HOME;
 
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,
@@ -62,53 +57,23 @@ const CampaignCertificateHost = () => {
       }
     };
 
-    const displayPendingCertificateOnHome = () => {
-      // Lesson scorecards keep the event queued until Continue Playing returns
-      // the learner to Home, where the global modal is visible to the child.
-      if (!isHomeRoute(window.location.pathname)) return;
-      displayPendingCertificate();
-    };
-
     const showCertificate = (event: Event) => {
       const detail = (event as CustomEvent<CampaignCertificateData>).detail;
       if (!detail) return;
       const isPreview = new URLSearchParams(window.location.search).has(
         'campaignCertificatePreview',
       );
-      if (!isHomeRoute(window.location.pathname) && !isPreview) {
-        localStorage.setItem(
-          PENDING_CERTIFICATE_STORAGE_KEY,
-          JSON.stringify({
-            ...detail,
-            isNewlyEarned: detail.isNewlyEarned ?? true,
-          }),
-        );
-        return;
-      }
       if (!isPreview) {
         localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
       }
       displayCertificate(detail);
     };
     window.addEventListener(CAMPAIGN_CERTIFICATE_EARNED_EVENT, showCertificate);
-    window.addEventListener(
-      'ionRouteDidChange',
-      displayPendingCertificateOnHome,
-    );
-    document.addEventListener(
-      'ionRouteDidChange',
-      displayPendingCertificateOnHome,
-    );
-    document.addEventListener(
-      'ionViewDidEnter',
-      displayPendingCertificateOnHome,
-    );
-    window.addEventListener(
-      CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
-      displayPendingCertificate,
-    );
-    window.addEventListener('popstate', displayPendingCertificateOnHome);
-    displayPendingCertificateOnHome();
+    window.addEventListener('ionRouteDidChange', displayPendingCertificate);
+    document.addEventListener('ionRouteDidChange', displayPendingCertificate);
+    document.addEventListener('ionViewDidEnter', displayPendingCertificate);
+    window.addEventListener('popstate', displayPendingCertificate);
+    displayPendingCertificate();
     return () => {
       window.removeEventListener(
         CAMPAIGN_CERTIFICATE_EARNED_EVENT,
@@ -116,21 +81,17 @@ const CampaignCertificateHost = () => {
       );
       window.removeEventListener(
         'ionRouteDidChange',
-        displayPendingCertificateOnHome,
+        displayPendingCertificate,
       );
       document.removeEventListener(
         'ionRouteDidChange',
-        displayPendingCertificateOnHome,
+        displayPendingCertificate,
       );
       document.removeEventListener(
         'ionViewDidEnter',
-        displayPendingCertificateOnHome,
-      );
-      window.removeEventListener(
-        CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
         displayPendingCertificate,
       );
-      window.removeEventListener('popstate', displayPendingCertificateOnHome);
+      window.removeEventListener('popstate', displayPendingCertificate);
     };
   }, []);
 

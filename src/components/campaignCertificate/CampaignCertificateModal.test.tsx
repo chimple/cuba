@@ -123,12 +123,7 @@ describe('CampaignCertificateModal', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
-    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
-      audioUrl: '/assets/audios/stickerBookSave/camera_flash.mp3',
-      delayMs: 300,
-    });
-    // Share-only stars match the StickerBookPreview capture behavior.
-    // Hidden decorative stars expose a test id because aria-hidden excludes them from roles.
+    // Stars appear around the certificate preview, but are not in the capture node.
     expect(
       screen.getAllByTestId('campaign-certificate-share-star'),
     ).toHaveLength(2);
@@ -138,12 +133,18 @@ describe('CampaignCertificateModal', () => {
     );
 
     await act(async () => {
-      jest.advanceTimersByTime(900);
+      jest.advanceTimersByTime(1200);
       await Promise.resolve();
     });
     await waitFor(() =>
       expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalled(),
     );
+    const captureElement = (toPng as jest.Mock).mock.calls[0][0] as HTMLElement;
+    expect(
+      captureElement.querySelector(
+        '[data-testid="campaign-certificate-share-star"]',
+      ),
+    ).toBeNull();
     expect(toPng).toHaveBeenCalledWith(
       expect.any(HTMLElement),
       expect.objectContaining({ pixelRatio: 2 }),

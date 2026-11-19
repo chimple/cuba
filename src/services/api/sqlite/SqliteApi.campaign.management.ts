@@ -4,6 +4,7 @@ import {
   TabType,
 } from '../../../common/constants';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
+import logger from '../../../utility/logger';
 import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import {
   CampaignActiveChange,
@@ -40,44 +41,26 @@ import {
   LaunchCampaignPayload,
   UpdateCampaignMessagingRowPayload,
 } from '../ServiceApi';
-import logger from '../../../utility/logger';
-import { store } from '../../../redux/store';
-import { setCampaignRewardsState } from '../../../redux/slices/campaignRewards/campaignRewardsSlice';
-import { showCampaignCertificate } from '../../../components/campaignCertificate';
-import type { CampaignCertificateRank } from '../../../components/campaignCertificate';
 import {
   getEligibleCampaignIds,
   hasEligibleCampaignIds,
   saveEligibleCampaignIds,
 } from './campaignRewardEligibility';
-import { getCampaignLessonMetrics } from './campaignRewardMetrics';
+import {
+  evaluateCampaignReward,
+  type LocalCampaignRow,
+} from './campaignRewardEvaluation';
+import {
+  getCampaignCertificateIndicator,
+  markCampaignCertificatesSeen,
+} from './campaignRewardCertificates';
+import {
+  logCampaignFetch,
+  logCampaignHydration,
+  logCampaignReward,
+} from './campaignRewardLogging';
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
-type LocalCampaignRow = {
-  id: string;
-  name: string;
-  rules_json: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  objective?: string | null;
-  target_type?: string | null;
-  target_value?: number | null;
-  updated_at: string;
-  is_deleted: number;
-};
-
-type CampaignRewardRule = { rank: 1 | 2 | 3; min: number; reward?: string };
-
-const parseCampaignRules = (value: string): CampaignRewardRule[] => {
-  try {
-    const parsed = JSON.parse(value) as { rules?: CampaignRewardRule[] };
-    return Array.isArray(parsed?.rules) ? parsed.rules : [];
-  } catch {
-    return [];
-  }
-};
-
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
 
@@ -365,8 +348,10 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
     const lastFetch = localStorage.getItem(storageKey);
     const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
+    logCampaignReward('sync started', { studentId, lastFetch });
     if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
       const changes = await this.getActiveCampaigns(studentId, lastFetch);
+      logCampaignFetch(studentId, changes ?? []);
       const eligibleCampaignIds = getEligibleCampaignIds(studentId);
       for (const change of changes ?? []) {
         if (change.change_type === 'delete') {
@@ -394,6 +379,19 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       }
       saveEligibleCampaignIds(studentId, eligibleCampaignIds);
       localStorage.setItem(storageKey, new Date().toISOString());
+      logCampaignReward('campaign cache updated', {
+        studentId,
+        receivedCampaignCount: changes?.length ?? 0,
+        eligibleCampaignCount: eligibleCampaignIds.size,
+      });
+    } else {
+      logCampaignReward('RPC fetch skipped; campaign cache is fresh', {
+        studentId,
+        lastFetch,
+        nextFetchAt: new Date(
+          lastFetchMs + CAMPAIGN_SYNC_INTERVAL_MS,
+        ).toISOString(),
+      });
     }
     await this.hydrateCampaignRewards(studentId);
   }
@@ -404,9 +402,14 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       'SELECT * FROM local_campaigns WHERE is_deleted = 0',
     );
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+    logCampaignHydration(
+      studentId,
+      result?.values?.length ?? 0,
+      eligibleCampaignIds.size,
+    );
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
       if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, false);
+      await this.evaluateCampaignReward(campaign, studentId, true);
     }
   }
   async evaluateCampaignRewardsAfterLesson(
@@ -446,22 +449,17 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     campaignId?: string;
   }> {
     await this.ensureInitialized();
-    const result = await this.executeQuery(
-      `SELECT campaign_id FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0 AND has_unseen_certificate = 1
-       ORDER BY evaluated_at DESC LIMIT 1`,
-      [studentId],
+    return getCampaignCertificateIndicator(
+      (statement, values) => this.executeQuery(statement, values),
+      studentId,
     );
-    const campaignId = result?.values?.[0]?.campaign_id as string | undefined;
-    return { hasUnseenCertificate: Boolean(campaignId), campaignId };
   }
 
   async markCampaignCertificatesSeen(studentId: string): Promise<void> {
     await this.ensureInitialized();
-    await this.executeQuery(
-      `UPDATE user_campaign_rewards SET has_unseen_certificate = 0, updated_at = ?
-       WHERE student_id = ? AND is_deleted = 0 AND has_unseen_certificate = 1`,
-      [new Date().toISOString(), studentId],
+    await markCampaignCertificatesSeen(
+      (statement, values) => this.executeQuery(statement, values),
+      studentId,
     );
   }
 
@@ -470,114 +468,20 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     studentId: string,
     showCertificate: boolean,
   ): Promise<void> {
-    const now = new Date();
-    const { totalLessons, completedLessons } = await getCampaignLessonMetrics(
-      (statement, values) => this.executeQuery(statement, values),
-      campaign,
-      studentId,
-    );
-    const completionPercent = totalLessons
-      ? (completedLessons / totalLessons) * 100
-      : 0;
-    const completion =
-      campaign.target_type === 'number_of_lessons'
-        ? completedLessons
-        : completionPercent;
-    const rules = parseCampaignRules(campaign.rules_json).sort(
-      (a, b) => b.min - a.min,
-    );
-    const winningRule = rules.find((rule) => completion >= Number(rule.min));
-    const status = winningRule
-      ? 'won'
-      : now > new Date(campaign.end_date)
-        ? 'missed'
-        : 'in_progress';
-    const rank = winningRule?.rank ?? null;
-    const evaluatedAt = now.toISOString();
-    const existingResult = await this.executeQuery(
-      `SELECT status, rank_achieved, has_unseen_certificate FROM user_campaign_rewards
-       WHERE campaign_id = ? AND student_id = ? LIMIT 1`,
-      [campaign.id, studentId],
-    );
-    const existing = existingResult?.values?.[0] as
-      | {
-          status?: string;
-          rank_achieved?: number | null;
-          has_unseen_certificate?: boolean | number;
-        }
-      | undefined;
-    const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${rank}`;
-    const shouldEmitCertificate =
-      showCertificate &&
-      status === 'won' &&
-      !localStorage.getItem(certificateShownKey);
-
-    await this.executeQuery(
-      `INSERT OR REPLACE INTO user_campaign_rewards
-        (campaign_id, student_id, rank_achieved, status, has_unseen_certificate, evaluated_at, updated_at, is_deleted)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-      [
-        campaign.id,
-        studentId,
-        rank,
-        status,
-        shouldEmitCertificate || Boolean(existing?.has_unseen_certificate)
-          ? 1
-          : 0,
-        evaluatedAt,
-        evaluatedAt,
-      ],
-    );
-
-    if (existing?.status !== status || existing?.rank_achieved !== rank) {
-      try {
-        await this._serverApi.upsertCampaignStudentReward({
-          campaignId: campaign.id,
-          studentId,
-          rankAchieved: rank,
-          status,
-          evaluatedAt,
-        });
-      } catch (error) {
-        logger.error(
-          'Campaign reward sync deferred; keeping local result',
-          error,
-        );
-      }
-    }
-
-    if (shouldEmitCertificate) {
-      let languageCode = localStorage.getItem('language') ?? 'en';
-      try {
-        const student = await this.getUserByDocId(studentId);
-        if (student?.language_id) {
-          const language = await this.getLanguageWithId(student.language_id);
-          languageCode = language?.code ?? languageCode;
-        }
-      } catch (error) {
-        logger.warn(
-          'Campaign certificate language lookup failed; using stored language',
-          error,
-        );
-      }
-      store.dispatch(
-        setCampaignRewardsState({
-          studentId,
-          hasUnseenCertificate: true,
-        }),
-      );
-      localStorage.setItem(certificateShownKey, evaluatedAt);
-      showCampaignCertificate({
-        campaignId: campaign.id,
-        campaignName: campaign.name,
+    await evaluateCampaignReward(
+      {
+        executeQuery: (statement, values) =>
+          this.executeQuery(statement, values),
+        upsertReward: (reward) =>
+          this._serverApi.upsertCampaignStudentReward(reward),
+        getStudent: (id) => this.getUserByDocId(id),
+        getLanguage: (id) => this.getLanguageWithId(id),
         studentName: this.currentStudent?.name ?? '',
         schoolId: this.currentSchool?.id,
-        rank: rank as CampaignCertificateRank,
-        awardedAt: evaluatedAt,
-        languageCode,
-        isNewlyEarned: true,
-        studentId,
-      });
-    }
+      },
+      campaign,
+      studentId,
+      showCertificate,
+    );
   }
 }
