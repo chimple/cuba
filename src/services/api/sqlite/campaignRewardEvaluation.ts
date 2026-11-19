@@ -68,6 +68,13 @@ export const parseCampaignRules = (value: string): CampaignRewardRule[] => {
   }
 };
 
+const getLocalDateKey = (value = new Date()): string => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const evaluateCampaignReward = async (
   dependencies: Dependencies,
   campaign: LocalCampaignRow,
@@ -75,33 +82,45 @@ export const evaluateCampaignReward = async (
   showCertificate: boolean,
 ): Promise<void> => {
   const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-  const certificateAvailable = new Date(campaign.end_date) < startOfToday;
+  const today = getLocalDateKey(now);
+  const campaignEndDate = campaign.end_date.slice(0, 10);
+  const campaignEnded = today > campaignEndDate;
+  const isHomepageCampaign =
+    campaign.objective === 'homepage_learning_pathway_campaign';
   const { totalLessons, completedLessons } = await getCampaignLessonMetrics(
     dependencies.executeQuery,
     campaign,
     studentId,
   );
-  const completionPercent = totalLessons
-    ? (completedLessons / totalLessons) * 100
-    : 0;
+  const pathwayTarget = Number(campaign.target_value);
+  const totalPathways =
+    Number.isFinite(pathwayTarget) && pathwayTarget > 0 ? pathwayTarget : 0;
+  const persistedTargetLessons = isHomepageCampaign
+    ? totalPathways * 5
+    : totalLessons;
+  const completionPercent = isHomepageCampaign
+    ? totalPathways
+      ? Math.min((Math.floor(completedLessons / 5) / totalPathways) * 100, 100)
+      : 0
+    : persistedTargetLessons
+      ? (completedLessons / persistedTargetLessons) * 100
+      : 0;
   const completion =
-    campaign.target_type === 'number_of_lessons'
+    isHomepageCampaign || campaign.target_type === 'number_of_lessons'
       ? completedLessons
       : completionPercent;
   const rules = parseCampaignRules(campaign.rules_json).sort(
     (a, b) => b.min - a.min,
   );
   const winningRule = rules.find((rule) => completion >= Number(rule.min));
-  const status = winningRule
-    ? 'won'
-    : now > new Date(campaign.end_date)
-      ? 'missed'
-      : 'in_progress';
+  const participationEligible =
+    !winningRule && campaignEnded && completedLessons >= 1;
+  const status = winningRule ? 'won' : campaignEnded ? 'missed' : 'in_progress';
   const rank = winningRule?.rank ?? null;
+  const certificateAvailable =
+    Boolean(winningRule) || (campaignEnded && participationEligible);
   const certificateRank: CampaignCertificateRank | null =
-    rank ?? (completedLessons > 0 ? 'progress' : null);
+    rank ?? (participationEligible ? 'participation' : null);
   const evaluatedAt = now.toISOString();
   const existingResult = await dependencies.executeQuery(
     `SELECT status, rank_achieved, has_unseen_certificate FROM user_campaign_rewards
@@ -118,7 +137,7 @@ export const evaluateCampaignReward = async (
   const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${certificateRank}`;
   const shouldEmitCertificate =
     showCertificate &&
-    certificateRank !== null &&
+    (status === 'won' || participationEligible) &&
     certificateAvailable &&
     !localStorage.getItem(certificateShownKey);
   logCampaignEvaluation(campaign, studentId, {
@@ -141,11 +160,17 @@ export const evaluateCampaignReward = async (
 
   await dependencies.executeQuery(
     `INSERT OR REPLACE INTO user_campaign_rewards
-      (campaign_id, student_id, rank_achieved, status, has_unseen_certificate, evaluated_at, updated_at, is_deleted)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+      (campaign_id, student_id, lessons_completed_count, lessons_target_count,
+       completion_percentage, certificate_available, rank_achieved, status,
+       has_unseen_certificate, evaluated_at, updated_at, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     [
       campaign.id,
       studentId,
+      completedLessons,
+      persistedTargetLessons,
+      Math.round(completionPercent),
+      certificateAvailable ? 1 : 0,
       rank,
       status,
       shouldEmitCertificate || Boolean(existing?.has_unseen_certificate)
@@ -198,8 +223,8 @@ export const evaluateCampaignReward = async (
     campaignName: campaign.name,
     studentName,
     schoolId: dependencies.schoolId,
-    rank: certificateRank,
-    awardedAt: evaluatedAt,
+    rank: certificateRank!,
+    awardedAt: campaign.end_date,
     languageCode,
     isNewlyEarned: true,
     studentId,
