@@ -13,22 +13,30 @@ import './DeleteClassDialog.css';
 import { Util } from '../../../utility/util';
 import logger from '../../../utility/logger';
 
+const CLASS_HAS_CONNECTED_USERS_MESSAGE =
+  'Cannot delete this class because students or teachers are still connected to it. Please remove or migrate them to a different class before deleting the class.';
+
 const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
   const history = useHistory();
 
   const handleDeleteClass = async () => {
     try {
-      const students = await api.getStudentsForClass(classId);
-      if (students.length > 0) {
+      const [students, teachers] = await Promise.all([
+        api.getStudentsForClass(classId),
+        api.getTeachersForClass(classId),
+      ]);
+      if (students.length > 0 || (teachers?.length ?? 0) > 0) {
+        setDeleteErrorMessage(t(CLASS_HAS_CONNECTED_USERS_MESSAGE));
         setShowAlert(true);
       } else {
         setShowConfirm(true);
       }
     } catch (error) {
-      logger.error('Failed to fetch students for class', error);
+      logger.error('Failed to fetch class users for deletion', error);
     }
   };
 
@@ -55,6 +63,14 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
       window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
       history.replace(PAGES.MANAGE_CLASS);
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('CLASS_HAS_ACTIVE_STUDENTS_OR_TEACHERS')
+      ) {
+        setDeleteErrorMessage(t(CLASS_HAS_CONNECTED_USERS_MESSAGE));
+        setShowAlert(true);
+        return;
+      }
       logger.error('Failed to delete class', error);
     }
   };
@@ -71,7 +87,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
           <div className="modal-box">
             <div className="modal-header">{t('Cannot Delete Class')}</div>
             <div className="modal-message delete-class-modal-message">
-              {t('Delete all students to delete class')}
+              {deleteErrorMessage || t('Delete all students to delete class')}
             </div>
             <div className="modal-buttons">
               <button
