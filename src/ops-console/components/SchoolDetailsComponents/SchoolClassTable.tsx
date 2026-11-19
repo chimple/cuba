@@ -24,6 +24,7 @@ type SchoolClassTableProps = {
   loadingIds: Record<string, boolean>;
   onAddStudent: (classRow: ClassRow) => void;
   onEditClass: (classRow: ClassRow) => void;
+  onDeleteClass: (classRow: ClassRow) => void;
   onSelectClass: (classId: string) => void;
   shouldShowClassCode: boolean;
 };
@@ -38,6 +39,7 @@ export default function SchoolClassTable({
   loadingIds,
   onAddStudent,
   onEditClass,
+  onDeleteClass,
   onSelectClass,
   shouldShowClassCode,
 }: SchoolClassTableProps) {
@@ -127,6 +129,7 @@ export default function SchoolClassTable({
               isExternalUser={isExternalUser}
               onAddStudent={onAddStudent}
               onEditClass={onEditClass}
+              onDeleteClass={onDeleteClass}
             />
           ),
         },
@@ -146,6 +149,7 @@ export default function SchoolClassTable({
     loadingIds,
     onAddStudent,
     onEditClass,
+    onDeleteClass,
     shouldShowClassCode,
   ]);
 
