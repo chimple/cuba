@@ -14,6 +14,7 @@ const rankAssets = {
   2: `${ASSET_ROOT}/Campaign rank2 t2.svg`,
   3: `${ASSET_ROOT}/Campaign rank3 t.svg`,
   progress: `${ASSET_ROOT}/Campaign participation t.svg`,
+  participation: `${ASSET_ROOT}/Campaign participation t.svg`,
 } as const;
 
 const rankMessages = {
@@ -21,6 +22,7 @@ const rankMessages = {
   2: 'Congratulations on winning second place!',
   3: 'Congratulations on winning third place!',
   progress: 'Congratulations on participating!',
+  participation: 'Congratulations on participating!',
 } as const;
 
 const formatAwardDate = (value: string | Date) => {
@@ -76,14 +78,17 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
         'Keep learning and exploring. We are proud of you!',
         'Keep learning and exploring. We are proud of you!',
       );
+    const isParticipationCertificate = ['progress', 'participation'].includes(
+      String(certificate.rank),
+    );
     const title = (
       labels.title ??
       translated(
         certificateT,
-        certificate.rank === 'progress'
+        isParticipationCertificate
           ? 'Certificate of Participation'
           : 'Certificate of Recognition',
-        certificate.rank === 'progress'
+        isParticipationCertificate
           ? 'Certificate of Participation'
           : 'Certificate of Recognition',
       )
