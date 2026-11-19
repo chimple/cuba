@@ -227,11 +227,16 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
         { routed_to_tab: REWARDS_TABS.LESSON_COMPLETION },
       );
     }
+    // Avatar reward data is loaded asynchronously and may be unavailable
+    // immediately after login/profile switching. Campaign rewards should
+    // still be reachable in that state.
+    const avatarReward = avatarObj.unlockedRewards?.[0];
     const rewardsTab = hasUnseenCertificate
       ? REWARDS_TABS.COMPETITIONS
       : hasUnseenBadge
         ? REWARDS_TABS.LESSON_COMPLETION
-        : avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase();
+        : (avatarReward?.leaderboardRewardList?.toLowerCase() ??
+          REWARDS_TABS.LESSON_COMPLETION);
     history.push(
       PAGES.LEADERBOARD +
         `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${rewardsTab}`,

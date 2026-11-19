@@ -31,7 +31,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
   ): Promise<string | null> {
     return await this._serverApi.addProfileImages(id, file, profileType);
   }
-
   async uploadData(payload: any): Promise<boolean | null> {
     return await this._serverApi.uploadData(payload);
   }
@@ -44,13 +43,12 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     tableNames: TABLES[],
     isFirstSync?: boolean,
     isRefreshSync = false,
-  ): Promise<void> {
-    if (!this._db) return;
+  ): Promise<{ resultRowsChanged: boolean }> {
+    if (!this._db) return { resultRowsChanged: false };
 
     const isInitialFetch = isFirstSync;
     logger.info('?? ~ pullChanges ~ isInitialFetch:', isInitialFetch);
 
-    // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
     const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
@@ -69,7 +67,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       }
       this._tablesNeedingFullSync.clear();
     }
-    // ensure USER table syncs first (single-row, heavy JSON)
     const orderedTableNames = tableNames.includes(TABLES.User)
       ? [TABLES.User, ...tableNames.filter((t) => t !== TABLES.User)]
       : [...tableNames];
@@ -107,7 +104,7 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             continue;
           }
           logger.warn('? All retries failed. Truncating local tables...');
-          if (!this._db) return;
+          if (!this._db) return { resultRowsChanged: false };
           const query = `PRAGMA foreign_keys=OFF;`;
           const result = await this._db.query(query);
           logger.info(result);
@@ -131,7 +128,7 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             continue;
           }
           logger.warn('? User canceled final retry.');
-          return;
+          return { resultRowsChanged: false };
         }
       }
     } else {
@@ -479,7 +476,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       throw error;
     }
 
-    // Update debug info (avoid expensive full JSON serialization on hot path).
     let totalpulledRows = 0;
     for (const value of data.values()) {
       if (Array.isArray(value) && value.length > 0) {
@@ -492,6 +488,8 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     if (tablesWritten.has(TABLES.RiveReward)) {
       this._cachedRewards = undefined;
     }
+
+    const resultRowsChanged = (data.get(TABLES.Result)?.length ?? 0) > 0;
 
     if (!isInitialFetch && !isRefreshSync) {
       const new_school = data.get(TABLES.School);
@@ -511,12 +509,14 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             localSchool = JSON.parse(localSchoolRaw);
           } catch {
             localStorage.removeItem(SCHOOL);
-            return;
+            return { resultRowsChanged };
           }
 
           const localSchoolId = localSchool?.id;
 
-          if (!localSchoolId || !Array.isArray(school_user_data)) return;
+          if (!localSchoolId || !Array.isArray(school_user_data)) {
+            return { resultRowsChanged };
+          }
 
           const deletedSchoolUser = school_user_data.find(
             (entry: TableTypes<'school_user'>) =>
@@ -528,8 +528,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             localStorage.removeItem(CLASS);
           }
         }
-        // Selection updates need one follow-up refresh, but refresh syncs must
-        // not request themselves again or syncDbNow can loop indefinitely.
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -549,6 +547,8 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
         await this.reconcileCurrentClassSelection();
       }
     }
+
+    return { resultRowsChanged };
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {

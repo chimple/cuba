@@ -28,13 +28,10 @@ const CompetitionRewardInfoModal: FC<{
     isHomepageCampaign
       ? {
           key: 'homepage',
-          label: t('competition_homepage_lessons_completed'),
-          completed:
-            reward.homepage_lessons_completed_count ??
-            reward.lessons_completed_count,
-          target:
-            reward.homepage_lessons_target_count ?? reward.lessons_target_count,
-          icon: '/assets/campaignCompetition/competition-homepage-progress.svg',
+          label: t('competition_homepage_pathways_completed'),
+          completed: Math.floor(completed / 5),
+          target: reward.target_value,
+          icon: '/assets/campaignCompetition/competition-homework-progress.svg',
         }
       : {
           key: 'homework',
@@ -44,7 +41,7 @@ const CompetitionRewardInfoModal: FC<{
             reward.lessons_completed_count,
           target:
             reward.homework_lessons_target_count ?? reward.lessons_target_count,
-          icon: '/assets/campaignCompetition/competition-homework-progress.svg',
+          icon: '/assets/campaignCompetition/competition-homepage-progress.svg',
         },
   ].filter((row) => toNumber(row.target) > 0);
 
@@ -98,7 +95,14 @@ const CompetitionRewardInfoModal: FC<{
                   <img src={row.icon} alt="" />
                   <div>
                     <p>{row.label}</p>
-                    <div className="competition-modal-progress-track">
+                    <div
+                      className="competition-modal-progress-track"
+                      role="progressbar"
+                      aria-label={row.label}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={progress}
+                    >
                       <span style={{ width: `${progress}%` }} />
                       <strong>
                         {row.completed} / {row.target}
@@ -111,7 +115,9 @@ const CompetitionRewardInfoModal: FC<{
           </div>
         ) : (
           <p className="competition-modal-progress">
-            {completed} / {target} {t('competition_lessons_completed')}
+            {isHomepageCampaign
+              ? t('competition_pathway_target_unavailable')
+              : `${completed} / ${target} ${t('competition_lessons_completed')}`}
           </p>
         )}
       </div>

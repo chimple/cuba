@@ -1,4 +1,6 @@
 {
+  "competition_homepage_pathways_completed": "Homepage pathways completed",
+  "competition_pathway_target_unavailable": "Pathway target unavailable",
   "competition_ongoing_title": "Ongoing Competitions",
   "competition_completed_title": "Completed Competitions",
   "competition_ongoing": "Play & Win! Competition is ongoing.",
@@ -440,6 +442,7 @@
   "Congratulations on getting first rank!": "Congratulations on getting first rank!",
   "Congratulations on getting second rank!": "Congratulations on getting second rank!",
   "Congratulations on getting third rank!": "Congratulations on getting third rank!",
+  "Congratulations on participating!": "Congratulations on participating!",
   "Congratulations on making great progress!": "Congratulations on making great progress!",
   "Congratulations! You are in the top 20% teachers. Keep it up!": "Congratulations! You are in the top 20% teachers. Keep it up!",
   "Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.": "Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.",

@@ -14,6 +14,7 @@ const rankAssets = {
   2: `${ASSET_ROOT}/Campaign rank2 t2.svg`,
   3: `${ASSET_ROOT}/Campaign rank3 t.svg`,
   progress: `${ASSET_ROOT}/Campaign progress t.svg`,
+  participation: `${ASSET_ROOT}/Campaign participation t.svg`,
 } as const;
 
 const rankMessages = {
@@ -21,6 +22,7 @@ const rankMessages = {
   2: 'Congratulations on getting second rank!',
   3: 'Congratulations on getting third rank!',
   progress: 'Congratulations on making great progress!',
+  participation: 'Congratulations on participating!',
 } as const;
 
 const formatAwardDate = (value: string | Date) => {

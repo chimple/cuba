@@ -62,7 +62,6 @@ const LeaderboardRewards: FC = () => {
   useEffect(() => {
     setActiveTab(getRewardsTabFromSearch(location.search));
   }, [location.search]);
-
   useEffect(() => {
     if (!student?.id) return;
     const api = ServiceConfig.getI().apiHandler;
@@ -82,7 +81,6 @@ const LeaderboardRewards: FC = () => {
         logger.error('Failed to load unseen campaign certificate:', error),
       );
   }, [dispatch, student?.id]);
-
   useEffect(() => {
     if (!student?.id) {
       setIsProgressLoading(false);
@@ -125,7 +123,6 @@ const LeaderboardRewards: FC = () => {
       mounted = false;
     };
   }, [student?.id]);
-
   useEffect(() => {
     if (
       !student?.id ||
@@ -167,7 +164,6 @@ const LeaderboardRewards: FC = () => {
     progress,
     student?.id,
   ]);
-
   useEffect(() => {
     if (!student?.id || activeTab !== REWARDS_TABS.COMPETITIONS) return;
 
@@ -175,14 +171,6 @@ const LeaderboardRewards: FC = () => {
     setCompetitionRewards([]);
     const loadRewards = async () => {
       const api = SqliteApi.getI();
-      try {
-        await api.syncCampaignRewards(student.id);
-      } catch (error) {
-        logger.error(
-          'Failed to sync competition rewards; using local cache:',
-          error,
-        );
-      }
       try {
         const rewards = await api.getCachedCampaignRewards(student.id);
         if (!mounted) return;
@@ -193,7 +181,7 @@ const LeaderboardRewards: FC = () => {
         });
       } catch (error) {
         if (mounted) setCompetitionRewards([]);
-        logger.error('Failed to load competition rewards:', error);
+        logger.error('Failed to load cached campaign rewards:', error);
       }
     };
     void loadRewards();
@@ -202,7 +190,6 @@ const LeaderboardRewards: FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, student?.id]);
-
   useEffect(() => {
     if (
       !student?.id ||

@@ -1,4 +1,6 @@
 {
+    "competition_homepage_pathways_completed": "मुख्यपृष्ठावर पूर्ण केलेले शिकण्याचे मार्ग",
+    "competition_pathway_target_unavailable": "शिकण्याच्या मार्गांचे लक्ष्य उपलब्ध नाही",
     "competition_ongoing_title": "सुरू असलेल्या स्पर्धा",
     "competition_completed_title": "पूर्ण झालेल्या स्पर्धा",
     "competition_ongoing": "खेळा आणि जिंका! स्पर्धा सुरू आहे.",
@@ -13,6 +15,7 @@
     "Congratulations on getting first rank!": "पहिला क्रमांक मिळवल्याबद्दल अभिनंदन!",
     "Congratulations on getting second rank!": "दुसरा क्रमांक मिळवल्याबद्दल अभिनंदन!",
     "Congratulations on getting third rank!": "तिसरा क्रमांक मिळवल्याबद्दल अभिनंदन!",
+    "Congratulations on participating!": "सहभागी झाल्याबद्दल अभिनंदन!",
     "Congratulations on completing the campaign!": "मोहीम पूर्ण केल्याबद्दल अभिनंदन!",
     "Certificate of Recognition": "सन्मान प्रमाणपत्र",
     "Keep learning and exploring. We are proud of you!": "शिकत आणि शोधत रहा. आम्हाला तुमचा अभिमान आहे!",

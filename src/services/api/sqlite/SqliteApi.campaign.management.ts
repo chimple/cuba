@@ -3,84 +3,48 @@ import {
   RESULT_STATUS,
   TabType,
 } from '../../../common/constants';
+
+import { SqliteApiCampaignRewards } from './SqliteApi.campaign.rewards';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
-import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
+
 import {
-  CampaignActiveChange,
-  CampaignAssignmentFilters,
-  CampaignAssignmentOptions,
-  CampaignAssignmentOptionsParams,
-  CampaignAssignmentsReportParams,
-  CampaignAssignmentsReportResponse,
-  CampaignAssignmentsResponse,
+  CampaignSetupOptions,
+  CampaignCancellationDetails,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
-  CampaignCancellationDetails,
-  CampaignDashboardMetric,
-  CampaignListingItem,
-  CampaignListingParams,
-  CampaignMessageReportParams,
-  CampaignMessageReportResponse,
-  CampaignMessagingQueryParams,
-  CampaignMessagingResponse,
-  CampaignNotificationPayload,
-  CampaignOption,
-  CampaignRewardsReportParams,
-  CampaignRewardsReportResponse,
   CampaignSavedAudienceGroup,
-  CampaignSchoolPerformanceReportParams,
-  CampaignSchoolPerformanceReportResponse,
-  CampaignSetupOptions,
-  CampaignWhatsappLabelData,
-  CampaignGoalProgress,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
+  CampaignAssignmentFilters,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
   UpdateCampaignMessagingRowPayload,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
+  CampaignDashboardMetric,
+  CampaignMessageReportParams,
+  CampaignMessageReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
+  CampaignWhatsappLabelData,
+  CampaignNotificationPayload,
+  CampaignActiveChange,
+  CampaignGoalProgress,
 } from '../ServiceApi';
 import logger from '../../../utility/logger';
-import { store } from '../../../redux/store';
-import { setCampaignRewardsState } from '../../../redux/slices/campaignRewards/campaignRewardsSlice';
-import { showCampaignCertificate } from '../../../components/campaignCertificate';
-import type { CampaignCertificateRank } from '../../../components/campaignCertificate';
-import {
-  getEligibleCampaignIds,
-  hasEligibleCampaignIds,
-  saveEligibleCampaignIds,
-} from './campaignRewardEligibility';
-import { getCampaignLessonMetrics } from './campaignRewardMetrics';
-const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
-const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
-type LocalCampaignRow = {
-  id: string;
-  name: string;
-  rules_json: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  objective?: string | null;
-  target_type?: string | null;
-  target_value?: number | null;
-  updated_at: string;
-  is_deleted: number;
-};
-
-type CampaignRewardRule = { rank: 1 | 2 | 3; min: number; reward?: string };
-
-const parseCampaignRules = (value: string): CampaignRewardRule[] => {
-  try {
-    const parsed = JSON.parse(value) as { rules?: CampaignRewardRule[] };
-    return Array.isArray(parsed?.rules) ? parsed.rules : [];
-  } catch {
-    return [];
-  }
-};
-
-export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
+export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
   [key: string]: any;
-
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
@@ -90,7 +54,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       lastFetchTimestamp,
     );
   }
-
   async getActiveCampaignGoalProgress(
     studentId = this.currentStudent?.id,
     courseId?: string,
@@ -163,7 +126,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       return null;
     }
   }
-
   async upsertCampaignStudentReward(payload: {
     campaignId: string;
     studentId: string;
@@ -173,11 +135,9 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   }): Promise<void> {
     return await this._serverApi.upsertCampaignStudentReward(payload);
   }
-
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     return await this._serverApi.getProgramFilterOptions();
   }
-
   async getPrograms(params: {
     currentUserId?: string;
     filters?: Record<string, string[]>;
@@ -196,15 +156,12 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   }) {
     return await this._serverApi.getPrograms(params);
   }
-
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }
-
   async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
     return await this._serverApi.getCampaignSetupOptions();
   }
-
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this._serverApi.getCampaignNotificationLabels();
   }
@@ -216,29 +173,24 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   async uploadPushNotificationImage(file: File): Promise<string> {
     return await this._serverApi.uploadPushNotificationImage(file);
   }
-
   async sendCampaignNotification(
     payload: CampaignNotificationPayload,
   ): Promise<string> {
     return await this._serverApi.sendCampaignNotification(payload);
   }
-
   async getCampaignListing(
     params: CampaignListingParams,
   ): Promise<PaginatedResponse<CampaignListingItem>> {
     return await this._serverApi.getCampaignListing(params);
   }
-
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
     return await this._serverApi.cancelCampaign(campaignId, reason);
   }
-
   async getCampaignCancellationDetails(
     campaignId: string,
   ): Promise<CampaignCancellationDetails | null> {
     return await this._serverApi.getCampaignCancellationDetails(campaignId);
   }
-
   async getCampaignAudienceOptions(
     programId: string,
     programModel?: string,
@@ -248,97 +200,81 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       programModel,
     );
   }
-
   async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {
     return await this._serverApi.getCampaignAudienceSummary(params);
   }
-
   async createCampaignAudienceGroup(
     payload: CampaignAudiencePayload,
   ): Promise<CampaignSavedAudienceGroup> {
     return await this._serverApi.createCampaignAudienceGroup(payload);
   }
-
   async createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this._serverApi.createCampaignSetup(payload);
   }
-
   async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
     return await this._serverApi.launchCampaign(payload);
   }
-
   async getCampaignAssignmentOptions(
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions> {
     return await this._serverApi.getCampaignAssignmentOptions(params);
   }
-
   async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse> {
     return await this._serverApi.getCampaignAssignments(campaignId, filters);
   }
-
   async getCampaignSubjectsByCampaignId(
     campaignId: string,
   ): Promise<CampaignOption[]> {
     return await this._serverApi.getCampaignSubjectsByCampaignId(campaignId);
   }
-
   async getCampaignGradesForSchools(
     schoolIds: string[],
   ): Promise<CampaignOption[]> {
     return await this._serverApi.getCampaignGradesForSchools(schoolIds);
   }
-
   async getCampaignMessaging(
     campaignId: string,
     params?: CampaignMessagingQueryParams,
   ): Promise<CampaignMessagingResponse> {
     return await this._serverApi.getCampaignMessaging(campaignId, params);
   }
-
   async updateCampaignMessaging(
     rows: UpdateCampaignMessagingRowPayload[],
   ): Promise<boolean> {
     return await this._serverApi.updateCampaignMessaging(rows);
   }
-
   async getCampaignListingMetrics(
     campaignIds: string[],
   ): Promise<Map<string, CampaignDashboardMetric>> {
     return await this._serverApi.getCampaignListingMetrics(campaignIds);
   }
-
   async deleteCampaignAssignments(campaignId: string): Promise<void> {
     return await this._serverApi.deleteCampaignAssignments(campaignId);
   }
-
   async getCampaignRewardsReport(
     campaignId: string,
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this._serverApi.getCampaignRewardsReport(campaignId, params);
   }
-
   async getCampaignWhatsappLabelData(
     campaignId: string,
   ): Promise<CampaignWhatsappLabelData> {
     return await this._serverApi.getCampaignWhatsappLabelData(campaignId);
   }
-
   async getCampaignMessageReport(
     campaignId: string,
     params?: CampaignMessageReportParams,
   ): Promise<CampaignMessageReportResponse> {
     return await this._serverApi.getCampaignMessageReport(campaignId, params);
   }
-
   async getCampaignAssignmentsReport(
     campaignId: string,
     params?: CampaignAssignmentsReportParams,
@@ -348,7 +284,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       params,
     );
   }
-
   async getCampaignSchoolPerformanceReport(
     campaignId: string,
     params?: CampaignSchoolPerformanceReportParams,
@@ -357,227 +292,5 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       campaignId,
       params,
     );
-  }
-
-  async syncCampaignRewards(studentId = this.currentStudent?.id) {
-    if (!studentId) return;
-    await this.ensureInitialized();
-    const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
-    const lastFetch = localStorage.getItem(storageKey);
-    const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
-    if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
-      const changes = await this.getActiveCampaigns(studentId, lastFetch);
-      const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-      for (const change of changes ?? []) {
-        if (change.change_type === 'delete') {
-          eligibleCampaignIds.delete(change.campaign_id);
-          continue;
-        }
-        eligibleCampaignIds.add(change.campaign_id);
-        await this.executeQuery(
-          `INSERT OR REPLACE INTO local_campaigns
-            (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-          [
-            change.campaign_id,
-            change.campaign_name,
-            JSON.stringify(change.rules_json ?? {}),
-            change.start_date,
-            change.end_date,
-            change.campaign_status ?? 'active',
-            change.objective ?? null,
-            change.target_type ?? null,
-            change.target_value ?? null,
-            change.updated_at ?? change.created_at ?? new Date().toISOString(),
-          ],
-        );
-      }
-      saveEligibleCampaignIds(studentId, eligibleCampaignIds);
-      localStorage.setItem(storageKey, new Date().toISOString());
-    }
-    await this.hydrateCampaignRewards(studentId);
-  }
-  async hydrateCampaignRewards(studentId = this.currentStudent?.id) {
-    if (!studentId) return;
-    await this.ensureInitialized();
-    const result = await this.executeQuery(
-      'SELECT * FROM local_campaigns WHERE is_deleted = 0',
-    );
-    const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
-      if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, false);
-    }
-  }
-  async evaluateCampaignRewardsAfterLesson(
-    studentId = this.currentStudent?.id,
-  ) {
-    if (!studentId) return;
-    if (!hasEligibleCampaignIds(studentId)) {
-      await this.syncCampaignRewards(studentId);
-    }
-    await this.ensureInitialized();
-    const now = new Date().toISOString();
-    const result = await this.executeQuery(
-      `SELECT * FROM local_campaigns
-       WHERE is_deleted = 0 AND status = 'active'
-         AND start_date <= ? AND end_date >= ?`,
-      [now, now],
-    );
-    const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
-      if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, true);
-    }
-  }
-  async getCachedCampaignRewards(studentId = this.currentStudent?.id) {
-    if (!studentId) return [];
-    await this.ensureInitialized();
-    const result = await this.executeQuery(
-      `SELECT * FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0
-       ORDER BY evaluated_at DESC`,
-      [studentId],
-    );
-    return result?.values ?? [];
-  }
-  async getCampaignCertificateIndicator(studentId: string): Promise<{
-    hasUnseenCertificate: boolean;
-    campaignId?: string;
-  }> {
-    await this.ensureInitialized();
-    const result = await this.executeQuery(
-      `SELECT campaign_id FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0 AND has_unseen_certificate = 1
-       ORDER BY evaluated_at DESC LIMIT 1`,
-      [studentId],
-    );
-    const campaignId = result?.values?.[0]?.campaign_id as string | undefined;
-    return { hasUnseenCertificate: Boolean(campaignId), campaignId };
-  }
-
-  async markCampaignCertificatesSeen(studentId: string): Promise<void> {
-    await this.ensureInitialized();
-    await this.executeQuery(
-      `UPDATE user_campaign_rewards SET has_unseen_certificate = 0, updated_at = ?
-       WHERE student_id = ? AND is_deleted = 0 AND has_unseen_certificate = 1`,
-      [new Date().toISOString(), studentId],
-    );
-  }
-
-  private async evaluateCampaignReward(
-    campaign: LocalCampaignRow,
-    studentId: string,
-    showCertificate: boolean,
-  ): Promise<void> {
-    const now = new Date();
-    const { totalLessons, completedLessons } = await getCampaignLessonMetrics(
-      (statement, values) => this.executeQuery(statement, values),
-      campaign,
-      studentId,
-    );
-    const completionPercent = totalLessons
-      ? (completedLessons / totalLessons) * 100
-      : 0;
-    const completion =
-      campaign.target_type === 'number_of_lessons'
-        ? completedLessons
-        : completionPercent;
-    const rules = parseCampaignRules(campaign.rules_json).sort(
-      (a, b) => b.min - a.min,
-    );
-    const winningRule = rules.find((rule) => completion >= Number(rule.min));
-    const status = winningRule
-      ? 'won'
-      : now > new Date(campaign.end_date)
-        ? 'missed'
-        : 'in_progress';
-    const rank = winningRule?.rank ?? null;
-    const evaluatedAt = now.toISOString();
-    const existingResult = await this.executeQuery(
-      `SELECT status, rank_achieved, has_unseen_certificate FROM user_campaign_rewards
-       WHERE campaign_id = ? AND student_id = ? LIMIT 1`,
-      [campaign.id, studentId],
-    );
-    const existing = existingResult?.values?.[0] as
-      | {
-          status?: string;
-          rank_achieved?: number | null;
-          has_unseen_certificate?: boolean | number;
-        }
-      | undefined;
-    const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${rank}`;
-    const shouldEmitCertificate =
-      showCertificate &&
-      status === 'won' &&
-      !localStorage.getItem(certificateShownKey);
-
-    await this.executeQuery(
-      `INSERT OR REPLACE INTO user_campaign_rewards
-        (campaign_id, student_id, rank_achieved, status, has_unseen_certificate, evaluated_at, updated_at, is_deleted)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-      [
-        campaign.id,
-        studentId,
-        rank,
-        status,
-        shouldEmitCertificate || Boolean(existing?.has_unseen_certificate)
-          ? 1
-          : 0,
-        evaluatedAt,
-        evaluatedAt,
-      ],
-    );
-
-    if (existing?.status !== status || existing?.rank_achieved !== rank) {
-      try {
-        await this._serverApi.upsertCampaignStudentReward({
-          campaignId: campaign.id,
-          studentId,
-          rankAchieved: rank,
-          status,
-          evaluatedAt,
-        });
-      } catch (error) {
-        logger.error(
-          'Campaign reward sync deferred; keeping local result',
-          error,
-        );
-      }
-    }
-
-    if (shouldEmitCertificate) {
-      let languageCode = localStorage.getItem('language') ?? 'en';
-      try {
-        const student = await this.getUserByDocId(studentId);
-        if (student?.language_id) {
-          const language = await this.getLanguageWithId(student.language_id);
-          languageCode = language?.code ?? languageCode;
-        }
-      } catch (error) {
-        logger.warn(
-          'Campaign certificate language lookup failed; using stored language',
-          error,
-        );
-      }
-      store.dispatch(
-        setCampaignRewardsState({
-          studentId,
-          hasUnseenCertificate: true,
-        }),
-      );
-      localStorage.setItem(certificateShownKey, evaluatedAt);
-      showCampaignCertificate({
-        campaignId: campaign.id,
-        campaignName: campaign.name,
-        studentName: this.currentStudent?.name ?? '',
-        schoolId: this.currentSchool?.id,
-        rank: rank as CampaignCertificateRank,
-        awardedAt: evaluatedAt,
-        languageCode,
-        isNewlyEarned: true,
-        studentId,
-      });
-    }
   }
 }
