@@ -32,6 +32,9 @@ type ApiHandlerMock = {
   getWhatsappGroupDetails: jest.Mock<Promise<null>, [string, string]>;
   getPhoneDetailsByBotNum: jest.Mock<Promise<null>, [string, string | null]>;
   createClassCode: jest.Mock<Promise<string>, [string]>;
+  deleteClass: jest.Mock<Promise<void>, [string]>;
+  getStudentsForClass: jest.Mock<Promise<{ id: string }[]>, [string]>;
+  getTeachersForClass: jest.Mock<Promise<{ id: string }[]>, [string]>;
   addStudentWithParentValidation: jest.Mock<
     Promise<{ success: boolean; message?: string }>,
     [Record<string, unknown>]
@@ -44,6 +47,9 @@ const mockApiHandler: ApiHandlerMock = {
   getWhatsappGroupDetails: jest.fn(),
   getPhoneDetailsByBotNum: jest.fn(),
   createClassCode: jest.fn(),
+  deleteClass: jest.fn(),
+  getStudentsForClass: jest.fn(),
+  getTeachersForClass: jest.fn(),
   addStudentWithParentValidation: jest.fn(),
 };
 
@@ -195,6 +201,9 @@ describe('SchoolClasses class metrics', () => {
     mockApiHandler.getWhatsappGroupDetails.mockResolvedValue(null);
     mockApiHandler.getPhoneDetailsByBotNum.mockResolvedValue(null);
     mockApiHandler.createClassCode.mockResolvedValue('123456');
+    mockApiHandler.deleteClass.mockResolvedValue(undefined);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([]);
+    mockApiHandler.getTeachersForClass.mockResolvedValue([]);
     mockApiHandler.addStudentWithParentValidation.mockResolvedValue({
       success: true,
     });
@@ -272,5 +281,80 @@ describe('SchoolClasses class metrics', () => {
         date_range: '15d',
       }),
     );
+  });
+
+  it('confirms, deletes, and refreshes the class listing', async () => {
+    mockApiHandler.getClassMetricsForClassListing.mockResolvedValue([]);
+    const refreshClasses = jest.fn();
+
+    render(
+      <SchoolClasses
+        data={baseData}
+        schoolId="school-1"
+        refreshClasses={refreshClasses}
+      />,
+    );
+
+    await screen.findByTestId('class-row-class-1');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Class' }));
+    expect(
+      await screen.findByText('Are you sure you want to delete this class?'),
+    ).toBeInTheDocument();
+
+    const deleteButtons = screen.getAllByRole('button', {
+      name: 'Delete Class',
+    });
+    await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+    await waitFor(() =>
+      expect(mockApiHandler.deleteClass).toHaveBeenCalledWith('class-1'),
+    );
+    expect(refreshClasses).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('class-row-class-1')).not.toBeInTheDocument();
+  });
+
+  it('shows the student validation error without removing the class', async () => {
+    mockApiHandler.getClassMetricsForClassListing.mockResolvedValue([]);
+    mockApiHandler.getStudentsForClass.mockResolvedValueOnce([
+      { id: 'student-1' },
+    ]);
+
+    render(<SchoolClasses data={baseData} schoolId="school-1" />);
+
+    await screen.findByTestId('class-row-class-1');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Class' }));
+
+    expect(
+      await screen.findByText(
+        'Cannot delete this class because students or teachers are still connected to it. Please remove or migrate them to a different class before deleting the class.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Are you sure you want to delete this class?'),
+    ).not.toBeInTheDocument();
+    expect(mockApiHandler.deleteClass).not.toHaveBeenCalled();
+    expect(screen.getByTestId('class-row-class-1')).toBeInTheDocument();
+  });
+
+  it('shows the same validation popup when a teacher is connected', async () => {
+    mockApiHandler.getClassMetricsForClassListing.mockResolvedValue([]);
+    mockApiHandler.getTeachersForClass.mockResolvedValueOnce([
+      { id: 'teacher-1' },
+    ]);
+
+    render(<SchoolClasses data={baseData} schoolId="school-1" />);
+
+    await screen.findByTestId('class-row-class-1');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Class' }));
+
+    expect(
+      await screen.findByText(
+        'Cannot delete this class because students or teachers are still connected to it. Please remove or migrate them to a different class before deleting the class.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Are you sure you want to delete this class?'),
+    ).not.toBeInTheDocument();
+    expect(mockApiHandler.deleteClass).not.toHaveBeenCalled();
   });
 });
