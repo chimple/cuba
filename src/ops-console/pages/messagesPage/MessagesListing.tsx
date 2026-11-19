@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import {
   Add,
-  FilterList,
-  KeyboardArrowDown,
+  ArrowDropDown,
+  FilterAltOutlined,
   Search,
 } from '@mui/icons-material';
 import {
@@ -196,7 +196,7 @@ export const MessagesListing: React.FC<Props> = ({
         <Button
           id="messages-listing__actions-primary"
           className="messages-listing__actions-primary"
-          endIcon={<KeyboardArrowDown />}
+          endIcon={<ArrowDropDown />}
           onClick={(event) => setActionsAnchor(event.currentTarget)}
         >
           Actions
@@ -231,7 +231,7 @@ export const MessagesListing: React.FC<Props> = ({
         <Button
           id="messages-listing__actions-button"
           className="messages-listing__actions-button"
-          startIcon={<FilterList fontSize="small" />}
+          startIcon={<FilterAltOutlined fontSize="small" />}
           onClick={(event) => setFilterAnchor(event.currentTarget)}
         >
           Filter

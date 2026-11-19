@@ -75,9 +75,22 @@
   width: 268px;
 }
 .messages-listing__search .MuiInputBase-root {
+  border-bottom: 1px solid #d8dde6;
   border-radius: 0;
   gap: 8px;
   height: 40px;
+}
+.messages-listing__search .MuiOutlinedInput-notchedOutline,
+.messages-listing__search
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline,
+.messages-listing__search
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border: 0;
+}
+.messages-listing__actions-button .MuiSvgIcon-root {
+  color: #1a71f6;
 }
 .messages-listing__table-wrap {
   border: 1px solid #dde1e6;
@@ -126,6 +139,10 @@
 .messages-listing__table-wrap .MuiTableCell-body {
   border-right: 1px solid #d8dde6;
   height: 50px;
+}
+.messages-listing__sort-label .MuiTableSortLabel-icon {
+  color: #697077;
+  opacity: 1;
 }
 .messages-listing__row {
   cursor: pointer;
