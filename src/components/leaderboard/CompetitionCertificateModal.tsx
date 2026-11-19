@@ -9,7 +9,9 @@ import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
 type Props = {
-  certificate: Omit<CampaignCertificateData, 'rank'> & { rank: 1 | 2 | 3 };
+  certificate: Omit<CampaignCertificateData, 'rank'> & {
+    rank: 1 | 2 | 3 | 'participation';
+  };
   onClose: () => void;
 };
 
@@ -111,6 +113,16 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
           >
             <CampaignCertificateArtwork certificate={certificate} />
           </div>
+          <button
+            type="button"
+            className="campaign-certificate-share"
+            id="campaign-certificate-share"
+            onClick={() => void share()}
+            disabled={isSharing}
+            aria-label="Share competition certificate"
+          >
+            Share
+          </button>
           <img
             className="competition-certificate-star competition-certificate-star-right"
             src="/assets/campaignCompetition/Star 19.svg"

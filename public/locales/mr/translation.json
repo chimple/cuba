@@ -1,4 +1,9 @@
 {
+    "competition_homepage_pathways_completed": "मुख्यपृष्ठावर पूर्ण केलेले शिकण्याचे मार्ग",
+    "competition_pathway_target_unavailable": "शिकण्याच्या मार्गांचे लक्ष्य उपलब्ध नाही",
+    "Congratulations on getting first rank!": "पहिला क्रमांक मिळवल्याबद्दल अभिनंदन!",
+    "Congratulations on getting second rank!": "दुसरा क्रमांक मिळवल्याबद्दल अभिनंदन!",
+    "Congratulations on getting third rank!": "तिसरा क्रमांक मिळवल्याबद्दल अभिनंदन!",
     " to choose and assign.": " निवडण्यासाठी आणि नियुक्त करण्यासाठी ",
     "-": "",
     "{{className}} - Select the child's profile": "{{className}} - मुलाचा प्रोफाइल निवडा",

@@ -3,43 +3,45 @@ import {
   RESULT_STATUS,
   TabType,
 } from '../../../common/constants';
+
+import { SqliteApiCampaignRewards } from './SqliteApi.campaign.rewards';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import {
-  CampaignActiveChange,
-  CampaignAssignmentFilters,
-  CampaignAssignmentOptions,
-  CampaignAssignmentOptionsParams,
-  CampaignAssignmentsReportParams,
-  CampaignAssignmentsReportResponse,
-  CampaignAssignmentsResponse,
+  CampaignSetupOptions,
+  CampaignCancellationDetails,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
-  CampaignCancellationDetails,
-  CampaignDashboardMetric,
-  CampaignListingItem,
-  CampaignListingParams,
-  CampaignMessageReportParams,
-  CampaignMessageReportResponse,
-  CampaignMessagingQueryParams,
-  CampaignMessagingResponse,
-  CampaignNotificationPayload,
-  CampaignOption,
-  CampaignRewardsReportParams,
-  CampaignRewardsReportResponse,
   CampaignSavedAudienceGroup,
-  CampaignSchoolPerformanceReportParams,
-  CampaignSchoolPerformanceReportResponse,
-  CampaignSetupOptions,
-  CampaignWhatsappLabelData,
-  CampaignGoalProgress,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
+  CampaignAssignmentFilters,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
   UpdateCampaignMessagingRowPayload,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
+  CampaignDashboardMetric,
+  CampaignMessageReportParams,
+  CampaignMessageReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
+  CampaignWhatsappLabelData,
+  CampaignNotificationPayload,
+  CampaignActiveChange,
+  CampaignGoalProgress,
 } from '../ServiceApi';
 import {
   getEligibleCampaignIds,
@@ -63,7 +65,6 @@ const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
-
   async getActiveCampaigns(
     studentId: string,
     lastFetchTimestamp?: string | null,
@@ -73,7 +74,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       lastFetchTimestamp,
     );
   }
-
   async getActiveCampaignGoalProgress(
     studentId = this.currentStudent?.id,
     courseId?: string,
@@ -146,7 +146,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       return null;
     }
   }
-
   async upsertCampaignStudentReward(payload: {
     campaignId: string;
     studentId: string;
@@ -156,11 +155,9 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   }): Promise<void> {
     return await this._serverApi.upsertCampaignStudentReward(payload);
   }
-
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     return await this._serverApi.getProgramFilterOptions();
   }
-
   async getPrograms(params: {
     currentUserId?: string;
     filters?: Record<string, string[]>;
@@ -179,15 +176,12 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   }) {
     return await this._serverApi.getPrograms(params);
   }
-
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }
-
   async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
     return await this._serverApi.getCampaignSetupOptions();
   }
-
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this._serverApi.getCampaignNotificationLabels();
   }
@@ -199,29 +193,24 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
   async uploadPushNotificationImage(file: File): Promise<string> {
     return await this._serverApi.uploadPushNotificationImage(file);
   }
-
   async sendCampaignNotification(
     payload: CampaignNotificationPayload,
   ): Promise<string> {
     return await this._serverApi.sendCampaignNotification(payload);
   }
-
   async getCampaignListing(
     params: CampaignListingParams,
   ): Promise<PaginatedResponse<CampaignListingItem>> {
     return await this._serverApi.getCampaignListing(params);
   }
-
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
     return await this._serverApi.cancelCampaign(campaignId, reason);
   }
-
   async getCampaignCancellationDetails(
     campaignId: string,
   ): Promise<CampaignCancellationDetails | null> {
     return await this._serverApi.getCampaignCancellationDetails(campaignId);
   }
-
   async getCampaignAudienceOptions(
     programId: string,
     programModel?: string,
@@ -231,97 +220,81 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       programModel,
     );
   }
-
   async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {
     return await this._serverApi.getCampaignAudienceSummary(params);
   }
-
   async createCampaignAudienceGroup(
     payload: CampaignAudiencePayload,
   ): Promise<CampaignSavedAudienceGroup> {
     return await this._serverApi.createCampaignAudienceGroup(payload);
   }
-
   async createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this._serverApi.createCampaignSetup(payload);
   }
-
   async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
     return await this._serverApi.launchCampaign(payload);
   }
-
   async getCampaignAssignmentOptions(
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions> {
     return await this._serverApi.getCampaignAssignmentOptions(params);
   }
-
   async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse> {
     return await this._serverApi.getCampaignAssignments(campaignId, filters);
   }
-
   async getCampaignSubjectsByCampaignId(
     campaignId: string,
   ): Promise<CampaignOption[]> {
     return await this._serverApi.getCampaignSubjectsByCampaignId(campaignId);
   }
-
   async getCampaignGradesForSchools(
     schoolIds: string[],
   ): Promise<CampaignOption[]> {
     return await this._serverApi.getCampaignGradesForSchools(schoolIds);
   }
-
   async getCampaignMessaging(
     campaignId: string,
     params?: CampaignMessagingQueryParams,
   ): Promise<CampaignMessagingResponse> {
     return await this._serverApi.getCampaignMessaging(campaignId, params);
   }
-
   async updateCampaignMessaging(
     rows: UpdateCampaignMessagingRowPayload[],
   ): Promise<boolean> {
     return await this._serverApi.updateCampaignMessaging(rows);
   }
-
   async getCampaignListingMetrics(
     campaignIds: string[],
   ): Promise<Map<string, CampaignDashboardMetric>> {
     return await this._serverApi.getCampaignListingMetrics(campaignIds);
   }
-
   async deleteCampaignAssignments(campaignId: string): Promise<void> {
     return await this._serverApi.deleteCampaignAssignments(campaignId);
   }
-
   async getCampaignRewardsReport(
     campaignId: string,
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this._serverApi.getCampaignRewardsReport(campaignId, params);
   }
-
   async getCampaignWhatsappLabelData(
     campaignId: string,
   ): Promise<CampaignWhatsappLabelData> {
     return await this._serverApi.getCampaignWhatsappLabelData(campaignId);
   }
-
   async getCampaignMessageReport(
     campaignId: string,
     params?: CampaignMessageReportParams,
   ): Promise<CampaignMessageReportResponse> {
     return await this._serverApi.getCampaignMessageReport(campaignId, params);
   }
-
   async getCampaignAssignmentsReport(
     campaignId: string,
     params?: CampaignAssignmentsReportParams,
@@ -331,7 +304,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       params,
     );
   }
-
   async getCampaignSchoolPerformanceReport(
     campaignId: string,
     params?: CampaignSchoolPerformanceReportParams,

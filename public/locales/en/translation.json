@@ -1,4 +1,6 @@
 {
+  "competition_homepage_pathways_completed": "Homepage pathways completed",
+  "competition_pathway_target_unavailable": "Pathway target unavailable",
   " to choose and assign.": " to choose and assign.",
   "-": "-",
   "{{blockName}} Block Leaderboard": "{{blockName}} Block Leaderboard",
@@ -438,6 +440,9 @@
   "Confirm": "Confirm",
   "Congratulations on completing the campaign!": "Congratulations on completing the campaign!",
   "Congratulations on earning the x1!": "Congratulations on earning the x1!",
+  "Congratulations on getting first rank!": "Congratulations on getting first rank!",
+  "Congratulations on getting second rank!": "Congratulations on getting second rank!",
+  "Congratulations on getting third rank!": "Congratulations on getting third rank!",
   "Congratulations on making great progress!": "Congratulations on making great progress!",
   "Congratulations on participating!": "Congratulations on participating!",
   "Congratulations on winning first place!": "Congratulations on winning first place!",
