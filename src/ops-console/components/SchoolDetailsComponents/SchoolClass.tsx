@@ -22,9 +22,11 @@ import {
 } from './ClassDetailsPageUtils';
 import SchoolClassTable from './SchoolClassTable';
 import SchoolClassHeader from './SchoolClassHeader';
+import SchoolClassDeletionControls from './SchoolClassDeletionControls';
 import { useSelectedClassDetails } from './useSelectedClassDetails';
 import { useSchoolClassAddStudent } from './useSchoolClassAddStudent';
 import { useSchoolClassMetrics } from './useSchoolClassMetrics';
+import { useSchoolClassDeletion } from './useSchoolClassDeletion';
 import type { ClassRow, SchoolDetailsData } from './SchoolClass.types';
 import ExistingStudentProfiles from './ExistingStudentProfiles';
 
@@ -33,7 +35,6 @@ export type {
   SchoolData,
   SchoolDetailsData,
 } from './SchoolClass.types';
-
 interface Props {
   data: SchoolDetailsData;
   schoolId: string;
@@ -41,7 +42,6 @@ interface Props {
   onGenerateCode?: (classId: string) => void;
   refreshClasses?: () => void;
 }
-
 const SchoolClasses: React.FC<Props> = ({
   data,
   schoolId,
@@ -64,6 +64,7 @@ const SchoolClasses: React.FC<Props> = ({
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeValue>(DEFAULT_DATE_RANGE);
+  const classDeletion = useSchoolClassDeletion({ api, refreshClasses });
 
   const allDataRef = useRef<SchoolDetailsData>(data);
   useEffect(() => {
@@ -75,8 +76,10 @@ const SchoolClasses: React.FC<Props> = ({
     [data.programData],
   );
   const safeClasses: ClassRow[] = useMemo(() => {
-    return filterByProgramGrades(data.classData, allowedGrades);
-  }, [data.classData, allowedGrades]);
+    return filterByProgramGrades(data.classData, allowedGrades).filter(
+      (classRow) => !classDeletion.deletedClassIds.has(classRow.id),
+    );
+  }, [data.classData, allowedGrades, classDeletion.deletedClassIds]);
   const effectiveClasses = useMemo(
     () =>
       safeClasses.map((classRow) => {
@@ -284,10 +287,12 @@ const SchoolClasses: React.FC<Props> = ({
         isExternalUser={isExternalUser}
         loadingIds={loadingIds}
         onAddStudent={handleAddStudent}
+        onDeleteClass={classDeletion.handleDeleteClass}
         onEditClass={handleEditClass}
         onSelectClass={setSelectedClassId}
         shouldShowClassCode={shouldShowClassCode}
       />
+      <SchoolClassDeletionControls deletion={classDeletion} />
     </div>
   );
 };
