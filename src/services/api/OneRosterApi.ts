@@ -923,6 +923,15 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+  getSchoolFieldCoordinators(schoolId: string): Promise<TableTypes<'user'>[]> {
+    throw new Error('Method not implemented.');
+  }
+  updateSchoolFieldCoordinators(
+    schoolId: string,
+    userIds: string[],
+  ): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
     throw new Error('Method not implemented.');
   }
