@@ -1,6 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
 import CampaignCertificateHost, {
-  CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
   showCampaignCertificate,
 } from './CampaignCertificateHost';
 
@@ -19,6 +18,7 @@ jest.mock('../../utility/AudioUtil', () => ({
 describe('CampaignCertificateHost', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    localStorage.clear();
     Object.defineProperty(global, 'Audio', {
       configurable: true,
       value: jest.fn().mockImplementation(() => ({
@@ -56,7 +56,7 @@ describe('CampaignCertificateHost', () => {
     expect(screen.getByText('SUMMER LEAGUE')).toBeInTheDocument();
   });
 
-  it('displays a queued player certificate when Home becomes active', () => {
+  it('displays a queued certificate on the active player route', () => {
     window.history.pushState({}, '', '/lido-player');
     render(<CampaignCertificateHost />);
 
@@ -68,8 +68,6 @@ describe('CampaignCertificateHost', () => {
         rank: 3,
         awardedAt: '2026-06-28T00:00:00.000Z',
       });
-      window.history.pushState({}, '', '/home');
-      window.dispatchEvent(new Event(CAMPAIGN_CERTIFICATE_HOME_READY_EVENT));
     });
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();

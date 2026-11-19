@@ -3,7 +3,6 @@ export { default as CampaignCertificateArtwork } from './CampaignCertificateArtw
 export {
   default as CampaignCertificateHost,
   CAMPAIGN_CERTIFICATE_EARNED_EVENT,
-  CAMPAIGN_CERTIFICATE_HOME_READY_EVENT,
   showCampaignCertificate,
 } from './CampaignCertificateHost';
 export type {
