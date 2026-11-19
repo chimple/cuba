@@ -407,7 +407,9 @@ export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
       .from(TABLES.Class)
       .select('*')
       .eq('school_id', schoolId)
-      .eq('is_deleted', false);
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .order('id', { ascending: true });
 
     if (error) {
       logger.error('Error fetching classes by school ID:', error);

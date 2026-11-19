@@ -16,6 +16,12 @@ const mockGetCachedCampaignRewards = jest.fn();
 const mockSyncCampaignRewards = jest.fn();
 const mockDispatch = jest.fn();
 let mockHasUnseenBadge = false;
+let mockLocationSearch = '';
+
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
+  useLocation: () => ({ search: mockLocationSearch }),
+}));
 
 jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
@@ -94,6 +100,7 @@ describe('LeaderboardRewards', () => {
   beforeEach(() => {
     delete process.env.DEV;
     mockHasUnseenBadge = false;
+    mockLocationSearch = '';
     mockDispatch.mockImplementation(() => {
       mockHasUnseenBadge = false;
     });
@@ -132,6 +139,20 @@ describe('LeaderboardRewards', () => {
       'student-1',
       progress,
       { target_tab: 'lesson_completion_badges' },
+    );
+  });
+
+  it('switches to Competitions when sidebar navigation updates the rewards query', async () => {
+    const view = render(<LeaderboardRewards />);
+
+    mockLocationSearch = '?tab=rewards&rewards=competitions';
+    view.rerender(<LeaderboardRewards />);
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('tab')[1]).toHaveAttribute(
+        'aria-selected',
+        'true',
+      ),
     );
   });
 
@@ -200,7 +221,7 @@ describe('LeaderboardRewards', () => {
       '150',
     );
   });
-  it('displays saved rewards loaded after campaign sync', async () => {
+  it('displays saved rewards loaded from the local cache', async () => {
     mockGetCachedCampaignRewards.mockResolvedValue([
       { campaign_id: 'real-campaign', campaign_name: 'Real saved competition' },
     ]);
@@ -210,7 +231,7 @@ describe('LeaderboardRewards', () => {
     expect(
       await screen.findByText('Real saved competition'),
     ).toBeInTheDocument();
-    expect(mockSyncCampaignRewards).toHaveBeenCalledWith('student-1');
+    expect(mockSyncCampaignRewards).not.toHaveBeenCalled();
     expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
     expect(logBadgeEvent).toHaveBeenCalledWith(
       EVENTS.REWARDS_TAB_CLICKED,
@@ -220,8 +241,7 @@ describe('LeaderboardRewards', () => {
     );
   });
 
-  it('loads cached rewards when synchronization fails offline', async () => {
-    mockSyncCampaignRewards.mockRejectedValue(new Error('offline'));
+  it('loads cached rewards while offline', async () => {
     mockGetCachedCampaignRewards.mockResolvedValue([
       { campaign_id: 'cached', campaign_name: 'Offline competition' },
     ]);
@@ -229,23 +249,19 @@ describe('LeaderboardRewards', () => {
     await screen.findByText('Lesson rewards');
     fireEvent.click(screen.getAllByRole('tab')[1]);
     expect(await screen.findByText('Offline competition')).toBeInTheDocument();
+    expect(mockSyncCampaignRewards).not.toHaveBeenCalled();
   });
 
-  it('waits for synchronization before reading rewards', async () => {
-    let finishSync: () => void = () => undefined;
-    mockSyncCampaignRewards.mockReturnValue(
-      new Promise<void>((resolve) => {
-        finishSync = resolve;
-      }),
-    );
+  it('reads cached rewards immediately without synchronization', async () => {
+    mockGetCachedCampaignRewards.mockResolvedValue([
+      { campaign_id: 'cached', campaign_name: 'Cached competition' },
+    ]);
     render(<LeaderboardRewards />);
     await screen.findByText('Lesson rewards');
     fireEvent.click(screen.getAllByRole('tab')[1]);
-    expect(mockGetCachedCampaignRewards).not.toHaveBeenCalled();
-    await act(async () => {
-      finishSync();
-    });
     expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
+    expect(await screen.findByText('Cached competition')).toBeInTheDocument();
+    expect(mockSyncCampaignRewards).not.toHaveBeenCalled();
   });
 
   it('displays only saved rewards outside development', async () => {

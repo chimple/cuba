@@ -5,6 +5,7 @@ import { SupabaseApiProgramClassManagement } from './SupabaseApi.program.classMa
 import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
+  TeacherLifetimeAssignmentMap,
 } from '../serviceapi/ServiceApi.fieldActivities';
 import type { FcUserFormSaveResult } from '../serviceapi/ServiceApi.types';
 import {
@@ -257,6 +258,43 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     });
 
     return counts;
+  }
+
+  async getTeacherLifetimeAssignmentStatus(
+    teacherIds: string[],
+  ): Promise<TeacherLifetimeAssignmentMap> {
+    const ids = Array.from(
+      new Set(teacherIds.map((id) => String(id ?? '').trim()).filter(Boolean)),
+    );
+    const status: TeacherLifetimeAssignmentMap = Object.fromEntries(
+      ids.map((id) => [id, false]),
+    );
+    if (!this.supabase || ids.length === 0) return status;
+
+    const assignmentChecks = await Promise.all(
+      ids.map(async (teacherId) => {
+        const { data, error } = await this.supabase!.from(TABLES.Assignment)
+          .select('id')
+          .eq('created_by', teacherId)
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          logger.error('Error checking lifetime teacher assignments:', {
+            teacherId,
+            error,
+          });
+          throw error;
+        }
+
+        return [teacherId, Boolean(data)] as const;
+      }),
+    );
+
+    assignmentChecks.forEach(([teacherId, hasEverAssigned]) => {
+      status[teacherId] = hasEverAssigned;
+    });
+    return status;
   }
 
   async getActiveTeachersCountForProgram7d(

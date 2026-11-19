@@ -1,4 +1,6 @@
 {
+  "competition_homepage_pathways_completed": "Homepage pathways completed",
+  "competition_pathway_target_unavailable": "Pathway target unavailable",
   "competition_ongoing_title": "Ongoing Competitions",
   "competition_completed_title": "Completed Competitions",
   "competition_ongoing": "Play & Win! Competition is ongoing.",
@@ -440,6 +442,7 @@
   "Congratulations on getting first rank!": "Congratulations on getting first rank!",
   "Congratulations on getting second rank!": "Congratulations on getting second rank!",
   "Congratulations on getting third rank!": "Congratulations on getting third rank!",
+  "Congratulations on participating!": "Congratulations on participating!",
   "Congratulations on making great progress!": "Congratulations on making great progress!",
   "Congratulations! You are in the top 20% teachers. Keep it up!": "Congratulations! You are in the top 20% teachers. Keep it up!",
   "Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.": "Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.",
@@ -2021,7 +2024,7 @@
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Your score has decreased by {{points}} points. Motivate students to move into the green band and climb the leaderboard!": "Your score has decreased by {{points}} points. Motivate students to move into the green band and climb the leaderboard!",
   "Your score has increased by {{points}} points. Keep it up! Motivate your students to stay strong on the leaderboard!": "Your score has increased by {{points}} points. Keep it up! Motivate your students to stay strong on the leaderboard!",
-  "Your score is unchanged from yesterday. Move students to the yellow band to climb up the leaderboard.": "Your score is unchanged from yesterday. Move students to the yellow band to climb up the leaderboard.",
+  "Your score is unchanged from yesterday.": "Your score is unchanged from yesterday.",
   "Your score over the last 7 days": "Your score over the last 7 days",
   "Your Score today is {{points}} points": "Your Score today is {{points}} points",
   "Your Score": "Your Score",

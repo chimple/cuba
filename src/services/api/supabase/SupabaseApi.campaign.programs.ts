@@ -1,9 +1,13 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { PROGRAM_TAB, TABLES, TabType } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
 import { CampaignSetupOptions, ProgramListingProgramRow } from '../ServiceApi';
-import type { CampaignNotificationPayload } from '../ServiceApi';
+import type {
+  CampaignNotificationListItem,
+  CampaignNotificationPayload,
+} from '../ServiceApi';
 import {
   type CampaignProgramRow,
   type CampaignSavedAudienceGroupRow,
@@ -16,10 +20,6 @@ export interface SupabaseApiCampaignPrograms {
   [key: string]: any;
 }
 export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
-  /**
-   * Supabase Storage bucket used for push notification images.
-   * Must be created in the Supabase dashboard (or via the API) before uploads work.
-   */
   private static readonly PUSH_NOTIFICATIONS_BUCKET = 'push-notifications';
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -29,7 +29,6 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
     }
 
     try {
-      // Normalizes array fields that may arrive as real arrays or JSON strings.
       const normalizeProgramMetricsStringList = (
         value: string[] | string | null | undefined,
       ): string[] => {
@@ -59,7 +58,6 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
         return typeof value === 'string' ? normalizeString(value) : [];
       };
 
-      // Builds the Program Listing drawer filter options from program_metrics rows.
       const buildProgramMetricsFilterOptions = (
         rows: ProgramMetricsTableRow[],
       ): Record<string, string[]> => {
@@ -150,8 +148,6 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
         return { data: [], total: 0 };
       }
 
-      // The public API uses limit/offset pagination while the existing metrics
-      // implementation uses page/page_size internally.
       return await this.getProgramsFromProgramMetrics({
         currentUserId: authUserId,
         filters,
@@ -268,10 +264,116 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
     );
   }
 
-  /**
-   * Ensures the `push-notifications` storage bucket exists.
-   * Creates it (public) if it doesn't — no-op if it already exists.
-   */
+  async getCampaignNotifications(): Promise<CampaignNotificationListItem[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.CampaignNotification)
+      .select(
+        'id, label, title, message, image_url, status, send_date, send_time, end_date, recurring_days, created_at, updated_at, program_id, target_audience, user_type, target_type, program:program_id(name, model)',
+      )
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching campaign notifications:', error);
+      return [];
+    }
+
+    const programIds = Array.from(
+      new Set(
+        (data ?? [])
+          .map((row) => row.program_id)
+          .filter((programId): programId is string => Boolean(programId)),
+      ),
+    );
+    const managerNamesByProgram = new Map<string, string[]>();
+
+    if (programIds.length) {
+      const { data: managerMappings, error: managerMappingsError } =
+        await this.supabase
+          .from(TABLES.ProgramUser)
+          .select('program_id, user')
+          .in('program_id', programIds)
+          .eq('role', RoleType.PROGRAM_MANAGER)
+          .eq('is_deleted', false);
+
+      if (managerMappingsError) {
+        logger.error(
+          'Error fetching program managers for campaign notifications:',
+          managerMappingsError,
+        );
+      } else {
+        const managerIds = Array.from(
+          new Set(
+            (managerMappings ?? [])
+              .map((mapping) => mapping.user)
+              .filter((userId): userId is string => Boolean(userId)),
+          ),
+        );
+        const managerNameById = new Map<string, string>();
+
+        if (managerIds.length) {
+          const { data: managers, error: managersError } = await this.supabase
+            .from(TABLES.User)
+            .select('id, name')
+            .in('id', managerIds);
+
+          if (managersError) {
+            logger.error(
+              'Error fetching manager names for campaign notifications:',
+              managersError,
+            );
+          } else {
+            (managers ?? []).forEach((manager) => {
+              if (manager.name?.trim()) {
+                managerNameById.set(manager.id, manager.name.trim());
+              }
+            });
+          }
+        }
+
+        (managerMappings ?? []).forEach((mapping) => {
+          const managerName = mapping.user
+            ? managerNameById.get(mapping.user)
+            : undefined;
+          if (!managerName || !mapping.program_id) return;
+          const names = managerNamesByProgram.get(mapping.program_id) ?? [];
+          if (!names.includes(managerName)) names.push(managerName);
+          managerNamesByProgram.set(mapping.program_id, names);
+        });
+      }
+    }
+
+    return (data ?? []).map((row) => {
+      const program = Array.isArray(row.program) ? row.program[0] : row.program;
+      return {
+        id: String(row.id),
+        label: row.label ?? '',
+        title: row.title ?? '',
+        message: row.message ?? '',
+        imageUrl: row.image_url ?? null,
+        status: row.status ?? '',
+        sendDate: row.send_date ?? null,
+        sendTime: row.send_time ?? null,
+        endDate: row.end_date ?? null,
+        recurringDays: row.recurring_days ?? null,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        programId: row.program_id,
+        programName: program?.name ?? null,
+        programManagerNames: managerNamesByProgram.get(row.program_id) ?? [],
+        schoolModel: program?.model ?? null,
+        audienceId: row.target_audience,
+        userType: row.user_type ?? null,
+        targetType: row.target_type ?? null,
+      };
+    });
+  }
+
   private async ensurePushNotificationsBucket(): Promise<void> {
     if (!this.supabase) return;
 
@@ -369,7 +471,6 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
     let targetAudienceId = String(payload.savedAudienceGroupId ?? '').trim();
 
     if (!targetAudienceId) {
-      // Materialise the ad-hoc audience selection into a campaign_target_audience row.
       const { data: audienceRow, error: audienceError } = await this.supabase
         .from('campaign_target_audience')
         .insert({

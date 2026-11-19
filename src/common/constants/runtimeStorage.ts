@@ -119,7 +119,7 @@ export interface PortPlugin {
     text: string;
     title: string;
     url?: string;
-    imageFile?: File[];
+    imageFile?: File[] | { name: string; path: string };
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
   saveProceesedXlsxFile(options: {
@@ -362,6 +362,8 @@ export enum EVENTS {
   CAMPAIGN_CERTIFICATE_SHARE_FAILED = 'campaign_certificate_share_failed',
   UNSEEN_BADGE_INDICATOR_CLICKED = 'unseen_badge_indicator_clicked',
   UNSEEN_BADGE_CLEARED = 'unseen_badge_cleared',
+  UNSEEN_CERTIFICATE_INDICATOR_CLICKED = 'unseen_certificate_indicator_clicked',
+  UNSEEN_CERTIFICATE_CLEARED = 'unseen_certificate_cleared',
   TC_POPUP_VIEWED = 'tc_popup_viewed',
   TC_AGREED = 'tc_agreed',
   SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',

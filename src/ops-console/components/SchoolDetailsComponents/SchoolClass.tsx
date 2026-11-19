@@ -26,6 +26,7 @@ import { useSelectedClassDetails } from './useSelectedClassDetails';
 import { useSchoolClassAddStudent } from './useSchoolClassAddStudent';
 import { useSchoolClassMetrics } from './useSchoolClassMetrics';
 import type { ClassRow, SchoolDetailsData } from './SchoolClass.types';
+import ExistingStudentProfiles from './ExistingStudentProfiles';
 
 export type {
   ClassRow,
@@ -115,12 +116,17 @@ const SchoolClasses: React.FC<Props> = ({
   const {
     addStudentFields,
     classForStudent,
+    handleAddStudentFieldChange,
     handleCloseAddStudentModal,
+    handleSelectExistingStudent,
+    handleLinkExistingStudent,
     handleSubmitAddStudentModal,
     isAddStudentModalOpen,
     isStudentSubmitting,
     setClassForStudent,
     setIsAddStudentModalOpen,
+    studentProfileContact,
+    selectedExistingStudentId,
     studentErrorMessage,
   } = useSchoolClassAddStudent({
     api,
@@ -234,12 +240,40 @@ const SchoolClasses: React.FC<Props> = ({
               )}`
             : t('Add New Student')
         }
-        submitLabel={isStudentSubmitting ? t('Adding...') : t('Add Student')}
+        submitLabel={
+          selectedExistingStudentId
+            ? t('Link to this class')
+            : isStudentSubmitting
+              ? t('Adding...')
+              : t('Create New Profile')
+        }
         fields={addStudentFields}
         onClose={handleCloseAddStudentModal}
-        onSubmit={handleSubmitAddStudentModal}
+        onSubmit={(values) => {
+          if (selectedExistingStudentId) {
+            void handleLinkExistingStudent(
+              selectedExistingStudentId,
+              studentProfileContact,
+            );
+            return;
+          }
+          void handleSubmitAddStudentModal(values);
+        }}
+        onFieldChange={handleAddStudentFieldChange}
+        selectedExistingStudentId={selectedExistingStudentId}
         message={studentErrorMessage}
-      />
+        disabled={isStudentSubmitting}
+      >
+        <ExistingStudentProfiles
+          api={api}
+          classId={classForStudent?.id ?? ''}
+          contact={studentProfileContact}
+          disabled={isStudentSubmitting}
+          selectedStudentId={selectedExistingStudentId}
+          onSelectStudent={handleSelectExistingStudent}
+          open={isAddStudentModalOpen}
+        />
+      </FormCard>
 
       <SchoolClassTable
         classMetrics={classMetrics}

@@ -21,6 +21,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     return await this.s.createSchool(
       name,
@@ -36,6 +37,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
       country,
       onlySchool,
       onlySchoolUser,
+      language,
     );
   }
 
@@ -50,6 +52,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
     program_id?: string | null,
     udise?: string | null,
     address?: string | null,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     return await this.s.updateSchoolProfile(
       school,
@@ -62,6 +65,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
       program_id ?? null,
       udise ?? null,
       address ?? null,
+      language,
     );
   }
 

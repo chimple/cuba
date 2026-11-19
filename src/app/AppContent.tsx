@@ -14,22 +14,79 @@ import AppOverlays from './AppOverlays';
 import { CampaignCertificateHost } from '../components/campaignCertificate';
 import { SqliteApi } from '../services/api/SqliteApi';
 import { Util } from '../utility/util';
+import { CURRENT_STUDENT_CHANGED_EVENT } from '../common/constants';
 
 const AppRouteEffects = () => {
   useNavigationHandler();
   useOpsConsoleBodyClass();
   useRouteAudioCleanup();
   useEffect(() => {
-    // Start the throttled campaign sync once the app shell is mounted.
-    const timer = window.setTimeout(() => {
-      const student = Util.getCurrentStudent();
-      if (student?.id) {
-        void SqliteApi.getInstance()
-          .then((api) => api.syncCampaignRewards(student.id))
-          .catch(() => undefined);
+    let disposed = false;
+    let lastSelectedStudentId = Util.getCurrentStudent()?.id;
+    let syncInFlight = false;
+    let profilesPreloaded = false;
+
+    // Campaign rewards are student-scoped. Sync the selected profile as soon
+    // as it is available, then warm the cache for the other profiles in the
+    // background so switching profiles does not require a refresh.
+    const syncProfiles = async (selectedStudentId?: string) => {
+      const api = await SqliteApi.getInstance();
+      if (disposed) return;
+
+      const profiles = await api.getParentStudentProfiles().catch(() => []);
+      const studentIds = new Set(
+        profiles
+          .map((profile) => profile?.id)
+          .filter((id): id is string => Boolean(id)),
+      );
+      if (selectedStudentId) studentIds.add(selectedStudentId);
+
+      await Promise.allSettled(
+        [...studentIds].map((studentId) =>
+          api.syncCampaignRewards(studentId).catch(() => undefined),
+        ),
+      );
+      profilesPreloaded = true;
+    };
+
+    const startSync = (studentId: string) => {
+      if (syncInFlight) return;
+      syncInFlight = true;
+      void syncProfiles(studentId).finally(() => {
+        syncInFlight = false;
+      });
+    };
+
+    const handleStudentChange = (event: Event) => {
+      const studentId = (event as CustomEvent<{ id?: string }>)?.detail?.id;
+      if (
+        !studentId ||
+        studentId === lastSelectedStudentId ||
+        profilesPreloaded
+      ) {
+        return;
       }
+      lastSelectedStudentId = studentId;
+      startSync(studentId);
+    };
+
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+
+    const timer = window.setTimeout(() => {
+      const studentId = Util.getCurrentStudent()?.id;
+      if (!studentId) return;
+      lastSelectedStudentId = studentId;
+      startSync(studentId);
     }, 0);
-    return () => window.clearTimeout(timer);
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(timer);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
   }, []);
   return null;
 };

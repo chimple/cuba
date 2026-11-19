@@ -5,11 +5,13 @@ jest.mock('./SqliteApi.assignment.assessments', () => ({
 }));
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
-  default: { error: jest.fn() },
+  default: { info: jest.fn(), error: jest.fn() },
 }));
 jest.mock('../../../components/campaignCertificate', () => ({
   showCampaignCertificate: jest.fn(),
 }));
+
+jest.mock('../../../redux/store', () => ({ store: { dispatch: jest.fn() } }));
 
 const initSqlJs = require('sql.js/dist/sql-asm.js');
 type SqlDatabase = {
@@ -25,15 +27,14 @@ describe('offline campaign reward evaluation', () => {
   let db: SqlDatabase;
   let api: SqliteApiCampaignRewards;
   let queueUpload: jest.Mock;
-  const key = (studentId: string) =>
-    `campaignLastFetch:studentScoped:${studentId}:eligible`;
+  const key = (studentId: string) => `campaignEligibleIds:${studentId}`;
   beforeEach(async () => {
     localStorage.clear();
     const SQL = await initSqlJs();
     db = new SQL.Database();
     db.run(`
       CREATE TABLE local_campaigns (id TEXT PRIMARY KEY, name TEXT, rules_json TEXT,
-        objective TEXT, target_value INTEGER, start_date TEXT, end_date TEXT,
+        objective TEXT, target_value INTEGER, target_type TEXT, start_date TEXT, end_date TEXT,
         status TEXT, updated_at TEXT, is_deleted INTEGER);
       CREATE TABLE assignment (id TEXT, lesson_id TEXT, campaign_id TEXT,
         source TEXT, starts_at TEXT, is_class_wise INTEGER, class_id TEXT, is_deleted INTEGER);
@@ -44,13 +45,13 @@ describe('offline campaign reward evaluation', () => {
       CREATE TABLE user_campaign_rewards (campaign_id TEXT, student_id TEXT,
         lessons_completed_count INTEGER, lessons_target_count INTEGER, completion_percentage INTEGER,
         rank_achieved INTEGER, status TEXT, certificate_available INTEGER,
-        evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER, PRIMARY KEY(campaign_id, student_id));
+        has_unseen_certificate INTEGER DEFAULT 0, evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER, PRIMARY KEY(campaign_id, student_id));
     `);
     api = new SqliteApiCampaignRewards();
     queueUpload = jest.fn().mockResolvedValue(undefined);
     Object.assign(api, {
       ensureInitialized: jest.fn().mockResolvedValue(undefined),
-      queueCampaignRewardUpload: queueUpload,
+      _serverApi: { upsertCampaignStudentReward: queueUpload },
       executeQuery: async (sql: string, values: unknown[] = []) => {
         const result = db.exec(sql, values)[0];
         return {
@@ -67,8 +68,8 @@ describe('offline campaign reward evaluation', () => {
     localStorage.setItem(key('student-a'), '["campaign-a"]');
     db.run(`INSERT INTO local_campaigns VALUES
       ('campaign-a', 'Homepage', '{"rules":[{"rank":1,"min":2},{"rank":2,"min":1}]}',
-      'homepage_learning_pathway_campaign', 99, '2026-01-01', '2026-01-31', 'active', '', 0),
-      ('campaign-b', 'Other child', '{"rules":[]}', 'homework_campaign', NULL,
+      'homepage_learning_pathway_campaign', 99, NULL, '2026-01-01', '2026-01-31', 'active', '', 0),
+      ('campaign-b', 'Other child', '{"rules":[]}', 'homework_campaign', NULL, 'percentage_completion',
       '2026-01-01', '2026-01-31', 'active', '', 0);
       INSERT INTO assignment VALUES
       ('a1', 'l1', NULL, 'learning_pathway_home_no_pal', '2026-01-10', 0, NULL, 0),
@@ -88,8 +89,8 @@ describe('offline campaign reward evaluation', () => {
       expect.objectContaining({
         campaign_id: 'campaign-a',
         lessons_completed_count: 1,
-        lessons_target_count: 2,
-        completion_percentage: 50,
+        lessons_target_count: 495,
+        completion_percentage: 0,
         rank_achieved: 2,
       }),
     ]);
@@ -114,6 +115,30 @@ describe('offline campaign reward evaluation', () => {
     expect(await api.getCachedCampaignRewards('student-a')).toHaveLength(1);
   });
 
+  it('shows the certificate indicator only after the campaign end date', async () => {
+    db.run(`
+      INSERT INTO user_campaign_rewards
+        (campaign_id, student_id, has_unseen_certificate, evaluated_at, is_deleted)
+      VALUES ('campaign-a', 'student-a', 1, date('now'), 0);
+      UPDATE local_campaigns
+      SET end_date = date('now', '+1 day')
+      WHERE id = 'campaign-a';
+    `);
+
+    expect(await api.getCampaignCertificateIndicator('student-a')).toEqual({
+      hasUnseenCertificate: false,
+      campaignId: undefined,
+    });
+
+    db.run(`UPDATE local_campaigns SET end_date = date('now', '-1 day')
+      WHERE id = 'campaign-a';`);
+
+    expect(await api.getCampaignCertificateIndicator('student-a')).toEqual({
+      hasUnseenCertificate: true,
+      campaignId: 'campaign-a',
+    });
+  });
+
   it.each([
     ['before the start', '2025-12-31', 1],
     ['after the end', '2026-02-01', 1],
@@ -123,7 +148,7 @@ describe('offline campaign reward evaluation', () => {
   ])(
     'counts homework results by campaign dates: %s',
     async (_label, date, expected) => {
-      db.run(`UPDATE local_campaigns SET objective = 'homework_campaign' WHERE id = 'campaign-a';
+      db.run(`UPDATE local_campaigns SET objective = 'homework_campaign', target_type = 'percentage_completion' WHERE id = 'campaign-a';
       UPDATE assignment SET campaign_id = 'campaign-a';`);
       db.run('UPDATE local_campaigns SET rules_json = ? WHERE id = ?', [
         JSON.stringify({
@@ -148,11 +173,16 @@ describe('offline campaign reward evaluation', () => {
 
   it('removes eligibility only for the student whose RPC reports deletion', async () => {
     localStorage.setItem(key('student-b'), '["campaign-a"]');
-    api.getActiveCampaigns = jest
-      .fn()
-      .mockResolvedValue([
-        { campaign_id: 'campaign-a', change_type: 'delete' },
-      ]);
+    Object.assign(api, {
+      _serverApi: {
+        upsertCampaignStudentReward: queueUpload,
+        getActiveCampaigns: jest
+          .fn()
+          .mockResolvedValue([
+            { campaign_id: 'campaign-a', change_type: 'delete' },
+          ]),
+      },
+    });
     await api.syncCampaignRewards('student-a');
     expect(await api.getCachedCampaignRewards('student-a')).toEqual([]);
     await api.hydrateCampaignRewards('student-b');

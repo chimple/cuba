@@ -1,12 +1,7 @@
 import React, { useMemo } from 'react';
 import { Button as MuiButton } from '@mui/material';
-import EditOutlined from '@mui/icons-material/EditOutlined';
-import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { t } from 'i18next';
 import DataTableBody from '../DataTableBody';
-import ActionMenu from './ActionMenu';
 import {
   getClassMetricValues,
   renderClassPerformanceCell,
@@ -14,6 +9,8 @@ import {
   renderNumberWithPercentCell,
 } from './SchoolClassMetrics';
 import { getSchoolClassColumns } from './SchoolClassColumns';
+import SchoolClassActions from './SchoolClassActions';
+import { sortClassesByGradeAndSection } from './ClassDetailsPageUtils';
 import type { ClassMetricsForClassListingRow } from '../../../services/api/ServiceApi';
 import type { ClassRow, SchoolClassTableRowData } from './SchoolClass.types';
 
@@ -45,7 +42,7 @@ export default function SchoolClassTable({
   shouldShowClassCode,
 }: SchoolClassTableProps) {
   const rows = useMemo<SchoolClassTableRowData[]>(() => {
-    return effectiveClasses.map((c) => {
+    return sortClassesByGradeAndSection(effectiveClasses).map((c) => {
       const classLabel = typeof c.name === 'string' ? c.name.trim() : '';
       const metrics = classMetrics[c.id];
       const metricValues = getClassMetricValues(metrics, c.studentCount);
@@ -124,53 +121,13 @@ export default function SchoolClassTable({
           },
         ),
         actions: {
-          render: isExternalUser ? null : (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{ display: 'flex', justifyContent: 'center' }}
-            >
-              <ActionMenu
-                items={[
-                  {
-                    name: t('Edit Class'),
-                    icon: <EditOutlined fontSize="small" />,
-                    onClick: () => onEditClass(c),
-                  },
-                  {
-                    name: t('Add Student'),
-                    icon: <PersonAddAlt1Outlined fontSize="small" />,
-                    onClick: () => onAddStudent(c),
-                  },
-                ]}
-                renderTrigger={(open, isOpen) => (
-                  <MuiButton
-                    size="medium"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      open(e);
-                    }}
-                    endIcon={
-                      isOpen ? (
-                        <KeyboardArrowUpIcon
-                          fontSize="medium"
-                          sx={{ color: 'black' }}
-                        />
-                      ) : (
-                        <KeyboardArrowDownIcon
-                          fontSize="medium"
-                          sx={{ color: 'black' }}
-                        />
-                      )
-                    }
-                    sx={{
-                      minWidth: 0,
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                    }}
-                  />
-                )}
-              />
-            </div>
+          render: (
+            <SchoolClassActions
+              classRow={c}
+              isExternalUser={isExternalUser}
+              onAddStudent={onAddStudent}
+              onEditClass={onEditClass}
+            />
           ),
         },
       };

@@ -37,6 +37,14 @@ import type { CampaignNotificationPayload } from '../ServiceApi';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 
 export class ApiHandlerCampaigns extends ApiHandlerPrograms {
+  getCampaignCertificateIndicator(studentId: string) {
+    return this.s.getCampaignCertificateIndicator(studentId);
+  }
+
+  markCampaignCertificatesSeen(studentId: string): Promise<void> {
+    return this.s.markCampaignCertificatesSeen(studentId);
+  }
+
   /** Keeps the existing campaign-configuration API available to its callers. */
   async getActiveCampaigns(
     studentId: string,
@@ -58,6 +66,10 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
 
   async getCampaignNotificationLabels(): Promise<string[]> {
     return await this.s.getCampaignNotificationLabels();
+  }
+
+  async getCampaignNotifications() {
+    return await this.s.getCampaignNotifications();
   }
 
   async uploadPushNotificationImage(file: File): Promise<string> {

@@ -34,9 +34,18 @@ import type {
   CampaignActiveChange,
   CampaignStudentRewardPayload,
 } from './ServiceApi.types';
-import type { CampaignNotificationPayload } from './ServiceApi.notifications';
+import type {
+  CampaignNotificationListItem,
+  CampaignNotificationPayload,
+} from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
+  getCampaignCertificateIndicator(
+    studentId: string,
+  ): Promise<{ hasUnseenCertificate: boolean; campaignId?: string }>;
+
+  markCampaignCertificatesSeen(studentId: string): Promise<void>;
+
   /** Fetches campaign configuration changes for existing campaign-sync callers. */
   getActiveCampaigns(
     studentId: string,
@@ -55,6 +64,9 @@ export interface ServiceApiCampaigns {
    * These values populate the compose notification label dropdown.
    */
   getCampaignNotificationLabels(): Promise<string[]>;
+
+  /** Lists persisted Messages for the Ops Console. */
+  getCampaignNotifications(): Promise<CampaignNotificationListItem[]>;
 
   /**
    * Uploads a push notification image to Supabase Storage and returns the

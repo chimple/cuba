@@ -15,9 +15,10 @@ describe('CampaignCertificateArtwork', () => {
       />,
     );
 
-    // The artwork chooses the rank-specific SVG supplied by campaignCompetition.
-    expect(screen.getByAltText('Campaign reward: 2')).toHaveAttribute(
-      'src',
+    // The fixed viewBox places the selected rank SVG in the same coordinates
+    // on every viewport.
+    expect(screen.getByTestId('campaign-certificate-rank')).toHaveAttribute(
+      'href',
       '/assets/campaignCompetition/Campaign rank2 t2.svg',
     );
     // Dates are rendered in the certificate's compact reference format.

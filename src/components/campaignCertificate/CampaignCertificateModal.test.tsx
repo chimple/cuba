@@ -71,11 +71,13 @@ describe('CampaignCertificateModal', () => {
     );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(certificate.campaignName)).toBeInTheDocument();
+    expect(
+      screen.getByText(certificate.campaignName.toUpperCase()),
+    ).toBeInTheDocument();
     // Student name is kept in the certificate context instead of being printed on the artwork.
     expect(screen.queryByText('Awarded to Madhavi')).not.toBeInTheDocument();
-    expect(screen.getByAltText('Campaign reward: 1')).toHaveAttribute(
-      'src',
+    expect(screen.getByTestId('campaign-certificate-rank')).toHaveAttribute(
+      'href',
       '/assets/campaignCompetition/Campaign rank1 t2.svg',
     );
     expect(Util.logEvent).toHaveBeenCalledWith(
@@ -121,6 +123,10 @@ describe('CampaignCertificateModal', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/stickerBookSave/camera_flash.mp3',
+      delayMs: 300,
+    });
     // Share-only stars match the StickerBookPreview capture behavior.
     // Hidden decorative stars expose a test id because aria-hidden excludes them from roles.
     expect(

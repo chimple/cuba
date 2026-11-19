@@ -58,10 +58,14 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
     program_id: string | null,
     udise: string | null,
     address: string | null,
+    language?: string | null,
   ): Promise<TableTypes<'school'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw 'User is not Logged in';
+    if (language && !(await this.getLanguageWithId(language))) {
+      throw new Error('Selected language is not available');
+    }
 
     const result = image
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
@@ -86,7 +90,7 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
       firebase_id: null,
       is_firebase: null,
       is_ops: null,
-      language: null,
+      language: language ?? school.language,
       ops_created_by: null,
       student_login_type: null,
       status: null,
@@ -97,7 +101,7 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, updated_at=?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, language = ?, updated_at=?
     WHERE id = ?;
     `;
 
@@ -107,6 +111,7 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
       updatedSchool.group2,
       updatedSchool.group3,
       updatedSchool.image,
+      updatedSchool.language,
       updatedSchool.updated_at,
       school.id,
     ]);

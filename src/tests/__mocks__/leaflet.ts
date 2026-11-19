@@ -1,5 +1,5 @@
 /* Minimal mock for leaflet used in tests.
-   Provides `Icon.Default.prototype`, `Icon.Default.mergeOptions` and `latLngBounds`.
+   Provides `Icon.Default.prototype`, `Icon.Default.mergeOptions`, `latLngBounds` and `icon`.
 */
 
 const Icon = {
@@ -9,9 +9,12 @@ const Icon = {
   },
 };
 
+export const icon = (options: unknown) => ({ options });
+
 export const latLngBounds = (arr: any) => arr;
 
 const L = {
+  icon,
   Icon,
   latLngBounds,
 };

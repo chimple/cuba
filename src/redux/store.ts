@@ -4,19 +4,21 @@ import storage from 'redux-persist/lib/storage';
 import authreducer, { authTransform } from './slices/auth/authSlice';
 import growthbookReducer from './slices/growthbook/growthbookSlice';
 import badgeProgressReducer from './slices/badgeProgress/badgeProgressSlice';
+import campaignRewardsReducer from './slices/campaignRewards/campaignRewardsSlice';
 import { GrowthBookAttributes } from '../common/constants';
 
 const rootReducer = combineReducers({
   auth: authreducer,
   growthbook: growthbookReducer,
   badgeProgress: badgeProgressReducer,
+  campaignRewards: campaignRewardsReducer,
 });
 
 const persistConfig: PersistConfig<RootState> = {
   key: 'root',
   storage,
   version: 1,
-  whitelist: ['auth', 'growthbook', 'badgeProgress'],
+  whitelist: ['auth', 'growthbook', 'badgeProgress', 'campaignRewards'],
   transforms: [authTransform],
 };
 

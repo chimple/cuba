@@ -13,6 +13,30 @@
   background: #fff;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.28);
   color: #4e4e52;
+  animation: teacher-score-details-enter 280ms ease-out both;
+}
+.teacher-score-details--closing {
+  animation: teacher-score-details-exit 220ms ease-in both;
+}
+@keyframes teacher-score-details-enter {
+  from {
+    transform: translateX(110vw);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes teacher-score-details-exit {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(110vw);
+    opacity: 0;
+  }
 }
 .teacher-score-details__header {
   display: flex;

@@ -40,12 +40,27 @@ export class UtilFileStorage extends UtilSchoolContext {
   ) {
     // Badge sharing opts into rejection so analytics can distinguish success from dismissal.
     if (Capacitor.isNativePlatform()) {
+      const image = imageFile?.[0];
+      let nativeImageFile: { name: string; path: string } | undefined;
+      if (image) {
+        const safeFileName = image.name.replace(/[^A-Za-z0-9._-]/g, '_');
+        const savedFile = await Filesystem.writeFile({
+          path: `share-${Date.now()}-${safeFileName}`,
+          data: await this.blobToString(image),
+          directory: Directory.Cache,
+        });
+        nativeImageFile = {
+          name: safeFileName,
+          path: savedFile.uri.replace('file://', ''),
+        };
+      }
+      if (!this.port) this.port = registerPlugin<PortPlugin>('Port');
       await this.port
         .shareContentWithAndroidShare({
           text: t(text),
           title: t(title),
           url: url,
-          imageFile: imageFile, // Pass the File object for Android
+          imageFile: nativeImageFile,
         })
         .then(() => {})
         .catch((error) => {

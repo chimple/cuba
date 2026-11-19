@@ -7,6 +7,10 @@ import logger from '../../../utility/logger';
 import { SqliteApiProgramDiscovery } from './SqliteApi.program.discovery';
 import { MUTATE_TYPES, TABLES } from '../../../common/constants';
 import { v4 as uuidv4 } from 'uuid';
+import type {
+  OpsStudentProfileSearchResult,
+  StudentProfileCreateResult,
+} from '../serviceapi/ServiceApi.fieldActivities';
 
 export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
   [key: string]: any;
@@ -136,7 +140,34 @@ export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
     email?: string;
     studentID?: string;
     atSchool?: boolean;
-  }): Promise<{ success: boolean; message: string; data?: any }> {
+  }): Promise<StudentProfileCreateResult> {
     return this._serverApi.addStudentWithParentValidation(params);
+  }
+
+  public async searchStudentProfilesByContact(
+    contact: string,
+    classId: string,
+  ): Promise<OpsStudentProfileSearchResult> {
+    return this._serverApi.searchStudentProfilesByContact(contact, classId);
+  }
+
+  public async hasDuplicateStudentProfile(
+    name: string,
+    contact: string,
+    classId: string,
+  ): Promise<boolean> {
+    return this._serverApi.hasDuplicateStudentProfile(name, contact, classId);
+  }
+
+  public async linkExistingStudentToClass(
+    studentId: string,
+    classId: string,
+    contact: string,
+  ): Promise<boolean> {
+    return this._serverApi.linkExistingStudentToClass(
+      studentId,
+      classId,
+      contact,
+    );
   }
 }
