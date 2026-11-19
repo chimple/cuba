@@ -60,8 +60,8 @@ export const useAddSchoolPage = () => {
     initialSelectedCourseIds,
     isCoursesLoading,
     selectedCourseIds,
-    selectedGradeId,
-    setSelectedGradeId,
+    selectedGradeIds,
+    setSelectedGradeIds,
     toggleCourse,
   } = useSchoolCourseSelection({ api, editData });
   const latestUdiseValue = useRef('');
@@ -244,6 +244,7 @@ export const useAddSchoolPage = () => {
       contacts[0].fields[1].value?.length === 10 &&
       (contacts[1].fields[1].value?.length === 0 ||
         contacts[1].fields[1].value?.length === 10) &&
+      selectedGradeIds.length > 0 &&
       selectedCourseIds.length > 0 &&
       !isCoursesLoading &&
       !courseLoadError &&
@@ -390,7 +391,12 @@ export const useAddSchoolPage = () => {
   }, [api, editData, program]);
 
   async function handleApprove() {
-    if (isCoursesLoading || courseLoadError || selectedCourseIds.length === 0) {
+    if (
+      isCoursesLoading ||
+      courseLoadError ||
+      selectedGradeIds.length === 0 ||
+      selectedCourseIds.length === 0
+    ) {
       return;
     }
 
@@ -543,14 +549,14 @@ export const useAddSchoolPage = () => {
     schoolName,
     grades,
     selectedCourseIds,
-    selectedGradeId,
+    selectedGradeIds,
     setFieldCoordinator,
     setProgram,
     setSchoolModel,
     setLanguage,
     setSchoolName,
     states,
-    setSelectedGradeId,
+    setSelectedGradeIds,
     toggleCourse,
     udise,
   };

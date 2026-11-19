@@ -85,8 +85,8 @@ const AddSchoolPage: React.FC = () => {
           grades={controller.grades}
           loading={controller.isCoursesLoading}
           selectedCourseIds={controller.selectedCourseIds}
-          selectedGradeId={controller.selectedGradeId}
-          onGradeChange={controller.setSelectedGradeId}
+          selectedGradeIds={controller.selectedGradeIds}
+          onGradeChange={controller.setSelectedGradeIds}
           onToggle={controller.toggleCourse}
         />
 

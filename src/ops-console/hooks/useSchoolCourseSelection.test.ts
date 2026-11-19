@@ -21,11 +21,14 @@ const editData = { schoolData: { id: 'school-1' } };
 
 beforeEach(() => {
   mockApi.getAllCourses.mockResolvedValue([
-    { id: 'a', is_deleted: false },
-    { id: 'b', is_deleted: false },
+    { id: 'a', grade_id: 'grade-1', is_deleted: false },
+    { id: 'b', grade_id: 'grade-2', is_deleted: false },
     { id: 'deleted', is_deleted: true },
   ]);
-  mockApi.getAllGrades.mockResolvedValue([]);
+  mockApi.getAllGrades.mockResolvedValue([
+    { id: 'grade-1', name: 'Grade 1', sort_index: 1 },
+    { id: 'grade-2', name: 'Grade 2', sort_index: 2 },
+  ]);
   mockApi.getCurriculumsByIds.mockResolvedValue([]);
   mockApi.getCoursesBySchoolId.mockResolvedValue([
     { course_id: 'a' },
@@ -38,6 +41,7 @@ beforeEach(() => {
 it('does not load class assignments or display removal warnings during creation', async () => {
   const { result } = renderHook(() => useSchoolCourseSelection({ api }));
   await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+  act(() => result.current.setSelectedGradeIds(['grade-1']));
   act(() => result.current.toggleCourse('a'));
   act(() => result.current.toggleCourse('a'));
   expect(result.current.selectedCourseIds).toEqual([]);
@@ -60,7 +64,69 @@ it('ignores duplicate, deleted, and unavailable school course links', async () =
   await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
   expect(result.current.selectedCourseIds).toEqual(['a']);
   expect(result.current.initialSelectedCourseIds).toEqual(['a']);
+  expect(result.current.selectedGradeIds).toEqual(['grade-1']);
   expect(result.current.courses.map((course) => course.id)).toEqual(['a', 'b']);
+});
+
+it('preselects assigned grades and restores only remembered courses after rechecking', async () => {
+  mockApi.getAllCourses.mockResolvedValue([
+    { id: 'a', grade_id: 'grade-1' },
+    { id: 'b', grade_id: 'grade-2' },
+    { id: 'c', grade_id: 'grade-2' },
+    { id: 'd', grade_id: 'grade-2' },
+  ]);
+  const { result } = renderHook(() =>
+    useSchoolCourseSelection({ api, editData }),
+  );
+  await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+  expect(result.current.selectedGradeIds).toEqual(['grade-1', 'grade-2']);
+  act(() => result.current.toggleCourse('b'));
+  act(() => result.current.toggleCourse('c'));
+  act(() => result.current.setSelectedGradeIds(['grade-1']));
+  expect(result.current.selectedCourseIds).toEqual(['a']);
+  // A hidden course cannot be selected by a stale checkbox event.
+  act(() => result.current.toggleCourse('d'));
+  act(() => result.current.setSelectedGradeIds(['grade-1', 'grade-2']));
+  expect(result.current.selectedCourseIds).toEqual(['a', 'c']);
+  act(() => result.current.setSelectedGradeIds([]));
+  expect(result.current.selectedCourseIds).toEqual([]);
+  act(() => result.current.setSelectedGradeIds(['grade-2']));
+  expect(result.current.selectedCourseIds).toEqual(['c']);
+});
+
+it('does not select courses automatically when grades are selected during creation', async () => {
+  const { result } = renderHook(() => useSchoolCourseSelection({ api }));
+  await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+  expect(result.current.selectedGradeIds).toEqual([]);
+  act(() => {
+    result.current.setSelectedGradeIds(['grade-1', 'grade-2']);
+    result.current.toggleCourse('a');
+  });
+  expect(result.current.selectedCourseIds).toEqual(['a']);
+  act(() => result.current.setSelectedGradeIds(['grade-2']));
+  expect(result.current.selectedCourseIds).toEqual([]);
+  act(() => result.current.setSelectedGradeIds(['grade-1', 'grade-2']));
+  expect(result.current.selectedCourseIds).toEqual(['a']);
+});
+
+it('blocks removing a grade when its courses are required by an existing class', async () => {
+  mockApi.getClassesBySchoolId.mockResolvedValue([
+    { id: 'class-1', name: '1A' },
+  ]);
+  mockApi.getCoursesByClassId.mockResolvedValue([
+    { class_id: 'class-1', course_id: 'a' },
+  ]);
+  const { result } = renderHook(() =>
+    useSchoolCourseSelection({ api, editData }),
+  );
+  await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+  act(() => result.current.setSelectedGradeIds(['grade-2']));
+  expect(result.current.selectedGradeIds).toEqual(['grade-1', 'grade-2']);
+  expect(result.current.selectedCourseIds).toEqual(['a', 'b']);
+  expect(result.current.courseRemovalWarning).toContain('1A');
+  act(() => result.current.setSelectedGradeIds(['grade-1']));
+  expect(result.current.selectedCourseIds).toEqual(['a']);
+  expect(result.current.courseRemovalWarning).toBe('');
 });
 
 it('waits for class assignments before allowing checkbox changes', async () => {
