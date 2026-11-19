@@ -1,6 +1,7 @@
 import { Button as MuiButton } from '@mui/material';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { t } from 'i18next';
@@ -12,6 +13,7 @@ type SchoolClassActionsProps = {
   isExternalUser: boolean;
   onAddStudent: (classRow: ClassRow) => void;
   onEditClass: (classRow: ClassRow) => void;
+  onDeleteClass: (classRow: ClassRow) => void;
 };
 
 export default function SchoolClassActions({
@@ -19,6 +21,7 @@ export default function SchoolClassActions({
   isExternalUser,
   onAddStudent,
   onEditClass,
+  onDeleteClass,
 }: SchoolClassActionsProps) {
   if (isExternalUser) return null;
 
@@ -38,6 +41,11 @@ export default function SchoolClassActions({
             name: t('Add Student'),
             icon: <PersonAddAlt1Outlined fontSize="small" />,
             onClick: () => onAddStudent(classRow),
+          },
+          {
+            name: t('Delete Class'),
+            icon: <DeleteOutline fontSize="small" />,
+            onClick: () => onDeleteClass(classRow),
           },
         ]}
         renderTrigger={(open, isOpen) => (

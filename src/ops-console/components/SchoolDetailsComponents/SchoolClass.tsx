@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import './SchoolClass.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import ClassDetailsPage from './ClassDetailsPage';
@@ -22,11 +23,13 @@ import {
 } from './ClassDetailsPageUtils';
 import SchoolClassTable from './SchoolClassTable';
 import SchoolClassHeader from './SchoolClassHeader';
+import SchoolClassDeleteDialog from './SchoolClassDeleteDialog';
+import OpsGenericPopup from '../../common/OpsGenericPopup';
 import { useSelectedClassDetails } from './useSelectedClassDetails';
 import { useSchoolClassAddStudent } from './useSchoolClassAddStudent';
 import { useSchoolClassMetrics } from './useSchoolClassMetrics';
+import { useSchoolClassDeletion } from './useSchoolClassDeletion';
 import type { ClassRow, SchoolDetailsData } from './SchoolClass.types';
-
 export type {
   ClassRow,
   SchoolData,
@@ -63,6 +66,16 @@ const SchoolClasses: React.FC<Props> = ({
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeValue>(DEFAULT_DATE_RANGE);
+  const {
+    deleteMessage,
+    deleteTargetClass,
+    deletedClassIds,
+    handleConfirmDeleteClass,
+    handleDeleteClass,
+    isDeletingClass,
+    setDeleteMessage,
+    setDeleteTargetClass,
+  } = useSchoolClassDeletion({ api, refreshClasses });
 
   const allDataRef = useRef<SchoolDetailsData>(data);
   useEffect(() => {
@@ -74,8 +87,10 @@ const SchoolClasses: React.FC<Props> = ({
     [data.programData],
   );
   const safeClasses: ClassRow[] = useMemo(() => {
-    return filterByProgramGrades(data.classData, allowedGrades);
-  }, [data.classData, allowedGrades]);
+    return filterByProgramGrades(data.classData, allowedGrades).filter(
+      (classRow) => !deletedClassIds.has(classRow.id),
+    );
+  }, [data.classData, allowedGrades, deletedClassIds]);
   const effectiveClasses = useMemo(
     () =>
       safeClasses.map((classRow) => {
@@ -250,9 +265,33 @@ const SchoolClasses: React.FC<Props> = ({
         isExternalUser={isExternalUser}
         loadingIds={loadingIds}
         onAddStudent={handleAddStudent}
+        onDeleteClass={handleDeleteClass}
         onEditClass={handleEditClass}
         onSelectClass={setSelectedClassId}
         shouldShowClassCode={shouldShowClassCode}
+      />
+      <SchoolClassDeleteDialog
+        open={Boolean(deleteTargetClass)}
+        className={deleteTargetClass?.name ?? ''}
+        isDeleting={isDeletingClass}
+        onClose={() => setDeleteTargetClass(null)}
+        onConfirm={handleConfirmDeleteClass}
+      />
+      <OpsGenericPopup
+        isOpen={Boolean(deleteMessage)}
+        heading={
+          deleteMessage?.severity === 'error'
+            ? t('Cannot Delete Class')
+            : t('Class Deleted')
+        }
+        text={deleteMessage?.text ?? ''}
+        primaryButtonText="OK"
+        icon={
+          deleteMessage?.severity === 'error' ? (
+            <ErrorOutlineIcon color="error" fontSize="large" />
+          ) : undefined
+        }
+        onClose={() => setDeleteMessage(null)}
       />
     </div>
   );
