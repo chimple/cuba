@@ -29,6 +29,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
     language?: string | null,
+    studentLoginType?: EnumType<'login_type'> | null,
   ): Promise<TableTypes<'school'>> {
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
@@ -65,7 +66,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
       is_ops: null,
       language: language ?? null,
       ops_created_by: null,
-      student_login_type: null,
+      student_login_type: studentLoginType ?? null,
       status: status,
       key_contacts: null,
       country: country,
@@ -75,8 +76,8 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
     if (oSchool) {
       await this.executeQuery(
         `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country, academic_year, language)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country, academic_year, language, student_login_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
         [
           newSchool.id,
@@ -92,6 +93,7 @@ export class SqliteApiSchoolCreation extends SqliteApiSchoolCourses {
           newSchool.country,
           newSchool.academic_year,
           newSchool.language,
+          newSchool.student_login_type,
         ],
       );
 

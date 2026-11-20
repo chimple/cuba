@@ -13,15 +13,15 @@ const rankAssets = {
   1: `${ASSET_ROOT}/Campaign rank1 t2.svg`,
   2: `${ASSET_ROOT}/Campaign rank2 t2.svg`,
   3: `${ASSET_ROOT}/Campaign rank3 t.svg`,
-  progress: `${ASSET_ROOT}/Campaign progress t.svg`,
+  progress: `${ASSET_ROOT}/Campaign participation t.svg`,
   participation: `${ASSET_ROOT}/Campaign participation t.svg`,
 } as const;
 
 const rankMessages = {
-  1: 'Congratulations on getting first rank!',
-  2: 'Congratulations on getting second rank!',
-  3: 'Congratulations on getting third rank!',
-  progress: 'Congratulations on making great progress!',
+  1: 'Congratulations on winning first place!',
+  2: 'Congratulations on winning second place!',
+  3: 'Congratulations on winning third place!',
+  progress: 'Congratulations on participating!',
   participation: 'Congratulations on participating!',
 } as const;
 
@@ -40,6 +40,11 @@ const translated = (
   variables: Record<string, string | number> = {},
 ) => String(translate(key, { ...variables, defaultValue }) || defaultValue);
 
+const textFit = (value: string, maxLength: number, width = 363) =>
+  value.length > maxLength
+    ? { textLength: width, lengthAdjust: 'spacingAndGlyphs' as const }
+    : {};
+
 const compactText = (value: string, maxLength: number) =>
   value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
 
@@ -51,21 +56,43 @@ type Props = {
 
 const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
   ({ certificate, labels = {}, showStudentName = false }, ref) => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
+    const certificateLanguage = certificate.languageCode
+      ?.toLowerCase()
+      .split('-')[0];
+    const certificateT =
+      certificateLanguage && typeof i18n?.getFixedT === 'function'
+        ? i18n.getFixedT(certificateLanguage)
+        : t;
     const congratulations =
       labels.congratulations ??
       translated(
-        t,
+        certificateT,
         rankMessages[certificate.rank],
         rankMessages[certificate.rank],
       );
     const encouragement =
       labels.encouragement ??
       translated(
-        t,
+        certificateT,
         'Keep learning and exploring. We are proud of you!',
         'Keep learning and exploring. We are proud of you!',
       );
+    const isParticipationCertificate = ['progress', 'participation'].includes(
+      String(certificate.rank),
+    );
+    const title = (
+      labels.title ??
+      translated(
+        certificateT,
+        isParticipationCertificate
+          ? 'Certificate of Participation'
+          : 'Certificate of Recognition',
+        isParticipationCertificate
+          ? 'Certificate of Participation'
+          : 'Certificate of Recognition',
+      )
+    ).toUpperCase();
 
     return (
       <div ref={ref} className="campaign-certificate-artwork">
@@ -75,7 +102,7 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label={translated(
-            t,
+            certificateT,
             'Campaign reward: {{rank}}',
             `Campaign reward: ${certificate.rank}`,
             { rank: certificate.rank },
@@ -84,7 +111,7 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
         >
           <title>
             {translated(
-              t,
+              certificateT,
               'Campaign reward: {{rank}}',
               `Campaign reward: ${certificate.rank}`,
               { rank: certificate.rank },
@@ -93,12 +120,15 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           <rect
             width={CERTIFICATE_WIDTH}
             height={CERTIFICATE_HEIGHT}
-            fill="#fff9d9"
+            rx="16.232"
+            fill="#fffad9"
           />
           <image
             href={`${ASSET_ROOT}/Border assets.svg`}
-            width={CERTIFICATE_WIDTH}
-            height={CERTIFICATE_HEIGHT}
+            x="2"
+            y="6"
+            width="462"
+            height="314"
             aria-hidden="true"
           />
 
@@ -107,21 +137,32 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
             fontFamily="Baloo 2, sans-serif"
             textAnchor="middle"
           >
-            <text x="233" y="52" fontSize="16.667" fontWeight="700">
-              {(
-                labels.title ??
-                translated(
-                  t,
-                  'Certificate of Recognition',
-                  'Certificate of Recognition',
-                )
-              ).toUpperCase()}
+            <text
+              x="233"
+              y="52"
+              fontSize="16.667"
+              fontWeight="700"
+              {...textFit(title, 28)}
+            >
+              {title}
             </text>
-            <text x="233" y="73" fontSize="16.667" fontWeight="600">
+            <text
+              x="233"
+              y="73"
+              fontSize="16.667"
+              fontWeight="600"
+              {...textFit(certificate.campaignName, 34)}
+            >
               {compactText(certificate.campaignName.toUpperCase(), 42)}
             </text>
             {showStudentName && certificate.studentName && (
-              <text x="233" y="89" fontSize="12" fontWeight="600">
+              <text
+                x="233"
+                y="89"
+                fontSize="12"
+                fontWeight="600"
+                {...textFit(certificate.studentName, 36, 300)}
+              >
                 {compactText(certificate.studentName, 36)}
               </text>
             )}
@@ -133,24 +174,57 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
               width="112"
               height="112"
             />
-            <text x="233" y="221" fontSize="14" fontWeight="600">
-              {compactText(congratulations, 48)}
+            <text
+              x="233"
+              y="221"
+              fontSize="14"
+              fontWeight="600"
+              {...textFit(congratulations, 48)}
+            >
+              {congratulations}
             </text>
-            <line x1="119" y1="228" x2="347" y2="228" stroke="#dadada" />
-            <text x="233" y="242" fontSize="14" fontWeight="600">
-              {compactText(encouragement, 53)}
+            <line
+              x1="51.5"
+              y1="228"
+              x2="414.5"
+              y2="228"
+              stroke="#dadada"
+              strokeWidth="0.901"
+            />
+            <text
+              x="233"
+              y="242"
+              fontSize="14"
+              fontWeight="600"
+              {...textFit(encouragement, 53)}
+            >
+              {encouragement}
             </text>
-            <line x1="119" y1="249" x2="347" y2="249" stroke="#dadada" />
+            <line
+              x1="51.5"
+              y1="249"
+              x2="414.5"
+              y2="249"
+              stroke="#dadada"
+              strokeWidth="0.901"
+            />
 
             <text x="86" y="277" fontSize="14" fontWeight="600">
               {formatAwardDate(certificate.awardedAt)}
             </text>
-            <line x1="48" y1="285" x2="124" y2="285" stroke="#dadada" />
+            <line
+              x1="44"
+              y1="285"
+              x2="128"
+              y2="285"
+              stroke="#dadada"
+              strokeWidth="0.901"
+            />
           </g>
           <image
-            href={`${ASSET_ROOT}/chimle learning.svg`}
+            href="/assets/icons/chimple learning logo for certificates.svg"
             x="281"
-            y="257"
+            y="260"
             width="138"
             height="22"
             aria-label="Chimple Learning"

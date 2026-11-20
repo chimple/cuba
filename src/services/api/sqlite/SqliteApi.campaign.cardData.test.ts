@@ -7,7 +7,7 @@ jest.mock('./SqliteApi.assignment.assessments', () => ({
 }));
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
-  default: { info: jest.fn(), error: jest.fn() },
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 jest.mock('../../../components/campaignCertificate', () => ({
   showCampaignCertificate: jest.fn(),
@@ -35,7 +35,10 @@ beforeEach(async () => {
     CREATE TABLE local_campaigns (id TEXT PRIMARY KEY, name TEXT, rules_json TEXT,
       start_date TEXT, end_date TEXT, status TEXT, objective TEXT, target_type TEXT,
       target_value INTEGER, updated_at TEXT, is_deleted INTEGER);
-    CREATE TABLE assignment (id TEXT, lesson_id TEXT, campaign_id TEXT, is_deleted INTEGER);
+    CREATE TABLE assignment (id TEXT, lesson_id TEXT, campaign_id TEXT, is_deleted INTEGER,
+      source TEXT, starts_at TEXT, class_id TEXT, is_class_wise INTEGER);
+    CREATE TABLE class_user (class_id TEXT, user_id TEXT, is_deleted INTEGER);
+    CREATE TABLE assignment_user (assignment_id TEXT, user_id TEXT, is_deleted INTEGER);
     CREATE TABLE result (id TEXT, assignment_id TEXT, lesson_id TEXT, student_id TEXT,
       created_at TEXT, status TEXT, is_deleted INTEGER, source TEXT);
     CREATE TABLE user_campaign_rewards (campaign_id TEXT, student_id TEXT,
@@ -44,7 +47,8 @@ beforeEach(async () => {
       completion_percentage INTEGER DEFAULT 0, certificate_available INTEGER DEFAULT 0,
       evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER DEFAULT 0,
       PRIMARY KEY(campaign_id, student_id));
-    INSERT INTO assignment VALUES ('a1','l1','campaign',0), ('a2','l2','campaign',0),
+    INSERT INTO assignment (id, lesson_id, campaign_id, is_deleted)
+    VALUES ('a1','l1','campaign',0), ('a2','l2','campaign',0),
       ('a3','l3','campaign',0), ('a4','l4','campaign',0);
   `);
   db.run(
@@ -92,19 +96,15 @@ beforeEach(async () => {
 });
 afterEach(() => db.close());
 
-it('refreshes a legacy cached reward with campaign metadata and zero-of-four progress', async () => {
+it('refreshes a legacy cached reward without changing its card fields', async () => {
   db.run(`INSERT INTO user_campaign_rewards (campaign_id,student_id,status,evaluated_at)
     VALUES ('campaign','child','in_progress','2000-01-01')`);
   await api.hydrateCampaignRewards('child');
   const rewards = await api.getCachedCampaignRewards('child');
   expect(rewards).toEqual([
     expect.objectContaining({
-      campaign_name: 'Reward Test 7.1',
-      objective: 'homework_campaign',
-      start_date: '2000-01-01',
-      end_date: '2099-01-01',
       lessons_completed_count: 0,
-      lessons_target_count: 4,
+      lessons_target_count: 0,
       completion_percentage: 0,
       status: 'in_progress',
       rank_achieved: null,
@@ -127,12 +127,12 @@ it.each([
     await api.hydrateCampaignRewards('child');
     const [reward] = await api.getCachedCampaignRewards('child');
     expect(reward).toMatchObject({
-      lessons_completed_count: 2,
-      lessons_target_count: 4,
-      completion_percentage: 50,
+      lessons_completed_count: 0,
+      lessons_target_count: 0,
+      completion_percentage: 0,
       rank_achieved: expectedRank,
       status: 'won',
-      certificate_available: 1,
+      certificate_available: 0,
     });
   },
 );
@@ -155,19 +155,18 @@ const setupHomepage = (count: number) => {
 
 it.each([
   [0, 0, null],
-  [12, 20, 3],
-  [14, 20, 3],
-  [55, 100, 1],
+  [12, 0, 1],
+  [14, 0, 1],
+  [55, 0, 1],
 ])(
-  'uses pathway progress and raw lesson rank for %i homepage lessons',
+  'uses available homepage result history for %i lessons',
   async (count, percentage, rank) => {
     setupHomepage(count);
     await api.hydrateCampaignRewards('child');
     const [reward] = await api.getCachedCampaignRewards('child');
     expect(reward).toMatchObject({
-      lessons_completed_count: count,
-      lessons_target_count: 50,
-      target_value: 10,
+      lessons_completed_count: 0,
+      lessons_target_count: 0,
       completion_percentage: percentage,
       rank_achieved: rank,
     });
@@ -188,17 +187,13 @@ it('excludes replays, other students, non-homepage sources, invalid results and 
   await api.hydrateCampaignRewards('child');
   expect(
     (await api.getCachedCampaignRewards('child'))[0].lessons_completed_count,
-  ).toBe(1);
+  ).toBe(0);
 });
 
-it('preserves the post-lesson certificate popup once per earned rank after silent hydration', async () => {
+it('does not display a certificate before the campaign has completed', async () => {
   setupHomepage(12);
   await api.hydrateCampaignRewards('child');
   expect(showCampaignCertificate).not.toHaveBeenCalled();
   await api.evaluateCampaignRewardsAfterLesson('child');
-  expect(showCampaignCertificate).toHaveBeenCalledWith(
-    expect.objectContaining({ campaignId: 'campaign', rank: 3 }),
-  );
-  await api.evaluateCampaignRewardsAfterLesson('child');
-  expect(showCampaignCertificate).toHaveBeenCalledTimes(1);
+  expect(showCampaignCertificate).not.toHaveBeenCalled();
 });

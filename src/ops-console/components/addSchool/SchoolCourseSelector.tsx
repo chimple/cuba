@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
   Box,
   Checkbox,
@@ -43,10 +44,12 @@ export const SchoolCourseSelector = ({
     string[]
   >([]);
   const coursesRef = useRef<HTMLDivElement | null>(null);
+
   const orderedGrades = [...grades].sort(
     (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity),
   );
-  // Keep rows in place as checkboxes change; refresh priority on the next open.
+
+  // Keep rows in place while open; refresh selected-first order on reopening.
   const selectedIds = new Set(selectedCourseIdsOnOpen);
   const visibleCourses = orderedGrades
     .flatMap((grade) =>
@@ -68,6 +71,7 @@ export const SchoolCourseSelector = ({
         setCoursesOpen(false);
       }
     };
+
     document.addEventListener('mousedown', closeOnOutsideClick);
     return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, []);
@@ -84,7 +88,7 @@ export const SchoolCourseSelector = ({
 
       <Box className="add-school-course-filters">
         <Box className="add-school-course-field">
-          <FormLabel id="school-grades-label">
+          <FormLabel id="school-grades-label" sx={{ color: '#111827' }}>
             {t('Grade')} <span className="add-school-requird">*</span>
           </FormLabel>
           <Select
@@ -125,25 +129,40 @@ export const SchoolCourseSelector = ({
         </Box>
 
         <Box className="add-school-course-field" ref={coursesRef}>
-          <FormLabel>
+          <FormLabel sx={{ color: '#111827' }}>
             {t('Courses')} <span className="add-school-requird">*</span>
           </FormLabel>
           <button
             type="button"
             id="add-school-course-select-trigger"
             className="add-school-course-select-trigger"
+            aria-expanded={coursesOpen}
             disabled={loading || !selectedGradeIds.length}
             onClick={() => {
-              if (!coursesOpen)
+              if (!coursesOpen) {
                 setSelectedCourseIdsOnOpen([...selectedCourseIds]);
+              }
               setCoursesOpen(!coursesOpen);
             }}
           >
-            {selectedCourseIds.length
-              ? `${selectedCourseIds.length} ${t('Courses selected')}`
-              : t('Select Courses')}
-            <span>{coursesOpen ? '⌃' : '⌄'}</span>
+            <span
+              className={`add-school-course-select-value${
+                selectedCourseIds.length
+                  ? ''
+                  : ' add-school-course-select-placeholder'
+              }`}
+            >
+              {selectedCourseIds.length
+                ? `${selectedCourseIds.length} ${t('Courses selected')}`
+                : t('Select Courses')}
+            </span>
+            <ArrowDropDownIcon
+              className={`add-school-course-select-icon${
+                coursesOpen ? ' add-school-course-select-icon-open' : ''
+              }`}
+            />
           </button>
+
           {mode === 'edit' &&
             !loading &&
             (removalError || selectedCourseIds.length === 0) && (
@@ -151,6 +170,7 @@ export const SchoolCourseSelector = ({
                 {removalError || t('Please select at least one course.')}
               </Typography>
             )}
+
           {coursesOpen && (
             <Box className="add-school-course-menu">
               {visibleCourses.map((course) => (
@@ -168,6 +188,7 @@ export const SchoolCourseSelector = ({
                   />
                 </label>
               ))}
+
               {!visibleCourses.length && (
                 <Typography className="add-school-course-empty">
                   {t('No courses available for the selected grades')}

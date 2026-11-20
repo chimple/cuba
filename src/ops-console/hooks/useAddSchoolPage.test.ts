@@ -76,7 +76,7 @@ beforeEach(() => {
 });
 
 it.each(['create', 'edit'])(
-  '%s requires a course before saving a school',
+  '%s requires the applicable fields before saving a school',
   async (mode) => {
     if (mode === 'edit') {
       mockLocation.state = {
@@ -120,6 +120,12 @@ it.each(['create', 'edit'])(
         ]),
       );
       act(() => result.current.toggleCourse('course-1'));
+      expect(result.current.isSaveDisabled()).toBe(true);
+      await act(async () => {
+        await result.current.handleApprove();
+      });
+      expect(mockApi.createSchool).not.toHaveBeenCalled();
+      act(() => result.current.setStudentLoginType('parent_phone_number'));
     }
     expect(result.current.isSaveDisabled()).toBe(false);
 
@@ -141,6 +147,11 @@ it.each(['create', 'edit'])(
       'school-1',
       ['course-1'],
     );
+    if (mode === 'create') {
+      expect(mockApi.createSchool.mock.calls[0][14]).toBe(
+        'parent_phone_number',
+      );
+    }
   },
 );
 

@@ -212,6 +212,15 @@ export class SqliteApiUserClassManagement extends SqliteApiUserSchoolRoles {
   async deleteClass(classId: string) {
     await this.ensureInitialized();
     try {
+      const activeBlockingUsers = await this.executeQuery(
+        `SELECT id FROM class_user
+         WHERE class_id = ? AND role IN (?, ?) AND is_deleted = 0 LIMIT 1`,
+        [classId, RoleType.STUDENT, RoleType.TEACHER],
+      );
+      if (activeBlockingUsers?.values?.length) {
+        throw new Error('CLASS_HAS_ACTIVE_STUDENTS_OR_TEACHERS');
+      }
+
       // Update is_deleted to true for all class_user records where role is teacher
       await this.executeQuery(
         `UPDATE class_user SET is_deleted = 1 WHERE class_id = ? AND role = ?`,

@@ -152,6 +152,10 @@ export const buildBulkUploadPayload = (payload: {
       grade: grade || '',
       parent_contact:
         row['PARENT PHONE NUMBER OR LOGIN ID']?.toString().trim() || '',
+      school_login_id:
+        (row['SCHOOL LOGIN ID'] ?? row['school_login_id'])?.toString().trim() ||
+        '',
+      password: (row['PASSWORD'] ?? row['password'])?.toString() || '',
     };
     const school = map.get(key);
     let cls = school.classes.find(

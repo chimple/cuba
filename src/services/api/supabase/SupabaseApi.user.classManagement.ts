@@ -283,72 +283,65 @@ export class SupabaseApiUserClassManagement extends SupabaseApiUserSchoolRoles {
     if (!this.supabase) return;
 
     try {
-      // Soft-delete class_user (only teachers)
+      const { count, error: connectedUserCountError } = await this.supabase
+        .from('class_user')
+        .select('id', { count: 'exact', head: true })
+        .eq('class_id', classId)
+        .in('role', [RoleType.STUDENT, RoleType.TEACHER])
+        .eq('is_deleted', false);
+
+      if (connectedUserCountError) {
+        logger.error(
+          'Error checking active students or teachers for class deletion:',
+          connectedUserCountError,
+        );
+        throw connectedUserCountError;
+      }
+
+      if ((count ?? 0) > 0) {
+        throw new Error('CLASS_HAS_ACTIVE_STUDENTS_OR_TEACHERS');
+      }
+
+      const updatedAt = new Date().toISOString();
       const { error: classUserUpdateError } = await this.supabase
         .from('class_user')
-        .update({ is_deleted: true })
+        .update({ is_deleted: true, updated_at: updatedAt })
         .eq('class_id', classId)
-        .eq('role', RoleType.TEACHER);
+        .eq('is_deleted', false);
 
       if (classUserUpdateError) {
-        logger.error('Error updating class_user:', classUserUpdateError);
+        logger.error('Error updating class users:', classUserUpdateError);
         throw classUserUpdateError;
       }
 
-      // Get affected class_user IDs (teachers)
-      const { data: deletedClassUsers, error: classUserFetchError } =
-        await this.supabase
-          .from('class_user')
-          .select('id')
-          .eq('class_id', classId)
-          .eq('role', RoleType.TEACHER)
-          .eq('is_deleted', true);
-
-      if (classUserFetchError) {
-        logger.error(
-          'Error fetching updated class_user records:',
-          classUserFetchError,
-        );
-        throw classUserFetchError;
-      }
-
-      if (!deletedClassUsers || deletedClassUsers.length === 0) {
-      }
-
-      // Soft-delete class_course for this class
       const { error: classCourseUpdateError } = await this.supabase
         .from('class_course')
-        .update({ is_deleted: true })
-        .eq('class_id', classId);
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .eq('class_id', classId)
+        .eq('is_deleted', false);
 
       if (classCourseUpdateError) {
-        logger.error('Error updating class_course:', classCourseUpdateError);
+        logger.error('Error updating class courses:', classCourseUpdateError);
         throw classCourseUpdateError;
       }
 
-      // Get affected class_course IDs
-      const { data: deletedClassCourses, error: classCourseFetchError } =
-        await this.supabase
-          .from('class_course')
-          .select('id')
-          .eq('class_id', classId)
-          .eq('is_deleted', true);
+      const { error: classInviteCodeUpdateError } = await this.supabase
+        .from('class_invite_code')
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .eq('class_id', classId)
+        .or('is_deleted.eq.false,is_deleted.is.null');
 
-      if (classCourseFetchError) {
+      if (classInviteCodeUpdateError) {
         logger.error(
-          'Error fetching updated class_course records:',
-          classCourseFetchError,
+          'Error updating class invite codes:',
+          classInviteCodeUpdateError,
         );
-        throw classCourseFetchError;
+        throw classInviteCodeUpdateError;
       }
 
-      if (!deletedClassCourses || deletedClassCourses.length === 0) {
-      }
-
-      // Soft-delete the class itself
       const { error: classUpdateError } = await this.supabase
         .from('class')
-        .update({ is_deleted: true })
+        .update({ is_deleted: true, updated_at: updatedAt })
         .eq('id', classId)
         .eq('is_deleted', false);
 

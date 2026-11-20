@@ -26,4 +26,29 @@ describe('CampaignCertificateArtwork', () => {
     // The revised artwork intentionally omits the student's printed name.
     expect(screen.queryByText(/Awarded to/i)).not.toBeInTheDocument();
   });
+
+  it('renders the participation artwork and certificate title', () => {
+    render(
+      <CampaignCertificateArtwork
+        certificate={{
+          campaignId: 'campaign-participation',
+          campaignName: 'Summer League',
+          studentName: 'Madhavi',
+          rank: 'progress',
+          awardedAt: '2026-06-28T00:00:00.000Z',
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId('campaign-certificate-rank')).toHaveAttribute(
+      'href',
+      '/assets/campaignCompetition/Campaign participation t.svg',
+    );
+    expect(
+      screen.getByText('CERTIFICATE OF PARTICIPATION'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Congratulations on participating!'),
+    ).toBeInTheDocument();
+  });
 });

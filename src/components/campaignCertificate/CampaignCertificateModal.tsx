@@ -23,7 +23,6 @@ const CHEER_DELAY_MS = 2000;
 const VOICEOVER_DELAY_MS = 4000;
 // Leave the star preview visible after the flash before opening the share sheet.
 const SHARE_PREVIEW_DELAY_MS = 1200;
-const CAMERA_FLASH_SOUND = '/assets/audios/stickerBookSave/camera_flash.mp3';
 
 const voiceovers: Record<string, string> = {
   en: `${ASSET_ROOT}/Competition English v3.mp3`,
@@ -138,12 +137,7 @@ const CampaignCertificateModal = ({
     void AudioUtil.stopAudioUrlOrTtsPlayback();
     setIsSharing(true);
     setShowShareCapture(true);
-    // The sound and stars belong to the dedicated share preview, which is
-    // also the exact element captured for the native share image.
-    void AudioUtil.playAudioOrTts({
-      audioUrl: CAMERA_FLASH_SOUND,
-      delayMs: 300,
-    });
+    // The stars belong to the dedicated preview captured for native sharing.
     void logCampaignCertificateEvent(
       EVENTS.CAMPAIGN_CERTIFICATE_SHARE_CLICKED,
       certificate,
@@ -264,11 +258,7 @@ const CampaignCertificateModal = ({
           className="campaign-certificate-share-capture-overlay"
           role="presentation"
         >
-          <div ref={captureRef} className="campaign-certificate-share-capture">
-            <CampaignCertificateArtwork
-              certificate={certificate}
-              labels={labels}
-            />
+          <div className="campaign-certificate-share-stage">
             <img
               className="campaign-certificate-share-star campaign-certificate-share-star-left campaign-certificate-share-star--visible"
               data-testid="campaign-certificate-share-star"
@@ -276,6 +266,15 @@ const CampaignCertificateModal = ({
               alt=""
               aria-hidden="true"
             />
+            <div
+              ref={captureRef}
+              className="campaign-certificate-share-capture"
+            >
+              <CampaignCertificateArtwork
+                certificate={certificate}
+                labels={labels}
+              />
+            </div>
             <img
               className="campaign-certificate-share-star campaign-certificate-share-star-right campaign-certificate-share-star--visible"
               data-testid="campaign-certificate-share-star"
