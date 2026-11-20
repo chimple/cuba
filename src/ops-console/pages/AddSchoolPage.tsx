@@ -101,6 +101,7 @@ const AddSchoolPage: React.FC = () => {
           isBlocksLoading={controller.isBlocksLoading}
           isDistrictsLoading={controller.isDistrictsLoading}
           isStatesLoading={controller.isStatesLoading}
+          requireBlock={!controller.editData}
           states={controller.states}
         />
 

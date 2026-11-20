@@ -14,6 +14,7 @@ export const AddSchoolAddressSection = ({
   isBlocksLoading,
   isDistrictsLoading,
   isStatesLoading,
+  requireBlock,
   states,
 }: {
   address: {
@@ -29,6 +30,7 @@ export const AddSchoolAddressSection = ({
   isBlocksLoading: boolean;
   isDistrictsLoading: boolean;
   isStatesLoading: boolean;
+  requireBlock: boolean;
   states: string[];
 }) => (
   <Box className="add-school-section-box">
@@ -74,6 +76,7 @@ export const AddSchoolAddressSection = ({
       <Grid size={{ xs: 12, md: 6 }}>
         <DropdownField
           label={t('Block')}
+          required={requireBlock}
           value={address.block}
           onChange={(value) => handleAddressChange('block', value)}
           options={blocks}

@@ -68,7 +68,9 @@ export default function NewProgramLocationFields({
                 >
                   {t(key) || key}
                 </Typography>
-                <span className="new-program-mandatory">*</span>
+                {key !== 'Block' && (
+                  <span className="new-program-mandatory">*</span>
+                )}
               </Box>
               <Autocomplete
                 options={geoData[key]}

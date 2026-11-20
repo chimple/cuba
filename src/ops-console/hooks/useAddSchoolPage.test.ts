@@ -111,6 +111,12 @@ it.each(['create', 'edit'])(
       });
       expect(mockApi.createSchool).not.toHaveBeenCalled();
       act(() => result.current.setStudentLoginType('parent_phone_number'));
+      expect(result.current.isSaveDisabled()).toBe(true);
+      await act(async () => {
+        await result.current.handleApprove();
+      });
+      expect(mockApi.createSchool).not.toHaveBeenCalled();
+      act(() => result.current.handleAddressChange('block', 'Block'));
     }
     expect(result.current.isSaveDisabled()).toBe(false);
 
