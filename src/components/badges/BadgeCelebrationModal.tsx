@@ -8,7 +8,8 @@ import { logBadgeEvent } from '../../common/Badges/badgeAnalytics';
 import type { BadgeAnalyticsProgress } from '../../common/Badges/badgeAnalytics';
 import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
-import SharedBadgeArtwork from './SharedBadgeArtwork';
+import CelebrationBadgeArtwork from './CelebrationBadgeArtwork';
+import BadgeSharePreview from './BadgeSharePreview';
 import './BadgeCelebrationModal.css';
 import { TRACKABLE_IDS, getTrackableProps } from '../../analytics/trackable';
 
@@ -71,15 +72,20 @@ const BadgeCelebrationModal = ({
   const cheerAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isSharePreviewOpen, setIsSharePreviewOpen] = useState(false);
 
   const voiceoverUrl =
     milestone === null ? null : getVoiceoverUrl(languageCode, milestone);
   const badgeMilestone = progress?.latest_badge_milestone || milestone || 0;
   const lessonsPlayedCount = progress?.lessons_played_count ?? milestone ?? 0;
   const heading = t('Congratulations!', { defaultValue: 'Congratulations!' });
-  const completedText = t('{{count}} lessons complete!', {
+  const celebrationCompletedText = t('{{count}} lessons complete!', {
     count: lessonsPlayedCount,
     defaultValue: `${lessonsPlayedCount} lessons complete!`,
+  });
+  const shareCompletedText = t('I have completed {{count}} lessons!', {
+    count: lessonsPlayedCount,
+    defaultValue: `I have completed ${lessonsPlayedCount} lessons!`,
   });
   const analyticsProgress = useMemo<BadgeAnalyticsProgress>(
     () =>
@@ -174,13 +180,12 @@ const BadgeCelebrationModal = ({
         pixelRatio: 2,
       });
       await Util.sendContentToAndroidOrWebShare(
-        `${heading} ${completedText}`,
+        `${heading} ${shareCompletedText}`,
         'My Chimple Badge',
         undefined,
         [dataUrlToFile(dataUrl, milestone)],
         { rethrowOnError: true },
       );
-      // The share helper rethrows native/web dismissal errors for outcome tracking.
       void logBadgeEvent(
         EVENTS.BADGE_SHARE_SUCCESS,
         analyticsStudentId,
@@ -201,10 +206,30 @@ const BadgeCelebrationModal = ({
       );
     } finally {
       setIsSharing(false);
+      setIsSharePreviewOpen(false);
+      onClose();
     }
   };
 
+  const openSharePreview = () => {
+    if (isSharing) return;
+    logPopupButtonClick('share_button');
+    setIsSharePreviewOpen(true);
+  };
+
   if (milestone === null) return null;
+
+  if (isSharePreviewOpen) {
+    return (
+      <BadgeSharePreview
+        captureRef={captureRef}
+        milestone={badgeMilestone}
+        heading={heading}
+        completedText={shareCompletedText}
+        onShare={() => void shareBadge()}
+      />
+    );
+  }
 
   return (
     <div
@@ -246,17 +271,17 @@ const BadgeCelebrationModal = ({
           onClick={closeModal}
           aria-label={String(t('Close', { defaultValue: 'Close' }))}
         />
-        <SharedBadgeArtwork
-          ref={captureRef}
+        <CelebrationBadgeArtwork
           milestone={badgeMilestone}
           heading={heading}
-          completedText={completedText}
+          completedText={celebrationCompletedText}
         />
         <button
           type="button"
           className="BadgeCelebrationModal-share"
+          id="BadgeCelebrationModal-share"
           {...getTrackableProps(TRACKABLE_IDS.BADGE_CELEBRATION_SHARE)}
-          onClick={shareBadge}
+          onClick={openSharePreview}
           disabled={isSharing}
         >
           <img

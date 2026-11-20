@@ -9,6 +9,7 @@
     "{{className}} - Select the child's profile": "{{className}} - ಮಗುವಿನ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
     "{{count}} campaign day(s) are configured for communication.": "",
     "{{count}} lessons complete!": "{{count}} ಪಾಠಗಳು ಪೂರ್ಣ!",
+  "I have completed {{count}} lessons!": "ನಾನು {{count}} ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೇನೆ!",
     "{{fromName}}\nhas been merged into {{toName}}'s profile": "{{fromName}}\nಅನ್ನು {{toName}} ಅವರ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ವಿಲೀನಗೊಳಿಸಲಾಗಿದೆ.",
     "{{principalName}}'s profile has been deleted and is no longer available.": "{{principalName}} ಅವರ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಅಳಿಸಲಾಗಿದೆ ಮತ್ತು ಅದು ಇನ್ನು ಮುಂದೆ ಲಭ್ಯವಿಲ್ಲ.",
     "{{rank}} {{criteriaLabel}}": "",
