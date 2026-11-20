@@ -242,6 +242,7 @@ export const useAddSchoolPage = () => {
       (Boolean(editData) || Boolean(studentLoginType)) &&
       !!address.state &&
       !!address.district &&
+      (Boolean(editData) || !!address.block.trim()) &&
       !!program &&
       !!fieldCoordinator &&
       !!contacts[0].fields[0].value &&
@@ -395,7 +396,7 @@ export const useAddSchoolPage = () => {
   }, [api, editData, program]);
 
   async function handleApprove() {
-    if (!editData && !studentLoginType) return;
+    if (!editData && (!studentLoginType || !address.block.trim())) return;
 
     if (isCoursesLoading || courseLoadError || selectedCourseIds.length === 0) {
       return;
