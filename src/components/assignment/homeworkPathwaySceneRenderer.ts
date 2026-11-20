@@ -79,6 +79,8 @@ export function renderHomeworkPathwayScene(params: any) {
     REWARD_FLIGHT_DURATION_MS,
     FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS,
     FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS,
+    rewardAnimationSignal,
+    onRewardAnimationSettled,
     createSVGImage,
     haloPath,
   } = params;
@@ -436,6 +438,8 @@ export function renderHomeworkPathwayScene(params: any) {
         startPoint,
         svg,
         updateMascotToNormalState,
+        signal: rewardAnimationSignal,
+        onSettled: onRewardAnimationSettled,
       });
 
     // (newRewardId is already fetched in Promise.all above)

@@ -40,6 +40,31 @@ export default function RewardRive({ rewardRiveState }: RewardRiveProps) {
     }),
   });
 
+  // Pause only while the WebView is hidden. This leaves online/offline asset
+  // selection and the reward state machine unchanged while avoiding GPU work
+  // during Android background/teardown transitions.
+  useEffect(() => {
+    let pausedForVisibility = false;
+
+    const syncVisibility = () => {
+      if (document.hidden) {
+        rive?.pause();
+        pausedForVisibility = true;
+      } else if (pausedForVisibility) {
+        rive?.play();
+        pausedForVisibility = false;
+      }
+    };
+
+    document.addEventListener('visibilitychange', syncVisibility);
+    syncVisibility();
+
+    return () => {
+      document.removeEventListener('visibilitychange', syncVisibility);
+      rive?.pause();
+    };
+  }, [rive]);
+
   const numberInput = useStateMachineInput(
     rive,
     'State Machine 2',
