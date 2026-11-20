@@ -21,6 +21,7 @@ export interface ServiceApiSchoolManagement {
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
     language?: string | null,
+    studentLoginType?: EnumType<'login_type'> | null,
   ): Promise<TableTypes<'school'>>;
 
   updateSchoolProfile(

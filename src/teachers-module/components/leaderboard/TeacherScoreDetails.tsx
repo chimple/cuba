@@ -45,10 +45,15 @@ const TeacherScoreDetails = ({
   const byDate = new Map(
     scoreHistory.map((item) => [item.date.slice(0, 10), item.score]),
   );
-  const days = lastSevenDates().map((date) => ({
+  const chartDates = lastSevenDates();
+  const days = chartDates.map((date, index) => ({
     date,
-    // Keeps the chart stable while a source has no score for a particular day.
-    score: displayScore(byDate.get(date) ?? roundedCurrentScore),
+    // Today's point follows the last database refresh. The locally calculated
+    // score becomes authoritative after the next daily leaderboard refresh.
+    score:
+      index === chartDates.length - 1
+        ? roundedCurrentScore
+        : displayScore(byDate.get(date) ?? roundedCurrentScore),
   }));
   const previousScore = days[days.length - 2].score;
   const change = roundedCurrentScore - previousScore;
@@ -117,7 +122,7 @@ const TeacherScoreDetails = ({
           </strong>
           <svg
             className="teacher-score-details__chart"
-            viewBox="0 0 298 164"
+            viewBox="0 0 298 176"
             role="img"
             aria-label={String(t('Your score over the last 7 days'))}
           >
@@ -141,7 +146,7 @@ const TeacherScoreDetails = ({
                     x1={x}
                     x2={x}
                     y1={Number(y) + 10}
-                    y2="132"
+                    y2="144"
                     stroke="#c6a4ff"
                     strokeDasharray="3 3"
                   />
@@ -170,14 +175,20 @@ const TeacherScoreDetails = ({
                     y={Number(y) + 18}
                     textAnchor="middle"
                     className="teacher-score-details__value"
+                    data-testid={
+                      isToday ? 'teacher-score-details-today-score' : undefined
+                    }
                   >
                     {day.score}
                   </text>
                   <text
                     x={x}
-                    y="146"
+                    y="158"
                     textAnchor="middle"
                     className="teacher-score-details__date"
+                    data-testid={
+                      isToday ? 'teacher-score-details-today-date' : undefined
+                    }
                   >
                     {dateLabel(day.date)}
                   </text>
@@ -204,7 +215,7 @@ const TeacherScoreDetails = ({
                   )}
                   <text
                     x={x}
-                    y="158"
+                    y="170"
                     textAnchor="middle"
                     className="teacher-score-details__weekday"
                   >

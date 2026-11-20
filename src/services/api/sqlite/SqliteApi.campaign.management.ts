@@ -6,7 +6,8 @@ import {
 
 import { SqliteApiCampaignRewards } from './SqliteApi.campaign.rewards';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
-
+import logger from '../../../utility/logger';
+import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
 import {
   CampaignSetupOptions,
   CampaignCancellationDetails,
@@ -42,8 +43,27 @@ import {
   CampaignActiveChange,
   CampaignGoalProgress,
 } from '../ServiceApi';
-import logger from '../../../utility/logger';
-export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
+import {
+  getEligibleCampaignIds,
+  hasEligibleCampaignIds,
+  saveEligibleCampaignIds,
+} from './campaignRewardEligibility';
+import {
+  evaluateCampaignReward,
+  type LocalCampaignRow,
+} from './campaignRewardEvaluation';
+import {
+  getCampaignCertificateIndicator,
+  markCampaignCertificatesSeen,
+} from './campaignRewardCertificates';
+import {
+  logCampaignFetch,
+  logCampaignHydration,
+  logCampaignReward,
+} from './campaignRewardLogging';
+const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
+const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
+export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
   async getActiveCampaigns(
     studentId: string,
@@ -291,6 +311,149 @@ export class SqliteApiCampaignManagement extends SqliteApiCampaignRewards {
     return await this._serverApi.getCampaignSchoolPerformanceReport(
       campaignId,
       params,
+    );
+  }
+
+  async syncCampaignRewards(studentId = this.currentStudent?.id) {
+    if (!studentId) return;
+    await this.ensureInitialized();
+    const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
+    const lastFetch = localStorage.getItem(storageKey);
+    const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
+    logCampaignReward('sync started', { studentId, lastFetch });
+    if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
+      const changes = await this.getActiveCampaigns(studentId, lastFetch);
+      logCampaignFetch(studentId, changes ?? []);
+      const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+      for (const change of changes ?? []) {
+        if (change.change_type === 'delete') {
+          eligibleCampaignIds.delete(change.campaign_id);
+          continue;
+        }
+        eligibleCampaignIds.add(change.campaign_id);
+        await this.executeQuery(
+          `INSERT OR REPLACE INTO local_campaigns
+            (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+          [
+            change.campaign_id,
+            change.campaign_name,
+            JSON.stringify(change.rules_json ?? {}),
+            change.start_date,
+            change.end_date,
+            change.campaign_status ?? 'active',
+            change.objective ?? null,
+            change.target_type ?? null,
+            change.target_value ?? null,
+            change.updated_at ?? change.created_at ?? new Date().toISOString(),
+          ],
+        );
+      }
+      saveEligibleCampaignIds(studentId, eligibleCampaignIds);
+      localStorage.setItem(storageKey, new Date().toISOString());
+      logCampaignReward('campaign cache updated', {
+        studentId,
+        receivedCampaignCount: changes?.length ?? 0,
+        eligibleCampaignCount: eligibleCampaignIds.size,
+      });
+    } else {
+      logCampaignReward('RPC fetch skipped; campaign cache is fresh', {
+        studentId,
+        lastFetch,
+        nextFetchAt: new Date(
+          lastFetchMs + CAMPAIGN_SYNC_INTERVAL_MS,
+        ).toISOString(),
+      });
+    }
+    await this.hydrateCampaignRewards(studentId);
+  }
+  async hydrateCampaignRewards(studentId = this.currentStudent?.id) {
+    if (!studentId) return;
+    await this.ensureInitialized();
+    const result = await this.executeQuery(
+      'SELECT * FROM local_campaigns WHERE is_deleted = 0',
+    );
+    const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+    logCampaignHydration(
+      studentId,
+      result?.values?.length ?? 0,
+      eligibleCampaignIds.size,
+    );
+    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
+      if (!eligibleCampaignIds.has(campaign.id)) continue;
+      await this.evaluateCampaignReward(campaign, studentId, true);
+    }
+  }
+  async evaluateCampaignRewardsAfterLesson(
+    studentId = this.currentStudent?.id,
+  ) {
+    if (!studentId) return;
+    if (!hasEligibleCampaignIds(studentId)) {
+      await this.syncCampaignRewards(studentId);
+    }
+    await this.ensureInitialized();
+    const now = new Date().toISOString();
+    const result = await this.executeQuery(
+      `SELECT * FROM local_campaigns
+       WHERE is_deleted = 0 AND status = 'active'
+         AND start_date <= ? AND end_date >= ?`,
+      [now, now],
+    );
+    const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+    for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
+      if (!eligibleCampaignIds.has(campaign.id)) continue;
+      await this.evaluateCampaignReward(campaign, studentId, true);
+    }
+  }
+  async getCachedCampaignRewards(studentId = this.currentStudent?.id) {
+    if (!studentId) return [];
+    await this.ensureInitialized();
+    const result = await this.executeQuery(
+      `SELECT * FROM user_campaign_rewards
+       WHERE student_id = ? AND is_deleted = 0
+       ORDER BY evaluated_at DESC`,
+      [studentId],
+    );
+    return result?.values ?? [];
+  }
+  async getCampaignCertificateIndicator(studentId: string): Promise<{
+    hasUnseenCertificate: boolean;
+    campaignId?: string;
+  }> {
+    await this.ensureInitialized();
+    return getCampaignCertificateIndicator(
+      (statement, values) => this.executeQuery(statement, values),
+      studentId,
+    );
+  }
+
+  async markCampaignCertificatesSeen(studentId: string): Promise<void> {
+    await this.ensureInitialized();
+    await markCampaignCertificatesSeen(
+      (statement, values) => this.executeQuery(statement, values),
+      studentId,
+    );
+  }
+
+  private async evaluateCampaignReward(
+    campaign: LocalCampaignRow,
+    studentId: string,
+    showCertificate: boolean,
+  ): Promise<void> {
+    await evaluateCampaignReward(
+      {
+        executeQuery: (statement, values) =>
+          this.executeQuery(statement, values),
+        upsertReward: (reward) =>
+          this._serverApi.upsertCampaignStudentReward(reward),
+        getStudent: (id) => this.getUserByDocId(id),
+        getLanguage: (id) => this.getLanguageWithId(id),
+        studentName: this.currentStudent?.name ?? '',
+        schoolId: this.currentSchool?.id,
+      },
+      campaign,
+      studentId,
+      showCertificate,
     );
   }
 }

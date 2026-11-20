@@ -109,4 +109,38 @@ describe('TeacherScoreDetails', () => {
       screen.queryByText(/Move students to the yellow band/),
     ).not.toBeInTheDocument();
   });
+
+  it('uses the refreshed database score for today until the next refresh', () => {
+    render(
+      <TeacherScoreDetails
+        currentScore={3}
+        scoreHistory={scoreHistory([3, 3, 3, 3, 3, 3, 1])}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('teacher-score-details-today-score'),
+    ).toHaveTextContent('3');
+    expect(
+      screen.getByText('Your score is unchanged from yesterday.'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the Today marker separated from the date for a zero score', () => {
+    render(
+      <TeacherScoreDetails
+        currentScore={0}
+        scoreHistory={scoreHistory([1, 1, 1, 1, 1, 1, 0])}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('teacher-score-details-today-marker'),
+    ).toHaveAttribute('y', '129');
+    expect(
+      screen.getByTestId('teacher-score-details-today-date'),
+    ).toHaveAttribute('y', '158');
+  });
 });

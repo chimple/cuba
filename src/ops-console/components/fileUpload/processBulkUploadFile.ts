@@ -108,7 +108,14 @@ export const processBulkUploadFile = async ({
     await processTeacherSheet(sheet, processedData, validationContext);
     await processStudentSheet(sheet, processedData, validationContext);
 
-    processedSheetsForExport[sheet] = processedData as Record<string, any>[];
+    processedSheetsForExport[sheet] = processedData.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [
+          key,
+          key.toLowerCase() === 'password' ? '' : value,
+        ]),
+      ),
+    ) as Record<string, any>[];
 
     if (sheet === 'School') validatedSheets.school = processedData;
     else if (sheet === 'Class') validatedSheets.class = processedData;

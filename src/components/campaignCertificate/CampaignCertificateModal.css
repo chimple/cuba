@@ -73,7 +73,8 @@
   width: 100%;
   aspect-ratio: 466 / 326;
   overflow: hidden;
-  background: #fff9d9;
+  border-radius: 16.232px;
+  background: #fffad9;
   color: #665800;
 }
 
@@ -99,12 +100,20 @@
   pointer-events: none;
 }
 
-.campaign-certificate-share-capture {
+.campaign-certificate-share-stage {
   position: relative;
-  width: min(540px, calc(100vw - 5rem));
-  padding: 1rem 0.5rem;
+  width: min(600px, calc(100vw - 1rem));
+  padding: 1rem 3rem;
   box-sizing: border-box;
-  background: #fff9d9;
+}
+
+.campaign-certificate-share-capture {
+  width: 100%;
+  margin: 0;
+  /* Exact shared-image clearance: 12.1px vertically and 5px horizontally. */
+  padding: 12.1px 5px;
+  box-sizing: border-box;
+  background: transparent;
 }
 
 .campaign-certificate-border {
@@ -352,15 +361,15 @@
 .campaign-certificate-share-star-left {
   width: 62px;
   height: 54px;
-  top: 1.5rem;
-  left: 0.45rem;
+  top: 3rem;
+  left: -0.5rem;
 }
 
 .campaign-certificate-share-star-right {
   width: 88px;
   height: 76px;
-  top: 52%;
-  right: 0.35rem;
+  top: 38%;
+  right: -2.5rem;
   --star-rotate: 60deg;
 }
 
@@ -409,6 +418,23 @@
   .campaign-certificate-rank {
     width: 20%;
     margin: 0.15rem 0;
+  }
+  .campaign-certificate-share-stage {
+    width: min(480px, calc(100vw - 1rem));
+    padding: 0.4rem 2rem;
+  }
+  .campaign-certificate-share-capture {
+    padding: 6px 5px;
+  }
+  .campaign-certificate-share-star-left {
+    left: -1.25rem;
+  }
+}
+
+/* Landscape 800×360 / Lenovo tablet: give only the Share control extra room. */
+@media (min-width: 600px) and (max-height: 500px) {
+  .campaign-certificate-dialog {
+    --certificate-share-height: 54px;
   }
 }
 
