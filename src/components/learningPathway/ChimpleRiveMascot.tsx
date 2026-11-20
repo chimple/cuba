@@ -66,6 +66,32 @@ function RiveMascotCanvas({
       useOffscreenRenderer: false,
     },
   );
+
+  // Keep the existing renderer and asset-loading strategy intact, but do not
+  // submit animation frames while the WebView is hidden/backgrounded. This is
+  // especially important during Android's render-resource teardown.
+  useEffect(() => {
+    let pausedForVisibility = false;
+
+    const syncVisibility = () => {
+      if (document.hidden) {
+        rive?.pause();
+        pausedForVisibility = true;
+      } else if (pausedForVisibility) {
+        rive?.play();
+        pausedForVisibility = false;
+      }
+    };
+
+    document.addEventListener('visibilitychange', syncVisibility);
+    syncVisibility();
+
+    return () => {
+      document.removeEventListener('visibilitychange', syncVisibility);
+      rive?.pause();
+    };
+  }, [rive]);
+
   const stateInputName = inputName ? inputName : CHIMPLE_MASCOT_INPUT_NORMAL;
   const numberInput = useStateMachineInput(
     rive,

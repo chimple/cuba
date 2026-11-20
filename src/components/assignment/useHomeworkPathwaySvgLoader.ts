@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import {
   ACTIVATION_REWARD_FLOW_KEY,
@@ -75,6 +75,14 @@ export const useHomeworkPathwaySvgLoader = (params: any) => {
     tryFetchSVG,
     updateMascotToNormalState,
   } = params;
+  const rewardAnimationControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      rewardAnimationControllerRef.current?.abort();
+    },
+    [],
+  );
 
   const loadSVG = useCallback(async () => {
     if (!containerRef.current) return;
@@ -440,6 +448,12 @@ export const useHomeworkPathwaySvgLoader = (params: any) => {
       chimple.setAttribute('width', '40%');
       chimple.setAttribute('height', '260%');
 
+      // A new scene replaces the SVG subtree. Stop a flight started by the
+      // previous scene before it can keep updating detached GPU-backed nodes.
+      rewardAnimationControllerRef.current?.abort();
+      const rewardAnimationController = new AbortController();
+      rewardAnimationControllerRef.current = rewardAnimationController;
+
       renderHomeworkPathwayScene({
         api,
         chimple,
@@ -510,6 +524,14 @@ export const useHomeworkPathwaySvgLoader = (params: any) => {
         REWARD_FLIGHT_DURATION_MS,
         FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS,
         FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS,
+        rewardAnimationSignal: rewardAnimationController.signal,
+        onRewardAnimationSettled: () => {
+          if (
+            rewardAnimationControllerRef.current === rewardAnimationController
+          ) {
+            rewardAnimationControllerRef.current = null;
+          }
+        },
       });
     } catch (error) {
       logger.error('Failed to load SVG:', error);

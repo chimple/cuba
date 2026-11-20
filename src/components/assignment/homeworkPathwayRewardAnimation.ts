@@ -11,19 +11,80 @@ import { hasPendingHomeworkStickerFlow } from '../../utility/homeworkStickerFlow
 
 export async function runHomeworkPathwayRewardAnimation(params: any) {
   const {
-    api, chimple, completedRewardIndex, currentIndex, delay,
-    FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS, FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS,
-    HOMEWORK_REWARD_COMPLETED_INDEX_KEY, invokeMascotCelebration, lessons,
-    lessonsToRender, MASCOT_X_OFFSET, newRewardId, onComplete, pathEndIndex,
-    PENDING_HOMEWORK_REWARD_TRANSITION_KEY, REWARD_FLIGHT_ARC_Y_OFFSET,
-    REWARD_FLIGHT_DURATION_MS, REWARD_FLIGHT_TARGET_X_OFFSET, reloadHomeworkPathway,
-    setHasTodayReward, setIsRewardPathLoaded, setRewardRiveContainer,
-    setRewardRiveState, shouldPlayFinalRewardAudioBeforeComplete, slotXValues,
-    startIndex, startIndexOffset, startPoint, svg, updateMascotToNormalState,
+    api,
+    chimple,
+    completedRewardIndex,
+    currentIndex,
+    delay,
+    FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS,
+    FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS,
+    HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+    invokeMascotCelebration,
+    lessons,
+    lessonsToRender,
+    MASCOT_X_OFFSET,
+    newRewardId,
+    onComplete,
+    pathEndIndex,
+    PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+    REWARD_FLIGHT_ARC_Y_OFFSET,
+    REWARD_FLIGHT_DURATION_MS,
+    REWARD_FLIGHT_TARGET_X_OFFSET,
+    reloadHomeworkPathway,
+    setHasTodayReward,
+    setIsRewardPathLoaded,
+    setRewardRiveContainer,
+    setRewardRiveState,
+    shouldPlayFinalRewardAudioBeforeComplete,
+    slotXValues,
+    startIndex,
+    startIndexOffset,
+    startPoint,
+    svg,
+    updateMascotToNormalState,
+    signal,
+    onSettled,
   } = params;
 
+  let rewardForeignObject: SVGForeignObjectElement | null = null;
+  let mascotTransitionCleanup: (() => void) | null = null;
+  let finishAnimation: (() => void) | null = null;
+  let shouldReloadPathway = false;
+  const animationFrameIds = new Set<number>();
+  let settled = false;
+
+  const isCancelled = () => signal?.aborted || !svg.isConnected;
+  const requestFrame = (callback: FrameRequestCallback) => {
+    const frameId = window.requestAnimationFrame((time) => {
+      animationFrameIds.delete(frameId);
+      if (!isCancelled()) callback(time);
+    });
+    animationFrameIds.add(frameId);
+    return frameId;
+  };
+  const cleanup = () => {
+    for (const frameId of animationFrameIds) {
+      window.cancelAnimationFrame(frameId);
+    }
+    animationFrameIds.clear();
+    mascotTransitionCleanup?.();
+    mascotTransitionCleanup = null;
+    finishAnimation?.();
+    finishAnimation = null;
+    rewardForeignObject?.remove();
+    rewardForeignObject = null;
+  };
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    onSettled?.();
+  };
+
+  signal?.addEventListener('abort', cleanup, { once: true });
+
   const animateChimpleMovement = () => {
-    if (!chimple) return;
+    if (!chimple || isCancelled()) return;
     const mascotElement = chimple;
     if (currentIndex > pathEndIndex) {
       sessionStorage.removeItem(REWARD_LEARNING_PATH);
@@ -74,10 +135,8 @@ export async function runHomeworkPathwayRewardAnimation(params: any) {
         if (hasResolved) return;
         hasResolved = true;
         window.clearTimeout(fallbackTimer);
-        mascotElement.removeEventListener(
-          'transitionend',
-          handleTransitionEnd,
-        );
+        mascotElement.removeEventListener('transitionend', handleTransitionEnd);
+        mascotTransitionCleanup = null;
         resolve();
       };
       const handleTransitionEnd = (event: TransitionEvent) => {
@@ -89,11 +148,12 @@ export async function runHomeworkPathwayRewardAnimation(params: any) {
       };
       const fallbackTimer = window.setTimeout(finishMovement, 2400);
 
-      mascotElement.addEventListener(
-        'transitionend',
-        handleTransitionEnd,
-      );
-      requestAnimationFrame(() => {
+      mascotElement.addEventListener('transitionend', handleTransitionEnd);
+      mascotTransitionCleanup = () => {
+        window.clearTimeout(fallbackTimer);
+        mascotElement.removeEventListener('transitionend', handleTransitionEnd);
+      };
+      requestFrame(() => {
         mascotElement.style.transition =
           'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
         mascotElement.style.transform = 'translate(0px, 0px)';
@@ -131,8 +191,9 @@ export async function runHomeworkPathwayRewardAnimation(params: any) {
   ) => {
     // If offline, this might fail, wrap in try/catch or skip if no internet
     try {
+      if (isCancelled()) return;
       const rewardRecord = await api.getRewardById(newRewardId);
-      if (!rewardRecord) return;
+      if (!rewardRecord || isCancelled()) return;
       setHasTodayReward(false);
       const rewardStateValue = rewardRecord.state_number_input || 1;
       const completedLessonIndex =
@@ -150,30 +211,30 @@ export async function runHomeworkPathwayRewardAnimation(params: any) {
       const isFinalRewardTransition =
         completedLessonIndex + 1 >= lessonsToRender.length;
 
-      const completedLessonPathIndex =
-        startIndexOffset + completedLessonIndex;
+      const completedLessonPathIndex = startIndexOffset + completedLessonIndex;
       const destinationX = slotXValues[completedLessonPathIndex] ?? 0;
 
-      const rewardForeignObject = document.createElementNS(
+      const flightNode = document.createElementNS(
         'http://www.w3.org/2000/svg',
         'foreignObject',
       );
-      rewardForeignObject.setAttribute('width', '140');
-      rewardForeignObject.setAttribute('height', '140');
-      rewardForeignObject.setAttribute('x', '0');
-      rewardForeignObject.setAttribute('y', '0');
-      rewardForeignObject.style.display = 'block';
+      rewardForeignObject = flightNode;
+      flightNode.setAttribute('width', '140');
+      flightNode.setAttribute('height', '140');
+      flightNode.setAttribute('x', '0');
+      flightNode.setAttribute('y', '0');
+      flightNode.style.display = 'block';
       (
-        rewardForeignObject.style as CSSStyleDeclaration & {
+        flightNode.style as CSSStyleDeclaration & {
           transformBox?: string;
           contain?: string;
         }
       ).transformBox = 'fill-box';
-      rewardForeignObject.style.transformOrigin = '0 0';
-      rewardForeignObject.style.willChange = 'transform';
-      rewardForeignObject.style.backfaceVisibility = 'hidden';
+      flightNode.style.transformOrigin = '0 0';
+      flightNode.style.willChange = 'transform';
+      flightNode.style.backfaceVisibility = 'hidden';
       (
-        rewardForeignObject.style as CSSStyleDeclaration & {
+        flightNode.style as CSSStyleDeclaration & {
           transformBox?: string;
           contain?: string;
         }
@@ -187,111 +248,161 @@ export async function runHomeworkPathwayRewardAnimation(params: any) {
       const duration = REWARD_FLIGHT_DURATION_MS;
       const start = performance.now();
       const easeInOutCubic = (val: number) =>
-        val < 0.5
-          ? 4 * val * val * val
-          : 1 - Math.pow(-2 * val + 2, 3) / 2;
+        val < 0.5 ? 4 * val * val * val : 1 - Math.pow(-2 * val + 2, 3) / 2;
       const bezier = (tVal: number, p0: number, p1: number, p2: number) =>
-        (1 - tVal) ** 2 * p0 +
-        2 * (1 - tVal) * tVal * p1 +
-        tVal ** 2 * p2;
-      const animateBezier = (now: number) => {
-        let t = (now - start) / duration;
-        if (t > 1) t = 1;
-
-        const easedT = easeInOutCubic(t);
-        const x = bezier(easedT, fromX, controlX, toX);
-        const y = bezier(easedT, fromY, controlY, toY);
-        rewardForeignObject.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        if (t < 1) {
-          requestAnimationFrame(animateBezier);
-        } else {
-          onBoxArrival();
-        }
-      };
-      const onBoxArrival = async () => {
-        setRewardRiveState(RewardBoxState.BLAST);
-        await delay(2000);
-        await invokeMascotCelebration(rewardStateValue);
-        window.dispatchEvent(
-          new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
-            detail: {
-              rewardId: newRewardId,
-              stateValue: rewardStateValue,
-              forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
-              dailyRewardAudioClipName:
-                shouldPlayFinalRewardAudioBeforeComplete
-                  ? 'reward_02'
-                  : 'reward',
-            },
-          }),
-        );
-        await delay(500);
-        rewardForeignObject.style.display = 'none';
-        await delay(1000);
-        await updateMascotToNormalState(newRewardId);
-        await delay(500);
-        sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
-        sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
-        if (isFinalRewardTransition) {
-          localStorage.removeItem(HOMEWORK_PATHWAY);
-          if (!hasPendingHomeworkStickerFlow()) {
-            reloadHomeworkPathway();
+        (1 - tVal) ** 2 * p0 + 2 * (1 - tVal) * tVal * p1 + tVal ** 2 * p2;
+      await new Promise<void>((resolve) => {
+        let completed = false;
+        const complete = () => {
+          if (completed) return;
+          completed = true;
+          finishAnimation = null;
+          resolve();
+        };
+        finishAnimation = complete;
+        const onBoxArrival = async () => {
+          if (isCancelled()) {
+            complete();
+            return;
           }
-        } else {
-          await animateChimpleMovement();
-        }
-        const finalRewardAudioWait =
-          shouldPlayFinalRewardAudioBeforeComplete
+          setRewardRiveState(RewardBoxState.BLAST);
+          await delay(2000);
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          await invokeMascotCelebration(rewardStateValue);
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          window.dispatchEvent(
+            new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+              detail: {
+                rewardId: newRewardId,
+                stateValue: rewardStateValue,
+                forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                dailyRewardAudioClipName:
+                  shouldPlayFinalRewardAudioBeforeComplete
+                    ? 'reward_02'
+                    : 'reward',
+              },
+            }),
+          );
+          await delay(500);
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          flightNode.style.display = 'none';
+          await delay(1000);
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          await updateMascotToNormalState(newRewardId);
+          await delay(500);
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
+          sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
+          if (isFinalRewardTransition) {
+            localStorage.removeItem(HOMEWORK_PATHWAY);
+          } else {
+            await animateChimpleMovement();
+            if (isCancelled()) {
+              complete();
+              return;
+            }
+          }
+          const finalRewardAudioWait = shouldPlayFinalRewardAudioBeforeComplete
             ? waitForFinalHomeworkRewardAudio()
             : null;
-        window.dispatchEvent(
-          new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
-            detail: {
-              rewardId: newRewardId,
-              stateValue: rewardStateValue,
-              forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
-              dailyRewardAudioClipName:
-                shouldPlayFinalRewardAudioBeforeComplete
-                  ? 'reward_02'
-                  : 'reward',
-              onRewardAudioComplete:
-                shouldPlayFinalRewardAudioBeforeComplete
+          window.dispatchEvent(
+            new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+              detail: {
+                rewardId: newRewardId,
+                stateValue: rewardStateValue,
+                forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                dailyRewardAudioClipName:
+                  shouldPlayFinalRewardAudioBeforeComplete
+                    ? 'reward_02'
+                    : 'reward',
+                onRewardAudioComplete: shouldPlayFinalRewardAudioBeforeComplete
                   ? finalRewardAudioWait?.resolve
                   : undefined,
-            },
-          }),
-        );
-        await Util.updateUserReward();
-        if (finalRewardAudioWait) {
-          await finalRewardAudioWait.promise;
-          await delay(FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS);
-        }
-        onComplete?.();
-      };
-      const rewardDiv = document.createElement('div');
-      rewardDiv.style.width = '100%';
-      rewardDiv.style.height = '100%';
-      rewardForeignObject.appendChild(rewardDiv);
-      svg.appendChild(rewardForeignObject);
-      setRewardRiveState(RewardBoxState.IDLE);
-      setRewardRiveContainer(rewardDiv);
-      // Let React mount RewardRive into rewardDiv before flight starts.
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => resolve());
+              },
+            }),
+          );
+          await Util.updateUserReward();
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          if (finalRewardAudioWait) {
+            await finalRewardAudioWait.promise;
+            await delay(FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS);
+            if (isCancelled()) {
+              complete();
+              return;
+            }
+          }
+          onComplete?.();
+          // Reload only after every animation/audio callback has settled. This
+          // prevents Android from tearing down the WebView render tree mid-frame.
+          shouldReloadPathway =
+            isFinalRewardTransition && !hasPendingHomeworkStickerFlow();
+          complete();
+        };
+        const animateBezier = (now: number) => {
+          if (isCancelled()) {
+            complete();
+            return;
+          }
+          let t = (now - start) / duration;
+          if (t > 1) t = 1;
+
+          const easedT = easeInOutCubic(t);
+          const x = bezier(easedT, fromX, controlX, toX);
+          const y = bezier(easedT, fromY, controlY, toY);
+          flightNode.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          if (t < 1) {
+            requestFrame(animateBezier);
+          } else {
+            void onBoxArrival();
+          }
+        };
+        const rewardDiv = document.createElement('div');
+        rewardDiv.style.width = '100%';
+        rewardDiv.style.height = '100%';
+        flightNode.appendChild(rewardDiv);
+        svg.appendChild(flightNode);
+        setRewardRiveState(RewardBoxState.IDLE);
+        setRewardRiveContainer(rewardDiv);
+        // Let React mount RewardRive into rewardDiv before flight starts.
+        requestFrame(() => {
+          requestFrame(animateBezier);
         });
       });
-      requestAnimationFrame(animateBezier);
+
+      if (!isCancelled() && shouldReloadPathway) {
+        // Dispose the current animation before rebuilding the SVG scene.
+        // Replacing it first can leave WebView/RenderThread waiting on a
+        // still-active canvas/foreignObject frame.
+        settle();
+        reloadHomeworkPathway();
+      }
     } catch (e) {
-      logger.warn('Reward animation failed offline', e);
+      if (!isCancelled()) logger.warn('Reward animation failed offline', e);
+      settle();
     }
   };
-
-
 
   return runRewardAnimation(
     newRewardId,
     shouldPlayFinalRewardAudioBeforeComplete,
     onComplete,
-  );
+  ).finally(settle);
 }
