@@ -22,6 +22,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
     language?: string | null,
+    studentLoginType?: EnumType<'login_type'> | null,
   ): Promise<TableTypes<'school'>> {
     return await this.s.createSchool(
       name,
@@ -38,6 +39,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
       onlySchool,
       onlySchoolUser,
       language,
+      studentLoginType,
     );
   }
 
