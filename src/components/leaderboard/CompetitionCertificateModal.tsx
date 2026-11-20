@@ -8,7 +8,7 @@ import CampaignCertificateArtwork from '../campaignCertificate/CampaignCertifica
 import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
-const AUTO_SHARE_DELAY_MS = 3000;
+const AUTO_SHARE_DELAY_MS = 2000;
 
 type Props = {
   certificate: Omit<CampaignCertificateData, 'rank'> & {
@@ -110,19 +110,7 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
             alt=""
             aria-hidden="true"
           />
-          <div
-            className="competition-certificate-artwork-target"
-            role="button"
-            tabIndex={0}
-            aria-label="Share competition certificate"
-            onClick={() => void share()}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                void share();
-              }
-            }}
-          >
+          <div className="competition-certificate-artwork-target">
             <CampaignCertificateArtwork certificate={certificate} />
           </div>
           <img
