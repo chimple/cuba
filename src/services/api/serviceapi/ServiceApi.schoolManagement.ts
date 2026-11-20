@@ -6,6 +6,12 @@ import {
 } from '../../../common/constants';
 
 export interface ServiceApiSchoolManagement {
+  getSchoolFieldCoordinators(schoolId: string): Promise<TableTypes<'user'>[]>;
+  updateSchoolFieldCoordinators(
+    schoolId: string,
+    userIds: string[],
+  ): Promise<void>;
+
   createSchool(
     name: string,
     group1: string,

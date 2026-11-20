@@ -13,6 +13,19 @@ import { SqliteApiResultsProgress } from './SqliteApi.results.progress';
 
 export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
   [key: string]: any;
+  async getSchoolFieldCoordinators(
+    schoolId: string,
+  ): Promise<TableTypes<'user'>[]> {
+    return this._serverApi.getSchoolFieldCoordinators(schoolId);
+  }
+
+  async updateSchoolFieldCoordinators(
+    schoolId: string,
+    userIds: string[],
+  ): Promise<void> {
+    return this._serverApi.updateSchoolFieldCoordinators(schoolId, userIds);
+  }
+
   async recordSchoolVisit(
     schoolId: string,
     lat: number,
