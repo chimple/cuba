@@ -8,7 +8,7 @@ import CampaignCertificateArtwork from '../campaignCertificate/CampaignCertifica
 import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
-const AUTO_SHARE_DELAY_MS = 2000;
+const SHARE_PREVIEW_DELAY_MS = 750;
 
 type Props = {
   certificate: Omit<CampaignCertificateData, 'rank'> & {
@@ -56,6 +56,9 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
         pixelRatio: 2,
       });
 
+      // The share sheet becomes the next screen; close the card preview so it
+      // is not left behind when the user returns to the app.
+      onClose();
       await Util.sendContentToAndroidOrWebShare(
         `I earned a certificate in ${certificate.campaignName}!`,
         'My Chimple Certificate',
@@ -83,7 +86,7 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void share();
-    }, AUTO_SHARE_DELAY_MS);
+    }, SHARE_PREVIEW_DELAY_MS);
 
     return () => window.clearTimeout(timer);
     // The certificate modal mounts once for a selected card certificate.
