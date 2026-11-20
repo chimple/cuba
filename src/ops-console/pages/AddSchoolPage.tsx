@@ -6,9 +6,9 @@ import { t } from 'i18next';
 import { PAGES } from '../../common/constants';
 import {
   AddSchoolAddressSection,
-  AddSchoolDetailsSection,
   AddSchoolProgramSection,
 } from '../components/addSchool/AddSchoolFormSections';
+import { AddSchoolDetailsSection } from '../components/addSchool/AddSchoolDetailsSection';
 import { SchoolCourseSelector } from '../components/addSchool/SchoolCourseSelector';
 import { useAddSchoolPage } from '../hooks/useAddSchoolPage';
 
@@ -65,6 +65,7 @@ const AddSchoolPage: React.FC = () => {
         <AddSchoolDetailsSection
           errorMessage={controller.errorMessage}
           handleUdiseChange={controller.handleUdiseChange}
+          schoolLoginType={controller.studentLoginType}
           schoolModelDisabled={!controller.program?.id}
           schoolModelOptions={controller.schoolModelOptions}
           schoolModel={controller.schoolModel}
@@ -72,9 +73,11 @@ const AddSchoolPage: React.FC = () => {
           languages={controller.languages}
           isLanguageLoading={controller.loading}
           schoolName={controller.schoolName}
+          setSchoolLoginType={controller.setStudentLoginType}
           setSchoolModel={controller.setSchoolModel}
           setLanguage={controller.setLanguage}
           setSchoolName={controller.setSchoolName}
+          showSchoolLoginType={!controller.editData}
           udise={controller.udise}
         />
 
@@ -85,8 +88,8 @@ const AddSchoolPage: React.FC = () => {
           grades={controller.grades}
           loading={controller.isCoursesLoading}
           selectedCourseIds={controller.selectedCourseIds}
-          selectedGradeId={controller.selectedGradeId}
-          onGradeChange={controller.setSelectedGradeId}
+          selectedGradeIds={controller.selectedGradeIds}
+          onGradeChange={controller.setSelectedGradeIds}
           onToggle={controller.toggleCourse}
         />
 
@@ -98,6 +101,7 @@ const AddSchoolPage: React.FC = () => {
           isBlocksLoading={controller.isBlocksLoading}
           isDistrictsLoading={controller.isDistrictsLoading}
           isStatesLoading={controller.isStatesLoading}
+          requireBlock={!controller.editData}
           states={controller.states}
         />
 

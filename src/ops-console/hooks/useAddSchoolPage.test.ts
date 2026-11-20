@@ -47,8 +47,15 @@ beforeEach(() => {
   mockLocation = { state: undefined };
   mockApi.getClassesBySchoolId.mockResolvedValue([]);
   mockApi.getCoursesByClassId.mockResolvedValue([]);
-  mockApi.getAllCourses.mockResolvedValue([{ id: 'course-1' }]);
-  mockApi.getAllGrades.mockResolvedValue([]);
+  mockApi.getAllCourses.mockResolvedValue([
+    { id: 'course-1', grade_id: 'grade-1' },
+  ]);
+  mockApi.getAllGrades.mockResolvedValue([
+    { id: 'grade-1', name: 'Grade 1', sort_index: 1 },
+    { id: 'grade-2', name: 'Grade 2', sort_index: 2 },
+    { id: 'grade-3', name: 'Grade 3', sort_index: 3 },
+    { id: 'grade-4', name: 'Grade 4', sort_index: 4 },
+  ]);
   mockApi.getCurriculumsByIds.mockResolvedValue([]);
   mockApi.getCoursesBySchoolId.mockResolvedValue([
     { course_id: 'course-1' },
@@ -69,7 +76,7 @@ beforeEach(() => {
 });
 
 it.each(['create', 'edit'])(
-  '%s requires a course before saving a school',
+  '%s requires the applicable fields before saving a school',
   async (mode) => {
     if (mode === 'edit') {
       mockLocation.state = {
@@ -104,7 +111,27 @@ it.each(['create', 'edit'])(
       await act(async () => {
         await result.current.handleApprove();
       });
+      act(() =>
+        result.current.setSelectedGradeIds([
+          'grade-1',
+          'grade-2',
+          'grade-3',
+          'grade-4',
+        ]),
+      );
       act(() => result.current.toggleCourse('course-1'));
+      expect(result.current.isSaveDisabled()).toBe(true);
+      await act(async () => {
+        await result.current.handleApprove();
+      });
+      expect(mockApi.createSchool).not.toHaveBeenCalled();
+      act(() => result.current.setStudentLoginType('parent_phone_number'));
+      expect(result.current.isSaveDisabled()).toBe(true);
+      await act(async () => {
+        await result.current.handleApprove();
+      });
+      expect(mockApi.createSchool).not.toHaveBeenCalled();
+      act(() => result.current.handleAddressChange('block', 'Block'));
     }
     expect(result.current.isSaveDisabled()).toBe(false);
 
@@ -126,6 +153,11 @@ it.each(['create', 'edit'])(
       'school-1',
       ['course-1'],
     );
+    if (mode === 'create') {
+      expect(mockApi.createSchool.mock.calls[0][14]).toBe(
+        'parent_phone_number',
+      );
+    }
   },
 );
 
@@ -143,8 +175,8 @@ it('shows the affected class and blocks profile changes until the selection is c
     programData: program,
   };
   mockApi.getAllCourses.mockResolvedValue([
-    { id: 'course-1' },
-    { id: 'course-2' },
+    { id: 'course-1', grade_id: 'grade-1' },
+    { id: 'course-2', grade_id: 'grade-2' },
   ]);
   mockApi.getCoursesBySchoolId.mockResolvedValue([
     { course_id: 'course-1' },
@@ -228,8 +260,8 @@ describe('immediate protection of courses required by classes', () => {
       programData: program,
     };
     mockApi.getAllCourses.mockResolvedValue([
-      { id: 'course-1' },
-      { id: 'course-2' },
+      { id: 'course-1', grade_id: 'grade-1' },
+      { id: 'course-2', grade_id: 'grade-2' },
     ]);
     mockApi.getCoursesBySchoolId.mockResolvedValue([
       { course_id: 'course-1' },
@@ -295,3 +327,56 @@ describe('immediate protection of courses required by classes', () => {
     expect(result.current.courseRemovalError).toBe('');
   });
 });
+
+it.each([false, true])(
+  'saves only active courses after grade removal (restore: %s)',
+  async (restore) => {
+    mockLocation.state = {
+      schoolData: {
+        id: 'school-1',
+        name: 'School',
+        udise: '12345678901',
+        model: 'at_home',
+        group1: 'State',
+        group2: 'District',
+        key_contacts: [{ name: 'Contact', phone: '9876543210' }],
+      },
+      programData: program,
+    };
+    mockApi.getAllCourses.mockResolvedValue([
+      { id: 'course-1', grade_id: 'grade-1' },
+      { id: 'course-2', grade_id: 'grade-2' },
+    ]);
+    mockApi.getCoursesBySchoolId.mockResolvedValue([
+      { course_id: 'course-1' },
+      { course_id: 'course-2' },
+    ]);
+    const { result } = renderHook(() => useAddSchoolPage());
+    await waitFor(() => expect(result.current.isCoursesLoading).toBe(false));
+    await waitFor(() =>
+      expect(result.current.isFieldCoordinatorReady).toBe(true),
+    );
+    act(() => result.current.setSelectedGradeIds([]));
+    expect(result.current.selectedCourseIds).toEqual([]);
+    expect(result.current.isSaveDisabled()).toBe(true);
+    await act(async () => {
+      await result.current.handleApprove();
+    });
+    expect(mockApi.updateSchoolCourseSelection).not.toHaveBeenCalled();
+
+    act(() => result.current.setSelectedGradeIds(['grade-1']));
+    expect(result.current.isSaveDisabled()).toBe(false);
+    if (restore) {
+      act(() => result.current.setSelectedGradeIds(['grade-1', 'grade-2']));
+    }
+    expect(result.current.isSaveDisabled()).toBe(restore);
+    act(() => result.current.setSchoolName('Updated School'));
+    await act(async () => {
+      await result.current.handleApprove();
+    });
+    expect(mockApi.updateSchoolCourseSelection).toHaveBeenCalledWith(
+      'school-1',
+      restore ? ['course-1', 'course-2'] : ['course-1'],
+    );
+  },
+);

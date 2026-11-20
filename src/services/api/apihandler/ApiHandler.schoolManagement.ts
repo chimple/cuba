@@ -7,6 +7,19 @@ import {
 } from '../../../common/constants';
 
 export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
+  async getSchoolFieldCoordinators(
+    schoolId: string,
+  ): Promise<TableTypes<'user'>[]> {
+    return this.s.getSchoolFieldCoordinators(schoolId);
+  }
+
+  async updateSchoolFieldCoordinators(
+    schoolId: string,
+    userIds: string[],
+  ): Promise<void> {
+    return this.s.updateSchoolFieldCoordinators(schoolId, userIds);
+  }
+
   async createSchool(
     name: string,
     group1: string,
@@ -22,6 +35,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
     language?: string | null,
+    studentLoginType?: EnumType<'login_type'> | null,
   ): Promise<TableTypes<'school'>> {
     return await this.s.createSchool(
       name,
@@ -38,6 +52,7 @@ export class ApiHandlerSchoolManagement extends ApiHandlerUserSettings {
       onlySchool,
       onlySchoolUser,
       language,
+      studentLoginType,
     );
   }
 

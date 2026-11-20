@@ -79,12 +79,8 @@ export function useNewProgramForm() {
     if (startDate && endDate && startDate.isAfter(endDate))
       newErrors['date'] = t('Start date must be before End date');
     Object.entries(locations).forEach(([key, value]) => {
-      if (!value.trim()) {
-        newErrors[`location-${key}`] =
-          key === 'Block'
-            ? t('Block is required')
-            : t('{{key}} is required', { key });
-      }
+      if (key === 'Block' || value.trim()) return;
+      newErrors[`location-${key}`] = t('{{key}} is required', { key });
     });
     return newErrors;
   };
@@ -103,7 +99,6 @@ export function useNewProgramForm() {
       Country: 'location-Country',
       State: 'location-State',
       District: 'location-District',
-      Block: 'location-Block',
       startDate: 'date',
       endDate: 'date',
       date: 'date',
@@ -131,7 +126,6 @@ export function useNewProgramForm() {
     const isCountryValid = locations.Country !== '';
     const isStateValid = locations.State !== '';
     const isDistrictValid = locations.District !== '';
-    const isBlockValid = locations.Block.trim() !== '';
     const isDateValid = !startDate || !endDate || !startDate.isAfter(endDate);
     return (
       isImplementationValid &&
@@ -145,7 +139,6 @@ export function useNewProgramForm() {
       isCountryValid &&
       isStateValid &&
       isDistrictValid &&
-      isBlockValid &&
       isDateValid
     );
   };
@@ -313,7 +306,6 @@ export function useNewProgramForm() {
       Country: true,
       State: true,
       District: true,
-      Block: true,
       schools: true,
       students: true,
       devices: true,

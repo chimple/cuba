@@ -16,6 +16,7 @@ export async function processStudentSheet(
     newlyCreatedClasses,
     schoolProgramModelMap,
     createStyledCell,
+    validateEmailOrPhone,
     markDuplicateStudentErrorIfPresent,
   } = context;
   if (sheet.toLowerCase().includes('student')) {
@@ -296,6 +297,36 @@ export async function processStudentSheet(
                   studentLoginType,
                 });
               }
+            }
+          }
+
+          const schoolLoginId =
+            (row['SCHOOL LOGIN ID'] ?? row['school_login_id'])
+              ?.toString()
+              .trim()
+              .toLowerCase() ?? '';
+          const password =
+            (row['PASSWORD'] ?? row['password'])?.toString() ?? '';
+          const isStudentIdLogin =
+            studentLoginType?.toUpperCase().replace(/\s+/g, '_') ===
+            'STUDENT_ID';
+
+          if ((schoolLoginId || password) && !isStudentIdLogin) {
+            errors.push(
+              'SCHOOL LOGIN ID and PASSWORD require STUDENT ID login type.',
+            );
+          }
+          if (isStudentIdLogin) {
+            if (
+              !studentId ||
+              !validateEmailOrPhone(
+                `${schoolLoginId || schoolId}${studentId.toLowerCase().replace(/\s+/g, '')}@chimple.net`,
+              )
+            ) {
+              errors.push('Generated student login ID is invalid.');
+            }
+            if (password && password.length < 6) {
+              errors.push('PASSWORD must contain at least 6 characters.');
             }
           }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import './SchoolOverview.css';
 import { Box } from '@mui/material';
@@ -10,10 +10,13 @@ import { useHistory } from 'react-router';
 import { RoleType } from '../../../interface/modelInterfaces';
 import SubjectCurriculumCard from '../SubjectCurriculumCard';
 import SchoolLocationCard from './SchoolLocationCard';
+import SchoolFieldCoordinators from './SchoolFieldCoordinatorsCard';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { parsePath } from 'history';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
 import {
   InteractionMetricsSection,
   SchoolOverviewKeyContacts,
@@ -26,6 +29,28 @@ interface SchoolOverviewProps {
 }
 
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
+  const api = ServiceConfig.getI().apiHandler;
+  const languageId = data.schoolData?.language;
+  const [language, setLanguage] = useState<{ id: string; name: string } | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!languageId) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const result = await api.getLanguageWithId(languageId);
+        if (active) setLanguage({ id: languageId, name: result?.name || '—' });
+      } catch (error) {
+        logger.error('Unable to load school language', error);
+        if (active) setLanguage({ id: languageId, name: '—' });
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [api, languageId]);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -58,6 +83,10 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: 'School Name', value: data.schoolData?.name },
     { label: 'School ID (UDISE)', value: data.schoolData?.udise },
     { label: 'School Model', value: schoolModelValue },
+    {
+      label: 'Language',
+      value: languageId && language?.id === languageId ? language?.name : '—',
+    },
     { label: 'State', value: data.schoolData?.group1 },
     { label: 'District', value: data.schoolData?.group2 },
     { label: 'Block', value: data.schoolData?.group3 },
@@ -158,9 +187,15 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             isMobile={isMobile}
           />
           <SchoolOverviewKeyContacts data={data} keyContacts={keyContacts} />
+          <SchoolFieldCoordinators
+            schoolId={data.schoolData?.id}
+            programId={data.schoolData?.program_id}
+            canEdit={!isExternalUser && haveAccess}
+          />
           <InfoCard
             title={t('School Details')}
-            className="school-detail-infocard school-card"
+            id="school-overview-details"
+            className="school-overview-details"
             items={schoolDetailsItems}
             showEditIcon={isExternalUser ? false : haveAccess}
             onEditClick={() =>
@@ -208,7 +243,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             <Box className="column-container">
               <InfoCard
                 title={t('School Details')}
-                className="school-detail-infocard school-card"
+                id="school-overview-details"
+                className="school-overview-details"
                 items={schoolDetailsItems}
                 showEditIcon={isExternalUser ? false : haveAccess}
                 onEditClick={() =>
@@ -236,6 +272,11 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               <SchoolOverviewKeyContacts
                 data={data}
                 keyContacts={keyContacts}
+              />
+              <SchoolFieldCoordinators
+                schoolId={data.schoolData?.id}
+                programId={data.schoolData?.program_id}
+                canEdit={!isExternalUser && haveAccess}
               />
             </Box>
           </Grid>

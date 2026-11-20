@@ -11,12 +11,33 @@ import { ServiceConfig } from '../../ServiceConfig';
 import { getQueuedVisitSnapshot } from '../../offline/fcTouchPointOfflineQueue';
 import { SupabaseApiAssignmentAssessments } from './SupabaseApi.assignment.assessments';
 import { recordSchoolVisit as recordFcTouchPointSchoolVisit } from '../../offline/fctouchpoints/fcTouchPointSchoolVisit';
+import {
+  getSchoolFieldCoordinators,
+  updateSchoolFieldCoordinators,
+} from './schoolFieldCoordinators';
 
 export interface SupabaseApiSchoolVisits {
   [key: string]: unknown;
 }
 
 export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
+  async getSchoolFieldCoordinators(
+    schoolId: string,
+  ): Promise<TableTypes<'user'>[]> {
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    return getSchoolFieldCoordinators(this.supabase, schoolId);
+  }
+
+  async updateSchoolFieldCoordinators(
+    schoolId: string,
+    userIds: string[],
+  ): Promise<void> {
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!user) throw new Error('User not logged in');
+    await updateSchoolFieldCoordinators(this.supabase, schoolId, userIds);
+  }
+
   async updateSchoolLocation(
     schoolId: string,
     lat: number,

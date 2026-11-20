@@ -23,12 +23,15 @@ export const useSchoolCourseSelection = ({
   const [courses, setCourses] = useState<SchoolCourseOption[]>([]);
   const [grades, setGrades] = useState<TableTypes<'grade'>[]>([]);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
-  const [selectedGradeId, setSelectedGradeId] = useState('');
+  const [selectedGradeIds, setSelectedGradeIds] = useState<string[]>([]);
   const [isCoursesLoading, setCoursesLoading] = useState(true);
   const [courseLoadError, setCourseLoadError] = useState(false);
   const [courseRemovalError, setCourseRemovalError] = useState('');
   const [courseRemovalWarning, setCourseRemovalWarning] = useState('');
   const selectedCourseIdsRef = useRef<string[]>([]);
+  const selectedGradeIdsRef = useRef<string[]>([]);
+  // Retain choices from unchecked grades until this form is closed or reloaded.
+  const rememberedCourseIds = useRef<string[]>([]);
   const removalContext = useRef<{
     classes: TableTypes<'class'>[];
     links: TableTypes<'class_course'>[];
@@ -104,6 +107,17 @@ export const useSchoolCourseSelection = ({
             })),
           );
           setGrades(allGrades ?? []);
+          const selectedGrades = [
+            ...new Set(
+              availableCourses
+                .filter((course) => selectedIds.includes(course.id))
+                .map((course) => course.grade_id)
+                .filter((id): id is string => Boolean(id)),
+            ),
+          ];
+          selectedGradeIdsRef.current = selectedGrades;
+          setSelectedGradeIds(selectedGrades);
+          rememberedCourseIds.current = [...selectedIds];
           selectedCourseIdsRef.current = selectedIds;
           setInitialSelectedCourseIds(
             schoolId ? [...selectedIds].sort() : null,
@@ -131,6 +145,25 @@ export const useSchoolCourseSelection = ({
     };
   }, [api, schoolId]);
 
+  const canRemoveCourses = (next: string[], message: string) => {
+    const { classes, links, assignedCourseIds } = removalContext.current;
+    const selectedIds = new Set(next);
+    const blockedClasses = getClassesLosingAllCourses(
+      classes,
+      links,
+      assignedCourseIds.filter((id) => !selectedIds.has(id)),
+    );
+    if (blockedClasses.length) {
+      setCourseRemovalWarning(
+        t(message, {
+          classes: blockedClasses.map((row) => row.name || row.id).join(', '),
+        }) ?? '',
+      );
+      return false;
+    }
+    return true;
+  };
+
   return {
     courseLoadError,
     courseRemovalError,
@@ -141,37 +174,57 @@ export const useSchoolCourseSelection = ({
     initialSelectedCourseIds,
     isCoursesLoading,
     selectedCourseIds,
-    selectedGradeId,
-    setSelectedGradeId,
+    selectedGradeIds,
+    setSelectedGradeIds: (gradeIds: string[]) => {
+      if (isCoursesLoading || courseLoadError) return;
+      const nextGrades = [...new Set(gradeIds)].filter((id) =>
+        grades.some((grade) => grade.id === id),
+      );
+      const next = rememberedCourseIds.current.filter((id) =>
+        courses.some(
+          (course) =>
+            course.id === id && nextGrades.includes(course.grade_id ?? ''),
+        ),
+      );
+      if (
+        !canRemoveCourses(
+          next,
+          'Cannot remove these grades. These classes have no other courses: {{classes}}.',
+        )
+      )
+        return;
+      selectedGradeIdsRef.current = nextGrades;
+      setSelectedGradeIds(nextGrades);
+      selectedCourseIdsRef.current = next;
+      setSelectedCourseIds(next);
+      setCourseRemovalWarning('');
+      setCourseRemovalError('');
+    },
     toggleCourse: (courseId: string) => {
       if (isCoursesLoading || courseLoadError) return;
+      const course = courses.find((row) => row.id === courseId);
+      if (
+        !course ||
+        !selectedGradeIdsRef.current.includes(course.grade_id ?? '')
+      )
+        return;
       const previous = selectedCourseIdsRef.current;
       const removing = previous.includes(courseId);
       const next = removing
         ? previous.filter((id) => id !== courseId)
         : [...previous, courseId];
       if (removing) {
-        const { classes, links, assignedCourseIds } = removalContext.current;
-        const selectedIds = new Set(next);
-        const blockedClasses = getClassesLosingAllCourses(
-          classes,
-          links,
-          assignedCourseIds.filter((id) => !selectedIds.has(id)),
-        );
-        if (blockedClasses.length) {
-          setCourseRemovalWarning(
-            t(
-              'Cannot remove this course. These classes have no other courses: {{classes}}.',
-              {
-                classes: blockedClasses
-                  .map((row) => row.name || row.id)
-                  .join(', '),
-              },
-            ) ?? '',
-          );
+        if (
+          !canRemoveCourses(
+            next,
+            'Cannot remove this course. These classes have no other courses: {{classes}}.',
+          )
+        )
           return;
-        }
       }
+      rememberedCourseIds.current = removing
+        ? rememberedCourseIds.current.filter((id) => id !== courseId)
+        : [...rememberedCourseIds.current, courseId];
       setCourseRemovalWarning('');
       setCourseRemovalError('');
       selectedCourseIdsRef.current = next;
