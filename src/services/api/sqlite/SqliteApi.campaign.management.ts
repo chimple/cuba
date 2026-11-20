@@ -380,7 +380,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     );
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
       if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, false);
+      await this.evaluateCampaignReward(campaign, studentId, true);
     }
   }
   async evaluateCampaignRewardsAfterLesson(
@@ -402,7 +402,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
       if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, true);
+      await this.evaluateCampaignReward(campaign, studentId, false);
     }
   }
   async getCachedCampaignRewards(studentId = this.currentStudent?.id) {

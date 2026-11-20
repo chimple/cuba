@@ -282,7 +282,9 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
               studentId: selectedCertificate.student_id ?? undefined,
               rank: selectedCertificateRank,
               awardedAt:
-                selectedCertificate.updated_at ?? new Date().toISOString(),
+                selectedCertificate.end_date ??
+                selectedCertificate.updated_at ??
+                new Date().toISOString(),
               languageCode: localStorage.getItem('language') ?? 'en',
               isNewlyEarned: false,
             }}

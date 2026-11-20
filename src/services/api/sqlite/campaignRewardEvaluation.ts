@@ -137,6 +137,7 @@ export const evaluateCampaignReward = async (
   const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${certificateRank}`;
   const shouldEmitCertificate =
     showCertificate &&
+    campaignEnded &&
     (status === 'won' || participationEligible) &&
     certificateAvailable &&
     !localStorage.getItem(certificateShownKey);

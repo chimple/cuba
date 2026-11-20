@@ -190,10 +190,21 @@ it('excludes replays, other students, non-homepage sources, invalid results and 
   ).toBe(1);
 });
 
-it('displays a ranked certificate immediately after lesson completion', async () => {
+it('does not display a certificate during lesson completion', async () => {
   setupHomepage(12);
   await api.hydrateCampaignRewards('child');
   expect(showCampaignCertificate).not.toHaveBeenCalled();
   await api.evaluateCampaignRewardsAfterLesson('child');
+  expect(showCampaignCertificate).not.toHaveBeenCalled();
+});
+
+it('displays an eligible certificate during ended-campaign hydration', async () => {
+  db.run("UPDATE local_campaigns SET end_date = '2026-11-19'");
+  db.run(`INSERT INTO result VALUES
+    ('r1','a1','l1','child','2026-11-19','completed',0,NULL),
+    ('r2','a2','l2','child','2026-11-19','completed',0,NULL)`);
+
+  await api.hydrateCampaignRewards('child');
+
   expect(showCampaignCertificate).toHaveBeenCalledTimes(1);
 });

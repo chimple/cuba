@@ -8,6 +8,8 @@ import CampaignCertificateArtwork from '../campaignCertificate/CampaignCertifica
 import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
+const AUTO_SHARE_DELAY_MS = 3000;
+
 type Props = {
   certificate: Omit<CampaignCertificateData, 'rank'> & {
     rank: 1 | 2 | 3 | 'participation';
@@ -78,6 +80,16 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void share();
+    }, AUTO_SHARE_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+    // The certificate modal mounts once for a selected card certificate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [certificate.campaignId]);
+
   return (
     <div
       className="competition-certificate-overlay"
@@ -113,16 +125,6 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
           >
             <CampaignCertificateArtwork certificate={certificate} />
           </div>
-          <button
-            type="button"
-            className="campaign-certificate-share"
-            id="campaign-certificate-share"
-            onClick={() => void share()}
-            disabled={isSharing}
-            aria-label="Share competition certificate"
-          >
-            Share
-          </button>
           <img
             className="competition-certificate-star competition-certificate-star-right"
             src="/assets/campaignCompetition/Star 19.svg"
