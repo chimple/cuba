@@ -351,6 +351,7 @@ export enum EVENTS {
   BADGE_SHARE_FAILED = 'badge_share_failed',
   REWARDS_PAGE_VIEWED = 'rewards_page_viewed',
   REWARDS_TAB_CLICKED = 'rewards_tab_clicked',
+  COMPETITIONS_TAB_CLICKED = 'competitions_tab_clicked',
   COMPETITION_INFO_CLICKED = 'competition_info_clicked',
   REWARD_BADGE_SHARE_CLICKED = 'reward_badge_share_clicked',
   REWARD_BADGE_SHARE_SUCCESS = 'reward_badge_share_success',

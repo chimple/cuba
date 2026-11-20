@@ -127,7 +127,7 @@ describe('LeaderboardRewards', () => {
       expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1'),
     );
     expect(logBadgeEvent).toHaveBeenCalledWith(
-      EVENTS.REWARDS_TAB_CLICKED,
+      EVENTS.COMPETITIONS_TAB_CLICKED,
       'student-1',
       progress,
       { target_tab: 'competitions', number_of_competitions: 0 },
@@ -234,7 +234,7 @@ describe('LeaderboardRewards', () => {
     expect(mockSyncCampaignRewards).not.toHaveBeenCalled();
     expect(mockGetCachedCampaignRewards).toHaveBeenCalledWith('student-1');
     expect(logBadgeEvent).toHaveBeenCalledWith(
-      EVENTS.REWARDS_TAB_CLICKED,
+      EVENTS.COMPETITIONS_TAB_CLICKED,
       'student-1',
       progress,
       { target_tab: 'competitions', number_of_competitions: 1 },

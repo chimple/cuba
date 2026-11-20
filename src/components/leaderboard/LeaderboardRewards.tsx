@@ -175,10 +175,15 @@ const LeaderboardRewards: FC = () => {
         const rewards = await api.getCachedCampaignRewards(student.id);
         if (!mounted) return;
         setCompetitionRewards(rewards as CompetitionReward[]);
-        void logBadgeEvent(EVENTS.REWARDS_TAB_CLICKED, student.id, progress, {
-          target_tab: 'competitions',
-          number_of_competitions: rewards.length,
-        });
+        void logBadgeEvent(
+          EVENTS.COMPETITIONS_TAB_CLICKED,
+          student.id,
+          progress,
+          {
+            target_tab: 'competitions',
+            number_of_competitions: rewards.length,
+          },
+        );
       } catch (error) {
         if (mounted) setCompetitionRewards([]);
         logger.error('Failed to load cached campaign rewards:', error);
