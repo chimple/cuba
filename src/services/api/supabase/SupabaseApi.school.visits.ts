@@ -35,12 +35,7 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     if (!this.supabase) throw new Error('Supabase client not initialized');
     const user = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!user) throw new Error('User not logged in');
-    await updateSchoolFieldCoordinators(
-      this.supabase,
-      schoolId,
-      userIds,
-      user.id,
-    );
+    await updateSchoolFieldCoordinators(this.supabase, schoolId, userIds);
   }
 
   async updateSchoolLocation(

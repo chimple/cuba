@@ -30,68 +30,9 @@ export async function updateSchoolFieldCoordinators(
   client: Client,
   schoolId: string,
   userIds: string[],
-  callerId: string,
 ): Promise<void> {
-  const { data: school, error: schoolError } = await client
-    .from('school')
-    .select('program_id')
-    .eq('id', schoolId)
-    .eq('is_deleted', false)
-    .single();
-  if (schoolError) throw schoolError;
-  if (!school?.program_id) throw new Error('School has no program');
-
-  const [elevated, manager] = await Promise.all([
-    client
-      .from('special_users')
-      .select('id')
-      .eq('user_id', callerId)
-      .in('role', [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR])
-      .eq('is_deleted', false)
-      .limit(1),
-    client
-      .from('program_user')
-      .select('id')
-      .eq('program_id', school.program_id)
-      .eq('user', callerId)
-      .eq('role', RoleType.PROGRAM_MANAGER)
-      .eq('is_deleted', false)
-      .limit(1),
-  ]);
-  if (elevated.error) throw elevated.error;
-  if (manager.error) throw manager.error;
-  if (!elevated.data?.length && !manager.data?.length) {
-    throw new Error('You cannot manage this school’s Field Coordinators');
-  }
-
   const selected = [...new Set(userIds.filter(Boolean))];
-  if (selected.length) {
-    const [membership, users] = await Promise.all([
-      client
-        .from('program_user')
-        .select('user')
-        .eq('program_id', school.program_id)
-        .eq('role', RoleType.FIELD_COORDINATOR)
-        .eq('is_deleted', false)
-        .in('user', selected),
-      client
-        .from('user')
-        .select('id')
-        .in('id', selected)
-        .eq('is_deleted', false),
-    ]);
-    if (membership.error) throw membership.error;
-    if (users.error) throw users.error;
-    const eligible = new Set((membership.data ?? []).map((row) => row.user));
-    const activeUsers = new Set((users.data ?? []).map((row) => row.id));
-    if (selected.some((id) => !eligible.has(id) || !activeUsers.has(id))) {
-      throw new Error(
-        'Selected Field Coordinators must belong to the school’s program',
-      );
-    }
-  }
-
-  // Finish validation before making any changes. Never write program_user.
+  // Read and update only this school's FC mappings.
   const { data: existing, error: readError } = await client
     .from('school_user')
     .select('id, user_id')

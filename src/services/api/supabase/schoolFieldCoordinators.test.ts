@@ -24,9 +24,6 @@ function setup(...queries: ReturnType<typeof query>[]) {
   queries.forEach((item) => from.mockReturnValueOnce(item));
   return { from, client: { from } as unknown as SupabaseClient<Database> };
 }
-const school = () => query({ program_id: 'program-1' });
-const admin = () => query([{ id: 'admin-role' }]);
-const member = () => query([]);
 
 it('loads only this school’s active FCs and deduplicates active users', async () => {
   const read = query([
@@ -53,7 +50,6 @@ it('propagates assignment read errors instead of treating them as an empty schoo
 });
 
 it('adds and removes only this school’s FC mappings without writing program membership', async () => {
-  const membership = query([{ user: 'a' }, { user: 'c' }]);
   const existing = query([
     { id: 'keep', user_id: 'a' },
     { id: 'duplicate', user_id: 'a' },
@@ -61,24 +57,9 @@ it('adds and removes only this school’s FC mappings without writing program me
   ]);
   const insert = query([{ id: 'new' }]);
   const remove = query([{ id: 'duplicate' }, { id: 'remove' }]);
-  const queries = [
-    school(),
-    admin(),
-    member(),
-    membership,
-    query([{ id: 'a' }, { id: 'c' }]),
-    existing,
-    insert,
-    remove,
-  ];
+  const queries = [existing, insert, remove];
   const { client, from } = setup(...queries);
-  await updateSchoolFieldCoordinators(
-    client,
-    'school-1',
-    ['a', 'c', 'c'],
-    'admin',
-  );
-  expect(membership.eq).toHaveBeenCalledWith('program_id', 'program-1');
+  await updateSchoolFieldCoordinators(client, 'school-1', ['a', 'c', 'c']);
   expect(insert.insert).toHaveBeenCalledWith([
     expect.objectContaining({
       school_id: 'school-1',
@@ -101,79 +82,42 @@ it('adds and removes only this school’s FC mappings without writing program me
   expect(writtenTables).toEqual(['school_user', 'school_user']);
 });
 
-it('allows a manager of this program to clear all school FC assignments', async () => {
-  const manager = query([{ id: 'manager-role' }]);
+it('clears school FC assignments without repeating caller role lookups', async () => {
   const remove = query([{ id: 'assignment' }]);
-  const { client } = setup(
-    school(),
-    query([]),
-    manager,
+  const { client, from } = setup(
     query([{ id: 'assignment', user_id: 'a' }]),
     remove,
   );
-  await updateSchoolFieldCoordinators(client, 'school-1', [], 'manager');
-  expect(manager.eq).toHaveBeenCalledWith('program_id', 'program-1');
-  expect(manager.eq).toHaveBeenCalledWith('user', 'manager');
-  expect(manager.eq).toHaveBeenCalledWith('role', RoleType.PROGRAM_MANAGER);
+  await updateSchoolFieldCoordinators(client, 'school-1', []);
+  expect(from.mock.calls.map(([table]) => table)).toEqual([
+    'school_user',
+    'school_user',
+  ]);
   expect(remove.update).toHaveBeenCalledWith(
     expect.objectContaining({ is_deleted: true }),
   );
 });
 
-it('rejects unauthorized callers before reading or changing assignments', async () => {
-  const { client, from } = setup(school(), query([]), query([]));
+it('propagates database access errors before changing assignments', async () => {
+  const { client, from } = setup(query(null, new Error('permission denied')));
   await expect(
-    updateSchoolFieldCoordinators(client, 'school-1', ['a'], 'other'),
-  ).rejects.toThrow('cannot manage');
-  expect(from).toHaveBeenCalledTimes(3);
+    updateSchoolFieldCoordinators(client, 'school-1', []),
+  ).rejects.toThrow('permission denied');
+  expect(from).toHaveBeenCalledTimes(1);
 });
-
-it.each([
-  [[], [{ id: 'a' }]],
-  [[{ user: 'a' }], []],
-])(
-  'rejects unrelated-program or deleted FCs before writing',
-  async (membership, users) => {
-    const { client, from } = setup(
-      school(),
-      admin(),
-      member(),
-      query(membership),
-      query(users),
-    );
-    await expect(
-      updateSchoolFieldCoordinators(client, 'school-1', ['a'], 'admin'),
-    ).rejects.toThrow('must belong');
-    expect(from).toHaveBeenCalledTimes(5);
-  },
-);
 
 it('keeps existing assignments if a new assignment cannot be inserted', async () => {
   const insert = query(null, new Error('insert failed'));
-  const { client, from } = setup(
-    school(),
-    admin(),
-    member(),
-    query([{ user: 'c' }]),
-    query([{ id: 'c' }]),
-    query([{ id: 'old', user_id: 'a' }]),
-    insert,
-  );
+  const { client, from } = setup(query([{ id: 'old', user_id: 'a' }]), insert);
   await expect(
-    updateSchoolFieldCoordinators(client, 'school-1', ['c'], 'admin'),
+    updateSchoolFieldCoordinators(client, 'school-1', ['c']),
   ).rejects.toThrow('insert failed');
-  expect(from).toHaveBeenCalledTimes(7);
+  expect(from).toHaveBeenCalledTimes(2);
 });
 
 it('reports partial failures instead of claiming a successful save', async () => {
-  const { client } = setup(
-    school(),
-    admin(),
-    member(),
-    query([{ id: 'old', user_id: 'a' }]),
-    query([]),
-  );
+  const { client } = setup(query([{ id: 'old', user_id: 'a' }]), query([]));
   await expect(
-    updateSchoolFieldCoordinators(client, 'school-1', [], 'admin'),
+    updateSchoolFieldCoordinators(client, 'school-1', []),
   ).rejects.toThrow('Not all assignments were removed');
 });
