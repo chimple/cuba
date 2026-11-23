@@ -35,7 +35,7 @@ const certificate = {
   campaignName: 'Chimple Summer League, Jun 2026',
   studentName: 'Madhavi',
   rank: 1 as const,
-  awardedAt: '2026-06-28T00:00:00.000Z',
+  campaignEndDate: '2026-06-28T00:00:00.000Z',
   languageCode: 'en',
   isNewlyEarned: true,
 };

@@ -317,7 +317,7 @@ export class SqliteApiCampaignRewards extends SqliteApiAssignmentAssessments {
         studentName: this.currentStudent?.name ?? '',
         schoolId: this.currentSchool?.id,
         rank: certificateRank,
-        awardedAt: campaign.end_date,
+        campaignEndDate: campaign.end_date,
         isNewlyEarned: true,
         studentId,
       });

@@ -1,28 +1,51 @@
 import { useEffect, useState } from 'react';
+import { CURRENT_STUDENT_CHANGED_EVENT, PAGES } from '../../common/constants';
+import {
+  clearPendingCampaignCertificate,
+  CURRENT_STUDENT_CERTIFICATE_KEY,
+  queueCampaignCertificate,
+} from '../../redux/slices/campaignRewards/campaignRewardsSlice';
+import { store } from '../../redux/store';
+import { Util } from '../../utility/util';
 import CampaignCertificateModal from './CampaignCertificateModal';
 import type { CampaignCertificateData } from './campaignCertificate.types';
 
 export const CAMPAIGN_CERTIFICATE_EARNED_EVENT =
   'chimple:campaign-certificate-earned';
-const PENDING_CERTIFICATE_STORAGE_KEY = 'campaignCertificatePending';
+const getStudentCertificateKey = (studentId?: string) =>
+  studentId ?? CURRENT_STUDENT_CERTIFICATE_KEY;
+
+const isForCurrentStudent = (certificate: CampaignCertificateData) => {
+  if (!certificate.studentId) return true;
+  return certificate.studentId === Util.getCurrentStudent()?.id;
+};
+
+const getCurrentRoutePathname = () => {
+  const hashRoute = window.location.hash.replace(/^#/, '').split('?')[0];
+  return hashRoute || window.location.pathname;
+};
+
+const canDisplayCertificate = () =>
+  Boolean(Util.getCurrentStudent()?.id) &&
+  !store.getState().campaignRewards.isProfileSelectionInProgress &&
+  ![
+    PAGES.PARENT,
+    PAGES.DISPLAY_STUDENT,
+    PAGES.EDIT_STUDENT,
+    PAGES.STUDENT_PROGRESS,
+  ].includes(getCurrentRoutePathname() as PAGES);
 
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,
 ) => {
-  // Persist before dispatching so an event emitted while the global host is
-  // mounting is not lost (this is common on native scorecard navigation).
-  const isPreview = new URLSearchParams(window.location.search).has(
-    'campaignCertificatePreview',
+  // Queue before dispatching so an event emitted while the global host is
+  // mounting is not lost. Certificates stay isolated by child profile.
+  store.dispatch(
+    queueCampaignCertificate({
+      ...certificate,
+      isNewlyEarned: certificate.isNewlyEarned ?? true,
+    }),
   );
-  if (!isPreview) {
-    localStorage.setItem(
-      PENDING_CERTIFICATE_STORAGE_KEY,
-      JSON.stringify({
-        ...certificate,
-        isNewlyEarned: certificate.isNewlyEarned ?? true,
-      }),
-    );
-  }
   window.dispatchEvent(
     new CustomEvent<CampaignCertificateData>(
       CAMPAIGN_CERTIFICATE_EARNED_EVENT,
@@ -46,33 +69,54 @@ const CampaignCertificateHost = () => {
     };
 
     const displayPendingCertificate = () => {
-      const pending = localStorage.getItem(PENDING_CERTIFICATE_STORAGE_KEY);
-      if (!pending) return;
-      try {
-        const detail = JSON.parse(pending) as CampaignCertificateData;
-        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
-        displayCertificate(detail);
-      } catch {
-        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
+      if (!canDisplayCertificate()) {
+        setCertificate(null);
+        return;
       }
+      const studentId = Util.getCurrentStudent()?.id;
+      const detail =
+        store.getState().campaignRewards.pendingCertificates[
+          getStudentCertificateKey(studentId)
+        ] ??
+        store.getState().campaignRewards.pendingCertificates[
+          CURRENT_STUDENT_CERTIFICATE_KEY
+        ];
+      if (!detail || !isForCurrentStudent(detail)) return;
+      store.dispatch(
+        clearPendingCampaignCertificate(
+          getStudentCertificateKey(detail.studentId),
+        ),
+      );
+      displayCertificate(detail);
     };
 
     const showCertificate = (event: Event) => {
       const detail = (event as CustomEvent<CampaignCertificateData>).detail;
       if (!detail) return;
-      const isPreview = new URLSearchParams(window.location.search).has(
-        'campaignCertificatePreview',
+      if (!canDisplayCertificate()) return;
+      if (!isForCurrentStudent(detail)) return;
+      store.dispatch(
+        clearPendingCampaignCertificate(
+          getStudentCertificateKey(detail.studentId),
+        ),
       );
-      if (!isPreview) {
-        localStorage.removeItem(PENDING_CERTIFICATE_STORAGE_KEY);
-      }
       displayCertificate(detail);
+    };
+
+    const handleStudentChange = () => {
+      setCertificate((current) =>
+        current && (!canDisplayCertificate() || !isForCurrentStudent(current))
+          ? null
+          : current,
+      );
+      displayPendingCertificate();
     };
     window.addEventListener(CAMPAIGN_CERTIFICATE_EARNED_EVENT, showCertificate);
     window.addEventListener('ionRouteDidChange', displayPendingCertificate);
     document.addEventListener('ionRouteDidChange', displayPendingCertificate);
     document.addEventListener('ionViewDidEnter', displayPendingCertificate);
     window.addEventListener('popstate', displayPendingCertificate);
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
     displayPendingCertificate();
     return () => {
       window.removeEventListener(
@@ -92,6 +136,10 @@ const CampaignCertificateHost = () => {
         displayPendingCertificate,
       );
       window.removeEventListener('popstate', displayPendingCertificate);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
     };
   }, []);
 
@@ -121,7 +169,7 @@ const CampaignCertificateHost = () => {
         campaignName: 'Chimple Summer League, Jun 2026',
         studentName,
         rank: 1,
-        awardedAt: '2026-06-28T00:00:00.000Z',
+        campaignEndDate: '2026-06-28T00:00:00.000Z',
         languageCode: localStorage.getItem('language') ?? 'en',
         isNewlyEarned: false,
       });

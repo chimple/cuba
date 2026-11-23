@@ -225,7 +225,7 @@ describe('DisplayStudents', () => {
 
   const clickStudentOnePlayButton = async (): Promise<void> => {
     await screen.findByText('Student One');
-    const playButton = document.getElementById('display-students-play-stu-1');
+    const playButton = document.getElementById('display-students-play-button');
     expect(playButton).not.toBeNull();
 
     await act(async () => {

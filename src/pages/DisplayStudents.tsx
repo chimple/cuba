@@ -26,6 +26,8 @@ import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import './DisplayStudents.css';
 import { parsePath } from 'history';
+import { setCertificateProfileSelectionInProgress } from '../redux/slices/campaignRewards/campaignRewardsSlice';
+import { store } from '../redux/store';
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -115,6 +117,7 @@ const DisplayStudents: FC<{}> = () => {
     });
     setGbUpdated(true);
     if (!student.language_id) {
+      store.dispatch(setCertificateProfileSelectionInProgress(false));
       history.replace({
         ...parsePath(PAGES.EDIT_STUDENT),
         state: {
@@ -122,6 +125,7 @@ const DisplayStudents: FC<{}> = () => {
         },
       });
     } else {
+      store.dispatch(setCertificateProfileSelectionInProgress(false));
       history.replace({
         ...parsePath(PAGES.HOME),
         state: location.state?.fromSwitchProfileReturn
@@ -189,10 +193,15 @@ const DisplayStudents: FC<{}> = () => {
                 </span>
                 <div id="play-button-shadow" className="play-button-shadow">
                   <button
-                    id={`display-students-play-${student.id}`}
+                    id="display-students-play-button"
                     type="button"
                     className="display-students-play-button"
                     onClick={async () => {
+                      // The active child changes before navigation completes.
+                      // Keep that child's queued certificate off this selector page.
+                      store.dispatch(
+                        setCertificateProfileSelectionInProgress(true),
+                      );
                       // Set the selected profile before logging the selection event
                       // so global analytics context contains this student ID.
                       await Util.setCurrentStudent(student, undefined, true);

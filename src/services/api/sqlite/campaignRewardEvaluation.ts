@@ -225,7 +225,7 @@ export const evaluateCampaignReward = async (
     studentName,
     schoolId: dependencies.schoolId,
     rank: certificateRank!,
-    awardedAt: campaign.end_date,
+    campaignEndDate: campaign.end_date,
     languageCode,
     isNewlyEarned: true,
     studentId,

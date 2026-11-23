@@ -281,7 +281,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
               studentName: student?.name ?? '',
               studentId: selectedCertificate.student_id ?? undefined,
               rank: selectedCertificateRank,
-              awardedAt:
+              campaignEndDate:
                 selectedCertificate.end_date ??
                 selectedCertificate.updated_at ??
                 new Date().toISOString(),
