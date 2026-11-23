@@ -103,6 +103,7 @@ export const LidoNextContainerKey = 'lidoNextContainer';
 export const LidoActivityChangeKey = 'lidoActivityChange';
 export const LidoGameCompletedKey = 'lidoGameCompleted';
 export const LidoGameExitKey = 'lidoGameExit';
+export const LidoPlayerErrorKey = 'lidoPlayerError';
 export const LidoGameStartKey = 'lidoGameStart';
 export const QUIZ_POPUP_SHOWN = 'quizPopupShown';
 export const ASSIGNMENT_POPUP_SHOWN = 'assignmentPopupShown';
