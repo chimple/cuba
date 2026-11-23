@@ -175,6 +175,34 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     const profile = profiles.find((student) => student.id === studentId);
     if (!profile || profile.isInSelectedClass) return false;
 
+    const { data: parentLinks, error: parentLinksError } = await this.supabase
+      .from('parent_user')
+      .select('parent_id')
+      .eq('student_id', studentId)
+      .eq('is_deleted', false);
+    if (parentLinksError) throw parentLinksError;
+    const parentIds = Array.from(
+      new Set((parentLinks ?? []).map((link) => link.parent_id)),
+    );
+    if (parentIds.length === 0) {
+      throw new Error(
+        'No active parent profile is associated with this student',
+      );
+    }
+
+    const { data: parents, error: parentsError } = await this.supabase
+      .from('user')
+      .select('id')
+      .in('id', parentIds)
+      .eq('is_deleted', false);
+    if (parentsError) throw parentsError;
+    const activeParentIds = (parents ?? []).map((parent) => parent.id);
+    if (activeParentIds.length === 0) {
+      throw new Error(
+        'No active parent profile is associated with this student',
+      );
+    }
+
     const { data: existingLinks, error: linksError } = await this.supabase
       .from('class_user')
       .select('id, is_deleted')
@@ -182,7 +210,9 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
       .eq('user_id', studentId)
       .eq('role', RoleType.STUDENT);
     if (linksError) throw linksError;
-    if ((existingLinks ?? []).some((link) => !link.is_deleted)) return false;
+    const studentAlreadyLinked = (existingLinks ?? []).some(
+      (link) => !link.is_deleted,
+    );
 
     const existingIds = new Set((existingLinks ?? []).map((link) => link.id));
     let generation = 0;
@@ -200,6 +230,23 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     }
 
     const now = new Date().toISOString();
+    const createdParentClassLinks: string[] = [];
+    try {
+      for (const parentId of activeParentIds) {
+        const parentClassLinkId = await this.ensureParentClassMapping(
+          parentId,
+          classId,
+          now,
+        );
+        if (parentClassLinkId) createdParentClassLinks.push(parentClassLinkId);
+      }
+    } catch (error) {
+      await this.rollbackParentClassMappings(createdParentClassLinks, now);
+      throw error;
+    }
+
+    if (studentAlreadyLinked) return false;
+
     const { error: insertError } = await this.supabase
       .from('class_user')
       .insert({
@@ -223,6 +270,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
         .maybeSingle();
       if (activeLinkError) throw activeLinkError;
       if (activeLink) return false;
+      await this.rollbackParentClassMappings(createdParentClassLinks, now);
       throw insertError;
     }
     return true;
@@ -688,6 +736,26 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     if (activeLinkError) throw activeLinkError;
     if (activeLink) return null;
     throw insertError;
+  }
+
+  private async rollbackParentClassMappings(
+    mappingIds: string[],
+    now: string,
+  ): Promise<void> {
+    if (mappingIds.length === 0) return;
+    const supabase = this.supabase;
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const results = await Promise.all(
+      mappingIds.map((mappingId) =>
+        supabase
+          .from('class_user')
+          .update({ is_deleted: true, updated_at: now })
+          .eq('id', mappingId)
+          .eq('is_deleted', false),
+      ),
+    );
+    const rollbackError = results.find((result) => result.error)?.error;
+    if (rollbackError) throw rollbackError;
   }
 
   async addStudentWithParentValidation(params: {
