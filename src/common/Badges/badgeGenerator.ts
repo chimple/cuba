@@ -21,8 +21,29 @@ export interface GeneratedBadge {
   textColor: BadgeColor;
 }
 
-const applyColor = (svg: string, color: BadgeColor): string =>
-  svg.replace(/fill="(?!none)[^"]+"/gi, `fill="${color}"`);
+/**
+ * Recolors visible SVG artwork without changing mask or clip-path content.
+ *
+ * Mask fills may be white, red, or any other luminance value. Recoloring
+ * them changes the mask opacity and makes the visible icon look faded.
+ */
+export const applyColor = (svg: string, color: BadgeColor): string => {
+  const protectedSections: string[] = [];
+  const visibleSvg = svg.replace(
+    /<(mask|clipPath)\b[^>]*>[\s\S]*?<\/\1>/gi,
+    (section) => {
+      const placeholder = `__badge_protected_section_${protectedSections.length}__`;
+      protectedSections.push(section);
+      return placeholder;
+    },
+  );
+
+  return visibleSvg
+    .replace(/fill="(?!none)[^"]+"/gi, `fill="${color}"`)
+    .replace(/__badge_protected_section_(\d+)__/g, (_, index: string) => {
+      return protectedSections[Number(index)];
+    });
+};
 
 const getRandomIndex = (length: number): number =>
   Math.floor(Math.random() * length);
