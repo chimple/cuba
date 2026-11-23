@@ -65,26 +65,41 @@ const ExistingStudentProfiles = ({
               className="ops-student-profile-lookup__item"
               key={profile.id}
             >
-              <label
-                id={`ops-student-profile-lookup__selection-${idPrefix}-${profile.id}`}
-                className="ops-student-profile-lookup__selection"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedStudentId === profile.id}
-                  disabled={disabled || profile.isInSelectedClass}
-                  onChange={(event) =>
-                    onSelectStudent(event.target.checked ? profile.id : null)
-                  }
-                />
-                <span
-                  id={`ops-student-profile-lookup__name-${idPrefix}-${profile.id}`}
-                  className="ops-student-profile-lookup__name"
+              {profile.isInSelectedClass ? (
+                <div
+                  id={`ops-student-profile-lookup__selection-${idPrefix}-${profile.id}`}
+                  className="ops-student-profile-lookup__selection"
                 >
-                  {profile.name || t('Unnamed student')}
-                  {profile.studentCode ? ` (${profile.studentCode})` : ''}
-                </span>
-              </label>
+                  <span
+                    id={`ops-student-profile-lookup__name-${idPrefix}-${profile.id}`}
+                    className="ops-student-profile-lookup__name"
+                  >
+                    {profile.name || t('Unnamed student')}
+                    {profile.studentCode ? ` (${profile.studentCode})` : ''}
+                  </span>
+                </div>
+              ) : (
+                <label
+                  id={`ops-student-profile-lookup__selection-${idPrefix}-${profile.id}`}
+                  className="ops-student-profile-lookup__selection"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedStudentId === profile.id}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onSelectStudent(event.target.checked ? profile.id : null)
+                    }
+                  />
+                  <span
+                    id={`ops-student-profile-lookup__name-${idPrefix}-${profile.id}`}
+                    className="ops-student-profile-lookup__name"
+                  >
+                    {profile.name || t('Unnamed student')}
+                    {profile.studentCode ? ` (${profile.studentCode})` : ''}
+                  </span>
+                </label>
+              )}
               {profile.isInSelectedClass && (
                 <span
                   id={`ops-student-profile-lookup__already-linked-${idPrefix}-${profile.id}`}
