@@ -18,14 +18,18 @@ const rankAssets = {
 } as const;
 
 const rankMessages = {
-  1: 'Congratulations on winning first place!',
-  2: 'Congratulations on winning second place!',
-  3: 'Congratulations on winning third place!',
+  1: 'Congratulations on winning Gold!',
+  2: 'Congratulations on winning Silver!',
+  3: 'Congratulations on winning Bronze!',
   progress: 'Congratulations on participating!',
   participation: 'Congratulations on participating!',
 } as const;
 
-const formatAwardDate = (value: string | Date) => {
+const formatCampaignEndDate = (value: string | Date) => {
+  if (typeof value === 'string') {
+    const dateParts = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    if (dateParts) return `${dateParts[3]}-${dateParts[2]}-${dateParts[1]}`;
+  }
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   const day = String(date.getDate()).padStart(2, '0');
@@ -126,7 +130,7 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           <image
             href={`${ASSET_ROOT}/Border assets.svg`}
             x="2"
-            y="6"
+            y="10"
             width="462"
             height="314"
             aria-hidden="true"
@@ -210,7 +214,7 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
             />
 
             <text x="86" y="277" fontSize="14" fontWeight="600">
-              {formatAwardDate(certificate.awardedAt)}
+              {formatCampaignEndDate(certificate.campaignEndDate)}
             </text>
             <line
               x1="44"

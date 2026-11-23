@@ -10,7 +10,7 @@ describe('CampaignCertificateArtwork', () => {
           campaignName: 'Summer League',
           studentName: 'Madhavi',
           rank: 2,
-          awardedAt: '2026-06-28T00:00:00.000Z',
+          campaignEndDate: '2026-06-28T00:00:00.000Z',
         }}
       />,
     );
@@ -35,7 +35,7 @@ describe('CampaignCertificateArtwork', () => {
           campaignName: 'Summer League',
           studentName: 'Madhavi',
           rank: 'progress',
-          awardedAt: '2026-06-28T00:00:00.000Z',
+          campaignEndDate: '2026-06-28T00:00:00.000Z',
         }}
       />,
     );

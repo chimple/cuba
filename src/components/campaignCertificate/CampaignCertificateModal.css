@@ -26,7 +26,7 @@
   /* The footer always fits Share plus a small visible gap above and below it. */
   padding-bottom: calc(
     var(--certificate-share-height) + var(--certificate-share-top-gap) +
-      var(--certificate-share-bottom-gap)
+      var(--certificate-share-bottom-gap) + 6px
   );
   border-radius: 0 0 18px 18px;
   background: #fffdee;
@@ -303,11 +303,12 @@
   left: 50%;
   display: flex;
   width: 90.545px;
+  min-width: 90.545px;
   height: var(--certificate-share-height);
-  min-height: var(--certificate-share-height);
+  min-height: 48px;
   padding: 2.184px 22.636px 3px 22.909px;
   box-sizing: border-box;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -315,7 +316,7 @@
   transform: translateX(-50%);
   border: none;
   border-bottom: 5.455px solid #300d37;
-  border-radius: 10px;
+  border-radius: 10px 10px 14px 14px;
   background: #c094ef;
   color: #2d1644;
   font-size: 17px;
@@ -335,6 +336,7 @@
 }
 
 .campaign-certificate-share img {
+  flex: 0 0 auto;
   width: 23px;
   height: 24px;
 }
@@ -434,13 +436,20 @@
 /* Landscape 800×360 / Lenovo tablet: give only the Share control extra room. */
 @media (min-width: 600px) and (max-height: 500px) {
   .campaign-certificate-dialog {
-    --certificate-share-height: 54px;
+    --certificate-share-height: 56px;
+  }
+}
+
+/* Android WebView scaling reports Lenovo M8 landscape at several nearby viewport sizes. */
+@media (min-width: 760px) and (max-height: 700px) {
+  .campaign-certificate-dialog {
+    --certificate-share-height: 60px;
   }
 }
 
 @media (min-width: 900px) and (max-height: 500px) {
   .campaign-certificate-dialog {
-    --certificate-share-height: 54px;
+    --certificate-share-height: 56px;
     --certificate-share-top-gap: 8px;
     --certificate-share-bottom-gap: 6px;
   }

@@ -5,7 +5,7 @@ export type CampaignCertificateData = {
   campaignName: string;
   studentName: string;
   rank: CampaignCertificateRank;
-  awardedAt: string | Date;
+  campaignEndDate: string | Date;
   // IDs are retained for the required analytics base context payload.
   studentId?: string;
   schoolId?: string;

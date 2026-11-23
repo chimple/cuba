@@ -9,6 +9,8 @@ import { useRouteAudioCleanup } from '../hooks/useRouteAudioCleanup';
 import { useUsageLimitModal } from '../hooks/useUsageLimitModal';
 import { usePredictiveDownloads } from '../hooks/usePredictiveDownloads';
 import { useAppSelector } from '../redux/hooks';
+import { setCertificateProfileSelectionInProgress } from '../redux/slices/campaignRewards/campaignRewardsSlice';
+import { store } from '../redux/store';
 import AppRoutes from './AppRoutes';
 import AppOverlays from './AppOverlays';
 import { CampaignCertificateHost } from '../components/campaignCertificate';
@@ -21,6 +23,10 @@ const AppRouteEffects = () => {
   useOpsConsoleBodyClass();
   useRouteAudioCleanup();
   useEffect(() => {
+    // This guard is only meaningful during one profile-selection transition.
+    // Reset any persisted value left by an interrupted app session.
+    store.dispatch(setCertificateProfileSelectionInProgress(false));
+
     let disposed = false;
     let lastSelectedStudentId = Util.getCurrentStudent()?.id;
     let syncInFlight = false;
