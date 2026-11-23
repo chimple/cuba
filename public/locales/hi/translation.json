@@ -4,6 +4,7 @@
     "{{className}} - Select the child's profile": "{{className}} - बच्चे की प्रोफ़ाइल चुनें",
     "{{count}} campaign day(s) are configured for communication.": "",
     "{{count}} lessons complete!": "{{count}} पाठ पूरे!",
+  "I have completed {{count}} lessons!": "मैंने {{count}} पाठ पूरे कर लिए हैं!",
     "{{fromName}}\nhas been merged into {{toName}}'s profile": "{{fromName}}\nको {{toName}} की प्रोफ़ाइल में मिला दिया गया है।",
     "{{principalName}}'s profile has been deleted and is no longer available.": "{{प्रधानाचार्यनाम}} की प्रोफ़ाइल हटा दी गई है और अब उपलब्ध नहीं है।",
     "{{rank}} {{criteriaLabel}}": "",

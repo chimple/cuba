@@ -104,7 +104,7 @@ it('refreshes a legacy cached reward without changing its card fields', async ()
   expect(rewards).toEqual([
     expect.objectContaining({
       lessons_completed_count: 0,
-      lessons_target_count: 0,
+      lessons_target_count: 4,
       completion_percentage: 0,
       status: 'in_progress',
       rank_achieved: null,
@@ -127,12 +127,12 @@ it.each([
     await api.hydrateCampaignRewards('child');
     const [reward] = await api.getCachedCampaignRewards('child');
     expect(reward).toMatchObject({
-      lessons_completed_count: 0,
-      lessons_target_count: 0,
-      completion_percentage: 0,
+      lessons_completed_count: 2,
+      lessons_target_count: 4,
+      completion_percentage: 50,
       rank_achieved: expectedRank,
       status: 'won',
-      certificate_available: 0,
+      certificate_available: 1,
     });
   },
 );
@@ -155,9 +155,9 @@ const setupHomepage = (count: number) => {
 
 it.each([
   [0, 0, null],
-  [12, 0, 1],
-  [14, 0, 1],
-  [55, 0, 1],
+  [12, 20, 3],
+  [14, 20, 3],
+  [55, 100, 1],
 ])(
   'uses available homepage result history for %i lessons',
   async (count, percentage, rank) => {
@@ -165,8 +165,8 @@ it.each([
     await api.hydrateCampaignRewards('child');
     const [reward] = await api.getCachedCampaignRewards('child');
     expect(reward).toMatchObject({
-      lessons_completed_count: 0,
-      lessons_target_count: 0,
+      lessons_completed_count: count,
+      lessons_target_count: 50,
       completion_percentage: percentage,
       rank_achieved: rank,
     });
@@ -187,13 +187,24 @@ it('excludes replays, other students, non-homepage sources, invalid results and 
   await api.hydrateCampaignRewards('child');
   expect(
     (await api.getCachedCampaignRewards('child'))[0].lessons_completed_count,
-  ).toBe(0);
+  ).toBe(1);
 });
 
-it('does not display a certificate before the campaign has completed', async () => {
+it('does not display a certificate during lesson completion', async () => {
   setupHomepage(12);
   await api.hydrateCampaignRewards('child');
   expect(showCampaignCertificate).not.toHaveBeenCalled();
   await api.evaluateCampaignRewardsAfterLesson('child');
   expect(showCampaignCertificate).not.toHaveBeenCalled();
+});
+
+it('displays an eligible certificate during ended-campaign hydration', async () => {
+  db.run("UPDATE local_campaigns SET end_date = '2026-11-19'");
+  db.run(`INSERT INTO result VALUES
+    ('r1','a1','l1','child','2026-11-19','completed',0,NULL),
+    ('r2','a2','l2','child','2026-11-19','completed',0,NULL)`);
+
+  await api.hydrateCampaignRewards('child');
+
+  expect(showCampaignCertificate).toHaveBeenCalledTimes(1);
 });

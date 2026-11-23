@@ -8,6 +8,8 @@ import CampaignCertificateArtwork from '../campaignCertificate/CampaignCertifica
 import '../campaignCertificate/CampaignCertificateModal.css';
 import './CompetitionCertificateModal.css';
 
+const SHARE_PREVIEW_DELAY_MS = 750;
+
 type Props = {
   certificate: Omit<CampaignCertificateData, 'rank'> & {
     rank: 1 | 2 | 3 | 'participation';
@@ -54,6 +56,9 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
         pixelRatio: 2,
       });
 
+      // The share sheet becomes the next screen; close the card preview so it
+      // is not left behind when the user returns to the app.
+      onClose();
       await Util.sendContentToAndroidOrWebShare(
         `I earned a certificate in ${certificate.campaignName}!`,
         'My Chimple Certificate',
@@ -78,6 +83,16 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void share();
+    }, SHARE_PREVIEW_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+    // The certificate modal mounts once for a selected card certificate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [certificate.campaignId]);
+
   return (
     <div
       className="competition-certificate-overlay"
@@ -98,31 +113,9 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
             alt=""
             aria-hidden="true"
           />
-          <div
-            className="competition-certificate-artwork-target"
-            role="button"
-            tabIndex={0}
-            aria-label="Share competition certificate"
-            onClick={() => void share()}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                void share();
-              }
-            }}
-          >
+          <div className="competition-certificate-artwork-target">
             <CampaignCertificateArtwork certificate={certificate} />
           </div>
-          <button
-            type="button"
-            className="campaign-certificate-share"
-            id="campaign-certificate-share"
-            onClick={() => void share()}
-            disabled={isSharing}
-            aria-label="Share competition certificate"
-          >
-            Share
-          </button>
           <img
             className="competition-certificate-star competition-certificate-star-right"
             src="/assets/campaignCompetition/Star 19.svg"

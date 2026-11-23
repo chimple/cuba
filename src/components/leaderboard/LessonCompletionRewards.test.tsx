@@ -128,7 +128,6 @@ describe('LessonCompletionRewards', () => {
   });
 
   it('records a successful share outcome', async () => {
-    jest.useFakeTimers();
     mockedToPng.mockResolvedValue('data:image/png;base64,AA==');
     render(
       <LessonCompletionRewards studentId="student-1" progress={progress} />,
@@ -136,7 +135,11 @@ describe('LessonCompletionRewards', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /share 100/i }));
     await act(async () => {
-      jest.advanceTimersByTime(1000);
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Share 100 lesson badge preview',
+        }),
+      );
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -150,7 +153,7 @@ describe('LessonCompletionRewards', () => {
       ),
     );
     expect(mockedShare).toHaveBeenCalledWith(
-      '100 lessons complete!',
+      'I have completed 100 lessons!',
       'My Chimple Badge',
       undefined,
       expect.arrayContaining([expect.any(File)]),
@@ -159,7 +162,6 @@ describe('LessonCompletionRewards', () => {
   });
 
   it('records a failed share outcome with its error', async () => {
-    jest.useFakeTimers();
     mockedToPng.mockResolvedValue('data:image/png;base64,AA==');
     mockedShare.mockRejectedValue(new Error('Native share unavailable'));
     render(
@@ -168,7 +170,11 @@ describe('LessonCompletionRewards', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /share 50/i }));
     await act(async () => {
-      jest.advanceTimersByTime(1000);
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Share 50 lesson badge preview',
+        }),
+      );
       await Promise.resolve();
       await Promise.resolve();
     });

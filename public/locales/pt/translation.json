@@ -8,6 +8,7 @@
     "{{className}} - Select the child's profile": "{{className}} - Selecione o perfil da criança",
     "{{count}} campaign day(s) are configured for communication.": "",
     "{{count}} lessons complete!": "{{count}} lições concluídas!",
+  "I have completed {{count}} lessons!": "Completei {{count}} lições!",
     "{{fromName}}\nhas been merged into {{toName}}'s profile": "",
     "{{principalName}}'s profile has been deleted and is no longer available.": "",
     "{{rank}} {{criteriaLabel}}": "",

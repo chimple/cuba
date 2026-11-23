@@ -7,6 +7,7 @@
   "{{className}} - Select the child's profile": "{{className}} - Select the child's profile",
   "{{count}} campaign day(s) are configured for communication.": "{{count}} campaign day(s) are configured for communication.",
   "{{count}} lessons complete!": "{{count}} lessons complete!",
+  "I have completed {{count}} lessons!": "I have completed {{count}} lessons!",
   "{{fromName}}\nhas been merged into {{toName}}'s profile": "{{fromName}}\nhas been merged into {{toName}}'s profile",
   "{{points}} points": "{{points}} points",
   "{{principalName}}'s profile has been deleted and is no longer available.": "{{principalName}}'s profile has been deleted and is no longer available.",

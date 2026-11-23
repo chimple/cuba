@@ -4,7 +4,6 @@ import {
   TabType,
 } from '../../../common/constants';
 
-import { SqliteApiCampaignRewards } from './SqliteApi.campaign.rewards';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { SqliteApiAssignmentAssessments } from './SqliteApi.assignment.assessments';
@@ -396,22 +395,26 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const result = await this.executeQuery(
       `SELECT * FROM local_campaigns
        WHERE is_deleted = 0 AND status = 'active'
-         AND start_date <= ? AND end_date >= ?`,
+         AND date(start_date) <= date(?)
+         AND date(end_date) >= date(?)`,
       [now, now],
     );
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
       if (!eligibleCampaignIds.has(campaign.id)) continue;
-      await this.evaluateCampaignReward(campaign, studentId, true);
+      await this.evaluateCampaignReward(campaign, studentId, false);
     }
   }
   async getCachedCampaignRewards(studentId = this.currentStudent?.id) {
     if (!studentId) return [];
     await this.ensureInitialized();
     const result = await this.executeQuery(
-      `SELECT * FROM user_campaign_rewards
-       WHERE student_id = ? AND is_deleted = 0
-       ORDER BY evaluated_at DESC`,
+      `SELECT r.*, c.name AS campaign_name, c.objective, c.target_value,
+              c.start_date, c.end_date
+       FROM user_campaign_rewards r
+       LEFT JOIN local_campaigns c ON c.id = r.campaign_id
+       WHERE r.student_id = ? AND r.is_deleted = 0
+       ORDER BY r.evaluated_at DESC`,
       [studentId],
     );
     return result?.values ?? [];
