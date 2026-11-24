@@ -5,19 +5,16 @@ import {
   FormHelperText,
   MenuItem,
   Select,
-  TextField,
   Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { RANK_LABELS, REWARD_TYPE_OPTIONS, requiredLabel } from './constants';
-import { RewardsConfigurationSectionProps } from './types';
+import { RewardsConfigurationRankRows } from './RewardsConfigurationRankRows';
+import type { RewardsConfigurationSectionProps } from './types';
 import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import './RewardsConfigurationSection.css';
 
 type TranslationValues = Record<string, string | number>;
-
-const PERCENTAGE_PLACEHOLDER_VALUES = [90, 70, 50];
-const LESSON_COUNT_PLACEHOLDER_VALUE = 10;
 
 const getSummaryRange = (
   currentValue: number,
@@ -38,8 +35,6 @@ export const RewardsConfigurationSection: React.FC<
   const { t } = useTranslation();
   const translate = (key: string, options?: TranslationValues) =>
     String(options ? t(key, options) : t(key));
-  const examplePlaceholder = (value: number) =>
-    `${translate('e.g.,')} ${value}`;
   const translateDynamic = (
     key: string,
     options: TranslationValues,
@@ -128,69 +123,15 @@ export const RewardsConfigurationSection: React.FC<
           <Typography role="columnheader">{t('Reward')}</Typography>
         </Box>
 
-        {form.rewardRanks.map((rank, index) => (
-          <Box className="rewards-config-row" role="row" key={rank.rank}>
-            <Typography className="rewards-config-rank" role="cell">
-              <span className="rewards-config-rank-badge">
-                {RANK_LABELS[rank.rank]}
-              </span>
-              <span className="rewards-config-rank-title">
-                {translateDynamic(
-                  '{{rank}} Rank',
-                  { rank: RANK_LABELS[rank.rank] },
-                  `${RANK_LABELS[rank.rank]} Rank`,
-                )}
-              </span>
-            </Typography>
-            <Box className="rewards-config-field-cell" role="cell">
-              <Typography className="rewards-config-mobile-label">
-                {criteriaLabel}
-              </Typography>
-              <TextField
-                value={rank.criteriaValue}
-                onChange={onRewardRankChange(index, 'criteriaValue')}
-                error={!!fieldError(`rewardRanks.${index}.criteriaValue`)}
-                helperText={fieldError(`rewardRanks.${index}.criteriaValue`)}
-                placeholder={
-                  usesLessonCount
-                    ? examplePlaceholder(LESSON_COUNT_PLACEHOLDER_VALUE)
-                    : examplePlaceholder(PERCENTAGE_PLACEHOLDER_VALUES[index])
-                }
-                inputProps={{
-                  inputMode: 'numeric',
-                  pattern: '[0-9]*',
-                  'aria-label': `${RANK_LABELS[rank.rank]} ${criteriaLabel}`,
-                }}
-                size="small"
-              />
-            </Box>
-            <Box className="rewards-config-field-cell" role="cell">
-              <Typography className="rewards-config-mobile-label">
-                {t('Reward')}
-              </Typography>
-              <TextField
-                fullWidth
-                value={rank.reward}
-                onChange={onRewardRankChange(index, 'reward')}
-                error={!!fieldError(`rewardRanks.${index}.reward`)}
-                helperText={fieldError(`rewardRanks.${index}.reward`)}
-                placeholder={
-                  index === 0
-                    ? translate('e.g., Certificate of Excellence')
-                    : index === 1
-                      ? translate('e.g., Certificate of Merit')
-                      : translate('e.g., Certificate of Achievement')
-                }
-                inputProps={{
-                  'aria-label': `${RANK_LABELS[rank.rank]} ${translate(
-                    'Reward',
-                  )}`,
-                }}
-                size="small"
-              />
-            </Box>
-          </Box>
-        ))}
+        <RewardsConfigurationRankRows
+          criteriaLabel={criteriaLabel}
+          fieldError={fieldError}
+          form={form}
+          onRewardRankChange={onRewardRankChange}
+          translate={translate}
+          translateDynamic={translateDynamic}
+          usesLessonCount={usesLessonCount}
+        />
       </Box>
 
       {fieldError('rewardRanking') && (
@@ -222,9 +163,8 @@ export const RewardsConfigurationSection: React.FC<
             const status = usesLessonCount
               ? translate('completed')
               : translate('completion');
-            const fallback = `Students with ${range} ${status} qualify for ${
-              RANK_LABELS[rank.rank]
-            } rank`;
+            const rankLabel = translate(RANK_LABELS[rank.rank]);
+            const fallback = `Students with ${range} ${status} qualify for ${rankLabel} rank`;
             return (
               <Typography key={rank.rank}>
                 {translateDynamic(
@@ -232,7 +172,7 @@ export const RewardsConfigurationSection: React.FC<
                   {
                     range,
                     status,
-                    rank: RANK_LABELS[rank.rank],
+                    rank: rankLabel,
                   },
                   fallback,
                 )}
