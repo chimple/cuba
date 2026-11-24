@@ -6,14 +6,17 @@
 }
 
 .competition-section-title {
+  box-sizing: border-box;
   max-width: 603px;
+  height: 31px;
   margin: 0 auto 16px;
   padding: 7px 16px;
-  border-radius: 24px;
+  border-radius: 10px;
   background: #fffdee;
   color: #182a4f;
-  font-size: clamp(16px, 2.3vw, 22px);
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1;
   text-align: left;
 }
 
