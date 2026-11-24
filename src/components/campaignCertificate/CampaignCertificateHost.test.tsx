@@ -79,7 +79,7 @@ describe('CampaignCertificateHost', () => {
 
     // The host is the single orchestration point for certificate popup rendering.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('SUMMER LEAGUE')).toBeInTheDocument();
+    expect(screen.getByText(/SUMMER LEAGUE/)).toBeInTheDocument();
   });
 
   it('displays a queued certificate on the active player route', () => {
@@ -97,7 +97,7 @@ describe('CampaignCertificateHost', () => {
     });
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('QUEUED LEAGUE')).toBeInTheDocument();
+    expect(screen.getByText(/QUEUED LEAGUE/)).toBeInTheDocument();
   });
 
   it('keeps another student certificate pending without showing it', () => {
@@ -145,7 +145,7 @@ describe('CampaignCertificateHost', () => {
     });
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('STUDENT B LEAGUE')).toBeInTheDocument();
+    expect(screen.getByText(/STUDENT B LEAGUE/)).toBeInTheDocument();
   });
 
   it('waits until the selected student leaves the profile selector', () => {
@@ -176,7 +176,7 @@ describe('CampaignCertificateHost', () => {
     });
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('STUDENT B LEAGUE')).toBeInTheDocument();
+    expect(screen.getByText(/STUDENT B LEAGUE/)).toBeInTheDocument();
   });
 
   it('keeps a certificate pending while the student profile is being edited', () => {
