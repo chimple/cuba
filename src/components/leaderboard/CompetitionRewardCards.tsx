@@ -86,17 +86,19 @@ const canShareCertificate = (reward: CompetitionReward) =>
   !isOngoingReward(reward) &&
   hasCompletedLessons(reward) &&
   getCertificateType(reward) !== null;
-
-const formatDate = (value?: string | null) => {
+const formatDate = (value?: string | null, language = 'en') => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
+  const locale = language.toLowerCase().split('-')[0];
+  const parts = new Intl.DateTimeFormat(locale, {
+    month: locale === 'en' ? 'short' : 'long',
     year: 'numeric',
-  });
+  }).formatToParts(date);
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const year = parts.find((part) => part.type === 'year')?.value;
+  return month && year ? `${month} ${year}` : value;
 };
-
 const getArtwork = (reward: CompetitionReward) => {
   if (isOngoingReward(reward)) {
     return '/assets/campaignCompetition/Campaign progress t.svg';
@@ -116,7 +118,6 @@ const getArtwork = (reward: CompetitionReward) => {
   }
   return '/assets/campaignCompetition/Campaign progress t.svg';
 };
-
 const getCardClass = (reward: CompetitionReward) => {
   if (isOngoingReward(reward)) return 'competition-reward-card ongoing';
   if (isParticipationReward(reward)) {
@@ -125,7 +126,6 @@ const getCardClass = (reward: CompetitionReward) => {
   const rank = toNumber(reward.rank_achieved);
   return `competition-reward-card completed rank-${rank || 3}`;
 };
-
 const getCompletionMessage = (
   reward: CompetitionReward,
   translate: (key: string) => string,
@@ -136,11 +136,10 @@ const getCompletionMessage = (
   if (rank === 3) return translate('competition_rank_third');
   return translate('competition_great_job');
 };
-
 const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
   rewards,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedReward, setSelectedReward] =
     useState<CompetitionReward | null>(null);
   const [selectedCertificate, setSelectedCertificate] =
@@ -155,7 +154,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
       <h2>{reward.campaign_name}</h2>
       <p className="competition-reward-date">
         {reward.start_date && reward.end_date
-          ? `${formatDate(reward.start_date)} - ${formatDate(reward.end_date)}`
+          ? `${formatDate(reward.start_date, i18n?.language)} - ${formatDate(reward.end_date, i18n?.language)}`
           : ''}
       </p>
       {isOngoingReward(reward) && (

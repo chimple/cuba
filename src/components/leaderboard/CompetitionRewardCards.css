@@ -123,6 +123,9 @@
 
 .competition-reward-description {
   color: #126187;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .competition-reward-artwork {
@@ -252,6 +255,7 @@
   color: #182a4f;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .competition-modal-progress-track {

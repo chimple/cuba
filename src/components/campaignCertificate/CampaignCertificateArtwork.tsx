@@ -37,6 +37,16 @@ const formatCampaignEndDate = (value: string | Date) => {
   return `${day}-${month}-${date.getFullYear()}`;
 };
 
+const formatCampaignMonthYear = (value: string | Date, language = 'en') => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const locale = language.toLowerCase().split('-')[0];
+  return new Intl.DateTimeFormat(locale, {
+    month: locale === 'en' ? 'short' : 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
 const translated = (
   translate: (key: string, options?: Record<string, unknown>) => string,
   key: string,
@@ -75,16 +85,18 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
         rankMessages[certificate.rank],
         rankMessages[certificate.rank],
       );
+    const isParticipationCertificate = ['progress', 'participation'].includes(
+      String(certificate.rank),
+    );
     const encouragement =
       labels.encouragement ??
       translated(
         certificateT,
-        'Keep learning and exploring. We are proud of you!',
+        isParticipationCertificate
+          ? 'certificate_participation_encouragement'
+          : 'certificate_recognition_encouragement',
         'Keep learning and exploring. We are proud of you!',
       );
-    const isParticipationCertificate = ['progress', 'participation'].includes(
-      String(certificate.rank),
-    );
     const title = (
       labels.title ??
       translated(
@@ -97,6 +109,16 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
           : 'Certificate of Recognition',
       )
     ).toUpperCase();
+    const campaignMonthYear = formatCampaignMonthYear(
+      certificate.campaignEndDate,
+      certificateLanguage,
+    ).toUpperCase();
+    const campaignTitle = /\d{4}\s*$/.test(certificate.campaignName)
+      ? certificate.campaignName.toUpperCase()
+      : [certificate.campaignName, campaignMonthYear]
+          .filter(Boolean)
+          .join(', ')
+          .toUpperCase();
 
     return (
       <div ref={ref} className="campaign-certificate-artwork">
@@ -155,9 +177,9 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
               y="73"
               fontSize="16.667"
               fontWeight="600"
-              {...textFit(certificate.campaignName, 34)}
+              {...textFit(campaignTitle, 48)}
             >
-              {compactText(certificate.campaignName.toUpperCase(), 42)}
+              {compactText(campaignTitle, 54)}
             </text>
             {showStudentName && certificate.studentName && (
               <text

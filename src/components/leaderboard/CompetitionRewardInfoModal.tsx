@@ -5,21 +5,25 @@ import type { CompetitionReward } from './CompetitionRewardCards';
 const toNumber = (value: number | string | null | undefined) =>
   Number(value ?? 0);
 
-const formatDate = (value?: string | null) => {
+const formatDate = (value?: string | null, language = 'en') => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
+  const locale = language.toLowerCase().split('-')[0];
+  const parts = new Intl.DateTimeFormat(locale, {
+    month: locale === 'en' ? 'short' : 'long',
     year: 'numeric',
-  });
+  }).formatToParts(date);
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const year = parts.find((part) => part.type === 'year')?.value;
+  return month && year ? `${month} ${year}` : value;
 };
 
 const CompetitionRewardInfoModal: FC<{
   reward: CompetitionReward;
   onClose: () => void;
 }> = ({ reward, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const completed = toNumber(reward.lessons_completed_count);
   const target = toNumber(reward.lessons_target_count);
   const isHomepageCampaign =
@@ -72,7 +76,7 @@ const CompetitionRewardInfoModal: FC<{
         <h2>{reward.campaign_name}</h2>
         <p className="competition-modal-date">
           {reward.start_date && reward.end_date
-            ? `${formatDate(reward.start_date)} - ${formatDate(reward.end_date)}`
+            ? `${formatDate(reward.start_date, i18n.language)} - ${formatDate(reward.end_date, i18n.language)}`
             : ''}
         </p>
         <p className="competition-modal-progress-heading">
