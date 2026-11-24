@@ -76,7 +76,7 @@ beforeEach(() => {
 });
 
 it.each(['create', 'edit'])(
-  '%s requires the applicable fields before saving a school',
+  '%s requires Block and other required fields before saving a school',
   async (mode) => {
     if (mode === 'edit') {
       mockLocation.state = {
@@ -106,7 +106,7 @@ it.each(['create', 'edit'])(
       result.current.handleContactChange(0, 'phone', '9876543210');
       await result.current.handleUdiseChange('12345678901');
     });
-    expect(result.current.isSaveDisabled()).toBe(mode === 'create');
+    expect(result.current.isSaveDisabled()).toBe(true);
     if (mode === 'create') {
       await act(async () => {
         await result.current.handleApprove();
@@ -131,6 +131,13 @@ it.each(['create', 'edit'])(
         await result.current.handleApprove();
       });
       expect(mockApi.createSchool).not.toHaveBeenCalled();
+      act(() => result.current.handleAddressChange('block', 'Block'));
+    } else {
+      await act(async () => {
+        await result.current.handleApprove();
+      });
+      expect(mockApi.updateSchoolProfile).not.toHaveBeenCalled();
+      expect(mockApi.updateSchoolCourseSelection).not.toHaveBeenCalled();
       act(() => result.current.handleAddressChange('block', 'Block'));
     }
     expect(result.current.isSaveDisabled()).toBe(false);
@@ -170,6 +177,7 @@ it('shows the affected class and blocks profile changes until the selection is c
       model: 'at_home',
       group1: 'State',
       group2: 'District',
+      group3: 'Block',
       key_contacts: [{ name: 'Contact', phone: '9876543210' }],
     },
     programData: program,
@@ -224,6 +232,7 @@ it('enables save after assigning an FC to a school whose FC was deleted', async 
       model: 'at_home',
       group1: 'State',
       group2: 'District',
+      group3: 'Block',
       key_contacts: [{ name: 'Contact', phone: '9876543210' }],
     },
     programData: program,
@@ -255,6 +264,7 @@ describe('immediate protection of courses required by classes', () => {
         model: 'at_home',
         group1: 'State',
         group2: 'District',
+        group3: 'Block',
         key_contacts: [{ name: 'Contact', phone: '9876543210' }],
       },
       programData: program,
@@ -339,6 +349,7 @@ it.each([false, true])(
         model: 'at_home',
         group1: 'State',
         group2: 'District',
+        group3: 'Block',
         key_contacts: [{ name: 'Contact', phone: '9876543210' }],
       },
       programData: program,
