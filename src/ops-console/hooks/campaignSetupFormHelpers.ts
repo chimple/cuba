@@ -162,7 +162,7 @@ export const getCampaignRewardsValidationErrors = (
     values.some((value, index) => index > 0 && values[index - 1] <= value)
   ) {
     errors.rewardRanking =
-      'Ranking criteria must be highest for 1st rank, then decrease for each rank.';
+      'Ranking criteria must be highest for Gold rank, then decrease for each rank.';
   }
 
   return errors;

@@ -51,9 +51,9 @@ export const DEFAULT_REWARD_RANKS: CampaignRewardRankFormState[] = [
 
 export const RANK_LABELS: Record<CampaignRewardRankFormState['rank'], string> =
   {
-    1: '1st',
-    2: '2nd',
-    3: '3rd',
+    1: 'Gold',
+    2: 'Silver',
+    3: 'Bronze',
   };
 
 export const requiredLabel = (label: string) => (

@@ -729,22 +729,22 @@ describe('CampaignSetupPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
-    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Gold Minimum Completion (%)'), {
       target: { value: '70' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Silver Minimum Completion (%)'), {
       target: { value: '90' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Bronze Minimum Completion (%)'), {
       target: { value: '50' },
     });
-    fireEvent.change(screen.getByLabelText('1st Reward'), {
+    fireEvent.change(screen.getByLabelText('Gold Reward'), {
       target: { value: 'Gold' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+    fireEvent.change(screen.getByLabelText('Silver Reward'), {
       target: { value: 'Silver' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+    fireEvent.change(screen.getByLabelText('Bronze Reward'), {
       target: { value: 'Bronze' },
     });
 
@@ -752,7 +752,7 @@ describe('CampaignSetupPage', () => {
 
     expect(
       await screen.findByText(
-        'Ranking criteria must be highest for 1st rank, then decrease for each rank.',
+        'Ranking criteria must be highest for Gold rank, then decrease for each rank.',
       ),
     ).toBeInTheDocument();
   });
@@ -767,31 +767,31 @@ describe('CampaignSetupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
 
-    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Gold Minimum Completion (%)'), {
       target: { value: '90' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Silver Minimum Completion (%)'), {
       target: { value: '70' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Bronze Minimum Completion (%)'), {
       target: { value: '50' },
     });
-    fireEvent.change(screen.getByLabelText('1st Reward'), {
+    fireEvent.change(screen.getByLabelText('Gold Reward'), {
       target: { value: 'Certificate of Excellence' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+    fireEvent.change(screen.getByLabelText('Silver Reward'), {
       target: { value: 'Certificate of Merit' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+    fireEvent.change(screen.getByLabelText('Bronze Reward'), {
       target: { value: 'Certificate of Achievement' },
     });
 
     expect(
-      screen.getByText('Students with >=90% completion qualify for 1st rank'),
+      screen.getByText('Students with >=90% completion qualify for Gold rank'),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Students with 70% - 89% completion qualify for 2nd rank',
+        'Students with 70% - 89% completion qualify for Silver rank',
       ),
     ).toBeInTheDocument();
 
@@ -819,22 +819,22 @@ describe('CampaignSetupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
 
-    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Gold Minimum Completion (%)'), {
       target: { value: '90' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Silver Minimum Completion (%)'), {
       target: { value: '70' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+    fireEvent.change(screen.getByLabelText('Bronze Minimum Completion (%)'), {
       target: { value: '50' },
     });
-    fireEvent.change(screen.getByLabelText('1st Reward'), {
+    fireEvent.change(screen.getByLabelText('Gold Reward'), {
       target: { value: 'Gold Reward' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+    fireEvent.change(screen.getByLabelText('Silver Reward'), {
       target: { value: 'Silver Reward' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+    fireEvent.change(screen.getByLabelText('Bronze Reward'), {
       target: { value: 'Bronze Reward' },
     });
 
@@ -896,22 +896,22 @@ describe('CampaignSetupPage', () => {
     expect(screen.getAllByText('Number of Lessons').length).toBeGreaterThan(0);
 
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
-    fireEvent.change(screen.getByLabelText('1st Number of Lessons'), {
+    fireEvent.change(screen.getByLabelText('Gold Number of Lessons'), {
       target: { value: '10' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Number of Lessons'), {
+    fireEvent.change(screen.getByLabelText('Silver Number of Lessons'), {
       target: { value: '7' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Number of Lessons'), {
+    fireEvent.change(screen.getByLabelText('Bronze Number of Lessons'), {
       target: { value: '5' },
     });
-    fireEvent.change(screen.getByLabelText('1st Reward'), {
+    fireEvent.change(screen.getByLabelText('Gold Reward'), {
       target: { value: 'Gold Reward' },
     });
-    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+    fireEvent.change(screen.getByLabelText('Silver Reward'), {
       target: { value: 'Silver Reward' },
     });
-    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+    fireEvent.change(screen.getByLabelText('Bronze Reward'), {
       target: { value: 'Bronze Reward' },
     });
 
