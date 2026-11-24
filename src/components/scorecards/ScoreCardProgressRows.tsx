@@ -18,12 +18,12 @@ const SOUND_CUES = [
 
 type ScoreCardProgressRowsProps = {
   rows?: ScoreCardProgressRowData[];
+  playProgressAudio?: boolean;
 };
 
 const hasAnimatedFill = (rows: ScoreCardProgressRowData[]): boolean =>
   rows.some(
-    (row) =>
-      row.current > 0 && !(row.completed && !row.animateCompletion),
+    (row) => row.current > 0 && !(row.completed && !row.animateCompletion),
   );
 
 const hasAnimatedTick = (rows: ScoreCardProgressRowData[]): boolean =>
@@ -31,11 +31,12 @@ const hasAnimatedTick = (rows: ScoreCardProgressRowData[]): boolean =>
 
 const ScoreCardProgressRows = ({
   rows = [],
+  playProgressAudio = false,
 }: ScoreCardProgressRowsProps): ReactElement | null => {
   const groups = [rows.slice(0, 2), rows.slice(2, 4)];
 
   useEffect(() => {
-    if (!rows.length) return;
+    if (!playProgressAudio || !rows.length) return;
 
     const fillAudio = new Audio(PROGRESS_FILL_AUDIO_URL);
     const tickAudio = new Audio(GOAL_TICK_AUDIO_URL);
@@ -45,8 +46,11 @@ const ScoreCardProgressRows = ({
     tickAudio.volume = 0.5;
     const timers = SOUND_CUES.map(({ at, isTick }) =>
       window.setTimeout(() => {
-        const cueRows = groups[at < 2500 ? 0 : 1];
-        if (isTick ? hasAnimatedTick(cueRows) : hasAnimatedFill(cueRows)) {
+        const cueRows = rows.slice(at < 2500 ? 0 : 2, at < 2500 ? 2 : 4);
+        const shouldPlay = isTick
+          ? hasAnimatedTick(cueRows)
+          : hasAnimatedFill(cueRows);
+        if (shouldPlay) {
           const audio = isTick ? tickAudio : fillAudio;
           audio.currentTime = 0;
           void audio.play().catch(() => undefined);
@@ -59,7 +63,7 @@ const ScoreCardProgressRows = ({
       fillAudio.pause();
       tickAudio.pause();
     };
-  }, [rows]);
+  }, [playProgressAudio, rows]);
 
   if (!rows.length) return null;
 

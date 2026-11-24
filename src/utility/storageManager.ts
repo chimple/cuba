@@ -1,5 +1,9 @@
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { PREDICTIVE_BUFFER_LESSON_IDS } from '../common/constants';
+import {
+  DOWNLOADED_LESSON_ID,
+  DOWNLOADED_LESSONS_SIZE,
+  PREDICTIVE_BUFFER_LESSON_IDS,
+} from '../common/constants';
 import logger from './logger';
 import { REMOTE_CONFIG_KEYS } from '../services/RemoteConfig';
 import { SqliteApi } from '../services/api/SqliteApi';
@@ -25,6 +29,7 @@ export class StorageManager {
     string,
     number
   >();
+  private static readonly activeLessonRefCounts = new Map<string, number>();
 
   /**
    * Keeps a lesson being downloaded, plus its native staging folders, out of
@@ -48,6 +53,29 @@ export class StorageManager {
         this.downloadingLessonRefCounts.delete(lessonId);
       } else {
         this.downloadingLessonRefCounts.set(lessonId, count - 1);
+      }
+    };
+  }
+
+  /** Keep a lesson's files available until its player has been closed. */
+  public static protectActiveLesson(lessonId: string): () => void {
+    if (!lessonId) return () => undefined;
+
+    this.activeLessonRefCounts.set(
+      lessonId,
+      (this.activeLessonRefCounts.get(lessonId) ?? 0) + 1,
+    );
+
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+
+      const count = this.activeLessonRefCounts.get(lessonId) ?? 0;
+      if (count <= 1) {
+        this.activeLessonRefCounts.delete(lessonId);
+      } else {
+        this.activeLessonRefCounts.set(lessonId, count - 1);
       }
     };
   }
@@ -118,13 +146,14 @@ export class StorageManager {
         }
         const lessonSize = await this.getDirectorySize(lesson.lessonId);
 
-        await this.deleteLessonFolder(lesson.lessonId);
+        if (await this.deleteLessonFolder(lesson.lessonId)) {
+          this.removeEvictedLessonMetadata(lesson.lessonId);
+          currentSizeBytes -= lessonSize;
 
-        currentSizeBytes -= lessonSize;
-
-        logger.warn(
-          `[StorageManager] Deleted lesson=${lesson.lessonId}, freedBytes=${lessonSize}, remainingBytes=${currentSizeBytes}`,
-        );
+          logger.warn(
+            `[StorageManager] Deleted lesson=${lesson.lessonId}, freedBytes=${lessonSize}, remainingBytes=${currentSizeBytes}`,
+          );
+        }
       }
     } catch (error) {
       logger.error('[StorageManager] Error during storage limit check', error);
@@ -134,7 +163,11 @@ export class StorageManager {
   private static isProtectedFolder(folderName: string): boolean {
     if (this.PROTECTED_FOLDERS.has(folderName)) return true;
 
-    for (const lessonId of this.downloadingLessonRefCounts.keys()) {
+    const protectedLessonIds = new Set([
+      ...this.downloadingLessonRefCounts.keys(),
+      ...this.activeLessonRefCounts.keys(),
+    ]);
+    for (const lessonId of protectedLessonIds) {
       if (
         folderName === lessonId ||
         folderName === `${lessonId}_temp` ||
@@ -284,7 +317,7 @@ export class StorageManager {
     }
   }
 
-  private static async deleteLessonFolder(lessonId: string): Promise<void> {
+  private static async deleteLessonFolder(lessonId: string): Promise<boolean> {
     try {
       await Filesystem.rmdir({
         path: lessonId,
@@ -293,10 +326,39 @@ export class StorageManager {
       });
 
       logger.warn(`[StorageManager] Deleted lesson folder=${lessonId}`);
+      return true;
     } catch (error) {
       logger.warn(
         `[StorageManager] Failed to delete lesson folder lessonId =${lessonId} error=${error}`,
       );
+      return false;
+    }
+  }
+
+  private static removeEvictedLessonMetadata(lessonId: string): void {
+    try {
+      const downloadedIds = JSON.parse(
+        localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
+      );
+      if (Array.isArray(downloadedIds)) {
+        localStorage.setItem(
+          DOWNLOADED_LESSON_ID,
+          JSON.stringify(downloadedIds.filter((id) => id !== lessonId)),
+        );
+      }
+
+      const sizes = JSON.parse(
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
+      );
+      if (sizes && typeof sizes === 'object' && !Array.isArray(sizes)) {
+        delete sizes[lessonId];
+        localStorage.setItem(DOWNLOADED_LESSONS_SIZE, JSON.stringify(sizes));
+      }
+    } catch (error) {
+      logger.warn('[StorageManager] Failed to clear evicted lesson metadata', {
+        lessonId,
+        error,
+      });
     }
   }
 }

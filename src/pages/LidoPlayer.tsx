@@ -5,6 +5,7 @@ import type { TableTypes } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
 import { useLidoPlayerController } from './useLidoPlayerController';
+import { StorageManager } from '../utility/storageManager';
 
 interface LidoPlayerViewProps {
   basePath?: string;
@@ -65,6 +66,13 @@ const LidoPlayer: FC = () => {
   } = useLidoPlayerController() as LidoPlayerViewProps;
   const playerRef = useRef<HTMLElement | null>(null);
   const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
+
+  // Storage cleanup may run in the background while a child is playing.
+  // Keep this lesson's extracted folder intact until the player unmounts.
+  useEffect(() => {
+    if (!lessonId) return;
+    return StorageManager.protectActiveLesson(lessonId);
+  }, [lessonId]);
 
   useEffect(() => {
     if (!isReady || showDialogBox) {

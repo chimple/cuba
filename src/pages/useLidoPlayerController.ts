@@ -5,6 +5,7 @@ import {
   LidoActivityEndKey,
   LidoGameCompletedKey,
   LidoGameExitKey,
+  LidoPlayerErrorKey,
   LidoLessonEndKey,
   LidoNextContainerKey,
   CURRENT_MODE,
@@ -353,6 +354,17 @@ export const useLidoPlayerController = () => {
       e,
     );
   };
+
+  const onPlayerError = async (e: Event) => {
+    const detail = (e as CustomEvent<{ code?: string; message?: string }>)
+      .detail;
+    logger.error('[LidoPlayer] Lesson package could not be loaded', detail);
+    setIsLoading(false);
+    setIsReady(false);
+    setShowDialogBox(false);
+    await presentToast('Lido Player could not open this lesson');
+    await push();
+  };
   useEffect(() => {
     // localStorage.removeItem(LIDO_SCORES_KEY);
     window.dispatchEvent(new Event(LidoGameStartKey));
@@ -370,12 +382,14 @@ export const useLidoPlayerController = () => {
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
     window.addEventListener(LidoLessonEndKey, onLessonEnd);
     window.addEventListener(LidoActivityEndKey, onActivityEnd);
+    window.addEventListener(LidoPlayerErrorKey, onPlayerError);
     return () => {
       window.removeEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
       window.removeEventListener(LidoLessonEndKey, onLessonEnd);
       window.removeEventListener(LidoActivityEndKey, onActivityEnd);
+      window.removeEventListener(LidoPlayerErrorKey, onPlayerError);
     };
   }, []);
 
@@ -392,9 +406,9 @@ export const useLidoPlayerController = () => {
     return unregister;
   }, []);
 
-  const presentToast = async () => {
+  const presentToast = async (message: string = 'Something went wrong!') => {
     await present({
-      message: 'Something went wrong!',
+      message,
       color: 'danger',
       duration: 3000,
       position: 'bottom',
