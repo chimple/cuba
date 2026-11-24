@@ -18,10 +18,8 @@ import './CampaignCertificateModal.css';
 const ASSET_ROOT = '/assets/campaignCompetition';
 const POPUP_SOUND = '/assets/audios/common/generic_sound_effect.mp3';
 const CHEER_SOUND = '/assets/audios/common/crowd_cheer.mp3';
-// Match BadgeCelebrationModal's non-overlapping celebration sequence.
 const CHEER_DELAY_MS = 2000;
 const VOICEOVER_DELAY_MS = 4000;
-// Leave the star preview visible after the flash before opening the share sheet.
 const SHARE_PREVIEW_DELAY_MS = 1200;
 
 const voiceovers: Record<string, string> = {
@@ -32,8 +30,11 @@ const voiceovers: Record<string, string> = {
   pt: `${ASSET_ROOT}/Competition reward Portuguese v3.mp3`,
 };
 
-const translated = (key: string, defaultValue: string) =>
-  String(t(key, { defaultValue }) || defaultValue);
+const translated = (
+  key: string,
+  defaultValue: string,
+  variables: Record<string, string | number> = {},
+) => String(t(key, { ...variables, defaultValue }) || defaultValue);
 
 const dataUrlToFile = (dataUrl: string, campaignId: string) => {
   const [header, encoded] = dataUrl.split(',');
@@ -137,7 +138,6 @@ const CampaignCertificateModal = ({
     void AudioUtil.stopAudioUrlOrTtsPlayback();
     setIsSharing(true);
     setShowShareCapture(true);
-    // The stars belong to the dedicated preview captured for native sharing.
     void logCampaignCertificateEvent(
       EVENTS.CAMPAIGN_CERTIFICATE_SHARE_CLICKED,
       certificate,
@@ -159,7 +159,11 @@ const CampaignCertificateModal = ({
         setShowShareCapture(false),
       );
       await Util.sendContentToAndroidOrWebShare(
-        `I earned a certificate in ${certificate.campaignName}!`,
+        translated(
+          'certificate_share_message',
+          'I earned a certificate in {{campaignName}}!',
+          { campaignName: certificate.campaignName },
+        ),
         'My Chimple Certificate',
         undefined,
         [dataUrlToFile(dataUrl, certificate.campaignId)],

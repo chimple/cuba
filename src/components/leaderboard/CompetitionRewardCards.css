@@ -6,30 +6,36 @@
 }
 
 .competition-section-title {
-  max-width: 920px;
+  box-sizing: border-box;
+  max-width: 603px;
+  height: 31px;
   margin: 0 auto 16px;
   padding: 7px 16px;
-  border-radius: 24px;
+  border-radius: 10px;
   background: #fffdee;
   color: #182a4f;
-  font-size: clamp(16px, 2.3vw, 22px);
+  font-size: 14px;
   font-weight: 600;
-  text-align: center;
+  line-height: 1;
+  text-align: left;
 }
 
 .competition-ongoing-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
-  justify-content: center;
+  justify-content: start;
   gap: 16px;
-  margin-bottom: 28px;
+  max-width: 603px;
+  margin: 0 auto 28px;
 }
 
 .competition-completed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
-  justify-content: center;
-  gap: 16px;
+  justify-content: start;
+  gap: 38px;
+  max-width: 603px;
+  margin: 0 auto;
 }
 
 .competition-reward-card {
@@ -123,6 +129,9 @@
 
 .competition-reward-description {
   color: #126187;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .competition-reward-artwork {
@@ -252,6 +261,7 @@
   color: #182a4f;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .competition-modal-progress-track {

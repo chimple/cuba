@@ -1,5 +1,6 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
+import { t } from 'i18next';
 import { Util } from '../../utility/util';
 import { EVENTS } from '../../common/constants';
 import { logCampaignCertificateEvent } from '../campaignCertificate/campaignCertificateAnalytics';
@@ -60,7 +61,12 @@ const CompetitionCertificateModal: FC<Props> = ({ certificate, onClose }) => {
       // is not left behind when the user returns to the app.
       onClose();
       await Util.sendContentToAndroidOrWebShare(
-        `I earned a certificate in ${certificate.campaignName}!`,
+        String(
+          t('certificate_share_message', {
+            campaignName: certificate.campaignName,
+            defaultValue: 'I earned a certificate in {{campaignName}}!',
+          }) || `I earned a certificate in ${certificate.campaignName}!`,
+        ),
         'My Chimple Certificate',
         undefined,
         [dataUrlToFile(dataUrl, certificate.campaignId)],

@@ -6,12 +6,12 @@ jest.mock('react-i18next', () => ({
 }));
 
 it.each([
-  [0, '0 / 10', '0%'],
-  [12, '2 / 10', '20%'],
-  [14, '2 / 10', '20%'],
-  [55, '11 / 10', '100%'],
+  [0, '0 / 50', '0%'],
+  [12, '12 / 50', '24%'],
+  [14, '14 / 50', '28%'],
+  [55, '55 / 50', '100%'],
 ])(
-  'shows full pathways and a progress track for %i lessons',
+  'shows completed lessons against the pathway lesson target for %i lessons',
   (lessons, text, width) => {
     render(
       <CompetitionRewardInfoModal
@@ -26,7 +26,7 @@ it.each([
       />,
     );
     expect(
-      screen.getByText('competition_homepage_pathways_completed'),
+      screen.getByText('competition_homepage_lessons_completed'),
     ).toBeInTheDocument();
     expect(screen.getByText(text)).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute(
