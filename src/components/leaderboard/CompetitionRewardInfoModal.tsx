@@ -32,9 +32,9 @@ const CompetitionRewardInfoModal: FC<{
     isHomepageCampaign
       ? {
           key: 'homepage',
-          label: t('competition_homepage_pathways_completed'),
-          completed: Math.floor(completed / 5),
-          target: reward.target_value,
+          label: t('competition_homepage_lessons_completed'),
+          completed,
+          target: toNumber(reward.target_value) * 5,
           icon: '/assets/campaignCompetition/competition-homework-progress.svg',
         }
       : {
@@ -87,10 +87,13 @@ const CompetitionRewardInfoModal: FC<{
             {progressRows.map((row) => {
               const rowCompleted = toNumber(row.completed);
               const rowTarget = toNumber(row.target);
-              const progress = Math.min(
-                100,
-                rowTarget > 0 ? (rowCompleted / rowTarget) * 100 : 0,
-              );
+              const progress =
+                Math.round(
+                  Math.min(
+                    100,
+                    rowTarget > 0 ? (rowCompleted / rowTarget) * 100 : 0,
+                  ) * 100,
+                ) / 100;
               return (
                 <div
                   className={`competition-modal-progress-row ${row.key}`}
