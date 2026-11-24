@@ -240,7 +240,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
     </article>
   );
   return (
-    <div className="competition-rewards-page">
+    <div id="competition-rewards-page" className="competition-rewards-page">
       {ongoingRewards.length > 0 && (
         <section aria-labelledby="ongoing-competitions-title">
           <h1
@@ -249,7 +249,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
           >
             {t('competition_ongoing_title')}
           </h1>
-          <div className="competition-ongoing-list">
+          <div id="ongoing-list" className="competition-ongoing-list">
             {ongoingRewards.map(renderCard)}
           </div>
         </section>
@@ -262,7 +262,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
           >
             {t('competition_completed_title')}
           </h1>
-          <div className="competition-completed-grid">
+          <div id="completed-grid" className="competition-completed-grid">
             {completedRewards.map(renderCard)}
           </div>
         </section>
