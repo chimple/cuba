@@ -4,6 +4,7 @@ import { t } from 'i18next';
 import CustomDropdown from '../CustomDropdown';
 import ClassCodeGenerateButton from '../ClassCodeGenerateButton';
 import './ClassSection.css';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
 
 interface ClassSectionProps {
   classData: { id: string | number; name: string }[];
@@ -32,7 +33,11 @@ const ClassSection: React.FC<ClassSectionProps> = ({
         <img src="assets/icons/classIcon.svg" alt="SCHOOL" className="icon" />
         <span className="class-iconlabel">{t('Class')}</span>
       </div>
-      <div className="school-dropdown">
+      <div
+        id={TRACKABLE_IDS.TEACHER_MENU_CLASS_DROPDOWN}
+        {...getTrackableProps(TRACKABLE_IDS.TEACHER_MENU_CLASS_DROPDOWN)}
+        className="school-dropdown teacher_menu_class_dropdown"
+      >
         <CustomDropdown
           icon=""
           options={classData}
@@ -59,9 +64,12 @@ const ClassSection: React.FC<ClassSectionProps> = ({
       <div className="manage-classes">
         <div className="manage-class-button">
           <IonButton
+            id={TRACKABLE_IDS.TEACHER_MANAGE_CLASS_BUTTON}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_MANAGE_CLASS_BUTTON)}
             fill="clear"
             color=""
             onClick={handleManageClassClick}
+            className="teacher_manage_class_button"
             style={{ textTransform: 'none' }}
           >
             <IonLabel style={{ color: '#707070', fontSize: '18px' }}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './SearchableDropdown.css';
 import { t } from 'i18next';
 import { RoleType } from '../../interface/modelInterfaces';
+import { getTrackableProps } from '../../analytics/trackable';
 
 interface Option {
   id: string | number;
@@ -16,6 +17,7 @@ interface SearchableDropdownProps {
   onOptionSelect: (option: Option) => void;
   onClear: () => void;
   resetTrigger?: number;
+  trackableId?: string;
 }
 
 const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
@@ -25,6 +27,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   onOptionSelect,
   onClear,
   resetTrigger,
+  trackableId,
 }) => {
   const [inputValue, setInputValue] = useState(selectedValue?.name || '');
   const [options, setOptions] = useState<Option[]>([]);
@@ -125,7 +128,11 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
   return (
     <div className="searchable-dropdown-container">
-      <div className="searchable-input-wrapper">
+      <div
+        id={trackableId}
+        {...(trackableId ? getTrackableProps(trackableId) : {})}
+        className={`searchable-input-wrapper ${trackableId ?? ''}`.trim()}
+      >
         <input
           ref={inputRef}
           type="text"

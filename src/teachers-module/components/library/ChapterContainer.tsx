@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import './ChapterContainer.css';
 import LessonComponent from './LessonComponent';
 import { COURSES, TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
+import './ChapterContainer.css';
 interface ChapterContainerProps {
   chapter: TableTypes<'chapter'>;
   lessons: TableTypes<'lesson'>[];
@@ -168,7 +169,8 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
             className="chaptercontainer-chapter-header-actions"
           >
             <div
-              id="chaptercontainer-chapter-select-all"
+              id={TRACKABLE_IDS.TEACHER_CHAPTER_SELECT_ALL}
+              {...getTrackableProps(TRACKABLE_IDS.TEACHER_CHAPTER_SELECT_ALL)}
               className={`chaptercontainer-chapter-select-all${
                 isAllSelected ? ' is-selected' : ''
               }`}

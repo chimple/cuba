@@ -1,6 +1,7 @@
 import React from 'react';
 import './AssigmentCount.css';
 import { t } from 'i18next';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
 interface AssigmentCountProps {
   assignments: number;
   onClick: () => void;
@@ -11,7 +12,12 @@ const AssigmentCount: React.FC<AssigmentCountProps> = ({
   onClick,
 }) => {
   return (
-    <div className="assignment-count-container" onClick={onClick}>
+    <div
+      id={TRACKABLE_IDS.TEACHER_ASSIGNMENT_COUNT_NEXT_BUTTON}
+      {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGNMENT_COUNT_NEXT_BUTTON)}
+      className="assignment-count-container teacher_assignment_count_next_button"
+      onClick={onClick}
+    >
       <div className="assignment-count-body">
         <div className="assignment-count-text">
           {assignments} {t('Assignments')}

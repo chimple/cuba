@@ -5,6 +5,10 @@ import SelectIconImage from '../../../components/displaySubjects/SelectIconImage
 import SelectIcon from '../SelectIcon';
 import { t } from 'i18next';
 import AssignedBadgeIcon from '../AssignedBadgeIcon';
+import {
+  getTrackableIdForItem,
+  TRACKABLE_IDS,
+} from '../../../analytics/trackable';
 
 interface LessonComponentProps {
   lesson: TableTypes<'lesson'>;
@@ -113,7 +117,14 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
               : t(lesson.name ?? '')}
         </div>
         {isSelButton ? (
-          <SelectIcon isSelected={isTicked} onClick={handleTickClick} />
+          <SelectIcon
+            isSelected={isTicked}
+            onClick={handleTickClick}
+            trackableId={getTrackableIdForItem(
+              TRACKABLE_IDS.TEACHER_CHAPTER_LESSON_SELECT,
+              lesson.id,
+            )}
+          />
         ) : null}
       </div>
     </div>

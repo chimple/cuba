@@ -1,5 +1,52 @@
 import { AssignmentSource, TableTypes } from '../../../../common/constants';
+import {
+  getTrackableIdForItem,
+  TRACKABLE_IDS,
+  type TrackableId,
+} from '../../../../analytics/trackable';
 import { Lesson, RecommendedAssignmentsState } from './RecommendedAssignments';
+
+export const getRecommendedAddMoreTrackableId = (
+  subjectId: string,
+): TrackableId =>
+  getTrackableIdForItem(
+    TRACKABLE_IDS.TEACHER_RECOMMENDED_ADD_FIVE_MORE_BUTTON,
+    subjectId,
+  );
+
+export const addNextRecommendedLessons = (
+  assignments: RecommendedAssignmentsState,
+  subjectId: string,
+): RecommendedAssignmentsState | undefined => {
+  const subject = assignments[subjectId];
+  if (!subject?.allLessons?.length || !subject.lessons.length) return undefined;
+
+  const lastLesson = subject.lessons[subject.lessons.length - 1];
+  const lastIndex = subject.allLessons.findIndex(
+    (lesson) =>
+      lesson.id === lastLesson.id &&
+      lesson._chapterId === lastLesson._chapterId,
+  );
+  if (lastIndex === -1) return undefined;
+
+  const nextFive = subject.allLessons.slice(lastIndex + 1, lastIndex + 6);
+  if (!nextFive.length) return undefined;
+
+  return {
+    ...assignments,
+    [subjectId]: {
+      ...subject,
+      lessons: [
+        ...subject.lessons,
+        ...nextFive.map((lesson) => ({
+          ...lesson,
+          selected: true,
+          source: AssignmentSource.RECOMMENDED,
+        })),
+      ],
+    },
+  };
+};
 
 export const buildRecommendedPayload = (
   recommendedAssignments: RecommendedAssignmentsState,

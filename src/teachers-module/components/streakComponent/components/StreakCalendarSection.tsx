@@ -1,6 +1,10 @@
 import React from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import {
+  getTrackableProps,
+  TRACKABLE_IDS,
+} from '../../../../analytics/trackable';
 import { CalendarRow } from '../streakPage.types';
 
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -25,7 +29,11 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
         <div className="streak-month-nav">
           <button
             type="button"
-            className="streak-month-btn"
+            id={TRACKABLE_IDS.TEACHER_STREAK_PREVIOUS_MONTH_BUTTON}
+            {...getTrackableProps(
+              TRACKABLE_IDS.TEACHER_STREAK_PREVIOUS_MONTH_BUTTON,
+            )}
+            className="streak-month-btn teacher_streak_previous_month_button"
             aria-label="Previous month"
             onClick={onPreviousMonth}
           >
@@ -33,7 +41,11 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
           </button>
           <button
             type="button"
-            className="streak-month-btn"
+            id={TRACKABLE_IDS.TEACHER_STREAK_NEXT_MONTH_BUTTON}
+            {...getTrackableProps(
+              TRACKABLE_IDS.TEACHER_STREAK_NEXT_MONTH_BUTTON,
+            )}
+            className="streak-month-btn teacher_streak_next_month_button"
             aria-label="Next month"
             onClick={onNextMonth}
           >

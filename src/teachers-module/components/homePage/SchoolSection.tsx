@@ -8,6 +8,7 @@ import { TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { sortBySchoolSearchRelevance } from '../../../utility/schoolSearchUtil';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -84,6 +85,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
       <div className="school-dropdown">
         <AutocompleteDropdown
           placeholder="Search or select a school"
+          trackableId={TRACKABLE_IDS.TEACHER_MENU_SCHOOL_DROPDOWN}
           fetchOptions={fetchSchools}
           selectedValue={currentSchoolDetail}
           onOptionSelect={handleSchoolSelect}
@@ -97,9 +99,12 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
       <div className="manage-school">
         <div className="manage-school-button">
           <IonButton
+            id={TRACKABLE_IDS.TEACHER_MANAGE_SCHOOL_BUTTON}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_MANAGE_SCHOOL_BUTTON)}
             fill="clear"
             color=""
             onClick={handleManageSchoolClick}
+            className="teacher_manage_school_button"
             style={{ textTransform: 'none' }}
           >
             <IonLabel style={{ color: '#707070', fontSize: '18px' }}>

@@ -13,6 +13,7 @@ import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
 import logger from '../../../../utility/logger';
 import { parsePath } from 'history';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../../analytics/trackable';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -89,7 +90,8 @@ const AssignScreen: FC<AssignScreenProps> = ({
         <div id="assign-screen-card-list" className="assign-screen-card-list">
           <button
             type="button"
-            id="assign-screen-card assign-screen-card-library"
+            id={TRACKABLE_IDS.TEACHER_ASSIGN_LIBRARY_CARD}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGN_LIBRARY_CARD)}
             className="assign-screen-card assign-screen-card-library"
             onClick={onLibraryClick}
           >
@@ -136,7 +138,8 @@ const AssignScreen: FC<AssignScreenProps> = ({
 
           <button
             type="button"
-            id="assign-screen-card assign-screen-card-scan"
+            id={TRACKABLE_IDS.TEACHER_ASSIGN_SCAN_QR_CARD}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGN_SCAN_QR_CARD)}
             className="assign-screen-card assign-screen-card-scan"
             onClick={handleScanQr}
           >
@@ -183,7 +186,8 @@ const AssignScreen: FC<AssignScreenProps> = ({
 
           <button
             type="button"
-            id="assign-screen-card assign-screen-card-recommend"
+            id={TRACKABLE_IDS.TEACHER_ASSIGN_RECOMMENDED_CARD}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGN_RECOMMENDED_CARD)}
             className="assign-screen-card assign-screen-card-recommend"
             onClick={onRecommendedClick}
           >

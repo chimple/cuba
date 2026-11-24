@@ -3,6 +3,7 @@ import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import './imageDropdown.css';
 import { t } from 'i18next';
 import CachedImage from '../../components/common/CachedImage';
+import { getTrackableProps } from '../../analytics/trackable';
 
 interface DropdownOption {
   id: string | number;
@@ -17,6 +18,7 @@ interface ImageDropdownProps {
   onOptionSelect: (selected: DropdownOption) => void;
   placeholder?: string;
   isDownBorder?: boolean;
+  trackableId?: string;
 }
 
 const splitText = (name: string, subjectDetail?: string) => {
@@ -33,6 +35,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   onOptionSelect,
   placeholder = 'Select an option',
   isDownBorder = true,
+  trackableId,
 }) => {
   const defaultIcon = '/assets/icons/DefaultIcon.png';
   const handleChange = (event: SelectChangeEvent<string | number>) => {
@@ -44,6 +47,8 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
     <div className="imageDropdown-wrapper">
       <div className="imageDropdown-container">
         <Select
+          id={trackableId}
+          {...(trackableId ? getTrackableProps(trackableId) : {})}
           value={selectedValue?.id || ''}
           onChange={handleChange}
           displayEmpty
@@ -81,7 +86,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               </div>
             )
           }
-          className="imageDropdown-select"
+          className={`imageDropdown-select ${trackableId ?? ''}`.trim()}
           sx={{
             boxShadow: 'none',
             '.MuiOutlinedInput-notchedOutline': { border: 'none' },

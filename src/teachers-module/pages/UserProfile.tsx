@@ -1,162 +1,39 @@
 import EditIcon from '@mui/icons-material/Edit';
 import { t } from 'i18next';
-import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { PAGES, TableTypes } from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import logger from '../../utility/logger';
-import { schoolUtil } from '../../utility/schoolUtil';
-import { Util } from '../../utility/util';
+import React from 'react';
+import { getTrackableProps, TRACKABLE_IDS } from '../../analytics/trackable';
 import Header from '../components/homePage/Header';
 import ProfileDetails from '../components/library/ProfileDetails';
 import UserProfileSection from '../components/UserProfileSection';
+import { useUserProfilePage } from '../hooks/useUserProfilePage';
 import './UserProfile.css';
-import { parsePath } from 'history';
 
 const UserProfile: React.FC = () => {
-  const history = useHistory();
-  const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [loginUser, setLoginUser] = useState<TableTypes<'user'>>();
-  const [fullName, setFullName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [phoneNum, setPhoneNum] = useState<string>('');
-  const [language, setLanguage] = useState<string>('');
-  const [languageid, setLanguageId] = useState<string>('');
-  const [languages, setLanguages] = useState<
-    Array<{ label: string; value: string; id: string }>
-  >([]);
-  const [currentClass, setCurrentClass] = useState<
-    TableTypes<'class'> | undefined
-  >(() => Util.getCurrentClass());
-  const [currentSchool, setCurrentSchool] = useState<
-    TableTypes<'school'> | undefined
-  >(() => Util.getCurrentSchool());
-  const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const api = ServiceConfig.getI().apiHandler;
-  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
-
-  const fetchLanguages = async () => {
-    try {
-      const fetchedLanguages: TableTypes<'language'>[] =
-        await api.getAllLanguages();
-
-      const sanitizedLanguages = [...fetchedLanguages]
-        .sort((left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0))
-        .filter((lang) => lang.code && lang.name)
-        .map((lang) => ({
-          label: lang.name,
-          value: lang.code as string,
-          id: lang.id,
-        }));
-
-      setLanguages(sanitizedLanguages);
-
-      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-      if (user) {
-        setLoginUser(user);
-        setFullName(user.name || '');
-        setEmail(user.email || '');
-        setPhoneNum(user.phone || '');
-        setLanguageId(user.language_id || '');
-        setProfilePic(user.image || '');
-        const userLanguage = sanitizedLanguages.find(
-          (lang) => lang.id === user.language_id,
-        );
-        if (userLanguage) {
-          setLanguage(userLanguage.value);
-        }
-      }
-    } catch (error) {
-      logger.error('Error fetching languages:', error);
-    }
-  };
-
-  const fetchClassDetails = async () => {
-    try {
-      const tempSchool = Util.getCurrentSchool();
-      if (tempSchool) setCurrentSchool(tempSchool);
-      const tempClass = Util.getCurrentClass();
-      if (tempClass) {
-        setCurrentClass(tempClass);
-      }
-    } catch (error) {
-      logger.error('Failed to load class details', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchClassDetails();
-    fetchLanguages();
-  }, []);
-
-  if (!currentClass?.id) {
-    logger.error('No current class selected.');
-    return null;
-  }
-
-  const handleEditClick = () => {
-    setIsEditMode(!isEditMode);
-  };
-
-  const handleUpdate = async () => {
-    try {
-      if (!loginUser) {
-        throw new Error('User is not logged in or user data is not available.');
-      }
-      const selectedLanguageId =
-        languageid ||
-        languages.find((lang) => lang.value === language)?.id ||
-        loginUser.language_id ||
-        '';
-      const profilePicValue = profilePic || undefined;
-      const updatedUser = await api.updateUserProfile(
-        loginUser,
-        fullName,
-        email,
-        phoneNum,
-        selectedLanguageId,
-        profilePicValue,
-      );
-      setLoginUser(updatedUser);
-      setFullName(updatedUser.name || '');
-      setEmail(updatedUser.email || '');
-      setPhoneNum(updatedUser.phone || '');
-      setLanguageId(updatedUser.language_id || selectedLanguageId);
-      ServiceConfig.getI().authHandler.currentUser = updatedUser;
-    } catch (error) {
-      logger.error('Error adding student:', error);
-    }
-    setIsEditMode(false);
-  };
-
-  const handleLanguageChange = async (languageCode: string) => {
-    const selectedLanguage = languages.find(
-      (lang) => lang.value === languageCode,
-    );
-    if (selectedLanguage) {
-      setLanguage(selectedLanguage.value);
-      setLanguageId(selectedLanguage.id);
-      await Util.updateUserLanguage(languageCode);
-    }
-  };
-
-  const handleProfilePicChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePic(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  const {
+    currentClass,
+    currentSchool,
+    hasCurrentClass,
+    isEditMode,
+    isTeacherSchoolMode,
+    profilePic,
+    fullName,
+    email,
+    phoneNum,
+    language,
+    languages,
+    setFullName,
+    setEmail,
+    setPhoneNum,
+    handleEditClick,
+    handleUpdate,
+    handleLanguageChange,
+    handleProfilePicChange,
+    onBackButtonClick,
+  } = useUserProfilePage();
   const placeholderImgBase64 = 'data:image/png;base64,....';
-  const onBackButtonClick = () => {
-    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 0 } });
-  };
+
+  if (!hasCurrentClass) return null;
+
   return (
     <div className="main-page">
       <Header
@@ -173,6 +50,9 @@ const UserProfile: React.FC = () => {
           imgAlt="Profile Pic"
           onImageChange={handleProfilePicChange}
           isEditMode={isEditMode}
+          trackableId={
+            isEditMode ? TRACKABLE_IDS.TEACHER_PROFILE_IMAGE_SELECT : undefined
+          }
         />
       </div>
       <div className="profile-info">
@@ -180,7 +60,9 @@ const UserProfile: React.FC = () => {
         {!isEditMode && !isTeacherSchoolMode && (
           <EditIcon
             aria-label={String(t('Edit'))}
-            className="edit-icon"
+            id={TRACKABLE_IDS.TEACHER_PROFILE_EDIT_BUTTON}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_PROFILE_EDIT_BUTTON)}
+            className="edit-icon teacher_profile_edit_button"
             onClick={handleEditClick}
           />
         )}
@@ -200,7 +82,9 @@ const UserProfile: React.FC = () => {
       {isEditMode && (
         <div className="form-actions">
           <button
-            className="update-button"
+            id={TRACKABLE_IDS.TEACHER_PROFILE_UPDATE_BUTTON}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_PROFILE_UPDATE_BUTTON)}
+            className="update-button teacher_profile_update_button"
             type="button"
             onClick={handleUpdate}
           >

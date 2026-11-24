@@ -1,4 +1,5 @@
 import { useHomePage } from '../hooks/useHomePage';
+import { getTrackableProps, TRACKABLE_IDS } from '../../analytics/trackable';
 import HomePageTabContent from './HomePageTabContent';
 import './HomePage.css';
 
@@ -107,6 +108,8 @@ const HomePage = () => {
           style={{ height: '10vh' }}
         >
           <BottomNavigationAction
+            id={TRACKABLE_IDS.TEACHER_HOME_TAB}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_HOME_TAB)}
             value={0}
             label={t('Home')}
             icon={
@@ -124,11 +127,13 @@ const HomePage = () => {
                 />
               )
             }
-            className="bottom-nav-action"
+            className="bottom-nav-action teacher_home_tab"
           />
 
           {!isExternalUser && !isTeacherSchoolMode && (
             <BottomNavigationAction
+              id={TRACKABLE_IDS.TEACHER_ASSIGN_TAB}
+              {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGN_TAB)}
               value={2}
               label={t('Assign')}
               icon={
@@ -146,10 +151,12 @@ const HomePage = () => {
                   />
                 )
               }
-              className="bottom-nav-action middle-action"
+              className="bottom-nav-action middle-action teacher_assign_tab"
             />
           )}
           <BottomNavigationAction
+            id={TRACKABLE_IDS.TEACHER_REPORTS_TAB}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_REPORTS_TAB)}
             value={3}
             label={t('Reports')}
             icon={
@@ -167,9 +174,11 @@ const HomePage = () => {
                 />
               )
             }
-            className="bottom-nav-action"
+            className="bottom-nav-action teacher_reports_tab"
           />
           <BottomNavigationAction
+            id={TRACKABLE_IDS.TEACHER_LEADERBOARD_TAB}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_LEADERBOARD_TAB)}
             value={4}
             label={t('Leaderboard')}
             icon={
@@ -184,7 +193,7 @@ const HomePage = () => {
                 alt=""
               />
             }
-            className="bottom-nav-action"
+            className="bottom-nav-action teacher_leaderboard_tab"
           />
         </BottomNavigation>
       </footer>

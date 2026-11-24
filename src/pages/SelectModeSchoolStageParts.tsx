@@ -1,7 +1,9 @@
 import { t } from 'i18next';
+import type { TableTypes } from '../common/constants';
 import InlineSvg from '../components/InlineSvg';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import LeftArrowIcon from './assets/leftArrowIcon.svg?raw';
+import { TRACKABLE_IDS, getTrackableProps } from '../analytics/trackable';
 
 interface SelectModeSchoolHeaderProps {
   onTeacherSelect: () => void;
@@ -16,8 +18,10 @@ export const SelectModeSchoolHeader = ({
       <span>{t('Welcome to Chimple!')}</span>
     </div>
     <button
+      id={TRACKABLE_IDS.SCHOOL_MODE_TEACHER_BUTTON}
       type="button"
       className="school-mode-role-badge"
+      {...getTrackableProps(TRACKABLE_IDS.SCHOOL_MODE_TEACHER_BUTTON)}
       onClick={onTeacherSelect}
     >
       <span>{t('Teacher')}</span>
@@ -28,19 +32,19 @@ export const SelectModeSchoolHeader = ({
 
 interface SelectModeClassTabsProps {
   classStripClassName: string;
-  currClass?: any;
+  currClass?: TableTypes<'class'>;
   isNextClassNavigationDisabled: boolean;
   isPreviousClassNavigationDisabled: boolean;
   nextClassNavigationClassName: string;
   onClassNavigation: (direction: 'previous' | 'next') => void;
   onClassSelect: (
-    selectedClass: any,
+    selectedClass: TableTypes<'class'>,
     shouldMoveToStudentStage: boolean,
   ) => void;
   previousClassNavigationClassName: string;
   shouldMoveToStudentStage: boolean;
   shouldShowClassArrows: boolean;
-  visibleClasses: any[];
+  visibleClasses: TableTypes<'class'>[];
 }
 
 export const SelectModeClassTabs = ({
@@ -55,49 +59,62 @@ export const SelectModeClassTabs = ({
   shouldMoveToStudentStage,
   shouldShowClassArrows,
   visibleClasses,
-}: SelectModeClassTabsProps) => (
-  <div className={classStripClassName}>
-    {shouldShowClassArrows && (
-      <button
-        id="school-mode-prev-class-button"
-        type="button"
-        className={previousClassNavigationClassName}
-        disabled={isPreviousClassNavigationDisabled}
-        onClick={() => onClassNavigation('previous')}
-      >
-        <InlineSvg svg={LeftArrowIcon} className="school-mode-nav-arrow" />
-      </button>
-    )}
-    <div className="school-mode-class-tabs">
-      {visibleClasses?.map((tempClass: any) => (
+}: SelectModeClassTabsProps) => {
+  const previousClassButtonId = TRACKABLE_IDS.SCHOOL_MODE_PREVIOUS_CLASS_BUTTON;
+  const nextClassButtonId = TRACKABLE_IDS.SCHOOL_MODE_NEXT_CLASS_BUTTON;
+
+  return (
+    <div className={classStripClassName}>
+      {shouldShowClassArrows && (
         <button
-          key={tempClass.id}
-          id={`school-mode-class-tab-${tempClass.id}`}
+          id={previousClassButtonId}
           type="button"
-          onClick={() => {
-            void onClassSelect(tempClass, shouldMoveToStudentStage);
-          }}
-          className={`school-mode-class-tab class-avatar ${
-            currClass?.id === tempClass.id ? 'school-mode-class-tab-active' : ''
-          }`}
+          className={`${previousClassNavigationClassName} ${previousClassButtonId}`}
+          {...getTrackableProps(previousClassButtonId)}
+          disabled={isPreviousClassNavigationDisabled}
+          onClick={() => onClassNavigation('previous')}
         >
-          {tempClass.name}
+          <InlineSvg svg={LeftArrowIcon} className="school-mode-nav-arrow" />
         </button>
-      ))}
+      )}
+      <div className="school-mode-class-tabs">
+        {visibleClasses.map((tempClass) => {
+          const classTabId = `${TRACKABLE_IDS.SCHOOL_MODE_CLASS_TAB_PREFIX}${tempClass.id}`;
+          return (
+            <button
+              key={tempClass.id}
+              id={classTabId}
+              type="button"
+              onClick={() => {
+                void onClassSelect(tempClass, shouldMoveToStudentStage);
+              }}
+              className={`school-mode-class-tab class-avatar ${classTabId} ${
+                currClass?.id === tempClass.id
+                  ? 'school-mode-class-tab-active'
+                  : ''
+              }`}
+              {...getTrackableProps(classTabId)}
+            >
+              {tempClass.name}
+            </button>
+          );
+        })}
+      </div>
+      {shouldShowClassArrows && (
+        <button
+          id={nextClassButtonId}
+          type="button"
+          className={`${nextClassNavigationClassName} ${nextClassButtonId}`}
+          {...getTrackableProps(nextClassButtonId)}
+          disabled={isNextClassNavigationDisabled}
+          onClick={() => onClassNavigation('next')}
+        >
+          <InlineSvg
+            svg={LeftArrowIcon}
+            className="school-mode-nav-arrow school-mode-nav-arrow-right"
+          />
+        </button>
+      )}
     </div>
-    {shouldShowClassArrows && (
-      <button
-        id="school-mode-next-class-button"
-        type="button"
-        className={nextClassNavigationClassName}
-        disabled={isNextClassNavigationDisabled}
-        onClick={() => onClassNavigation('next')}
-      >
-        <InlineSvg
-          svg={LeftArrowIcon}
-          className="school-mode-nav-arrow school-mode-nav-arrow-right"
-        />
-      </button>
-    )}
-  </div>
-);
+  );
+};

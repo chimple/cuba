@@ -1,7 +1,10 @@
 import { useTeacherAuthenticationPopup } from '../../hooks/useTeacherAuthenticationPopup';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 import './TeacherAuthenticationPopup.css';
 
-const TeacherAuthenticationPopup = (props: Parameters<typeof useTeacherAuthenticationPopup>[0]) => {
+const TeacherAuthenticationPopup = (
+  props: Parameters<typeof useTeacherAuthenticationPopup>[0],
+) => {
   const viewProps = useTeacherAuthenticationPopup(props);
 
   if (!viewProps) {
@@ -45,8 +48,9 @@ const TeacherAuthenticationPopup = (props: Parameters<typeof useTeacherAuthentic
           className="teacher-authentication-popup-inner"
         >
           <button
-            id="teacher-authentication-popup-close-button"
+            id={TRACKABLE_IDS.TEACHER_AUTH_POPUP_CLOSE_BUTTON}
             className="teacher-authentication-popup-close-button"
+            data-trackable-id={TRACKABLE_IDS.TEACHER_AUTH_POPUP_CLOSE_BUTTON}
             type="button"
             onClick={() => {
               handleReset();
@@ -126,7 +130,10 @@ const TeacherAuthenticationPopup = (props: Parameters<typeof useTeacherAuthentic
                 </p>
                 <button
                   id={submitButtonClassName}
-                  className={submitButtonClassName}
+                  className={`${submitButtonClassName}`}
+                  data-trackable-id={
+                    TRACKABLE_IDS.TEACHER_AUTH_POPUP_SUBMIT_BUTTON
+                  }
                   type="button"
                   onClick={handleSubmitClick}
                   disabled={

@@ -32,7 +32,7 @@ const storedStudent: {
 
 let activeGrowthBook: GrowthBook | undefined;
 const CLICK_ANALYTICS_THROTTLE_MS = 500;
-const lastTrackedClickAtByButtonId: Record<string, number> = {};
+const lastTrackedClickAtByAction: Record<string, number> = {};
 
 const getClickAnalyticsStudent = async () => {
   try {
@@ -69,13 +69,15 @@ export const logClickAnalytics = async (
   buttonId: TrackableId,
   actionType = 'click',
   growthbook: GrowthBook | undefined = activeGrowthBook,
+  buttonLabel?: string,
 ): Promise<void> => {
   if (!isClickAnalyticsEnabled(growthbook, buttonId)) return;
 
   const now = Date.now();
-  const lastTrackedClickAt = lastTrackedClickAtByButtonId[buttonId] ?? 0;
+  const throttleKey = buttonLabel ? `${buttonId}:${buttonLabel}` : buttonId;
+  const lastTrackedClickAt = lastTrackedClickAtByAction[throttleKey] ?? 0;
   if (now - lastTrackedClickAt < CLICK_ANALYTICS_THROTTLE_MS) return;
-  lastTrackedClickAtByButtonId[buttonId] = now;
+  lastTrackedClickAtByAction[throttleKey] = now;
 
   const student = await getClickAnalyticsStudent();
   storedStudent.id = student?.id || storedStudent.id || 'null';
@@ -91,6 +93,7 @@ export const logClickAnalytics = async (
     user_gender: storedStudent.gender,
     user_type: storedStudent.type,
     button_id: buttonId,
+    ...(buttonLabel ? { button_label: buttonLabel } : {}),
     page_name: getAppPathname().replace('/', ''),
     page_path: getAppPathname(),
     complete_path: getAppHref(),
@@ -131,7 +134,10 @@ const handleClick = async (
     return;
   }
 
-  await logClickAnalytics(buttonId, event.type, growthbook);
+  const buttonLabel = (clickableElement ?? analyticsElement).textContent
+    ?.replace(/\s+/g, ' ')
+    .trim();
+  await logClickAnalytics(buttonId, event.type, growthbook, buttonLabel);
 };
 
 export const initializeClickListener = (

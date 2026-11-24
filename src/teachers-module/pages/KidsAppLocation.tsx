@@ -22,6 +22,7 @@ import ChimpleRiveMascot from '../../components/learningPathway/ChimpleRiveMasco
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
+import { getTrackableProps, TRACKABLE_IDS } from '../../analytics/trackable';
 import HomeLocationIcon from '../assets/icons/homeLocationIcon.svg?raw';
 import SchoolLocationIcon from '../assets/icons/schoolLocationIcon.svg?raw';
 import { useKidsAppLocationAccess } from '../hooks/useKidsAppLocationAccess';
@@ -111,7 +112,8 @@ const KidsAppLocation: FC = () => {
           className="kids-app-location-actions"
         >
           <button
-            id="kids-app-location-btn kids-app-location-btn-home"
+            id={TRACKABLE_IDS.KIDS_APP_LOCATION_HOME}
+            {...getTrackableProps(TRACKABLE_IDS.KIDS_APP_LOCATION_HOME)}
             type="button"
             className="kids-app-location-btn kids-app-location-btn-home"
             onClick={onHomeClick}
@@ -124,7 +126,8 @@ const KidsAppLocation: FC = () => {
             <span>{t('Home')}</span>
           </button>
           <button
-            id="kids-app-location-btn kids-app-location-btn-school"
+            id={TRACKABLE_IDS.KIDS_APP_LOCATION_SCHOOL}
+            {...getTrackableProps(TRACKABLE_IDS.KIDS_APP_LOCATION_SCHOOL)}
             type="button"
             className="kids-app-location-btn kids-app-location-btn-school"
             onClick={onSchoolClick}

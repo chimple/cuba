@@ -1,4 +1,5 @@
 import { useSideMenu } from '../../hooks/useSideMenu';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
 import './SideMenu.css';
 
 const SideMenu = (props: Parameters<typeof useSideMenu>[0]) => {
@@ -88,7 +89,13 @@ const SideMenu = (props: Parameters<typeof useSideMenu>[0]) => {
                 alt="SCHOOL"
                 className="icon"
               />
-              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
+              <CommonToggle
+                id={TRACKABLE_IDS.TEACHER_SWITCH_TO_KIDS_APP}
+                className="teacher_switch_to_kids_app"
+                trackableId={TRACKABLE_IDS.TEACHER_SWITCH_TO_KIDS_APP}
+                onChange={switchUser}
+                label="Switch to Kids App"
+              />
             </IonItem>
           </div>
           {isAuthorizedForOpsMode && (
@@ -100,13 +107,21 @@ const SideMenu = (props: Parameters<typeof useSideMenu>[0]) => {
                   className="icon"
                 />
                 <CommonToggle
+                  id={TRACKABLE_IDS.TEACHER_SWITCH_TO_OPS_MODE}
+                  className="teacher_switch_to_ops_mode"
+                  trackableId={TRACKABLE_IDS.TEACHER_SWITCH_TO_OPS_MODE}
                   onChange={() => Util.switchToOpsUser(history)}
                   label={t('switch to ops mode') as string}
                 />
               </IonItem>
             </div>
           )}
-          <div className="teacher-logout-btn" onClick={handleLogoutClick}>
+          <div
+            id={TRACKABLE_IDS.TEACHER_MENU_LOGOUT_BUTTON}
+            {...getTrackableProps(TRACKABLE_IDS.TEACHER_MENU_LOGOUT_BUTTON)}
+            className="teacher-logout-btn teacher_menu_logout_button"
+            onClick={handleLogoutClick}
+          >
             {t('Logout')}
           </div>
 
@@ -129,7 +144,8 @@ const SideMenu = (props: Parameters<typeof useSideMenu>[0]) => {
         src="assets/icons/hamburgerMenu.svg"
         alt={String(t('Menu'))}
         id="menu-button"
-        className="sidemenu-hamburger"
+        {...getTrackableProps(TRACKABLE_IDS.TEACHER_HEADER_MENU_BUTTON)}
+        className="sidemenu-hamburger menu-button"
         onClick={() => menuRef.current?.open()}
       />
     </>

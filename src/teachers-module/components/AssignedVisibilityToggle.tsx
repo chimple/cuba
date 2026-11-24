@@ -1,6 +1,7 @@
 import React from 'react';
 import { t } from 'i18next';
 import AssignedBadgeIcon from './AssignedBadgeIcon';
+import { getTrackableProps, TRACKABLE_IDS } from '../../analytics/trackable';
 import './AssignedVisibilityToggle.css';
 
 type AssignedVisibilityToggleProps = {
@@ -32,7 +33,9 @@ const AssignedVisibilityToggle: React.FC<AssignedVisibilityToggleProps> = ({
       <span className="assigned-visibility-toggle-actions">
         <button
           type="button"
-          className={`assigned-visibility-toggle-button${
+          id={TRACKABLE_IDS.TEACHER_SHOW_ASSIGNED_BUTTON}
+          {...getTrackableProps(TRACKABLE_IDS.TEACHER_SHOW_ASSIGNED_BUTTON)}
+          className={`assigned-visibility-toggle-button show-assigned-button${
             showAssigned ? ' is-active' : ''
           }`}
           onClick={() => onChange(true)}
@@ -43,7 +46,9 @@ const AssignedVisibilityToggle: React.FC<AssignedVisibilityToggleProps> = ({
         </button>
         <button
           type="button"
-          className={`assigned-visibility-toggle-button${
+          id={TRACKABLE_IDS.TEACHER_HIDE_ASSIGNED_BUTTON}
+          {...getTrackableProps(TRACKABLE_IDS.TEACHER_HIDE_ASSIGNED_BUTTON)}
+          className={`assigned-visibility-toggle-button hide-assigned-button${
             !showAssigned ? ' is-active' : ''
           }`}
           onClick={() => onChange(false)}

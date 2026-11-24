@@ -10,6 +10,9 @@ import {
 } from 'date-fns';
 import { t } from 'i18next';
 import { TABLESORTBY } from '../../../common/constants';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
+import ReportActivityFilters from './ReportActivityFilters';
+import { REPORT_SORT_TRACKABLE_IDS } from './ReportsTableHelpers';
 
 interface TableChoiceHeaderProps {
   onDateChange: (dateRange: { startDate: Date; endDate: Date }) => void;
@@ -99,9 +102,9 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
       }
     });
   };
-  const toggleAssignmentsOnly = () => {
-    setIsAssignmentsOnly(!isAssignmentsOnly);
-    onIsAssignments(!isAssignmentsOnly);
+  const handleActivityFilterChange = (showAssignmentsOnly: boolean) => {
+    setIsAssignmentsOnly(showAssignmentsOnly);
+    onIsAssignments(showAssignmentsOnly);
   };
   const isNextButtonDisabled = () => {
     const today = new Date();
@@ -115,32 +118,10 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   return (
     <div className="date-range-selector">
       {!isAssignmentReport && (
-        <div className="toggle-container">
-          <div className="pill-toggle">
-            <div
-              className={`pill-option ${isAssignmentsOnly ? 'active' : ''}`}
-              onClick={() => {
-                if (!isAssignmentsOnly) {
-                  setIsAssignmentsOnly(true);
-                  onIsAssignments(true);
-                }
-              }}
-            >
-              {t('Assignments')}
-            </div>
-            <div
-              className={`pill-option ${!isAssignmentsOnly ? 'active' : ''}`}
-              onClick={() => {
-                if (isAssignmentsOnly) {
-                  setIsAssignmentsOnly(false);
-                  onIsAssignments(false);
-                }
-              }}
-            >
-              {t('All activities')}
-            </div>
-          </div>
-        </div>
+        <ReportActivityFilters
+          isAssignmentsOnly={isAssignmentsOnly}
+          onSelectionChange={handleActivityFilterChange}
+        />
       )}
       <div className="date-range-container">
         <p className="table-date-range-text">
@@ -175,7 +156,9 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
 
       <div className="tablechoice-custom-dropdown-wrapper">
         <div
-          className="tablechoice-custom-dropdown-header"
+          id={TRACKABLE_IDS.TEACHER_REPORT_SORT_DROPDOWN}
+          {...getTrackableProps(TRACKABLE_IDS.TEACHER_REPORT_SORT_DROPDOWN)}
+          className="tablechoice-custom-dropdown-header teacher_report_sort_dropdown"
           onClick={() => setDropdownOpen(!isDropdownOpen)}
         >
           <span>{sortBy ? t(sortBy) : t('Sort By')}</span>
@@ -185,10 +168,13 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
         {isDropdownOpen && (
           <div className="tablechoice-custom-dropdown-menu">
             {Object.entries(TABLESORTBY).map(([key, value]) => {
+              const trackableId = REPORT_SORT_TRACKABLE_IDS[value];
               return (
                 <div
                   key={key}
-                  className={`tablechoice-custom-dropdown-item ${
+                  id={trackableId}
+                  {...getTrackableProps(trackableId)}
+                  className={`tablechoice-custom-dropdown-item ${trackableId} ${
                     sortBy === value ? 'selected' : ''
                   }`}
                   onClick={() => {

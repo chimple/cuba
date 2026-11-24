@@ -1,4 +1,9 @@
 import { useHeader } from '../../hooks/useHeader';
+import {
+  getTrackableProps as trackProps,
+  TRACKABLE_IDS,
+} from '../../../analytics/trackable';
+import HeaderInfoButton from './HeaderInfoButton';
 import './Header.css';
 
 const Header = (props: Parameters<typeof useHeader>[0]) => {
@@ -53,8 +58,13 @@ const Header = (props: Parameters<typeof useHeader>[0]) => {
               src="assets/icons/HeaderBackBtn.svg"
               alt={String(t('Back'))}
               onClick={handleBackButtonClick}
-              className={disableBackButton ? 'disabled-back-button' : ''}
-              id="header-back-button"
+              className={
+                disableBackButton
+                  ? 'header-back-button disabled-back-button'
+                  : 'header-back-button'
+              }
+              id={TRACKABLE_IDS.TEACHER_HEADER_BACK_BUTTON}
+              {...trackProps(TRACKABLE_IDS.TEACHER_HEADER_BACK_BUTTON)}
             />
           ) : showSideMenu ? (
             <SideMenu
@@ -111,7 +121,8 @@ const Header = (props: Parameters<typeof useHeader>[0]) => {
             {onShareClick && (
               <button
                 onClick={onShareClick}
-                id="header-share-icon-button"
+                id={TRACKABLE_IDS.TEACHER_HEADER_SHARE_BUTTON}
+                {...trackProps(TRACKABLE_IDS.TEACHER_HEADER_SHARE_BUTTON)}
                 className="header-share-icon-button"
                 type="button"
                 aria-label={String(t('Share'))}
@@ -122,7 +133,9 @@ const Header = (props: Parameters<typeof useHeader>[0]) => {
             {showSearchIcon && (
               <button
                 type="button"
-                className="header-search-icon-button"
+                id={TRACKABLE_IDS.TEACHER_HEADER_SEARCH_BUTTON}
+                {...trackProps(TRACKABLE_IDS.TEACHER_HEADER_SEARCH_BUTTON)}
+                className="header-search-icon-button teacher_header_search_button"
                 aria-label={String(t('Search'))}
                 onClick={onSearchIconClick}
               >
@@ -150,11 +163,12 @@ const Header = (props: Parameters<typeof useHeader>[0]) => {
               ref={streakButtonRef}
               type="button"
               id="header-streak-button"
+              {...trackProps(TRACKABLE_IDS.TEACHER_HEADER_STREAK_BUTTON)}
               className={`streak-container ${
                 isStreakRewardPulseActive
                   ? 'streak-container--reward-pulse'
                   : ''
-              }`.trim()}
+              } header-streak-button`.trim()}
               onClick={() => history.push(PAGES.STREAK_PAGE)}
               aria-label={String(t('My Streak'))}
             >
@@ -170,18 +184,10 @@ const Header = (props: Parameters<typeof useHeader>[0]) => {
           )}
 
           {showInfoButton && onInfoClick && (
-            <button
-              type="button"
-              className="header-info-icon-button"
+            <HeaderInfoButton
+              label={String(t('Information'))}
               onClick={onInfoClick}
-              aria-label={String(t('Information'))}
-            >
-              <img
-                src="/assets/icons/infoIcon.svg"
-                alt=""
-                className="header-info-icon"
-              />
-            </button>
+            />
           )}
         </div>
       </div>

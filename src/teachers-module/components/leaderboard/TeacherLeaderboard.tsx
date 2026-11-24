@@ -4,6 +4,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { TableTypes } from '../../../common/constants';
 import { TeacherLeaderboardScoreHistory } from '../../../services/api/ServiceApi';
+import { getTrackableProps, TRACKABLE_IDS } from '../../../analytics/trackable';
 import './TeacherLeaderboard.css';
 import TeacherScoreDetails from './TeacherScoreDetails';
 
@@ -164,7 +165,9 @@ const TeacherLeaderboard = ({ onAssign }: TeacherLeaderboardProps) => {
         </>
       )}
       <button
-        className="teacher-leaderboard-assign"
+        id={TRACKABLE_IDS.TEACHER_LEADERBOARD_ASSIGN_BUTTON}
+        {...getTrackableProps(TRACKABLE_IDS.TEACHER_LEADERBOARD_ASSIGN_BUTTON)}
+        className="teacher-leaderboard-assign teacher_leaderboard_assign_button"
         type="button"
         onClick={onAssign}
       >

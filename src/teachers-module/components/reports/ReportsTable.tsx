@@ -5,15 +5,14 @@ import TableChoiceHeader from './TableChoiceHeader';
 import TableRightHeader from './TableRightHeader';
 import TableStudentData from './TableStudentData';
 import ExpandedTable from './ExpandedTable';
-import CustomDropdown from '../CustomDropdown';
-import ImageDropdown from '../imageDropdown';
 import type { ReportTableProps } from './ReportsTableTypes';
 import { ReportsNoReportFound } from './ReportsNoReportFound';
 import { useReportsTable } from '../../hooks/useReportsTable';
+import ReportsDropdowns from './ReportsDropdowns';
 
 const ReportTable = (props: ReportTableProps) => {
+  const viewProps = useReportsTable(props);
   const {
-    ALL_SUBJECT,
     Loading,
     TABLEDROPDOWN,
     assignmentMapObject,
@@ -24,24 +23,17 @@ const ReportTable = (props: ReportTableProps) => {
     handleIsAssignmets,
     handleNameSort,
     handleRowClick,
-    handleSelectChapter,
-    handleSelectSubject,
-    handleTypeSelect,
     handleViewClickDetails,
     headerData,
     isAssignments,
     isExternalUser,
     isLoading,
-    mappedChaptersOptions,
     reportData,
-    selectedChapter,
     selectedSubject,
     selectedType,
-    selectedTypeOption,
     sortType,
-    subjectOptionsWithAll,
     t,
-  } = useReportsTable(props);
+  } = viewProps;
 
   return !isLoading ? (
     reportData.size == 0 ? (
@@ -50,89 +42,18 @@ const ReportTable = (props: ReportTableProps) => {
       </div>
     ) : (
       <div className="table-container ">
-        <div className="reports-dropdown">
-          <div className="type-dropdown">
-            <CustomDropdown
-              options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
-                id: key,
-                name: value,
-                disabled:
-                  selectedSubject?.id === ALL_SUBJECT.id &&
-                  value === TABLEDROPDOWN.CHAPTER,
-              }))}
-              onOptionSelect={handleTypeSelect}
-              placeholder={t(selectedType) ?? ''}
-              selectedValue={{
-                id: selectedTypeOption?.[0] ?? '',
-                name: selectedType,
-              }}
-            />
-          </div>
-
-          {selectedType === TABLEDROPDOWN.CHAPTER ? (
-            <div className="reports-chapter-dropdowns">
-              <ImageDropdown
-                options={subjectOptionsWithAll}
-                selectedValue={{
-                  id: selectedSubject?.id ?? '',
-                  name: selectedSubject?.name ?? '',
-                  icon:
-                    (selectedSubject as any)?.icon ??
-                    subjectOptionsWithAll.find(
-                      (option) => option.id === selectedSubject?.id,
-                    )?.icon ??
-                    '',
-                  subjectDetail:
-                    (selectedSubject as any)?.subject ??
-                    subjectOptionsWithAll.find(
-                      (option) => option.id === selectedSubject?.id,
-                    )?.subjectDetail ??
-                    '',
-                }}
-                onOptionSelect={handleSelectSubject}
-                placeholder={t('Select Language') as string}
-              />
-              <div className="custom-chapter-dropdown">
-                <CustomDropdown
-                  options={mappedChaptersOptions ?? []}
-                  onOptionSelect={handleSelectChapter}
-                  selectedValue={{
-                    id:
-                      selectedChapter?.id ??
-                      mappedChaptersOptions?.[0]?.id ??
-                      '',
-                    name:
-                      selectedChapter?.name ??
-                      mappedChaptersOptions?.[0]?.name ??
-                      '',
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <ImageDropdown
-              options={subjectOptionsWithAll}
-              selectedValue={{
-                id: selectedSubject?.id ?? '',
-                name: selectedSubject?.name ?? '',
-                icon:
-                  (selectedSubject as any)?.icon ??
-                  subjectOptionsWithAll.find(
-                    (option) => option.id === selectedSubject?.id,
-                  )?.icon ??
-                  '',
-                subjectDetail:
-                  (selectedSubject as any)?.subject ??
-                  subjectOptionsWithAll.find(
-                    (option) => option.id === selectedSubject?.id,
-                  )?.subjectDetail ??
-                  '',
-              }}
-              onOptionSelect={handleSelectSubject}
-              placeholder={t('Select Language') as string}
-            />
-          )}
-        </div>
+        <ReportsDropdowns
+          handleSelectChapter={viewProps.handleSelectChapter}
+          handleSelectSubject={viewProps.handleSelectSubject}
+          handleTypeSelect={viewProps.handleTypeSelect}
+          mappedChaptersOptions={viewProps.mappedChaptersOptions}
+          selectedChapter={viewProps.selectedChapter}
+          selectedSubject={selectedSubject}
+          selectedType={selectedType}
+          selectedTypeOption={viewProps.selectedTypeOption}
+          subjectOptionsWithAll={viewProps.subjectOptionsWithAll}
+          t={t}
+        />
         <div className="table-container-body">
           <div
             className="table"
@@ -149,7 +70,7 @@ const ReportTable = (props: ReportTableProps) => {
                       onDateChange={handleDateSelect}
                       isAssignmentsOnlyProp={isAssignments}
                       onIsAssignments={handleIsAssignmets}
-                      isMonthly={selectedType == TABLEDROPDOWN.MONTHLY}
+                      isMonthly={selectedType === TABLEDROPDOWN.MONTHLY}
                       handleNameSort={handleNameSort}
                       sortBy={sortType}
                       dateRangeValue={dateRange}
@@ -186,8 +107,8 @@ const ReportTable = (props: ReportTableProps) => {
                         }}
                         onClick={() => {
                           if (
-                            selectedType != TABLEDROPDOWN.ASSIGNMENTS &&
-                            selectedType != TABLEDROPDOWN.CHAPTER
+                            selectedType !== TABLEDROPDOWN.ASSIGNMENTS &&
+                            selectedType !== TABLEDROPDOWN.CHAPTER
                           ) {
                             handleRowClick(key);
                           }

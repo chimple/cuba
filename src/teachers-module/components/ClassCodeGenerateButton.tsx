@@ -7,6 +7,7 @@ import './ClassCodeGenerateButton.css'; // Ensure this still styles your compone
 import { Util } from '../../utility/util';
 import { buildHashAppUrl } from '../../utility/routerLocation';
 import { PAGES } from '../../common/constants';
+import { getTrackableProps, TRACKABLE_IDS } from '../../analytics/trackable';
 
 interface ClassCodeProps {
   currentClassId: string;
@@ -81,7 +82,9 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
 
       {!classCode && (
         <IonButton
-          className="generate-code-button"
+          id={TRACKABLE_IDS.TEACHER_CLASS_CODE_GENERATE_BUTTON}
+          {...getTrackableProps(TRACKABLE_IDS.TEACHER_CLASS_CODE_GENERATE_BUTTON)}
+          className="generate-code-button teacher_class_code_generate_button"
           disabled={isGenerateDisabled}
           onClick={async () => {
             await generateClassCode(currentClassId);

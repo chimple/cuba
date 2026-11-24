@@ -26,6 +26,16 @@ import type {
   SubjectSelection,
 } from '../components/reports/ReportsTableTypes';
 import { getAssignmentMapObject } from '../components/reports/ReportsTableHelpers';
+import { logClickAnalytics } from '../../analytics/clickUtil';
+import { TRACKABLE_IDS, type TrackableId } from '../../analytics/trackable';
+
+const REPORT_TYPE_TRACKABLE_IDS: Record<TABLEDROPDOWN, TrackableId> = {
+  [TABLEDROPDOWN.ASSIGNMENTS]: TRACKABLE_IDS.TEACHER_REPORT_ASSIGNMENTS,
+  [TABLEDROPDOWN.MONTHLY]: TRACKABLE_IDS.TEACHER_REPORT_MONTHLY,
+  [TABLEDROPDOWN.WEEKLY]: TRACKABLE_IDS.TEACHER_REPORT_WEEKLY,
+  [TABLEDROPDOWN.LIVEQUIZ]: TRACKABLE_IDS.TEACHER_REPORT_LIVEQUIZ,
+  [TABLEDROPDOWN.CHAPTER]: TRACKABLE_IDS.TEACHER_REPORT_CHAPTER,
+};
 
 export const useReportsTable = ({
   handleButtonClick,
@@ -295,19 +305,24 @@ export const useReportsTable = ({
   };
 
   const handleSelectSubject = (subject: DropdownOption) => {
+    if (!subject) return;
+    void logClickAnalytics(
+      TRACKABLE_IDS.TEACHER_REPORT_SELECT_SUBJECT,
+      'click',
+      undefined,
+      subject.name,
+    );
     var current_class = Util.getCurrentClass();
-    if (subject) {
-      const selectedCourse =
-        subjects?.find((item) => item.id === String(subject.id)) ?? undefined;
-      setSelectedSubject(
-        selectedCourse ?? {
-          ...subject,
-          id: String(subject.id),
-        },
-      );
-      if (selectedCourse) {
-        Util.setCurrentCourse(current_class?.id, selectedCourse);
-      }
+    const selectedCourse =
+      subjects?.find((item) => item.id === String(subject.id)) ?? undefined;
+    setSelectedSubject(
+      selectedCourse ?? {
+        ...subject,
+        id: String(subject.id),
+      },
+    );
+    if (selectedCourse) {
+      Util.setCurrentCourse(current_class?.id, selectedCourse);
     }
   };
   const handleSelectChapter = (chapter: {
@@ -333,29 +348,43 @@ export const useReportsTable = ({
   };
 
   const handleTypeSelect = (type: { id: string | number; name: string }) => {
-    if (type) {
-      if (type.name === TABLEDROPDOWN.CHAPTER) {
-        const chapterSubject =
-          selectedSubject?.id && selectedSubject.id !== ALL_SUBJECT.id
-            ? selectedSubject
-            : subjects?.[0];
-
-        if (chapterSubject) {
-          setSelectedSubject(chapterSubject);
-          api.getChaptersForCourse(chapterSubject.id).then((_chapters) => {
-            setChapters(_chapters);
-            setMappedChaptersOptions(
-              _chapters.map((option) => ({
-                id: option.id,
-                name: option.name ?? '',
-              })),
-            );
-            setSelectedChapter(_chapters[0]);
-          });
-        }
-      }
-      setSelectedType(type.name as TABLEDROPDOWN);
+    if (
+      !type ||
+      !Object.values(TABLEDROPDOWN).includes(type.name as TABLEDROPDOWN)
+    ) {
+      return;
     }
+
+    const selectedReportType = type.name as TABLEDROPDOWN;
+    // Ionic presents select options in an overlay, so the global page listener cannot identify the selected option.
+    void logClickAnalytics(
+      REPORT_TYPE_TRACKABLE_IDS[selectedReportType],
+      'click',
+      undefined,
+      type.name,
+    );
+
+    if (selectedReportType === TABLEDROPDOWN.CHAPTER) {
+      const chapterSubject =
+        selectedSubject?.id && selectedSubject.id !== ALL_SUBJECT.id
+          ? selectedSubject
+          : subjects?.[0];
+
+      if (chapterSubject) {
+        setSelectedSubject(chapterSubject);
+        api.getChaptersForCourse(chapterSubject.id).then((_chapters) => {
+          setChapters(_chapters);
+          setMappedChaptersOptions(
+            _chapters.map((option) => ({
+              id: option.id,
+              name: option.name ?? '',
+            })),
+          );
+          setSelectedChapter(_chapters[0]);
+        });
+      }
+    }
+    setSelectedType(selectedReportType);
   };
 
   const handleNameSort = (type: { id: string; name: TABLESORTBY }) => {

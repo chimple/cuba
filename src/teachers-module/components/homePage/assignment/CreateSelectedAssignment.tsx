@@ -1,8 +1,15 @@
 import { useCreateSelectedAssignment } from '../../../hooks/useCreateSelectedAssignment';
 import { CreateSelectedAssignmentSuccessDialog } from './CreateSelectedAssignmentSuccessDialog';
+import {
+  getTrackableProps,
+  TRACKABLE_IDS,
+} from '../../../../analytics/trackable';
+import CreateSelectedAssignmentStudentList from './CreateSelectedAssignmentStudentList';
 import './CreateSelectedAssignment.css';
 
-const CreateSelectedAssignment = (props: Parameters<typeof useCreateSelectedAssignment>[0]) => {
+const CreateSelectedAssignment = (
+  props: Parameters<typeof useCreateSelectedAssignment>[0],
+) => {
   const viewProps = useCreateSelectedAssignment(props);
 
   const {
@@ -26,7 +33,6 @@ const CreateSelectedAssignment = (props: Parameters<typeof useCreateSelectedAssi
     rewardAnimation,
     rewardIndicatorRef,
     selectedAssignments,
-    setGroupWiseStudents,
     setShowEndDatePicker,
     setShowStartDatePicker,
     showEndDatePicker,
@@ -35,6 +41,7 @@ const CreateSelectedAssignment = (props: Parameters<typeof useCreateSelectedAssi
     t,
     toggleCollapse,
     toggleSelectAll,
+    toggleStudentGroupSelection,
     toggleStudentSelection,
   } = viewProps;
 
@@ -123,118 +130,14 @@ const CreateSelectedAssignment = (props: Parameters<typeof useCreateSelectedAssi
             </div>
           </div>
         </section>
-        <section className="assignments-list">
-          <div className="select-all">
-            <label>{t('Select All')}</label>
-            <input
-              className="select-all-checkbox"
-              type="checkbox"
-              checked={allSelected}
-              onChange={toggleSelectAll}
-            />
-          </div>
-          {Object.keys(groupWiseStudents).map((category) => (
-            <div
-              key={category}
-              className={`assignment-category ${category
-                .replace(' ', '-')
-                .toLowerCase()}`}
-            >
-              <div
-                className="category-header"
-                style={{
-                  backgroundColor: groupWiseStudents[category].color,
-                }}
-                onClick={() => toggleCollapse(category)}
-              >
-                <h4>{groupWiseStudents[category].title}</h4>
-                <div className="select-all">
-                  <div className="select-all-student-count">
-                    {
-                      groupWiseStudents[category].students.filter(
-                        (student) => student.selected,
-                      ).length
-                    }
-                    /{groupWiseStudents[category].students.length}
-                  </div>
-                  <img
-                    src={
-                      groupWiseStudents[category].isCollapsed
-                        ? 'assets/icons/iconDown.png'
-                        : 'assets/icons/iconUp.png'
-                    }
-                    alt="toggle-icon"
-                    style={{ width: '15px', height: '15px' }}
-                  />
-                  <input
-                    className="select-all-checkbox"
-                    type="checkbox"
-                    checked={
-                      groupWiseStudents[category].students.length > 0
-                        ? groupWiseStudents[category].students.every(
-                            (student) => student.selected,
-                          )
-                        : true
-                    }
-                    // checked={true}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => {
-                      if (isInteractionLocked) {
-                        return;
-                      }
-
-                      const allSelected = groupWiseStudents[
-                        category
-                      ].students.every(
-                        (student) => student.selected,
-                      );
-                      setGroupWiseStudents(
-                        (bandStudents) => {
-                          const updatedStudents = bandStudents[
-                            category
-                          ].students.map((student) => ({
-                            ...student,
-                            selected: !allSelected,
-                          }));
-
-                          return {
-                            ...bandStudents,
-                            [category]: {
-                              ...bandStudents[category],
-                              students: updatedStudents,
-                            },
-                          };
-                        },
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-              {!groupWiseStudents[category].isCollapsed && (
-                <ul className="students-list">
-                  {groupWiseStudents[category].students.map(
-                    (student, index) => (
-                      <div>
-                        <li key={index} className="student-item">
-                          <span>{student.name}</span>
-                          <input
-                            className="student-item-checkbox"
-                            type="checkbox"
-                            checked={student.selected}
-                            onChange={() =>
-                              toggleStudentSelection(category, index)
-                            }
-                          />
-                        </li>
-                        <hr className="students-list-styled-line" />
-                      </div>
-                    ),
-                  )}
-                </ul>
-              )}
-            </div>
-          ))}
-        </section>
+        <CreateSelectedAssignmentStudentList
+          allSelected={allSelected}
+          groupWiseStudents={groupWiseStudents}
+          toggleCollapse={toggleCollapse}
+          toggleSelectAll={toggleSelectAll}
+          toggleStudentGroupSelection={toggleStudentGroupSelection}
+          toggleStudentSelection={toggleStudentSelection}
+        />
 
         {rewardAnimation.visible && (
           <div
@@ -257,7 +160,9 @@ const CreateSelectedAssignment = (props: Parameters<typeof useCreateSelectedAssi
 
         <button
           ref={assignButtonRef}
-          className="assign-selected-button"
+          id={TRACKABLE_IDS.TEACHER_ASSIGN_SUBMIT_BUTTON}
+          {...getTrackableProps(TRACKABLE_IDS.TEACHER_ASSIGN_SUBMIT_BUTTON)}
+          className={`assign-selected-button ${TRACKABLE_IDS.TEACHER_ASSIGN_SUBMIT_BUTTON}`}
           disabled={
             (selectedAssignments.length ?? 0) > 0 || isInteractionLocked
           }

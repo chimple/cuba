@@ -13,6 +13,8 @@ import {
   PAGES,
 } from '../../common/constants';
 import { ClearCacheData } from '../../components/parent/DataClear';
+import { logClickAnalytics } from '../../analytics/clickUtil';
+import { TRACKABLE_IDS } from '../../analytics/trackable';
 import DialogBoxButtons from '../../components/parent/DialogBoxButtons';
 import {
   updateLocalAttributes,
@@ -39,7 +41,10 @@ const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
 type SwitchToKidsAppSourceScreen =
   (typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN)[keyof typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN];
 
-export const useSideMenu = ({ handleManageSchoolClick, handleManageClassClick }: {
+export const useSideMenu = ({
+  handleManageSchoolClick,
+  handleManageClassClick,
+}: {
   handleManageSchoolClick: () => void;
   handleManageClassClick: () => void;
 }) => {
@@ -214,6 +219,12 @@ export const useSideMenu = ({ handleManageSchoolClick, handleManageClassClick }:
         logger.warn('Invalid ID or no ID provided for school selection');
         return;
       }
+      void logClickAnalytics(
+        TRACKABLE_IDS.TEACHER_MENU_SELECT_SCHOOL,
+        'click',
+        undefined,
+        name,
+      );
       const school = await api.getSchoolById(String(id));
       if (!school?.id) {
         logger.warn('School not found');
@@ -272,6 +283,12 @@ export const useSideMenu = ({ handleManageSchoolClick, handleManageClassClick }:
         logger.warn('Invalid ID or duplicate selection');
         return;
       }
+      void logClickAnalytics(
+        TRACKABLE_IDS.TEACHER_MENU_SELECT_CLASS,
+        'click',
+        undefined,
+        name,
+      );
 
       const classIdStr = String(id).trim();
       if (!classIdStr) {

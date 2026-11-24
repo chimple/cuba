@@ -2,6 +2,7 @@ import React from 'react';
 import './ProfileDetails.css';
 import { IonIcon } from '@ionic/react';
 import { camera } from 'ionicons/icons';
+import { getTrackableProps } from '../../../analytics/trackable';
 
 interface ProfileDetailsProps {
   width?: string;
@@ -11,6 +12,7 @@ interface ProfileDetailsProps {
   onImageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   isEditMode?: boolean;
+  trackableId?: string;
 }
 
 const ProfileDetails: React.FC<ProfileDetailsProps> = ({
@@ -19,10 +21,16 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   onImageChange,
   className,
   isEditMode,
+  trackableId,
 }) => {
   return (
     <div className={`profile-details-main ${className || ''}`}>
-      <label htmlFor="profilePic" className="profile-details-data">
+      <label
+        htmlFor="profilePic"
+        id={trackableId}
+        {...(trackableId ? getTrackableProps(trackableId) : {})}
+        className={`profile-details-data ${trackableId ?? ''}`.trim()}
+      >
         <img src={imgSrc} alt="" className="profile-details-img" />
         {isEditMode && (
           <div className="overlay">

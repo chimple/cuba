@@ -362,6 +362,27 @@ export const useCreateSelectedAssignment = ({
     });
   };
 
+  const toggleStudentGroupSelection = (category: string) => {
+    if (isInteractionLocked) return;
+
+    setGroupWiseStudents((studentGroups: GroupWiseStudents) => {
+      const group = studentGroups[category];
+      if (!group) return studentGroups;
+
+      const allSelected = group.students.every((student) => student.selected);
+      return {
+        ...studentGroups,
+        [category]: {
+          ...group,
+          students: group.students.map((student) => ({
+            ...student,
+            selected: !allSelected,
+          })),
+        },
+      };
+    });
+  };
+
   const toggleStudentSelection = (category: string, index: number) => {
     if (isInteractionLocked) {
       return;
@@ -561,6 +582,7 @@ export const useCreateSelectedAssignment = ({
     t,
     toggleCollapse,
     toggleSelectAll,
+    toggleStudentGroupSelection,
     toggleStudentSelection,
   };
 };
