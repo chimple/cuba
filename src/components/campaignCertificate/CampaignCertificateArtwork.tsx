@@ -37,12 +37,18 @@ const formatCampaignEndDate = (value: string | Date) => {
   return `${day}-${month}-${date.getFullYear()}`;
 };
 
+const getDateLocale = (language: string) => {
+  const normalized = language.toLowerCase().replace(/_/g, '-');
+  if (normalized === 'sl-en') return 'en-SL';
+  return normalized.split('-')[0] || 'en';
+};
+
 const formatCampaignMonthYear = (value: string | Date, language = 'en') => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  const locale = language.toLowerCase().split('-')[0];
+  const locale = getDateLocale(language);
   return new Intl.DateTimeFormat(locale, {
-    month: locale === 'en' ? 'short' : 'long',
+    month: locale.startsWith('en') ? 'short' : 'long',
     year: 'numeric',
   }).format(date);
 };

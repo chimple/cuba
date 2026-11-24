@@ -88,11 +88,15 @@ const canShareCertificate = (reward: CompetitionReward) =>
   getCertificateType(reward) !== null;
 const formatDate = (value?: string | null, language = 'en') => {
   if (!value) return '';
+  const normalizedLanguage = language.toLowerCase().replace(/_/g, '-');
+  const locale =
+    normalizedLanguage === 'sl-en'
+      ? 'en-SL'
+      : normalizedLanguage.split('-')[0] || 'en';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  const locale = language.toLowerCase().split('-')[0];
   const parts = new Intl.DateTimeFormat(locale, {
-    month: locale === 'en' ? 'short' : 'long',
+    month: locale.startsWith('en') ? 'short' : 'long',
     year: 'numeric',
   }).formatToParts(date);
   const month = parts.find((part) => part.type === 'month')?.value;
@@ -235,7 +239,6 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
       </div>
     </article>
   );
-
   return (
     <div className="competition-rewards-page">
       {ongoingRewards.length > 0 && (
@@ -293,5 +296,4 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
     </div>
   );
 };
-
 export default CompetitionRewardCards;
