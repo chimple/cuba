@@ -6,7 +6,7 @@
 }
 
 .competition-section-title {
-  max-width: 920px;
+  max-width: 603px;
   margin: 0 auto 16px;
   padding: 7px 16px;
   border-radius: 24px;
@@ -14,22 +14,25 @@
   color: #182a4f;
   font-size: clamp(16px, 2.3vw, 22px);
   font-weight: 600;
-  text-align: center;
+  text-align: left;
 }
 
 .competition-ongoing-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
-  justify-content: center;
+  justify-content: start;
   gap: 16px;
-  margin-bottom: 28px;
+  max-width: 603px;
+  margin: 0 auto 28px;
 }
 
 .competition-completed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
-  justify-content: center;
-  gap: 16px;
+  justify-content: start;
+  gap: 38px;
+  max-width: 603px;
+  margin: 0 auto;
 }
 
 .competition-reward-card {
