@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { toPng } from 'html-to-image';
 import { EVENTS } from '../../common/constants';
@@ -115,11 +116,9 @@ describe('CampaignCertificateModal', () => {
         typeof Util.sendContentToAndroidOrWebShare
       >
     ).mockResolvedValue(undefined);
+    const onClose = jest.fn();
     render(
-      <CampaignCertificateModal
-        certificate={certificate}
-        onClose={jest.fn()}
-      />,
+      <CampaignCertificateModal certificate={certificate} onClose={onClose} />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Share' }));
@@ -141,10 +140,8 @@ describe('CampaignCertificateModal', () => {
     );
     const captureElement = (toPng as jest.Mock).mock.calls[0][0] as HTMLElement;
     expect(
-      captureElement.querySelector(
-        '[data-testid="campaign-certificate-share-star"]',
-      ),
-    ).toBeNull();
+      within(captureElement).queryByTestId('campaign-certificate-share-star'),
+    ).not.toBeInTheDocument();
     expect(toPng).toHaveBeenCalledWith(
       expect.any(HTMLElement),
       expect.objectContaining({ pixelRatio: 2 }),
@@ -153,6 +150,7 @@ describe('CampaignCertificateModal', () => {
       EVENTS.CAMPAIGN_CERTIFICATE_SHARE_SUCCESS,
       expect.any(Object),
     );
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches the public event used by completion flows', () => {

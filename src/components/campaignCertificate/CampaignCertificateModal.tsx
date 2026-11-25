@@ -8,7 +8,10 @@ import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
 import CampaignCertificateArtwork from './CampaignCertificateArtwork';
 import { logCampaignCertificateEvent } from './campaignCertificateAnalytics';
-import { scheduleNativeSharePreviewRelease } from './campaignCertificateSharePreview';
+import {
+  dataUrlToFile,
+  scheduleNativeSharePreviewRelease,
+} from './campaignCertificateSharePreview';
 import type {
   CampaignCertificateData,
   CampaignCertificateLabels,
@@ -35,17 +38,6 @@ const translated = (
   defaultValue: string,
   variables: Record<string, string | number> = {},
 ) => String(t(key, { ...variables, defaultValue }) || defaultValue);
-
-const dataUrlToFile = (dataUrl: string, campaignId: string) => {
-  const [header, encoded] = dataUrl.split(',');
-  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
-  const bytes = Uint8Array.from(window.atob(encoded), (character) =>
-    character.charCodeAt(0),
-  );
-  return new File([bytes], `chimple-certificate-${campaignId}.png`, {
-    type: mime,
-  });
-};
 
 type Props = {
   certificate: CampaignCertificateData;
@@ -118,10 +110,7 @@ const CampaignCertificateModal = ({
     void AudioUtil.playAudioOrTts({ audioUrl: voiceoverUrl });
   };
 
-  const close = () => {
-    if (isSharing) return;
-    onClose();
-  };
+  const close = () => !isSharing && onClose();
 
   const share = async () => {
     if (isSharing) return;
@@ -155,9 +144,7 @@ const CampaignCertificateModal = ({
         cacheBust: true,
         pixelRatio: 2,
       });
-      isNativeShare = scheduleNativeSharePreviewRelease(() =>
-        setShowShareCapture(false),
-      );
+      isNativeShare = scheduleNativeSharePreviewRelease(onClose);
       await Util.sendContentToAndroidOrWebShare(
         translated(
           'certificate_share_message',
@@ -183,17 +170,17 @@ const CampaignCertificateModal = ({
       );
     } finally {
       if (!isNativeShare) {
-        setShowShareCapture(false);
+        onClose();
       }
-      setIsSharing(false);
-      // Native share resolves after launching the Android sheet. Keep the
-      // preview underneath it until focus returns, rather than restoring the
-      // original popup immediately.
     }
   };
 
   return (
-    <div className="campaign-certificate-overlay" role="presentation">
+    <div
+      id="campaign-certificate-overlay"
+      className="campaign-certificate-overlay"
+      role="presentation"
+    >
       <Confetti
         className="campaign-certificate-confetti"
         width={window.innerWidth}
@@ -203,6 +190,7 @@ const CampaignCertificateModal = ({
       />
       {!showShareCapture && (
         <div
+          id="campaign-certificate-dialog"
           className="campaign-certificate-dialog"
           role="dialog"
           aria-modal="true"
@@ -211,7 +199,10 @@ const CampaignCertificateModal = ({
             'Campaign certificate',
           )}
         >
-          <div className="campaign-certificate-audio">
+          <div
+            id="campaign-certificate-audio"
+            className="campaign-certificate-audio"
+          >
             <button
               type="button"
               className="campaign-certificate-audio-button"
@@ -234,7 +225,10 @@ const CampaignCertificateModal = ({
             disabled={isSharing}
             aria-label={translated('Close', 'Close')}
           />
-          <div className="campaign-certificate-share-preview">
+          <div
+            id="campaign-certificate-share-preview"
+            className="campaign-certificate-share-preview"
+          >
             <CampaignCertificateArtwork
               certificate={certificate}
               labels={labels}
@@ -259,11 +253,16 @@ const CampaignCertificateModal = ({
       )}
       {showShareCapture && (
         <div
+          id="campaign-certificate-share-capture-overlay"
           className="campaign-certificate-share-capture-overlay"
           role="presentation"
         >
-          <div className="campaign-certificate-share-stage">
+          <div
+            id="campaign-certificate-share-stage"
+            className="campaign-certificate-share-stage"
+          >
             <img
+              id="campaign-certificate-share-star-left"
               className="campaign-certificate-share-star campaign-certificate-share-star-left campaign-certificate-share-star--visible"
               data-testid="campaign-certificate-share-star"
               src="/assets/icons/StickerBookStar.svg"
@@ -272,6 +271,7 @@ const CampaignCertificateModal = ({
             />
             <div
               ref={captureRef}
+              id="campaign-certificate-share-capture"
               className="campaign-certificate-share-capture"
             >
               <CampaignCertificateArtwork
@@ -280,6 +280,7 @@ const CampaignCertificateModal = ({
               />
             </div>
             <img
+              id="campaign-certificate-share-star-right"
               className="campaign-certificate-share-star campaign-certificate-share-star-right campaign-certificate-share-star--visible"
               data-testid="campaign-certificate-share-star"
               src="/assets/icons/StickerBookStar.svg"
@@ -287,6 +288,7 @@ const CampaignCertificateModal = ({
               aria-hidden="true"
             />
             <div
+              id="campaign-certificate-share-flash"
               className="campaign-certificate-share-flash campaign-certificate-share-flash--active"
               aria-hidden="true"
             />

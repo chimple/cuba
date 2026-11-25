@@ -97,7 +97,7 @@
   place-items: center;
   padding: 1rem;
   background: transparent;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .campaign-certificate-share-stage {
@@ -394,6 +394,10 @@
     --certificate-share-top-gap: 12px;
     --certificate-share-bottom-gap: 8px;
   }
+
+  .campaign-certificate-share-star-right {
+    right: -28px;
+  }
 }
 
 @keyframes campaign-certificate-camera-flash {
@@ -444,6 +448,13 @@
 @media (min-width: 760px) and (max-height: 700px) {
   .campaign-certificate-dialog {
     --certificate-share-height: 60px;
+  }
+}
+
+/* Keeps the right preview star close to artwork across tablet WebView sizes. */
+@media (min-width: 600px) and (max-width: 899px) and (min-height: 501px) and (max-height: 700px) {
+  .campaign-certificate-share-star-right {
+    right: -22px;
   }
 }
 
