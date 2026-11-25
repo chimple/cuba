@@ -140,8 +140,10 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
     const result = image
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
       : school.image;
-    // Prepare updated data
-    const updatedSchool: TableTypes<'school'> = {
+    // Profile editing must be a partial update. Sending a fully populated
+    // school record here used to null fields that are not editable in this
+    // flow, including academic_year.
+    const updatedSchool = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
@@ -152,22 +154,7 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
       udise: udise ?? school.udise,
       address: address ?? school.address,
       updated_at: new Date().toISOString(),
-      created_at: school.created_at,
-      id: school.id,
-      is_deleted: false,
-      model: null,
-      academic_year: null,
-      firebase_id: null,
-      is_firebase: null,
-      is_ops: null,
       language: language ?? school.language,
-      ops_created_by: null,
-      student_login_type: null,
-      status: null,
-      key_contacts: null,
-      country: null,
-      location_link: null,
-      whatsapp_bot_number: null,
     };
 
     const { error } = await this.supabase
@@ -181,6 +168,6 @@ export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
       logger.error('Error updating school profile:', error);
       throw error;
     }
-    return updatedSchool;
+    return { ...school, ...updatedSchool };
   }
 }

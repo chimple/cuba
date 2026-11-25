@@ -6,7 +6,7 @@ jest.mock('./SupabaseApi.assignment.assessments', () => ({
 }));
 
 const school = {
-  academic_year: null,
+  academic_year: '2025-26',
   address: null,
   country: null,
   created_at: '2025-01-01T00:00:00.000Z',
@@ -73,6 +73,23 @@ it('allows unrelated edits when the existing language has been retired', async (
 
   expect(api.getLanguageWithId).not.toHaveBeenCalled();
   expect(query.update).toHaveBeenCalled();
+  expect(query.update.mock.calls[0][0]).not.toHaveProperty('academic_year');
+});
+
+it('does not include academic year when saving unrelated profile changes', async () => {
+  const { api, query } = setup();
+
+  const updated = await api.updateSchoolProfile(
+    school,
+    'Renamed School',
+    school.group1 ?? '',
+    school.group2 ?? '',
+    school.group3 ?? '',
+    null,
+  );
+
+  expect(updated.academic_year).toBe('2025-26');
+  expect(query.update.mock.calls[0][0]).not.toHaveProperty('academic_year');
 });
 
 it('continues to reject a newly selected retired language', async () => {
