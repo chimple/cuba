@@ -20,12 +20,20 @@ const isForCurrentStudent = (certificate: CampaignCertificateData) => {
   return certificate.studentId === Util.getCurrentStudent()?.id;
 };
 
+const getCurrentRoutePathname = () => {
+  const hashRoute = window.location.hash.replace(/^#/, '').split('?')[0];
+  return hashRoute || window.location.pathname;
+};
+
 const canDisplayCertificate = () =>
   Boolean(Util.getCurrentStudent()?.id) &&
   !store.getState().campaignRewards.isProfileSelectionInProgress &&
-  ![PAGES.DISPLAY_STUDENT, PAGES.EDIT_STUDENT, PAGES.STUDENT_PROGRESS].includes(
-    window.location.pathname as PAGES,
-  );
+  ![
+    PAGES.PARENT,
+    PAGES.DISPLAY_STUDENT,
+    PAGES.EDIT_STUDENT,
+    PAGES.STUDENT_PROGRESS,
+  ].includes(getCurrentRoutePathname() as PAGES);
 
 export const showCampaignCertificate = (
   certificate: CampaignCertificateData,

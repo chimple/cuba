@@ -29,6 +29,7 @@ describe('CampaignCertificateHost', () => {
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: 'current-student',
     });
+    window.location.hash = '';
     window.history.pushState({}, '', '/home');
     localStorage.clear();
     store.dispatch({
@@ -204,6 +205,53 @@ describe('CampaignCertificateHost', () => {
   it('keeps a certificate pending while viewing parent-side student progress', () => {
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-b' });
     window.history.pushState({}, '', '/student-progress');
+    render(<CampaignCertificateHost />);
+
+    act(() => {
+      showCampaignCertificate({
+        campaignId: 'campaign-student-b',
+        campaignName: 'Student B League',
+        studentName: 'Student B',
+        studentId: 'student-b',
+        rank: 1,
+        campaignEndDate: '2026-06-28T00:00:00.000Z',
+      });
+    });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      store.getState().campaignRewards.pendingCertificates['student-b']
+        ?.campaignId,
+    ).toBe('campaign-student-b');
+  });
+
+  it('keeps a certificate pending throughout the parent profile flow', () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-b' });
+    window.history.pushState({}, '', '/parent');
+    render(<CampaignCertificateHost />);
+
+    act(() => {
+      showCampaignCertificate({
+        campaignId: 'campaign-student-b',
+        campaignName: 'Student B League',
+        studentName: 'Student B',
+        studentId: 'student-b',
+        rank: 1,
+        campaignEndDate: '2026-06-28T00:00:00.000Z',
+      });
+    });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      store.getState().campaignRewards.pendingCertificates['student-b']
+        ?.campaignId,
+    ).toBe('campaign-student-b');
+  });
+
+  it('keeps a certificate pending on a blocked HashRouter route', () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-b' });
+    window.history.pushState({}, '', '/');
+    window.location.hash = '#/edit-student';
     render(<CampaignCertificateHost />);
 
     act(() => {
