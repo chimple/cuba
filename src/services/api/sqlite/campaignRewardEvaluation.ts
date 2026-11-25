@@ -68,6 +68,14 @@ export const parseCampaignRules = (value: string): CampaignRewardRule[] => {
   }
 };
 
+const isDigitalRewardsCampaign = (value: string): boolean => {
+  try {
+    return JSON.parse(value).type === 'digital_rewards';
+  } catch {
+    return false;
+  }
+};
+
 const getLocalDateKey = (value = new Date()): string => {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, '0');
@@ -118,9 +126,11 @@ export const evaluateCampaignReward = async (
   const status = winningRule ? 'won' : campaignEnded ? 'missed' : 'in_progress';
   const rank = winningRule?.rank ?? null;
   const certificateAvailable =
-    Boolean(winningRule) || (campaignEnded && participationEligible);
-  const certificateRank: CampaignCertificateRank | null =
-    rank ?? (participationEligible ? 'participation' : null);
+    isDigitalRewardsCampaign(campaign.rules_json) &&
+    (Boolean(winningRule) || (campaignEnded && participationEligible));
+  const certificateRank: CampaignCertificateRank | null = certificateAvailable
+    ? (rank ?? (participationEligible ? 'participation' : null))
+    : null;
   const evaluatedAt = now.toISOString();
   const existingResult = await dependencies.executeQuery(
     `SELECT status, rank_achieved, has_unseen_certificate FROM user_campaign_rewards
@@ -174,7 +184,8 @@ export const evaluateCampaignReward = async (
       certificateAvailable ? 1 : 0,
       rank,
       status,
-      shouldEmitCertificate || Boolean(existing?.has_unseen_certificate)
+      certificateAvailable &&
+      (shouldEmitCertificate || Boolean(existing?.has_unseen_certificate))
         ? 1
         : 0,
       evaluatedAt,

@@ -57,6 +57,7 @@ beforeEach(async () => {
       'campaign',
       'Reward Test 7.1',
       JSON.stringify({
+        type: 'digital_rewards',
         rules: [
           { rank: 1, min: 40 },
           { rank: 2, min: 20 },
@@ -207,4 +208,28 @@ it('displays an eligible certificate during ended-campaign hydration', async () 
   await api.hydrateCampaignRewards('child');
 
   expect(showCampaignCertificate).toHaveBeenCalledTimes(1);
+});
+
+it('does not display a certificate for a physical reward campaign', async () => {
+  db.run("UPDATE local_campaigns SET end_date = '2026-11-19', rules_json = ?", [
+    JSON.stringify({
+      type: 'physical_rewards',
+      rules: [
+        { rank: 1, min: 40 },
+        { rank: 2, min: 20 },
+        { rank: 3, min: 1 },
+      ],
+    }),
+  ]);
+  db.run(`INSERT INTO result VALUES
+    ('r1','a1','l1','child','2026-11-19','completed',0,NULL),
+    ('r2','a2','l2','child','2026-11-19','completed',0,NULL)`);
+
+  await api.hydrateCampaignRewards('child');
+
+  expect(showCampaignCertificate).not.toHaveBeenCalled();
+  expect((await api.getCachedCampaignRewards('child'))[0]).toMatchObject({
+    status: 'won',
+    certificate_available: 0,
+  });
 });

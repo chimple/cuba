@@ -99,7 +99,11 @@ const CampaignCertificateArtwork = forwardRef<HTMLDivElement, Props>(
     ).toUpperCase();
 
     return (
-      <div ref={ref} className="campaign-certificate-artwork">
+      <div
+        ref={ref}
+        id="campaign-certificate-artwork"
+        className="campaign-certificate-artwork"
+      >
         <svg
           className="campaign-certificate-svg"
           viewBox={`0 0 ${CERTIFICATE_WIDTH} ${CERTIFICATE_HEIGHT}`}
