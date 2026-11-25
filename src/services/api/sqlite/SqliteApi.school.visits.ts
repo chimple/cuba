@@ -84,7 +84,10 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
       : school.image;
 
-    const updatedSchool: TableTypes<'school'> = {
+    // Keep the local row and its synchronization payload limited to fields
+    // editable by this screen. In particular, academic_year belongs to a
+    // separate workflow and must not be cleared by a profile save.
+    const updatedSchool = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
@@ -95,26 +98,15 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
-      program_id: program_id ?? null,
-      udise: udise ?? null,
-      address: address ?? null,
-      model: null,
-      academic_year: null,
-      firebase_id: null,
-      is_firebase: null,
-      is_ops: null,
+      program_id: program_id ?? school.program_id,
+      udise: udise ?? school.udise,
+      address: address ?? school.address,
       language: language ?? school.language,
-      ops_created_by: null,
-      student_login_type: null,
-      status: null,
-      key_contacts: null,
-      country: null,
-      location_link: null,
-      whatsapp_bot_number: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, language = ?, updated_at=?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, group4 = ?, image = ?,
+        program_id = ?, udise = ?, address = ?, language = ?, updated_at = ?
     WHERE id = ?;
     `;
 
@@ -123,7 +115,11 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
       updatedSchool.group1,
       updatedSchool.group2,
       updatedSchool.group3,
+      updatedSchool.group4,
       updatedSchool.image,
+      updatedSchool.program_id,
+      updatedSchool.udise,
+      updatedSchool.address,
       updatedSchool.language,
       updatedSchool.updated_at,
       school.id,
@@ -131,7 +127,7 @@ export class SqliteApiSchoolVisits extends SqliteApiResultsProgress {
 
     this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
 
-    return updatedSchool;
+    return { ...school, ...updatedSchool };
   }
 
   async updateSchoolLocation(
