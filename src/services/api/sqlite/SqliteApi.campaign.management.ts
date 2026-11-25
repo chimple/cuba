@@ -325,8 +325,29 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       logCampaignFetch(studentId, changes ?? []);
       const eligibleCampaignIds = getEligibleCampaignIds(studentId);
       for (const change of changes ?? []) {
-        if (change.change_type === 'delete') {
+        const campaignStatus = String(
+          change.campaign_status ?? '',
+        ).toLowerCase();
+        const isCancelledCampaign =
+          change.change_type === 'delete' ||
+          campaignStatus === 'inactive' ||
+          campaignStatus === 'cancelled' ||
+          campaignStatus === 'canceled';
+        if (isCancelledCampaign) {
           eligibleCampaignIds.delete(change.campaign_id);
+
+          await this.executeQuery(
+            `UPDATE local_campaigns
+             SET is_deleted = 1
+             WHERE id = ?`,
+            [change.campaign_id],
+          );
+          await this.executeQuery(
+            `UPDATE user_campaign_rewards
+             SET is_deleted = 1
+             WHERE campaign_id = ? AND student_id = ?`,
+            [change.campaign_id, studentId],
+          );
           continue;
         }
         eligibleCampaignIds.add(change.campaign_id);
