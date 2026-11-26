@@ -14,10 +14,11 @@ import {
   Typography,
 } from '@mui/material';
 import type { CampaignNotificationListItem } from '../../../services/api/ServiceApi';
-import {
-  type MessageSortKey,
-  MessagesListingTable,
-} from './MessagesListingTable';
+import SchoolListExportButton from '../../components/SchoolListExportButton';
+import SelectedFilters from '../../components/SelectedFilters';
+import { MessagesListingTable } from './MessagesListingTable';
+import { useMessagesListingExport } from './MessagesListingExport';
+import { useMessagesListingSort } from './useMessagesListingSort';
 import './MessagesListing.css';
 
 type Props = {
@@ -26,8 +27,6 @@ type Props = {
   onCreate: () => void;
   onOpen: (message: CampaignNotificationListItem) => void;
 };
-
-type SortKey = MessageSortKey;
 
 type SchoolModel = 'at_school' | 'at_home' | 'hybrid';
 
@@ -99,13 +98,15 @@ export const MessagesListing: React.FC<Props> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [model, setModel] = useState('All School Models');
-  const [sortKey, setSortKey] = useState<SortKey>('type');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [actionsAnchor, setActionsAnchor] = useState<HTMLElement | null>(null);
   const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
   const [userType, setUserType] = useState('');
   const [page, setPage] = useState(1);
+  const { sortDirection, sortKey, toggleSort } = useMessagesListingSort();
   const models = ['All School Models', 'At School', 'At Home', 'Hybrid'];
+  const selectedUserTypeLabel = userType
+    ? userType.charAt(0).toUpperCase() + userType.slice(1)
+    : '';
 
   const visibleMessages = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -144,21 +145,14 @@ export const MessagesListing: React.FC<Props> = ({
   const filteredMessages = visibleMessages.filter(
     (message) => !userType || message.userType?.toLowerCase() === userType,
   );
+  const { handleExport, isExporting } =
+    useMessagesListingExport(filteredMessages);
   const pageCount = Math.max(1, Math.ceil(filteredMessages.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const pageMessages = filteredMessages.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
-
-  const toggleSort = (key: SortKey) => {
-    if (sortKey === key)
-      setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
-    else {
-      setSortKey(key);
-      setSortDirection('asc');
-    }
-  };
 
   return (
     <main className="messages-listing" aria-labelledby="messages-listing-title">
@@ -228,6 +222,13 @@ export const MessagesListing: React.FC<Props> = ({
           className="messages-listing__search"
           InputProps={{ startAdornment: <Search fontSize="small" /> }}
         />
+        <SchoolListExportButton
+          id="messages-listing__export-button"
+          className="messages-listing__export-button"
+          disabled={isExporting || loading || filteredMessages.length === 0}
+          isExporting={isExporting}
+          onClick={() => void handleExport()}
+        />
         <Button
           id="messages-listing__actions-button"
           className="messages-listing__actions-button"
@@ -263,6 +264,16 @@ export const MessagesListing: React.FC<Props> = ({
           ))}
         </Menu>
       </Box>
+
+      {userType ? (
+        <SelectedFilters
+          filters={{ userType: [selectedUserTypeLabel] }}
+          onDeleteFilter={() => {
+            setUserType('');
+            setPage(1);
+          }}
+        />
+      ) : null}
 
       <MessagesListingTable
         currentPage={currentPage}
