@@ -1,44 +1,35 @@
-// - Copy/extract lesson ZIPs from local D:\chimple-zips first, then fall back to prod remote bundle URLs
+// - Package lesson ZIPs referenced by the selected workbook sheets
 // - Add full-path mascot .riv input and copy it into bundled app assets
 // - Continue APK builds while reporting missing bundles unless --fail-on-missing is passed
 
 // Run locally:
 
-// PowerShell runner (the app tsconfig targets ESM, so ts-node needs a Node override):
 // $env:TS_NODE_COMPILER_OPTIONS = '{"module":"CommonJS","moduleResolution":"node"}'
-// node -r ts-node/register scripts/build-open-apk.ts --supabase-url "$env:SUPABASE_URL" --supabase-key "$env:SUPABASE_READ_KEY" --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output
-// node -r ts-node/register scripts/build-open-apk.ts --supabase-url "$env:SUPABASE_URL" --supabase-key "$env:SUPABASE_READ_KEY" --language=en --subjects=math-subject-id --avatar=G:\mascot_with_accessories_sep_2025.riv --output=G:\open-apk-output
-// Use a read-only key with suitable RLS; CLI argument values can appear in process listings.
+// node -r ts-node/register scripts/respect-openeel/respect-build-open-apk.ts --avatar=G:\mascot_with_accessories_sep_2025.riv --output=G:\open-apk-output
 
 // Optional flags:
 
 // --skip-build       Prepare bundles only, do not build APK
 // --debug            Build and copy app-debug.apk instead of release APK
-// --dry-run          Resolve lessons and write manifest only
-// --supabase-url     Supabase project URL used to resolve course metadata
-// --supabase-key     Supabase read key used to resolve course metadata
+// --dry-run          Resolve selected workbook rows and write manifest only
+// --sheet-names      Comma-separated workbook sheet names or numbers; omit to choose in terminal
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
 // --fail-on-missing  Stop if any bundle cannot be found
 // --splashtime=MS    Set the native splash duration in milliseconds
 // --splashimage=PATH Replace the native splash PNG for this APK build
 
 import JSZip from 'jszip';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import * as XLSX from 'xlsx';
 import { spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import type { Database } from '../src/services/database';
-import type { TableTypes } from '../src/common/constants/schema';
+import { createInterface } from 'node:readline/promises';
 
 type CliOptions = {
-  language: string;
+  sheetNames: string[];
   avatar: string;
-  supabaseUrl: string;
-  supabaseKey: string;
-  courseIds: string[];
-  subjectIds: string[];
   output: string;
   zipSource: string;
   skipBuild: boolean;
@@ -50,54 +41,48 @@ type CliOptions = {
   splashImage?: string;
 };
 
-type CourseRow = {
-  id: string;
-  code: string | null;
-  name: string | null;
-  subject_id?: string | null;
-  framework_id?: string | null;
-};
-
-type LanguageRow = {
-  id: string;
-  code: string | null;
-  name?: string | null;
-};
-
 type ImportJsonColumn = {
   column: string;
   value: string;
 };
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
 type ImportJsonTable = {
   name: string;
   schema: ImportJsonColumn[];
-  values?: unknown[][];
+  values?: JsonValue[][];
 };
 
 type ImportJson = {
   tables: ImportJsonTable[];
 };
 
-type CatalogTableName =
-  | 'language'
-  | 'course'
-  | 'chapter'
-  | 'chapter_lesson'
-  | 'lesson';
+type WorkbookLessonCell = string | number | boolean | null | undefined;
 
-type CatalogRows = {
-  [Table in CatalogTableName]: TableTypes<Table>[];
+type WorkbookLessonRow = {
+  lesson_id?: WorkbookLessonCell;
+  chapter_id?: WorkbookLessonCell;
+  title?: WorkbookLessonCell;
+  lesson_name?: WorkbookLessonCell;
+  lido_lesson_id?: WorkbookLessonCell;
+  cocos_lesson_code?: WorkbookLessonCell;
+  'Asset Link'?: WorkbookLessonCell;
 };
 
-type LessonRow = {
-  id: string;
-  name: string | null;
-  subject_id?: string | null;
-  language_id?: string | null;
-  cocos_lesson_id: string | null;
-  lido_lesson_id: string | null;
-  version: number | null;
+type SelectedWorkbookLesson = {
+  sheetName: string;
+  lessonId: string;
+  chapterId: string;
+  bundleId: string;
+  assetLink: string;
+  zipFileName: string;
 };
 
 type BundleManifestEntry = {
@@ -125,11 +110,9 @@ type ImageManifestEntry = {
 type Manifest = {
   generatedAt: string;
   language: string;
-  languageId: string | null;
+  selectedSheets: string[];
   avatar: string;
   pathwayMascot: string;
-  courseIds: string[];
-  courses: CourseRow[];
   chapterCount: number;
   chapterLessonCount: number;
   lessonCount: number;
@@ -148,17 +131,17 @@ const lessonBundlesDir = path.join(
   'lessonBundles',
 );
 const manifestPath = path.join(repoRoot, 'scripts', 'open-apk-manifest.json');
-const imageAssetsDir = path.join(
-  repoRoot,
-  'public',
-  'assets',
-  'open-apk-images',
-);
 const importJsonPath = path.join(
   repoRoot,
   'public',
   'databases',
   'import.json',
+);
+const workbookPath = path.join(
+  repoRoot,
+  'scripts',
+  'respect-openeel',
+  'Respect Course Latest All Course Details From dashboard.xlsx',
 );
 const animationAssetsDir = path.join(repoRoot, 'public', 'assets', 'animation');
 const pathwayMascotPath = path.join(
@@ -257,34 +240,14 @@ const parseArgs = (argv: string[]): CliOptions => {
     return parsed;
   };
 
-  const courseIds = (
-    getString('course_ids') ??
-    getString('course-ids') ??
-    getString('course_id') ??
-    getString('course-id') ??
-    ''
-  )
+  const sheetNames = (getString('sheet-names') ?? '')
     .split(',')
-    .map((courseId) => courseId.trim())
-    .filter(Boolean);
-
-  const subjectIds = (
-    getString('subjects') ??
-    getString('subject_ids') ??
-    getString('subject-ids') ??
-    ''
-  )
-    .split(',')
-    .map((subjectId) => subjectId.trim())
+    .map((sheetName) => sheetName.trim())
     .filter(Boolean);
 
   const options: CliOptions = {
-    language: getString('language') ?? '',
+    sheetNames,
     avatar: getString('avatar') ?? '',
-    supabaseUrl: getString('supabase-url') ?? getString('supabase_url') ?? '',
-    supabaseKey: getString('supabase-key') ?? getString('supabase_key') ?? '',
-    courseIds,
-    subjectIds,
     output: getString('output') ?? '',
     zipSource: getString('zip-source') ?? 'D:\\chimple-zips',
     skipBuild: raw['skip-build'] === true,
@@ -301,14 +264,7 @@ const parseArgs = (argv: string[]): CliOptions => {
   }
 
   const missing = [
-    ['language', options.language],
     ['avatar', options.avatar],
-    ['supabase-url', options.supabaseUrl],
-    ['supabase-key', options.supabaseKey],
-    [
-      'course_ids or subjects',
-      options.courseIds.length || options.subjectIds.length ? 'ok' : '',
-    ],
     ['output', options.output],
   ]
     .filter(([, value]) => !value)
@@ -318,188 +274,169 @@ const parseArgs = (argv: string[]): CliOptions => {
     throw new Error(`Missing required argument(s): ${missing.join(', ')}`);
   }
 
-  let supabaseUrl: URL;
-  try {
-    supabaseUrl = new URL(options.supabaseUrl);
-  } catch {
-    throw new Error('--supabase-url must be a valid HTTP or HTTPS URL');
-  }
-  if (!['http:', 'https:'].includes(supabaseUrl.protocol)) {
-    throw new Error('--supabase-url must be a valid HTTP or HTTPS URL');
-  }
-
   return options;
 };
 
-const supabasePageSize = 1000;
-const supabaseFilterBatchSize = 100;
+const parseSheetSelection = (
+  selection: string,
+  availableSheetNames: string[],
+): string[] => {
+  const requestedNames = selection
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
 
-type SupabasePage<Row> = {
-  data: Row[] | null;
-  error: { message: string } | null;
-};
-
-const fetchAllPages = async <Row>(
-  context: string,
-  fetchPage: (from: number, to: number) => PromiseLike<SupabasePage<Row>>,
-): Promise<Row[]> => {
-  const rows: Row[] = [];
-  let offset = 0;
-
-  while (true) {
-    const { data, error } = await fetchPage(
-      offset,
-      offset + supabasePageSize - 1,
-    );
-    if (error) {
-      throw new Error(`Supabase query failed for ${context}: ${error.message}`);
+  if (requestedNames.length === 0) {
+    throw new Error('Select at least one workbook sheet.');
+  }
+  if (requestedNames.some((name) => name.toLowerCase() === 'all')) {
+    if (requestedNames.length !== 1) {
+      throw new Error('Use "all" by itself to select every workbook sheet.');
     }
-
-    const pageRows = data ?? [];
-    rows.push(...pageRows);
-    if (pageRows.length < supabasePageSize) break;
-    offset += supabasePageSize;
+    return [...availableSheetNames];
   }
 
-  return rows;
+  const selectedNames = requestedNames.map((requestedName) => {
+    if (/^\d+$/.test(requestedName)) {
+      const sheetIndex = Number(requestedName) - 1;
+      const sheetName = availableSheetNames[sheetIndex];
+      if (sheetName) return sheetName;
+    } else {
+      const matchingName = availableSheetNames.find(
+        (sheetName) => sheetName.toLowerCase() === requestedName.toLowerCase(),
+      );
+      if (matchingName) return matchingName;
+    }
+
+    throw new Error(
+      `Unknown sheet selection "${requestedName}". Use a listed number or exact sheet name.`,
+    );
+  });
+
+  return unique(selectedNames);
 };
 
-const fetchRowsByValues = async <Row>(
-  context: string,
-  values: string[],
-  fetchPage: (
-    values: string[],
-    from: number,
-    to: number,
-  ) => PromiseLike<SupabasePage<Row>>,
-): Promise<Row[]> => {
-  const rows: Row[] = [];
-  const uniqueValues = unique(values);
-
-  for (
-    let batchStart = 0;
-    batchStart < uniqueValues.length;
-    batchStart += supabaseFilterBatchSize
-  ) {
-    const batch = uniqueValues.slice(
-      batchStart,
-      batchStart + supabaseFilterBatchSize,
+const chooseWorkbookSheets = async (
+  availableSheetNames: string[],
+  requestedSheetNames: string[],
+): Promise<string[]> => {
+  if (availableSheetNames.length === 0) {
+    throw new Error(`Workbook contains no sheets: ${workbookPath}`);
+  }
+  if (requestedSheetNames.length > 0) {
+    return parseSheetSelection(
+      requestedSheetNames.join(','),
+      availableSheetNames,
     );
-    let offset = 0;
+  }
+  if (!process.stdin.isTTY) {
+    throw new Error(
+      'No interactive terminal is available. Pass --sheet-names with comma-separated sheet names or numbers.',
+    );
+  }
 
-    while (true) {
-      const { data, error } = await fetchPage(
-        batch,
-        offset,
-        offset + supabasePageSize - 1,
-      );
-      if (error) {
+  console.log('Available workbook sheets:');
+  availableSheetNames.forEach((sheetName, index) => {
+    console.log(`${index + 1}. ${sheetName}`);
+  });
+  const prompt = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  try {
+    const selection = await prompt.question(
+      'Select sheet number(s) or exact sheet name(s), comma separated (or "all"): ',
+    );
+    return parseSheetSelection(selection, availableSheetNames);
+  } finally {
+    prompt.close();
+  }
+};
+
+const readWorkbookLessons = (
+  workbook: XLSX.WorkBook,
+  selectedSheetNames: string[],
+): SelectedWorkbookLesson[] => {
+  const selectedLessons: SelectedWorkbookLesson[] = [];
+
+  for (const sheetName of selectedSheetNames) {
+    const worksheet = workbook.Sheets[sheetName];
+    if (!worksheet) {
+      throw new Error(`Selected workbook sheet is missing: ${sheetName}`);
+    }
+
+    const rows = XLSX.utils.sheet_to_json<WorkbookLessonRow>(worksheet, {
+      defval: '',
+    });
+    rows.forEach((row, index) => {
+      const lessonId = String(row.lesson_id ?? '').trim();
+      const chapterId = String(row.chapter_id ?? '').trim();
+      const bundleId = String(
+        row.lido_lesson_id || row.cocos_lesson_code || '',
+      ).trim();
+      const assetLink = String(row['Asset Link'] ?? '').trim();
+
+      if (!lessonId || !chapterId || !bundleId || !assetLink) {
         throw new Error(
-          `Supabase query failed for ${context}: ${error.message}`,
+          `Incomplete lesson row in sheet "${sheetName}" near Excel row ${index + 2}; lesson_id, chapter_id, a LIDO/Cocos bundle ID, and Asset Link are required.`,
         );
       }
 
-      const pageRows = data ?? [];
-      rows.push(...pageRows);
-      if (pageRows.length < supabasePageSize) break;
-      offset += supabasePageSize;
-    }
+      let assetUrl: URL;
+      try {
+        assetUrl = new URL(assetLink);
+      } catch {
+        throw new Error(
+          `Invalid Asset Link in sheet "${sheetName}" near Excel row ${index + 2}; expected an HTTP(S) ZIP URL.`,
+        );
+      }
+      if (
+        !['http:', 'https:'].includes(assetUrl.protocol) ||
+        assetUrl.username ||
+        assetUrl.password
+      ) {
+        throw new Error(
+          `Invalid Asset Link in sheet "${sheetName}" near Excel row ${index + 2}; expected an HTTP(S) ZIP URL without embedded credentials.`,
+        );
+      }
+
+      let zipFileName: string;
+      try {
+        zipFileName = decodeURIComponent(
+          path.posix.basename(assetUrl.pathname),
+        );
+      } catch {
+        throw new Error(
+          `Invalid ZIP filename in Asset Link in sheet "${sheetName}" near Excel row ${index + 2}.`,
+        );
+      }
+      if (
+        !zipFileName ||
+        zipFileName !== path.posix.basename(zipFileName) ||
+        zipFileName !== path.win32.basename(zipFileName) ||
+        !/\.zip$/i.test(zipFileName)
+      ) {
+        throw new Error(
+          `Asset Link in sheet "${sheetName}" near Excel row ${index + 2} must point to a .zip file.`,
+        );
+      }
+
+      selectedLessons.push({
+        sheetName,
+        lessonId,
+        chapterId,
+        bundleId,
+        assetLink,
+        zipFileName,
+      });
+    });
   }
 
-  return rows;
-};
+  if (selectedLessons.length === 0) {
+    throw new Error('The selected workbook sheets contain no lesson rows.');
+  }
 
-const fetchCatalogRows = async (
-  supabase: SupabaseClient<Database>,
-  requestedCourseIds: string[],
-  requestedSubjectIds: string[],
-  languageCode: string,
-): Promise<CatalogRows> => {
-  const [languages, coursesById, coursesBySubject] = await Promise.all([
-    fetchAllPages('language', (from, to) =>
-      supabase
-        .from('language')
-        .select('*')
-        .ilike('code', languageCode.trim())
-        .order('id')
-        .range(from, to),
-    ),
-    fetchRowsByValues('course.id', requestedCourseIds, (values, from, to) =>
-      supabase
-        .from('course')
-        .select('*')
-        .in('id', values)
-        .order('id')
-        .range(from, to),
-    ),
-    fetchRowsByValues(
-      'course.subject_id',
-      requestedSubjectIds,
-      (values, from, to) =>
-        supabase
-          .from('course')
-          .select('*')
-          .in('subject_id', values)
-          .order('id')
-          .range(from, to),
-    ),
-  ]);
-  const courses = Array.from(
-    new Map(
-      [...coursesById, ...coursesBySubject].map((course) => [
-        course.id,
-        course,
-      ]),
-    ).values(),
-  );
-  const courseIds = courses
-    .filter((course) => isActiveRow(course))
-    .map((course) => course.id);
-
-  const chapters = await fetchRowsByValues(
-    'chapter.course_id',
-    courseIds,
-    (values, from, to) =>
-      supabase
-        .from('chapter')
-        .select('*')
-        .in('course_id', values)
-        .order('id')
-        .range(from, to),
-  );
-  const chapterLessons = await fetchRowsByValues(
-    'chapter_lesson.chapter_id',
-    chapters.map((chapter) => chapter.id),
-    (values, from, to) =>
-      supabase
-        .from('chapter_lesson')
-        .select('*')
-        .in('chapter_id', values)
-        .order('id')
-        .range(from, to),
-  );
-  const lessonIds = unique(
-    chapterLessons.map((chapterLesson) => chapterLesson.lesson_id),
-  );
-  const lessons = await fetchRowsByValues(
-    'lesson.id',
-    lessonIds,
-    (values, from, to) =>
-      supabase
-        .from('lesson')
-        .select('*')
-        .in('id', values)
-        .order('id')
-        .range(from, to),
-  );
-
-  return {
-    language: languages,
-    course: courses,
-    chapter: chapters,
-    chapter_lesson: chapterLessons,
-    lesson: lessons,
-  };
+  return selectedLessons;
 };
 
 const fileExists = async (filePath: string): Promise<boolean> => {
@@ -572,7 +509,7 @@ const prepareSplashConfiguration = async (
   }
 };
 
-const isRemoteUrl = (value: unknown): value is string =>
+const isRemoteUrl = (value: JsonValue | undefined): value is string =>
   typeof value === 'string' && /^https?:\/\//i.test(value.trim());
 
 const getPublicImagePath = (url: string): string => {
@@ -652,14 +589,6 @@ const prepareAvatar = async (
   };
 };
 
-const isActiveRow = (row: { is_deleted?: boolean | null }): boolean =>
-  row.is_deleted !== true;
-
-const readRows = <Table extends CatalogTableName>(
-  catalogRows: CatalogRows,
-  tableName: Table,
-): CatalogRows[Table] => catalogRows[tableName];
-
 const offlineGraphTables = [
   'framework',
   'domain',
@@ -682,113 +611,27 @@ const validateOfflineGraphTables = (importJson: ImportJson): void => {
   }
 };
 
-const resolveLanguage = (
-  catalogRows: CatalogRows,
-  languageCode: string,
-): LanguageRow | null => {
-  const language = readRows(catalogRows, 'language').find(
-    (row) =>
-      isActiveRow(row) &&
-      row.code?.trim().toLowerCase() === languageCode.trim().toLowerCase(),
-  );
-
-  if (!language?.id) {
-    console.warn(
-      `Language code not found in Supabase: ${languageCode}. Continuing without chapter_lesson language filtering.`,
-    );
-    return null;
+const resolveWorkbookSelection = (
+  workbookLessons: SelectedWorkbookLesson[],
+): {
+  chapterIds: string[];
+  chapterLessonKeys: string[];
+  lessonIds: string[];
+} => {
+  if (workbookLessons.length === 0) {
+    throw new Error('The selected workbook sheets contain no lesson rows.');
   }
-
-  return language;
-};
-
-const resolveLessons = (
-  catalogRows: CatalogRows,
-  courseIds: string[],
-  requestedSubjectIds: string[],
-  languageId: string | null,
-) => {
-  // Resolve only the selected course hierarchy; assessment and PAL links are
-  // intentionally excluded so they cannot add unrelated lesson bundles.
-  const courses = readRows(catalogRows, 'course').filter(
-    (course) =>
-      isActiveRow(course) &&
-      (courseIds.includes(course.id) ||
-        (!!course.subject_id &&
-          requestedSubjectIds.includes(course.subject_id))),
-  );
-  const foundCourseIds = new Set(courses.map((course) => course.id));
-  const missingCourseIds = courseIds.filter(
-    (courseId) => !foundCourseIds.has(courseId),
-  );
-
-  if (missingCourseIds.length > 0) {
-    throw new Error(`Course ID(s) not found: ${missingCourseIds.join(', ')}`);
-  }
-
-  const foundSubjectIds = new Set(
-    courses
-      .map((course) => course.subject_id)
-      .filter((subjectId): subjectId is string => !!subjectId),
-  );
-  const missingSubjectIds = requestedSubjectIds.filter(
-    (subjectId) => !foundSubjectIds.has(subjectId),
-  );
-  if (missingSubjectIds.length > 0) {
-    throw new Error(
-      `Subject ID(s) not linked to an active course: ${missingSubjectIds.join(', ')}`,
-    );
-  }
-
-  const selectedCourseIds = courses.map((course) => course.id);
-
-  const chapters = readRows(catalogRows, 'chapter')
-    .filter(
-      (chapter) =>
-        !!chapter.course_id &&
-        selectedCourseIds.includes(chapter.course_id) &&
-        isActiveRow(chapter),
-    )
-    .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
-
-  const chapterIds = unique(chapters.map((chapter) => chapter.id));
-  // Keep the requested language (and DB-default null rows) from the selected
-  // chapter links so this course stays scoped to its own lesson sequence.
-  const chapterLessons = readRows(catalogRows, 'chapter_lesson')
-    .filter(
-      (chapterLesson) =>
-        !!chapterLesson.chapter_id &&
-        chapterIds.includes(chapterLesson.chapter_id) &&
-        isActiveRow(chapterLesson) &&
-        (!languageId ||
-          chapterLesson.language_id == null ||
-          chapterLesson.language_id === languageId),
-    )
-    .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
-
-  const lessonIds = unique(
-    chapterLessons
-      .map((chapterLesson) => chapterLesson.lesson_id)
-      .filter((lessonId): lessonId is string => !!lessonId),
-  );
-  const lessons = readRows(catalogRows, 'lesson').filter(
-    (lesson) => lessonIds.includes(lesson.id) && isActiveRow(lesson),
-  );
 
   return {
-    courses,
-    chapters,
-    chapterLessons,
-    lessons,
+    chapterIds: unique(workbookLessons.map((lesson) => lesson.chapterId)),
+    chapterLessonKeys: unique(
+      workbookLessons.map((lesson) =>
+        JSON.stringify([lesson.chapterId, lesson.lessonId]),
+      ),
+    ),
+    lessonIds: unique(workbookLessons.map((lesson) => lesson.lessonId)),
   };
 };
-
-const getSubjectIdsForCourses = (courses: CourseRow[]): string[] =>
-  unique(
-    courses
-      .map((course) => course.subject_id)
-      .filter((subjectId): subjectId is string => !!subjectId),
-  );
 
 const rewriteSelectedImageUrls = async (
   importJson: ImportJson,
@@ -838,10 +681,10 @@ const rewriteSelectedImageUrls = async (
         if (!cached) {
           try {
             cached = await downloadImageAsset(originalUrl);
-          } catch (error: any) {
+          } catch (error) {
             cached = {
               status: 'missing',
-              error: error?.message ?? String(error),
+              error: error instanceof Error ? error.message : String(error),
             };
           }
           downloadCache.set(originalUrl, cached);
@@ -865,30 +708,35 @@ const rewriteSelectedImageUrls = async (
   return imageAssets;
 };
 
-const getBundleId = (lesson: LessonRow): string | null =>
-  // Prefer the LIDO bundle ID and fall back to the Cocos bundle ID.
-  lesson.lido_lesson_id ?? lesson.cocos_lesson_id ?? null;
-
 const downloadZip = async (
-  bundleId: string,
+  assetLinks: string[],
+  zipFileName: string,
 ): Promise<{ data: Buffer; sourceUrl: string } | null> => {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    for (const baseUrl of remoteBundleBaseUrls) {
-      const zipUrl = new URL(
-        `${bundleId}.zip`,
+  const zipUrls = unique([
+    ...assetLinks,
+    ...remoteBundleBaseUrls.map((baseUrl) =>
+      new URL(
+        zipFileName,
         baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`,
-      ).toString();
+      ).toString(),
+    ),
+  ]);
 
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (const zipUrl of zipUrls) {
       try {
-        console.log(`Trying remote bundle: ${zipUrl}`);
+        const displayUrl = new URL(zipUrl);
+        displayUrl.search = '';
+        displayUrl.hash = '';
+        console.log(`Trying remote bundle: ${displayUrl.toString()}`);
         const response = await fetch(zipUrl);
         if (!response.ok) continue;
         return {
           data: Buffer.from(await response.arrayBuffer()),
-          sourceUrl: zipUrl,
+          sourceUrl: displayUrl.toString(),
         };
-      } catch (error) {
-        console.warn(`Remote bundle failed: ${zipUrl}`);
+      } catch {
+        console.warn(`Remote bundle failed: ${zipFileName}`);
       }
     }
   }
@@ -965,6 +813,8 @@ const packageZipForBundle = async (
 const prepareBundle = async (
   bundleId: string,
   lessonIds: string[],
+  assetLinks: string[],
+  zipFileName: string,
   dbVersion: number,
   options: CliOptions,
 ): Promise<BundleManifestEntry> => {
@@ -983,21 +833,23 @@ const prepareBundle = async (
     return { bundleId, lessonIds, status: 'dry-run', dbVersion };
   }
 
-  const localZipPath = path.join(options.zipSource, `${bundleId}.zip`);
-  if (await fileExists(localZipPath)) {
-    const zipData = await fs.readFile(localZipPath);
-    await packageZipForBundle(zipData, bundleId, dbVersion);
-    return {
-      bundleId,
-      lessonIds,
-      status: 'packaged',
-      source: 'local',
-      zipPath: localZipPath,
-      dbVersion,
-    };
+  for (const localZipName of unique([zipFileName, `${bundleId}.zip`])) {
+    const localZipPath = path.join(options.zipSource, localZipName);
+    if (await fileExists(localZipPath)) {
+      const zipData = await fs.readFile(localZipPath);
+      await packageZipForBundle(zipData, bundleId, dbVersion);
+      return {
+        bundleId,
+        lessonIds,
+        status: 'packaged',
+        source: 'local',
+        zipPath: localZipPath,
+        dbVersion,
+      };
+    }
   }
 
-  const remoteZip = await downloadZip(bundleId);
+  const remoteZip = await downloadZip(assetLinks, zipFileName);
   if (remoteZip) {
     await packageZipForBundle(remoteZip.data, bundleId, dbVersion);
     return {
@@ -1083,8 +935,48 @@ const buildAndCopyApk = async (
 
 const main = async (): Promise<void> => {
   const options = parseArgs(process.argv.slice(2));
+  const workbook = XLSX.readFile(workbookPath);
+  const selectedSheetNames = await chooseWorkbookSheets(
+    workbook.SheetNames,
+    options.sheetNames,
+  );
+  const selectedWorkbookLessons = readWorkbookLessons(
+    workbook,
+    selectedSheetNames,
+  );
+  // An Asset Link identifies the source ZIP; the LIDO/Cocos code remains the APK filename.
+  const selectedBundles = new Map<
+    string,
+    { lessonIds: string[]; assetLinks: string[]; zipFileName: string }
+  >();
+  for (const workbookLesson of selectedWorkbookLessons) {
+    const selectedBundle = selectedBundles.get(workbookLesson.bundleId);
+    if (selectedBundle) {
+      if (selectedBundle.zipFileName !== workbookLesson.zipFileName) {
+        throw new Error(
+          `Selected workbook rows map bundle ${workbookLesson.bundleId} to different ZIP filenames.`,
+        );
+      }
+      if (!selectedBundle.lessonIds.includes(workbookLesson.lessonId)) {
+        selectedBundle.lessonIds.push(workbookLesson.lessonId);
+      }
+      if (!selectedBundle.assetLinks.includes(workbookLesson.assetLink)) {
+        selectedBundle.assetLinks.push(workbookLesson.assetLink);
+      }
+      continue;
+    }
 
-  await fs.mkdir(imageAssetsDir, { recursive: true });
+    selectedBundles.set(workbookLesson.bundleId, {
+      lessonIds: [workbookLesson.lessonId],
+      assetLinks: [workbookLesson.assetLink],
+      zipFileName: workbookLesson.zipFileName,
+    });
+  }
+  console.log(`Selected workbook sheets: ${selectedSheetNames.join(', ')}`);
+  console.log(
+    `Workbook lesson rows selected: ${selectedWorkbookLessons.length}`,
+  );
+
   const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
   const importJson = JSON.parse(originalImportJsonContent) as ImportJson;
   validateOfflineGraphTables(importJson);
@@ -1094,52 +986,22 @@ const main = async (): Promise<void> => {
     );
   }
 
-  const supabase = createClient<Database>(
-    options.supabaseUrl,
-    options.supabaseKey,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    },
-  );
-  const catalogRows = await fetchCatalogRows(
-    supabase,
-    options.courseIds,
-    options.subjectIds,
-    options.language,
-  );
   const avatar = await prepareAvatar(options.avatar);
-
-  const language = resolveLanguage(catalogRows, options.language);
-
+  const { chapterIds, chapterLessonKeys, lessonIds } = resolveWorkbookSelection(
+    selectedWorkbookLessons,
+  );
   console.log(
-    `Resolving lessons for course IDs: ${options.courseIds.join(', ') || '(from selected subjects)'}`,
+    `Workbook lessons selected for packaging: ${selectedWorkbookLessons.length}`,
   );
-  const { courses, chapters, chapterLessons, lessons } = await resolveLessons(
-    catalogRows,
-    options.courseIds,
-    options.subjectIds,
-    language?.id ?? null,
-  );
-  const courseIds = courses.map((course) => course.id);
-  const subjectIds = getSubjectIdsForCourses(courses);
-
-  for (const chapterLesson of chapterLessons) {
-    const lesson = lessons.find(
-      (candidate) => candidate.id === chapterLesson.lesson_id,
-    );
+  for (const workbookLesson of selectedWorkbookLessons) {
     console.warn(
-      `[OPEN_APK][CHAPTER][LESSON] name=${lesson?.name ?? '(missing)'} id=${chapterLesson.lesson_id ?? 'null'} chapterId=${chapterLesson.chapter_id ?? 'null'} lidoLessonId=${lesson?.lido_lesson_id ?? 'null'} cocosLessonId=${lesson?.cocos_lesson_id ?? 'null'} playableId=${lesson ? (getBundleId(lesson) ?? 'null') : 'null'}`,
+      `[OPEN_APK][CHAPTER][LESSON] sheet=${workbookLesson.sheetName} lessonId=${workbookLesson.lessonId} chapterId=${workbookLesson.chapterId} bundleId=${workbookLesson.bundleId} zip=${workbookLesson.zipFileName}`,
     );
   }
 
   const selectedRowsByTable = new Map<string, Set<string>>([
-    ['subject', new Set(subjectIds)],
-    ['course', new Set(courses.map((course) => course.id))],
-    ['chapter', new Set(chapters.map((chapter) => chapter.id))],
-    ['lesson', new Set(lessons.map((lesson) => lesson.id))],
+    ['chapter', new Set(chapterIds)],
+    ['lesson', new Set(lessonIds)],
   ]);
   for (const [tableName, rowIds] of selectedRowsByTable) {
     console.warn(
@@ -1157,59 +1019,52 @@ const main = async (): Promise<void> => {
     !options.skipBuild &&
     imageAssets.some((asset) => asset.localPath);
 
-  // Delay deleting old bundles until Supabase has returned and resolved the
-  // requested graph, so invalid credentials or IDs preserve the last build.
+  // Validate all selected workbook mappings before replacing the previous bundle set.
   if (!options.dryRun) {
     await fs.rm(lessonBundlesDir, { recursive: true, force: true });
   }
   await fs.mkdir(lessonBundlesDir, { recursive: true });
 
-  const lessonsByBundle = new Map<string, string[]>();
-  const bundleVersions = new Map<string, number>();
-  const lessonsWithoutBundle = lessons.filter((lesson) => !getBundleId(lesson));
-  for (const lesson of lessons) {
-    const bundleId = getBundleId(lesson);
-    if (!bundleId) continue;
-    lessonsByBundle.set(bundleId, [
-      ...(lessonsByBundle.get(bundleId) ?? []),
-      lesson.id,
-    ]);
-    bundleVersions.set(
-      bundleId,
-      Math.max(bundleVersions.get(bundleId) ?? 1, Number(lesson.version ?? 1)),
-    );
-  }
-
   const bundles: BundleManifestEntry[] = [];
-  for (const [bundleId, lessonIds] of lessonsByBundle) {
-    const dbVersion = bundleVersions.get(bundleId) ?? 1;
+  for (const [bundleId, selectedBundle] of selectedBundles) {
+    const { lessonIds, assetLinks, zipFileName } = selectedBundle;
+    const dbVersion = 1;
     try {
       bundles.push(
-        await prepareBundle(bundleId, lessonIds, dbVersion, options),
+        await prepareBundle(
+          bundleId,
+          lessonIds,
+          assetLinks,
+          zipFileName,
+          dbVersion,
+          options,
+        ),
       );
-    } catch (error: any) {
+    } catch (error) {
       bundles.push({
         bundleId,
         lessonIds,
         status: 'missing',
         dbVersion,
-        error: error?.message ?? String(error),
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
 
   const manifest: Manifest = {
     generatedAt: new Date().toISOString(),
-    language: options.language,
-    languageId: language?.id ?? null,
+    language: unique(
+      selectedSheetNames.map(
+        (sheetName) => sheetName.split(/\s+Grade\s+/i)[0]?.trim() || sheetName,
+      ),
+    ).join(', '),
+    selectedSheets: selectedSheetNames,
     avatar: avatar.avatarPath,
     pathwayMascot: avatar.pathwayMascotPath,
-    courseIds,
-    courses,
-    chapterCount: chapters.length,
-    chapterLessonCount: chapterLessons.length,
-    lessonCount: lessons.length,
-    bundleCount: lessonsByBundle.size,
+    chapterCount: chapterIds.length,
+    chapterLessonCount: chapterLessonKeys.length,
+    lessonCount: lessonIds.length,
+    bundleCount: selectedBundles.size,
     imageAssetCount: imageAssets.length,
     imageAssets,
     importJsonRewrittenForBuild: importJsonNeedsRewrite,
@@ -1218,12 +1073,6 @@ const main = async (): Promise<void> => {
 
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`Manifest written to ${manifestPath}`);
-
-  if (lessonsWithoutBundle.length > 0) {
-    console.warn(
-      `Lessons without lido_lesson_id/cocos_lesson_id: ${lessonsWithoutBundle.length}`,
-    );
-  }
 
   const missingBundles = bundles.filter(
     (bundle) => bundle.status === 'missing',
