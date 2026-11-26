@@ -24,7 +24,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
   justify-content: center;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 20px;
   max-width: 603px;
   margin: 0 auto 28px;
 }
@@ -33,7 +34,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 282px));
   justify-content: center;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 20px;
   max-width: 603px;
   margin: 0 auto;
 }
@@ -117,6 +119,11 @@
 .competition-reward-completion-message {
   margin: 0 0 6px;
   font-size: 12px;
+}
+
+.competition-reward-date {
+  margin-bottom: 3px;
+  font-weight: 500;
 }
 
 .competition-reward-completion-message {
