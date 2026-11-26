@@ -329,10 +329,7 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           change.campaign_status ?? '',
         ).toLowerCase();
         const isCancelledCampaign =
-          change.change_type === 'delete' ||
-          campaignStatus === 'inactive' ||
-          campaignStatus === 'cancelled' ||
-          campaignStatus === 'canceled';
+          change.change_type === 'delete' || campaignStatus === 'inactive';
         if (isCancelledCampaign) {
           eligibleCampaignIds.delete(change.campaign_id);
 

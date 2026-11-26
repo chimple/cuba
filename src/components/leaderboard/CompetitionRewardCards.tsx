@@ -194,7 +194,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
             }}
           >
             <img
-              src="/assets/icons/info button icon.svg"
+              src="/assets/icons/competition-info-icon.svg"
               alt=""
               aria-hidden="true"
             />
@@ -230,7 +230,7 @@ const CompetitionRewardCards: FC<CompetitionRewardCardsProps> = ({
             }}
           >
             <img
-              src="/assets/icons/info button icon.svg"
+              src="/assets/icons/competition-info-icon.svg"
               alt=""
               aria-hidden="true"
             />
