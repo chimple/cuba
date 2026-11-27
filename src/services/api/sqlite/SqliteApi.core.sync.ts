@@ -1,15 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiCoreBundledImport } from './SqliteApi.core.bundledImport';
 import {
   CLASS,
-  EVENTS,
-  MUTATE_TYPES,
   PROFILETYPE,
   SCHOOL,
   TABLES,
   TableTypes,
 } from '../../../common/constants';
-import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import type { SqlStatement } from '../../../workers/background.worker.types';
@@ -48,7 +44,6 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
 
     const isInitialFetch = isFirstSync;
     logger.info('?? ~ pullChanges ~ isInitialFetch:', isInitialFetch);
-
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
     const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
@@ -366,21 +361,26 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             const valuesPlaceholders = currentRows
               .map(() => placeholdersPerRow)
               .join(', ');
+            const conflictColumns =
+              tableName === TABLES.UserCampaignRewards
+                ? ['campaign_id', 'student_id']
+                : ['id'];
             const updateSetClause = currentFieldNames
-              .filter((field) => field !== 'id')
+              .filter((field) => !conflictColumns.includes(field))
               .map((field) => `${field} = excluded.${field}`)
               .join(', ');
+            const conflictTarget = conflictColumns.join(', ');
             const statement = updateSetClause
               ? `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
             VALUES ${valuesPlaceholders}
-            ON CONFLICT(id) DO UPDATE SET
+            ON CONFLICT(${conflictTarget}) DO UPDATE SET
             ${updateSetClause}
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
             VALUES ${valuesPlaceholders}
-            ON CONFLICT(id) DO NOTHING;
+            ON CONFLICT(${conflictTarget}) DO NOTHING;
             `;
             batchQueries.push({ statement, values: currentRows.flat() });
             currentFieldNames = null;

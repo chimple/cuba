@@ -132,7 +132,7 @@ export const prepareRespectLessonLaunch =
   async (): Promise<RespectLessonLaunch | null> => {
     try {
       const launchData = await portPlugin.sendLaunchData();
-      console.log('[RespectLessonLaunch] Launcher handoff received', {
+      logger.info('[RespectLessonLaunch] Launcher handoff received', {
         launchData,
       });
       if (!launchData.lessonId) return null;

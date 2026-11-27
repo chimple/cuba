@@ -25,6 +25,7 @@ const normalizeSqliteValue = (value: unknown): unknown => {
 };
 
 const MAX_SQLITE_BIND_PARAMS = 900;
+const USER_CAMPAIGN_REWARDS_TABLE = 'user_campaign_rewards';
 
 const getRowFieldNames = (
   row: Record<string, unknown>,
@@ -44,13 +45,20 @@ const buildUpsertStatement = (
     .map(() => placeholdersPerRow)
     .join(', ');
   const values = rowValuesList.flat();
-  const updateColumns = fieldNames.filter((name) => name !== 'id');
+  const conflictColumns =
+    tableName === USER_CAMPAIGN_REWARDS_TABLE
+      ? ['campaign_id', 'student_id']
+      : ['id'];
+  const updateColumns = fieldNames.filter(
+    (name) => !conflictColumns.includes(name),
+  );
   const updateSetClause = updateColumns
     .map((name) => `${name} = excluded.${name}`)
     .join(', ');
+  const conflictTarget = conflictColumns.join(', ');
   const onConflictClause = updateSetClause
-    ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause}`
-    : 'ON CONFLICT(id) DO NOTHING';
+    ? `ON CONFLICT(${conflictTarget}) DO UPDATE SET ${updateSetClause}`
+    : `ON CONFLICT(${conflictTarget}) DO NOTHING`;
 
   return {
     statement: `

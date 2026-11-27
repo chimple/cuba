@@ -87,6 +87,7 @@ export enum TABLES {
   Campaign = 'campaign',
   CampaignNotification = 'campaign_notification',
   CampaignStudentPerformance = 'campaign_student_performance',
+  UserCampaignRewards = 'user_campaign_rewards',
   Subject = 'subject',
   Grade = 'grade',
   Language = 'language',
