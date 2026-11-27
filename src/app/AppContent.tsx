@@ -16,7 +16,11 @@ import AppOverlays from './AppOverlays';
 import { CampaignCertificateHost } from '../components/campaignCertificate';
 import { SqliteApi } from '../services/api/SqliteApi';
 import { Util } from '../utility/util';
-import { CURRENT_STUDENT_CHANGED_EVENT } from '../common/constants';
+import {
+  CURRENT_STUDENT_CHANGED_EVENT,
+  MODES,
+  SELECTED_CLASSES,
+} from '../common/constants';
 
 const AppRouteEffects = () => {
   useNavigationHandler();
@@ -39,12 +43,61 @@ const AppRouteEffects = () => {
       const api = await SqliteApi.getInstance();
       if (disposed) return;
 
-      const profiles = await api.getParentStudentProfiles().catch(() => []);
-      const studentIds = new Set(
-        profiles
-          .map((profile) => profile?.id)
-          .filter((id): id is string => Boolean(id)),
-      );
+      const studentIds = new Set<string>();
+      const isSchoolMode =
+        api.currentMode === MODES.SCHOOL ||
+        api.currentMode === MODES.TEACHER_SCHOOL;
+
+      if (isSchoolMode) {
+        const schoolId = api.currentSchool?.id ?? Util.getCurrentSchool()?.id;
+        const selectedClass = api.currentClass ?? Util.getCurrentClass();
+        let classIds: string[] = [];
+
+        if (schoolId) {
+          const classes = await api
+            .getClassesBySchoolId(schoolId)
+            .catch(() => []);
+          classIds = classes.map((classroom) => classroom.id);
+        } else {
+          const storedClasses = localStorage.getItem(SELECTED_CLASSES);
+          if (storedClasses) {
+            try {
+              const parsedClasses: unknown = JSON.parse(storedClasses);
+              if (Array.isArray(parsedClasses)) {
+                classIds = parsedClasses.flatMap((classroom) =>
+                  typeof classroom === 'object' &&
+                  classroom !== null &&
+                  'id' in classroom &&
+                  typeof classroom.id === 'string'
+                    ? [classroom.id]
+                    : [],
+                );
+              }
+            } catch {
+              classIds = [];
+            }
+          }
+
+          if (classIds.length === 0 && selectedClass?.id) {
+            classIds = [selectedClass.id];
+          }
+        }
+
+        const studentsByClass = await Promise.all(
+          [...new Set(classIds)].map((classId) =>
+            api.getStudentsForClass(classId).catch(() => []),
+          ),
+        );
+
+        studentsByClass.flat().forEach((student) => {
+          if (student?.id) studentIds.add(student.id);
+        });
+      } else {
+        const profiles = await api.getParentStudentProfiles().catch(() => []);
+        profiles.forEach((profile) => {
+          if (profile?.id) studentIds.add(profile.id);
+        });
+      }
       if (selectedStudentId) studentIds.add(selectedStudentId);
 
       await Promise.allSettled(
