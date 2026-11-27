@@ -40,11 +40,25 @@ import type {
 } from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
+  /** Returns the locally computed unseen certificate state for a student. */
   getCampaignCertificateIndicator(
     studentId: string,
   ): Promise<{ hasUnseenCertificate: boolean; campaignId?: string }>;
 
+  /** Clears local unseen-certificate indicators after they have been viewed. */
   markCampaignCertificatesSeen(studentId: string): Promise<void>;
+
+  /** Persists that the campaign certificate popup was viewed for this student. */
+  markCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<void>;
+
+  /** Reads the persisted certificate-popup seen state for a student/campaign pair. */
+  getCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<boolean>;
 
   /** Fetches campaign configuration changes for existing campaign-sync callers. */
   getActiveCampaigns(

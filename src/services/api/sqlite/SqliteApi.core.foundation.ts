@@ -9,8 +9,6 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
-import Course from '../../../models/Course';
-import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
 import { isRecoverableStorageError } from '../../../utility/recoverableStorageError';
 import { SupabaseApi } from '../SupabaseApi';
@@ -29,7 +27,7 @@ export class SqliteApiCoreFoundation {
   protected _db: SQLiteDBConnection | undefined;
   protected _sqlite: SQLiteConnection | undefined;
   protected DB_NAME = 'db_issue10';
-  protected DB_VERSION = 23;
+  protected DB_VERSION = 25;
   protected BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
   protected BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   protected BUNDLED_IMPORT_TABLES = new Set<string>([

@@ -55,11 +55,6 @@ import {
   getCampaignCertificateIndicator,
   markCampaignCertificatesSeen,
 } from './campaignRewardCertificates';
-import {
-  logCampaignFetch,
-  logCampaignHydration,
-  logCampaignReward,
-} from './campaignRewardLogging';
 const CAMPAIGN_LAST_FETCH_PREFIX = 'campaignLastFetch:';
 const CAMPAIGN_SYNC_INTERVAL_MS = 30 * 60 * 1000;
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
@@ -319,52 +314,45 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     const storageKey = `${CAMPAIGN_LAST_FETCH_PREFIX}${studentId}`;
     const lastFetch = localStorage.getItem(storageKey);
     const lastFetchMs = lastFetch ? Date.parse(lastFetch) : 0;
-    logCampaignReward('sync started', { studentId, lastFetch });
     if (!lastFetchMs || Date.now() - lastFetchMs >= CAMPAIGN_SYNC_INTERVAL_MS) {
-      const changes = await this.getActiveCampaigns(studentId, lastFetch);
-      logCampaignFetch(studentId, changes ?? []);
-      const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-      for (const change of changes ?? []) {
-        if (change.change_type === 'delete') {
-          eligibleCampaignIds.delete(change.campaign_id);
-          continue;
+      let changes: CampaignActiveChange[] | undefined;
+      try {
+        changes = await this.getActiveCampaigns(studentId, lastFetch);
+      } catch {}
+      if (changes) {
+        const eligibleCampaignIds = getEligibleCampaignIds(studentId);
+        for (const change of changes) {
+          if (change.change_type === 'delete') {
+            eligibleCampaignIds.delete(change.campaign_id);
+            continue;
+          }
+          eligibleCampaignIds.add(change.campaign_id);
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO local_campaigns
+              (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+            [
+              change.campaign_id,
+              change.campaign_name,
+              JSON.stringify(change.rules_json ?? {}),
+              change.start_date,
+              change.end_date,
+              change.campaign_status ?? 'active',
+              change.objective ?? null,
+              change.target_type ?? null,
+              change.target_value ?? null,
+              change.updated_at ??
+                change.created_at ??
+                new Date().toISOString(),
+            ],
+          );
         }
-        eligibleCampaignIds.add(change.campaign_id);
-        await this.executeQuery(
-          `INSERT OR REPLACE INTO local_campaigns
-            (id, name, rules_json, start_date, end_date, status, objective, target_type, target_value, updated_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-          [
-            change.campaign_id,
-            change.campaign_name,
-            JSON.stringify(change.rules_json ?? {}),
-            change.start_date,
-            change.end_date,
-            change.campaign_status ?? 'active',
-            change.objective ?? null,
-            change.target_type ?? null,
-            change.target_value ?? null,
-            change.updated_at ?? change.created_at ?? new Date().toISOString(),
-          ],
-        );
+        saveEligibleCampaignIds(studentId, eligibleCampaignIds);
+        localStorage.setItem(storageKey, new Date().toISOString());
       }
-      saveEligibleCampaignIds(studentId, eligibleCampaignIds);
-      localStorage.setItem(storageKey, new Date().toISOString());
-      logCampaignReward('campaign cache updated', {
-        studentId,
-        receivedCampaignCount: changes?.length ?? 0,
-        eligibleCampaignCount: eligibleCampaignIds.size,
-      });
-    } else {
-      logCampaignReward('RPC fetch skipped; campaign cache is fresh', {
-        studentId,
-        lastFetch,
-        nextFetchAt: new Date(
-          lastFetchMs + CAMPAIGN_SYNC_INTERVAL_MS,
-        ).toISOString(),
-      });
     }
     await this.hydrateCampaignRewards(studentId);
+    await this.syncCampaignCertificatePopupSeen(studentId);
   }
   async hydrateCampaignRewards(studentId = this.currentStudent?.id) {
     if (!studentId) return;
@@ -373,11 +361,6 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
       'SELECT * FROM local_campaigns WHERE is_deleted = 0',
     );
     const eligibleCampaignIds = getEligibleCampaignIds(studentId);
-    logCampaignHydration(
-      studentId,
-      result?.values?.length ?? 0,
-      eligibleCampaignIds.size,
-    );
     for (const campaign of (result?.values ?? []) as LocalCampaignRow[]) {
       if (!eligibleCampaignIds.has(campaign.id)) continue;
       await this.evaluateCampaignReward(campaign, studentId, true);
@@ -438,6 +421,61 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     );
   }
 
+  async markCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<void> {
+    await this.ensureInitialized();
+    await this.executeQuery(
+      `UPDATE user_campaign_rewards
+       SET is_certificate_popup_seen = 1, updated_at = ?
+       WHERE campaign_id = ? AND student_id = ?`,
+      [new Date().toISOString(), campaignId, studentId],
+    );
+    try {
+      await this._serverApi.markCampaignCertificatePopupSeen(
+        campaignId,
+        studentId,
+      );
+    } catch (error) {
+      logger.warn('Campaign certificate popup seen update deferred', error);
+    }
+  }
+
+  async getCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<boolean> {
+    return await this._serverApi.getCampaignCertificatePopupSeen(
+      campaignId,
+      studentId,
+    );
+  }
+
+  private async syncCampaignCertificatePopupSeen(
+    studentId: string,
+  ): Promise<void> {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    const result = await this.executeQuery(
+      `SELECT campaign_id FROM user_campaign_rewards
+       WHERE student_id = ? AND is_certificate_popup_seen = 1`,
+      [studentId],
+    );
+    for (const reward of result?.values ?? []) {
+      const campaignId = reward.campaign_id;
+      if (typeof campaignId !== 'string') continue;
+      try {
+        await this._serverApi.markCampaignCertificatePopupSeen(
+          campaignId,
+          studentId,
+        );
+      } catch (error) {
+        logger.warn('Campaign certificate popup seen sync deferred', error);
+        return;
+      }
+    }
+  }
+
   private async evaluateCampaignReward(
     campaign: LocalCampaignRow,
     studentId: string,
@@ -449,6 +487,11 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
           this.executeQuery(statement, values),
         upsertReward: (reward) =>
           this._serverApi.upsertCampaignStudentReward(reward),
+        getCampaignCertificatePopupSeen: (campaignId, currentStudentId) =>
+          this._serverApi.getCampaignCertificatePopupSeen(
+            campaignId,
+            currentStudentId,
+          ),
         getStudent: (id) => this.getUserByDocId(id),
         getLanguage: (id) => this.getLanguageWithId(id),
         studentName: this.currentStudent?.name ?? '',

@@ -45,6 +45,20 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
     return this.s.markCampaignCertificatesSeen(studentId);
   }
 
+  markCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<void> {
+    return this.s.markCampaignCertificatePopupSeen(campaignId, studentId);
+  }
+
+  getCampaignCertificatePopupSeen(
+    campaignId: string,
+    studentId: string,
+  ): Promise<boolean> {
+    return this.s.getCampaignCertificatePopupSeen(campaignId, studentId);
+  }
+
   /** Keeps the existing campaign-configuration API available to its callers. */
   async getActiveCampaigns(
     studentId: string,

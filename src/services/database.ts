@@ -983,7 +983,7 @@ export type Database = {
         ];
       };
       // Cached Supabase outcome for each student/campaign pair.
-      campaign_student_rewards: {
+      user_campaign_rewards: {
         Row: {
           id: string;
           campaign_id: string;
@@ -994,6 +994,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           is_deleted: boolean;
+          is_certificate_popup_seen: boolean;
         };
         Insert: {
           id?: string;
@@ -1005,6 +1006,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           is_deleted?: boolean;
+          is_certificate_popup_seen?: boolean;
         };
         Update: {
           id?: string;
@@ -1016,6 +1018,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           is_deleted?: boolean;
+          is_certificate_popup_seen?: boolean;
         };
         Relationships: [
           {

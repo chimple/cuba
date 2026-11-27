@@ -43,6 +43,7 @@ beforeEach(async () => {
       created_at TEXT, status TEXT, is_deleted INTEGER, source TEXT);
     CREATE TABLE user_campaign_rewards (campaign_id TEXT, student_id TEXT,
       rank_achieved INTEGER, status TEXT, has_unseen_certificate INTEGER DEFAULT 0,
+      is_certificate_popup_seen INTEGER DEFAULT 0,
       lessons_completed_count INTEGER DEFAULT 0, lessons_target_count INTEGER DEFAULT 0,
       completion_percentage INTEGER DEFAULT 0, certificate_available INTEGER DEFAULT 0,
       evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER DEFAULT 0,

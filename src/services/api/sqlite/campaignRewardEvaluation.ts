@@ -4,10 +4,6 @@ import { store } from '../../../redux/store';
 import { setCampaignRewardsState } from '../../../redux/slices/campaignRewards/campaignRewardsSlice';
 import logger from '../../../utility/logger';
 import { getCampaignLessonMetrics } from './campaignRewardMetrics';
-import {
-  logCampaignEvaluation,
-  logCampaignReward,
-} from './campaignRewardLogging';
 
 export type LocalCampaignRow = {
   id: string;
@@ -44,6 +40,10 @@ type Dependencies = {
     status: 'won' | 'missed' | 'in_progress';
     evaluatedAt: string;
   }) => Promise<unknown>;
+  getCampaignCertificatePopupSeen: (
+    campaignId: string,
+    studentId: string,
+  ) => Promise<boolean>;
   getStudent: (studentId: string) => Promise<
     | {
         name?: string | null;
@@ -133,7 +133,8 @@ export const evaluateCampaignReward = async (
     : null;
   const evaluatedAt = now.toISOString();
   const existingResult = await dependencies.executeQuery(
-    `SELECT status, rank_achieved, has_unseen_certificate FROM user_campaign_rewards
+    `SELECT status, rank_achieved, has_unseen_certificate, is_certificate_popup_seen
+     FROM user_campaign_rewards
      WHERE campaign_id = ? AND student_id = ? LIMIT 1`,
     [campaign.id, studentId],
   );
@@ -142,39 +143,44 @@ export const evaluateCampaignReward = async (
         status?: string;
         rank_achieved?: number | null;
         has_unseen_certificate?: boolean | number;
+        is_certificate_popup_seen?: boolean | number;
       }
     | undefined;
   const certificateShownKey = `campaignCertificateShown:${studentId}:${campaign.id}:${certificateRank}`;
-  const shouldEmitCertificate =
+  let isCertificatePopupSeen = Boolean(existing?.is_certificate_popup_seen);
+  const canDisplayCertificate =
     showCertificate &&
     campaignEnded &&
     (status === 'won' || participationEligible) &&
-    certificateAvailable &&
+    certificateAvailable;
+  const canCheckRemotePopupState =
+    typeof navigator === 'undefined' || navigator.onLine !== false;
+  if (
+    !isCertificatePopupSeen &&
+    canDisplayCertificate &&
+    canCheckRemotePopupState
+  ) {
+    try {
+      isCertificatePopupSeen =
+        await dependencies.getCampaignCertificatePopupSeen(
+          campaign.id,
+          studentId,
+        );
+    } catch {
+      // Offline evaluation continues from the locally cached popup-seen state.
+    }
+  }
+  const shouldEmitCertificate =
+    canDisplayCertificate &&
+    !isCertificatePopupSeen &&
     !localStorage.getItem(certificateShownKey);
-  logCampaignEvaluation(campaign, studentId, {
-    targetType: campaign.target_type,
-    targetValue: campaign.target_value,
-    rules,
-    totalLessons,
-    completedLessons,
-    completion,
-    status,
-    rank,
-    certificateRank,
-    endDate: campaign.end_date,
-    certificateAvailable,
-    certificateAvailableOn: new Date(campaign.end_date)
-      .toISOString()
-      .slice(0, 10),
-    shouldEmitCertificate,
-  });
 
   await dependencies.executeQuery(
     `INSERT OR REPLACE INTO user_campaign_rewards
       (campaign_id, student_id, lessons_completed_count, lessons_target_count,
        completion_percentage, certificate_available, rank_achieved, status,
-       has_unseen_certificate, evaluated_at, updated_at, is_deleted)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+       has_unseen_certificate, is_certificate_popup_seen, evaluated_at, updated_at, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     [
       campaign.id,
       studentId,
@@ -188,6 +194,7 @@ export const evaluateCampaignReward = async (
       (shouldEmitCertificate || Boolean(existing?.has_unseen_certificate))
         ? 1
         : 0,
+      isCertificatePopupSeen ? 1 : 0,
       evaluatedAt,
       evaluatedAt,
     ],
@@ -240,11 +247,5 @@ export const evaluateCampaignReward = async (
     languageCode,
     isNewlyEarned: true,
     studentId,
-  });
-  logCampaignReward('certificate emitted', {
-    campaignId: campaign.id,
-    studentId,
-    rank: certificateRank,
-    languageCode,
   });
 };

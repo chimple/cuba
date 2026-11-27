@@ -6,6 +6,8 @@ import {
   queueCampaignCertificate,
 } from '../../redux/slices/campaignRewards/campaignRewardsSlice';
 import { store } from '../../redux/store';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
 import CampaignCertificateModal from './CampaignCertificateModal';
 import type { CampaignCertificateData } from './campaignCertificate.types';
@@ -183,6 +185,21 @@ const CampaignCertificateHost = () => {
     <CampaignCertificateModal
       certificate={certificate}
       onClose={() => setCertificate(null)}
+      onCollected={async ({ campaignId, studentId }) => {
+        if (!studentId) return;
+        const api = ServiceConfig.getI()?.apiHandler;
+        if (typeof api?.markCampaignCertificatePopupSeen !== 'function') {
+          return;
+        }
+        try {
+          await api.markCampaignCertificatePopupSeen(campaignId, studentId);
+        } catch (error) {
+          logger.error(
+            'Failed to mark campaign certificate popup as seen',
+            error,
+          );
+        }
+      }}
     />
   );
 };

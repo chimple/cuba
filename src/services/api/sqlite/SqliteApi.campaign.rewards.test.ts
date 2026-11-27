@@ -45,7 +45,8 @@ describe('offline campaign reward evaluation', () => {
       CREATE TABLE user_campaign_rewards (campaign_id TEXT, student_id TEXT,
         lessons_completed_count INTEGER, lessons_target_count INTEGER, completion_percentage INTEGER,
         rank_achieved INTEGER, status TEXT, certificate_available INTEGER,
-        has_unseen_certificate INTEGER DEFAULT 0, evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER, PRIMARY KEY(campaign_id, student_id));
+        has_unseen_certificate INTEGER DEFAULT 0, is_certificate_popup_seen INTEGER DEFAULT 0,
+        evaluated_at TEXT, updated_at TEXT, is_deleted INTEGER, PRIMARY KEY(campaign_id, student_id));
     `);
     api = new SqliteApiCampaignRewards();
     queueUpload = jest.fn().mockResolvedValue(undefined);
