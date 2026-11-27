@@ -5,6 +5,7 @@ import { t } from 'i18next';
 import './SchoolListExportButton.css';
 
 type SchoolListExportButtonProps = {
+  className?: string;
   disabled: boolean;
   id?: string;
   isExporting: boolean;

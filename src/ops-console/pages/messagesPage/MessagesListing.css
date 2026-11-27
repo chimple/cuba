@@ -55,7 +55,8 @@
 }
 .messages-listing__tab.MuiButton-root {
   border-radius: 0;
-  color: #697077;
+  color: black;
+  font-weight: bold !important;
   min-width: max-content;
   padding: 12px 4px;
   text-transform: none;
@@ -180,9 +181,13 @@
   min-width: 36px;
   text-transform: none;
 }
+.messages-listing__pagination .messages-listing__page {
+  color: #21272a;
+  font-weight: 600;
+}
 .messages-listing__pagination .messages-listing__page[aria-current='page'] {
-  background: #eef2f7;
-  color: #1769e0;
+  background: #1976d2;
+  color: #fff;
 }
 .messages-overview {
   max-width: 960px;

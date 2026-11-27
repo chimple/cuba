@@ -47,7 +47,7 @@ const CompetitionRewardInfoModal: FC<{
             reward.homework_lessons_target_count ?? reward.lessons_target_count,
           icon: '/assets/campaignCompetition/competition-homepage-progress.svg',
         },
-  ].filter((row) => toNumber(row.target) > 0);
+  ];
 
   return (
     <div
@@ -110,9 +110,16 @@ const CompetitionRewardInfoModal: FC<{
                       aria-valuemax={100}
                       aria-valuenow={progress}
                     >
-                      <span style={{ width: `${progress}%` }} />
+                      {progress > 0 && (
+                        <span
+                          className={
+                            progress > 10 ? 'has-highlight' : undefined
+                          }
+                          style={{ width: `${progress}%` }}
+                        />
+                      )}
                       <strong>
-                        {row.completed} / {row.target}
+                        {rowTarget > 0 ? rowCompleted : 0} / {rowTarget}
                       </strong>
                     </div>
                   </div>

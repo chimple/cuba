@@ -1,5 +1,6 @@
-import { registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import {
+  LOCAL_LESSON_BUNDLES_PATH,
   PAGES,
   PortPlugin,
   TableTypes,
@@ -87,6 +88,41 @@ const createRespectBundleLesson = (
   } as TableTypes<'lesson'>;
 };
 
+// A launcher handoff can identify the bundle even before the offline catalog exists.
+const getLessonFromLocalCatalog = async (
+  lessonId: string,
+): Promise<TableTypes<'lesson'> | undefined> => {
+  try {
+    const sqliteApi = SqliteApi.getI();
+    return (
+      (await sqliteApi.getLesson(lessonId)) ??
+      (await sqliteApi.getLessonWithCocosLessonId(lessonId)) ??
+      undefined
+    );
+  } catch (error) {
+    logger.warn(
+      '[RespectLessonLaunch] Local lesson catalog unavailable; using launch metadata',
+      error,
+    );
+    return undefined;
+  }
+};
+
+// APK ZIPs are playable directly, but getLessonPath only checks extracted bundles.
+const hasPackagedLessonZip = async (lessonId: string): Promise<boolean> => {
+  if (!Capacitor.isNativePlatform()) return false;
+
+  try {
+    const response = await fetch(
+      `${LOCAL_LESSON_BUNDLES_PATH}${encodeURIComponent(lessonId)}.zip`,
+      { method: 'HEAD' },
+    );
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * RESPECT starts Cuba through an Android App Link without a Cuba login session.
  * Bootstrap the RESPECT learner before navigating so protected lesson routes do
@@ -96,8 +132,8 @@ export const prepareRespectLessonLaunch =
   async (): Promise<RespectLessonLaunch | null> => {
     try {
       const launchData = await portPlugin.sendLaunchData();
-      console.log('[RespectLessonLaunch] Launcher handoff received', {
-        launchData
+      logger.info('[RespectLessonLaunch] Launcher handoff received', {
+        launchData,
       });
       if (!launchData.lessonId) return null;
 
@@ -114,19 +150,21 @@ export const prepareRespectLessonLaunch =
       const serviceConfig = ServiceConfig.getI();
       serviceConfig.switchMode(APIMode.ONEROSTER);
       const launchedLesson =
-        (await SqliteApi.getI().getLesson(cubaLessonId)) ??
-        (await SqliteApi.getI().getLessonWithCocosLessonId(cubaLessonId)) ??
+        (await getLessonFromLocalCatalog(cubaLessonId)) ??
         (launchData.chimpleLessonId
           ? undefined
           : await serviceConfig.apiHandler.getLesson(cubaLessonId));
       // RESPECT's course JSON supplies the legacy Cocos ID. The local lesson
       // catalogue is the authoritative mapping to its playable Lido bundle.
+      let mappedLesson = launchedLesson;
+      if (mappedLesson && !mappedLesson.lido_lesson_id) {
+        mappedLesson =
+          (await getLessonFromLocalCatalog(
+            mappedLesson.cocos_lesson_id ?? cubaLessonId,
+          )) ?? mappedLesson;
+      }
       const resolvedLesson =
-        (launchedLesson?.lido_lesson_id
-          ? launchedLesson
-          : ((await SqliteApi.getI().getLessonWithCocosLessonId(
-              launchedLesson?.cocos_lesson_id ?? cubaLessonId,
-            )) ?? launchedLesson)) ??
+        mappedLesson ??
         (launchData.chimpleLessonId
           ? createRespectBundleLesson(launchData.chimpleLessonId)
           : null);
@@ -157,7 +195,10 @@ export const prepareRespectLessonLaunch =
       const existingBundlePath = await Util.getLessonPath({
         lessonId: playableLessonId,
       });
-      if (!existingBundlePath) {
+      if (
+        !existingBundlePath &&
+        !(await hasPackagedLessonZip(playableLessonId))
+      ) {
         const downloaded = await Util.downloadZipBundle(
           [lesson],
           undefined,
@@ -167,7 +208,9 @@ export const prepareRespectLessonLaunch =
         const downloadedBundlePath = await Util.getLessonPath({
           lessonId: playableLessonId,
         });
-        if (!downloaded || !downloadedBundlePath) {
+        const packagedZipAvailable =
+          await hasPackagedLessonZip(playableLessonId);
+        if (!downloaded || (!downloadedBundlePath && !packagedZipAvailable)) {
           // Return to the launcher when its selected lesson is unavailable.
           await returnToLauncherIfNeeded();
           receivedRespectLessonLaunch = false;

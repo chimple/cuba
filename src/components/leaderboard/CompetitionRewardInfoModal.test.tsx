@@ -36,7 +36,7 @@ it.each([
   },
 );
 
-it('does not substitute completed lessons for a missing pathway target', () => {
+it('shows an empty progress row when the pathway target is missing', () => {
   render(
     <CompetitionRewardInfoModal
       reward={{
@@ -49,7 +49,8 @@ it('does not substitute completed lessons for a missing pathway target', () => {
     />,
   );
   expect(
-    screen.getByText('competition_pathway_target_unavailable'),
+    screen.getByText('competition_homepage_lessons_completed'),
   ).toBeInTheDocument();
-  expect(screen.queryByText('12 / 12')).not.toBeInTheDocument();
+  expect(screen.getByText('0 / 0')).toBeInTheDocument();
+  expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
 });
